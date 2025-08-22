@@ -6,6 +6,7 @@
         <router-link to="/">Upload</router-link>
         <router-link to="/usuarios">Usuários</router-link>
         <router-link to="/hanking">Hanking</router-link>
+        <router-link to="/setores">Setores</router-link>
       </nav>
     </header>
 

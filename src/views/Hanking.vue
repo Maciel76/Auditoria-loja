@@ -26,9 +26,9 @@
       </div>
       <div class="hero-decoration">
         <div class="trophy-animation">
-          <span class="icon gold ajuste-ico">👑</span>
-          <span class="icon silver ajuste-ico">🥈</span>
-          <span class="icon bronze ajuste-ico">🥉</span>
+          <span class="icon gold">🥇</span>
+          <span class="icon silver">🥈</span>
+          <span class="icon bronze">🥉</span>
         </div>
       </div>
     </div>
@@ -159,11 +159,15 @@
         <div
           v-for="(usuario, index) in usuariosFiltradosOrdenados"
           :key="usuario.id"
-          :class="['ranking-item', getRankingClass(index)]"
+          :class="[
+            'ranking-item',
+            getRankingClass(viewMode === 'podium' ? index + 3 : index),
+          ]"
         >
           <div class="rank-number">
-            <span v-if="index < 3" class="medal-rank">{{ index + 1 }}º</span>
-            <span v-else class="normal-rank">{{ index + 1 }}º</span>
+            <span class="normal-rank"
+              >{{ viewMode === "podium" ? index + 4 : index + 1 }}º</span
+            >
           </div>
 
           <div class="user-info">
@@ -193,8 +197,13 @@
             <div class="score-value">{{ usuario.contador }} itens</div>
           </div>
 
-          <div class="ranking-badge" :class="getBadgeClass(index)">
-            <span :class="getBadgeIcon(index)"></span>
+          <div
+            class="ranking-badge"
+            :class="getBadgeClass(viewMode === 'podium' ? index + 3 : index)"
+          >
+            <span
+              :class="getBadgeIcon(viewMode === 'podium' ? index + 3 : index)"
+            ></span>
           </div>
         </div>
       </div>
@@ -232,6 +241,15 @@
           <p class="stat-value">{{ totalItensLidos }} itens</p>
           <p class="stat-label">Total verificado pelo time</p>
         </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="icon">📈</span>
+          </div>
+          <h3>Eficiência</h3>
+          <p class="stat-value">{{ percentualAboveAverage }}%</p>
+          <p class="stat-label">Acima da média</p>
+        </div>
       </div>
     </div>
 
@@ -244,131 +262,133 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue";
+<script>
+export default {
+  name: "RankingPremium",
+  data() {
+    return {
+      usuarios: [],
+      filtro: "",
+      viewMode: "podium",
+    };
+  },
+  computed: {
+    usuariosOrdenados() {
+      return [...this.usuarios].sort((a, b) => b.contador - a.contador);
+    },
+    usuariosFiltradosOrdenados() {
+      let filtered = this.usuariosOrdenados;
 
-const usuarios = ref([]);
-const filtro = ref("");
-const viewMode = ref("podium");
+      if (this.filtro) {
+        const searchTerm = this.filtro.toLowerCase();
+        filtered = filtered.filter(
+          (usuario) =>
+            usuario.nome.toLowerCase().includes(searchTerm) ||
+            usuario.id.toLowerCase().includes(searchTerm)
+        );
+      }
 
-// Carregar usuários do localStorage
-onMounted(() => {
-  carregarUsuarios();
-});
+      if (this.viewMode === "podium") {
+        return filtered.slice(3);
+      }
 
-const carregarUsuarios = () => {
-  const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
-  if (usuariosSalvos) {
-    usuarios.value = JSON.parse(usuariosSalvos);
-  }
-};
+      return filtered;
+    },
+    totalItensLidos() {
+      return this.usuarios.reduce(
+        (total, usuario) => total + usuario.contador,
+        0
+      );
+    },
+    mediaItensPorUsuario() {
+      return this.usuarios.length
+        ? Math.round(this.totalItensLidos / this.usuarios.length)
+        : 0;
+    },
+    topPerformer() {
+      return this.usuariosOrdenados[0] || { nome: "N/A", contador: 0 };
+    },
+    percentualAboveAverage() {
+      if (this.usuarios.length === 0) return 0;
+      const aboveAverage = this.usuarios.filter(
+        (u) => u.contador > this.mediaItensPorUsuario
+      ).length;
+      return Math.round((aboveAverage / this.usuarios.length) * 100);
+    },
+  },
+  mounted() {
+    this.carregarUsuarios();
+  },
+  methods: {
+    carregarUsuarios() {
+      const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
+      if (usuariosSalvos) {
+        this.usuarios = JSON.parse(usuariosSalvos);
+      }
+    },
+    calcularProgresso(itens) {
+      const maxItens = this.usuariosOrdenados[0]?.contador || 1;
+      return (itens / maxItens) * 100;
+    },
+    getRankingClass(index) {
+      if (index === 0) return "first-place";
+      if (index === 1) return "second-place";
+      if (index === 2) return "third-place";
+      if (index < 10) return "top-ten";
+      return "";
+    },
+    getBadgeClass(index) {
+      if (index === 0) return "gold-badge";
+      if (index === 1) return "silver-badge";
+      if (index === 2) return "bronze-badge";
+      if (index < 10) return "top-ten-badge";
+      return "normal-badge";
+    },
+    getBadgeIcon(index) {
+      if (index === 0) return 'icon">👑';
+      if (index === 1) return 'icon">🥈';
+      if (index === 2) return 'icon">🥉';
+      if (index < 10) return 'icon">⭐';
+      return 'icon">👤';
+    },
+    exportarRanking() {
+      const rankingData = this.usuariosOrdenados.map((user, index) => ({
+        Posição: `${index + 1}º`,
+        Nome: user.nome,
+        Matrícula: user.id,
+        "Itens Verificados": user.contador,
+      }));
 
-// Ordenar usuários por itens lidos (decrescente)
-const usuariosOrdenados = computed(() => {
-  return [...usuarios.value].sort((a, b) => b.contador - a.contador);
-});
+      const csvContent = [
+        "Posição,Nome,Matrícula,Itens Verificados",
+        ...rankingData.map(
+          (item) =>
+            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Verificados"]}`
+        ),
+      ].join("\n");
 
-// Filtrar e ordenar usuários para a lista
-const usuariosFiltradosOrdenados = computed(() => {
-  let filtered = usuariosOrdenados.value;
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
 
-  if (filtro.value) {
-    const searchTerm = filtro.value.toLowerCase();
-    filtered = filtered.filter(
-      (usuario) =>
-        usuario.nome.toLowerCase().includes(searchTerm) ||
-        usuario.id.toLowerCase().includes(searchTerm)
-    );
-  }
+      link.setAttribute("href", url);
+      link.setAttribute("download", "ranking_colaboradores.csv");
+      link.style.visibility = "hidden";
 
-  if (viewMode.value === "podium") {
-    return filtered.slice(3);
-  }
-
-  return filtered;
-});
-
-// Estatísticas
-const totalItensLidos = computed(() => {
-  return usuarios.value.reduce((total, usuario) => total + usuario.contador, 0);
-});
-
-const mediaItensPorUsuario = computed(() => {
-  return usuarios.value.length
-    ? Math.round(totalItensLidos.value / usuarios.value.length)
-    : 0;
-});
-
-const topPerformer = computed(() => {
-  return usuariosOrdenados.value[0] || { nome: "N/A", contador: 0 };
-});
-
-// Funções auxiliares
-const calcularProgresso = (itens) => {
-  const maxItens = usuariosOrdenados.value[0]?.contador || 1;
-  return (itens / maxItens) * 100;
-};
-
-const getRankingClass = (index) => {
-  if (index === 0) return "first-place";
-  if (index === 1) return "second-place";
-  if (index === 2) return "third-place";
-  if (index < 10) return "top-ten";
-  return "";
-};
-
-const getBadgeClass = (index) => {
-  if (index === 0) return "gold-badge";
-  if (index === 1) return "silver-badge";
-  if (index === 2) return "bronze-badge";
-  if (index < 10) return "top-ten-badge";
-  return "normal-badge";
-};
-
-const getBadgeIcon = (index) => {
-  if (index === 0) return 'icon">👑';
-  if (index === 1) return 'icon">🥈';
-  if (index === 2) return 'icon">🥉';
-  if (index < 10) return 'icon">⭐';
-  return 'icon">👤';
-};
-
-const exportarRanking = () => {
-  const rankingData = usuariosOrdenados.value.map((user, index) => ({
-    Posição: `${index + 1}º`,
-    Nome: user.nome,
-    Matrícula: user.id,
-    "Itens Verificados": user.contador,
-  }));
-
-  const csvContent = [
-    "Posição,Nome,Matrícula,Itens Verificados",
-    ...rankingData.map(
-      (item) =>
-        `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Verificados"]}`
-    ),
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-
-  link.setAttribute("href", url);
-  link.setAttribute("download", "ranking_colaboradores.csv");
-  link.style.visibility = "hidden";
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+  },
 };
 </script>
 
 <style scoped>
 .ranking-premium-container {
-  max-width: 1200px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Poppins", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
 }
@@ -439,13 +459,13 @@ const exportarRanking = () => {
 
 .trophy-animation {
   position: relative;
-  animation: float 3s ease-in-out infinite;
+  display: flex;
+  gap: 15px;
 }
 
 .trophy-animation .icon {
   font-size: 3rem;
-  margin: 0 5px;
-  animation: shine 2s ease-in-out infinite;
+  animation: float 3s ease-in-out infinite;
 }
 
 .trophy-animation .gold {
@@ -505,6 +525,9 @@ const exportarRanking = () => {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .view-btn.active {
@@ -624,22 +647,24 @@ const exportarRanking = () => {
 }
 
 .score-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 8px 15px;
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-.gold {
+.score-badge.gold {
   background: #fff9db;
   color: #e67700;
 }
-.silver {
+.score-badge.silver {
   background: #f8f9fa;
   color: #495057;
 }
-.bronze {
+.score-badge.bronze {
   background: #fff3e0;
   color: #f76707;
 }
@@ -687,26 +712,13 @@ const exportarRanking = () => {
   font-size: 1.2rem;
 }
 
-.medal-rank {
+.normal-rank {
   display: inline-block;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   line-height: 40px;
   text-align: center;
-}
-
-.first-place .medal-rank {
-  background: #ffd700;
-  color: white;
-}
-.second-place .medal-rank {
-  background: #c0c0c0;
-  color: white;
-}
-.third-place .medal-rank {
-  background: #cd7f32;
-  color: white;
 }
 
 .user-info {
@@ -758,10 +770,6 @@ const exportarRanking = () => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 4px;
   transition: width 1s ease;
-}
-
-.ajuste-ico {
-  background-color: transparent;
 }
 
 .score-value {
@@ -858,6 +866,10 @@ const exportarRanking = () => {
   cursor: pointer;
   transition: transform 0.3s ease;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
 }
 
 .export-btn:hover {
