@@ -67,31 +67,6 @@
             <p class="usuario-matricula">Matrícula: {{ usuario.id }}</p>
           </div>
         </div>
-
-        <div class="card-stats">
-          <div class="stat">
-            <span class="stat-number">{{ usuario.contador }}</span>
-            <span class="stat-label">Itens lidos</span>
-          </div>
-
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div
-                class="progress-fill"
-                :style="{
-                  width: Math.min(100, (usuario.contador / 500) * 100) + '%',
-                }"
-                :class="{ complete: usuario.contador >= 500 }"
-              ></div>
-            </div>
-            <span class="progress-text"
-              >{{
-                Math.min(100, Math.round((usuario.contador / 500) * 100))
-              }}%</span
-            >
-          </div>
-        </div>
-
         <div class="card-actions">
           <button class="action-btn" @click.stop="irParaPerfil(usuario)">
             <span class="icon">👀</span> Ver Perfil
@@ -110,6 +85,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "ListaUsuarios",
   data() {
@@ -163,11 +140,16 @@ export default {
     this.carregarUsuarios();
   },
   methods: {
-    carregarUsuarios() {
-      const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
-      if (usuariosSalvos) {
-        this.usuarios = JSON.parse(usuariosSalvos);
-
+    async carregarUsuarios() {
+      try {
+        const { data } = await axios.get("http://localhost:3000/usuarios");
+        this.usuarios = data.map((user) => ({
+          id: user.nome,
+          nome: user.nome,
+          contador: user.contador || 0,
+          iniciais: this.obterIniciais(user.nome),
+          foto: null,
+        }));
         // Calcular média
         const total = this.usuarios.reduce(
           (sum, usuario) => sum + usuario.contador,
@@ -177,11 +159,8 @@ export default {
           this.usuarios.length > 0
             ? Math.round(total / this.usuarios.length)
             : 0;
-
-        // Adicionar iniciais
-        this.usuarios.forEach((usuario) => {
-          usuario.iniciais = this.obterIniciais(usuario.nome);
-        });
+      } catch (error) {
+        console.error("Erro ao carregar usuários:", error);
       }
     },
 

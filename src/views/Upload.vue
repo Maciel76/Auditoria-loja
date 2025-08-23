@@ -13,9 +13,22 @@
       <p v-if="arquivo" class="file-name">{{ arquivo.name }}</p>
     </div>
 
-    <button @click="enviarArquivo" :disabled="!arquivo" class="upload-btn">
-      Enviar Planilha
+    <button
+      @click="enviarArquivo"
+      :disabled="!arquivo || carregando"
+      class="upload-btn"
+    >
+      <span v-if="!carregando">Enviar Planilha</span>
+      <div v-else class="loading-spinner"></div>
     </button>
+
+    <!-- Overlay e spinner durante o carregamento -->
+    <div v-if="carregando" class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <p>Processando sua planilha...</p>
+      </div>
+    </div>
 
     <div v-if="resposta" class="resposta-container">
       <h3>Resultado do Processamento</h3>
@@ -51,6 +64,7 @@ import axios from "axios";
 const arquivo = ref(null);
 const resposta = ref(null);
 const mostrarPrevia = ref(false);
+const carregando = ref(false);
 
 const handleFile = (e) => {
   arquivo.value = e.target.files[0];
@@ -65,6 +79,9 @@ const handleDrop = (e) => {
 
 const enviarArquivo = async () => {
   if (!arquivo.value) return;
+
+  carregando.value = true;
+  resposta.value = null;
 
   try {
     const formData = new FormData();
@@ -85,6 +102,8 @@ const enviarArquivo = async () => {
       erro: "Falha no upload",
       detalhes: error.message,
     };
+  } finally {
+    carregando.value = false;
   }
 };
 
@@ -118,6 +137,7 @@ const armazenarDados = () => {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
+  position: relative;
 }
 
 .upload-box {
@@ -161,11 +181,61 @@ input[type="file"] {
   cursor: pointer;
   font-size: 16px;
   width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .upload-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.loading-content .spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #42b883;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
 }
 
 .resposta-container {

@@ -248,6 +248,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "SetoresAnalise",
   data() {
@@ -375,17 +377,18 @@ export default {
     this.carregarDados();
   },
   methods: {
-    carregarDados() {
-      const dadosSalvos = localStorage.getItem("dadosPlanilha");
-      if (dadosSalvos) {
-        this.dadosPlanilha = JSON.parse(dadosSalvos);
-
-        // Normalizar dados para garantir consistência
-        this.dadosPlanilha = this.dadosPlanilha.map((item) => ({
+    async carregarDados() {
+      try {
+        const { data } = await axios.get(
+          "http://localhost:3000/dados-planilha"
+        );
+        this.dadosPlanilha = data.map((item) => ({
           ...item,
           Situacao: item.Situacao || item.Situação || "Não lido",
           Local: item.Local || "Não especificado",
         }));
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
       }
     },
 

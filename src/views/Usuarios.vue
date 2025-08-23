@@ -6,8 +6,33 @@
       <p>Gestão de colaboradores e auditorias</p>
     </div>
 
-    <!-- Controles -->
-    <div class="controles">
+    <!-- Filtros de data -->
+    <div class="filtros-data">
+      <div class="filtro-group">
+        <label>Filtrar por data:</label>
+        <select v-model="dataFiltro" @change="carregarUsuariosDoBackend">
+          <option value="">Todas as datas</option>
+          <option v-for="data in datasAuditoria" :key="data" :value="data">
+            {{ formatarData(data) }}
+          </option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Período:</label>
+        <select v-model="periodoFiltro" @change="aplicarFiltroPeriodo">
+          <option value="hoje">Hoje</option>
+          <option value="semana">Esta semana</option>
+          <option value="mes">Este mês</option>
+          <option value="personalizado">Personalizado</option>
+        </select>
+      </div>
+      <div v-if="periodoFiltro === 'personalizado'" class="filtro-group">
+        <label>De:</label>
+        <input type="date" v-model="dataInicio" />
+        <label>Até:</label>
+        <input type="date" v-model="dataFim" />
+        <button @click="aplicarFiltroPersonalizado">Aplicar</button>
+      </div>
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input
@@ -17,9 +42,8 @@
           class="search-input"
         />
       </div>
-
       <div class="actions">
-        <button @click="carregarUsuarios" class="btn btn-refresh">
+        <button @click="carregarUsuariosDoBackend" class="btn btn-refresh">
           <i class="fas fa-sync-alt"></i> Atualizar
         </button>
         <button @click="confirmarLimpeza" class="btn btn-clear">
@@ -172,36 +196,96 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import axios from "axios";
 
 const usuarios = ref([]);
 const filtro = ref("");
 const carregando = ref(true);
 const erro = ref("");
 const showConfirmModal = ref(false);
+const dataFiltro = ref("");
+const datasAuditoria = ref([]);
+const periodoFiltro = ref("hoje");
+const dataInicio = ref("");
+const dataFim = ref("");
 
-// Carregar usuários do localStorage ao inicializar
 onMounted(() => {
-  carregarUsuariosDoStorage();
+  carregarDatasAuditoria();
+  carregarUsuariosDoBackend();
 });
 
-// Carregar usuários do localStorage
-const carregarUsuariosDoStorage = () => {
+const carregarDatasAuditoria = async () => {
+  try {
+    const { data } = await axios.get("http://localhost:3000/datas-auditoria");
+    datasAuditoria.value = data;
+  } catch (error) {
+    console.error("Erro ao carregar datas:", error);
+  }
+};
+
+const carregarUsuariosDoBackend = async () => {
   try {
     carregando.value = true;
-    const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
-
-    if (usuariosSalvos) {
-      usuarios.value = JSON.parse(usuariosSalvos);
+    let params = {};
+    if (dataFiltro.value) {
+      params.data = dataFiltro.value;
     }
-
-    // Sempre tentar carregar da planilha também para atualizar
-    carregarUsuarios();
+    const { data } = await axios.get("http://localhost:3000/usuarios", {
+      params,
+    });
+    usuarios.value = data.map((user) => ({
+      id: user.id || user.nome,
+      nome: user.nome,
+      contador: dataFiltro.value ? user.contadorDia : user.contadorTotal,
+      contadorTotal: user.contadorTotal,
+      iniciais: obterIniciais(user.nome),
+      foto: null,
+      auditorias: user.auditorias || [],
+    }));
   } catch (error) {
     console.error("Erro ao carregar usuários:", error);
-    erro.value = "Erro ao carregar dados salvos";
+    erro.value = "Erro ao carregar dados do servidor";
   } finally {
     carregando.value = false;
   }
+};
+
+const aplicarFiltroPeriodo = () => {
+  const hoje = new Date();
+  let inicio, fim;
+  switch (periodoFiltro.value) {
+    case "hoje":
+      dataFiltro.value = hoje.toISOString().split("T")[0];
+      break;
+    case "semana":
+      inicio = new Date(hoje);
+      inicio.setDate(hoje.getDate() - hoje.getDay());
+      fim = new Date(inicio);
+      fim.setDate(inicio.getDate() + 6);
+      // Implementar lógica para múltiplas datas se necessário
+      dataFiltro.value = "";
+      break;
+    case "mes":
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+      // Implementar lógica para múltiplas datas se necessário
+      dataFiltro.value = "";
+      break;
+  }
+  carregarUsuariosDoBackend();
+};
+
+const aplicarFiltroPersonalizado = () => {
+  // Aqui você pode implementar lógica para buscar usuários por intervalo personalizado
+  // Exemplo: buscar todas as datas entre dataInicio e dataFim
+  // Por enquanto, apenas limpa o filtro de data
+  dataFiltro.value = "";
+  carregarUsuariosDoBackend();
+};
+
+const formatarData = (dataString) => {
+  const data = new Date(dataString);
+  return data.toLocaleDateString("pt-BR");
 };
 
 // Carregar usuários da planilha
@@ -367,6 +451,24 @@ const mediaItensPorUsuario = computed(() =>
 </script>
 
 <style scoped>
+/* Filtros de data */
+.filtros-data {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtro-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-group label {
+  font-weight: bold;
+}
 .usuarios-modern-container {
   max-width: 1200px;
   margin: 0 auto;
