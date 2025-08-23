@@ -1,5 +1,11 @@
 <template>
   <div class="perfil-usuario-container">
+    <!-- Botão Voltar -->
+    <div class="navigation-section">
+      <button class="back-btn" @click="$router.push('/')">
+        <span class="icon">←</span> Voltar para Lista
+      </button>
+    </div>
     <!-- Header do Perfil -->
     <div class="perfil-header">
       <div class="perfil-cover">
@@ -238,18 +244,26 @@
 
 <script>
 export default {
-  name: "PerfilUsuario",
+  name: "ListaUsuarios",
+  props: {
+    id: {
+      // Recebido da rota como parâmetro
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       usuario: {
-        id: "",
+        id: this.id,
         nome: "",
         contador: 0,
         iniciais: "",
         foto: null,
       },
-      mediaGeral: 85, // Exemplo - deveria vir de uma API ou cálculo
+      mediaGeral: 85,
       atividadesRecentes: [],
+      dadosUsuario: [], // Adicionado para armazenar dados específicos do usuário
       selos: [
         {
           id: 1,
@@ -295,6 +309,9 @@ export default {
       ],
     };
   },
+  mounted() {
+    this.carregarUsuarioPorId(this.id);
+  },
   computed: {
     percentualConcluido() {
       return Math.min(100, Math.round((this.usuario.contador / 500) * 100));
@@ -311,19 +328,17 @@ export default {
     },
 
     corredoresUnicos() {
-      const dados = this.getDadosUsuario() || [];
       const corredores = new Set();
-      dados.forEach((item) => {
+      this.dadosUsuario.forEach((item) => {
         if (item.Local) corredores.add(item.Local);
       });
       return Array.from(corredores);
     },
 
     corredoresComContagem() {
-      const dados = this.getDadosUsuario() || [];
       const contagem = {};
 
-      dados.forEach((item) => {
+      this.dadosUsuario.forEach((item) => {
         if (item.Local) {
           contagem[item.Local] = (contagem[item.Local] || 0) + 1;
         }
@@ -344,41 +359,85 @@ export default {
     },
 
     itensFaltantes() {
-      const dados = this.getDadosUsuario() || [];
-      return dados.filter((item) => {
+      return this.dadosUsuario.filter((item) => {
         const estoque = parseInt(item["Estoque atual"]) || 0;
-        return estoque < 10; // Considera baixo estoque menos de 10 unidades
+        return estoque < 10;
       });
     },
   },
-  mounted() {
-    this.carregarDadosUsuario();
-    this.carregarAtividades();
-    this.verificarSelos();
-  },
+  // Removido watcher usuarioSelecionado, não utilizado
   methods: {
-    carregarDadosUsuario() {
-      // Carrega dados do usuário do localStorage
+    carregarUsuarioPorId(usuarioId) {
       const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
       if (usuariosSalvos) {
         const usuarios = JSON.parse(usuariosSalvos);
-        // Aqui você precisaria identificar qual usuário está visualizando
-        // Por enquanto, pega o primeiro como exemplo
-        this.usuario = usuarios[0] || {};
-        this.usuario.iniciais = this.obterIniciais(this.usuario.nome);
+        const usuarioEncontrado = usuarios.find((u) => u.id === usuarioId);
+        if (usuarioEncontrado) {
+          this.usuario = { ...usuarioEncontrado };
+          this.usuario.iniciais = this.obterIniciais(this.usuario.nome);
+          this.carregarDadosDetalhados(usuarioId);
+        } else {
+          console.error("Usuário não encontrado:", usuarioId);
+          // Redirecionar para lista se usuário não for encontrado
+          this.$router.push("/");
+        }
       }
     },
+    // ...existing code...
+    carregarDadosUsuario(usuario) {
+      this.usuario = { ...usuario };
+      this.usuario.iniciais = this.obterIniciais(usuario.nome);
+      this.carregarDadosDetalhados(usuario.id);
+    },
 
-    getDadosUsuario() {
-      // Obtém todos os dados da planilha filtrados por este usuário
+    carregarDadosDetalhados(usuarioId) {
+      // Carregar dados específicos deste usuário
       const dadosPlanilha = localStorage.getItem("dadosPlanilha");
       if (dadosPlanilha) {
         const dados = JSON.parse(dadosPlanilha);
-        return dados.filter(
-          (item) => item.Usuario && item.Usuario.includes(this.usuario.id)
-        );
+
+        // Filtrar dados para este usuário específico
+        this.dadosUsuario = dados.filter((item) => {
+          if (!item.Usuario) return false;
+
+          // Verifica se o campo Usuario contém o ID do usuário
+          // Formato esperado: "3642445 (ADILSON CESAR SILVA DOS REIS)"
+          const match = item.Usuario.match(/^(\d+)\s*\(/);
+          return match && match[1] === usuarioId;
+        });
+
+        // Processar timeline a partir dos dados reais
+        this.processarTimeline();
       }
-      return [];
+
+      this.verificarSelos();
+    },
+
+    processarTimeline() {
+      // Criar timeline a partir dos dados reais (últimos 5 itens)
+      this.atividadesRecentes = this.dadosUsuario
+        .slice(-5)
+        .map((item) => {
+          let descricao = "";
+          let detalhes = "";
+
+          if (item.Situacao === "Atualizado") {
+            descricao = "Item verificado";
+            detalhes = `${item.Produto} - Local: ${item.Local}`;
+          } else {
+            descricao = "Item identificado";
+            detalhes = `${item.Produto} - Estoque: ${
+              item["Estoque atual"] || 0
+            }`;
+          }
+
+          return {
+            descricao,
+            detalhes,
+            timestamp: new Date(), // Em produção, usar data real da planilha
+          };
+        })
+        .reverse();
     },
 
     obterIniciais(nome) {
@@ -389,27 +448,6 @@ export default {
         .join("")
         .toUpperCase()
         .substring(0, 2);
-    },
-
-    carregarAtividades() {
-      // Simula atividades recentes - em produção viria dos dados reais
-      this.atividadesRecentes = [
-        {
-          descricao: "Finalizou auditoria no corredor C01",
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
-          detalhes: "45 itens verificados",
-        },
-        {
-          descricao: "Identificou item com baixo estoque",
-          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 horas atrás
-          detalhes: "Produto XXXX com apenas 5 unidades",
-        },
-        {
-          descricao: "Bateu meta diária",
-          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 horas atrás
-          detalhes: "100+ itens auditados hoje",
-        },
-      ];
     },
 
     verificarSelos() {
@@ -424,8 +462,8 @@ export default {
     },
 
     calcularLarguraBarra(valor) {
-      const maxValor = Math.max(this.usuario.contador, this.mediaGeral);
-      return maxValor > 0 ? `${(valor / maxValor) * 100}%` : "0%";
+      const maxValor = Math.max(this.usuario.contador, this.mediaGeral, 1);
+      return `${(valor / maxValor) * 100}%`;
     },
 
     formatarTempo(timestamp) {
@@ -487,7 +525,7 @@ export default {
         navigator
           .share({
             title: `Perfil de ${this.usuario.nome}`,
-            text: `Confira o desempenho de ${this.usuario.nome} no sistema de auditoria!`,
+            text: `Confira o desempenho de ${this.usuario.nome} no sistema de auditoria! ${this.usuario.contador} itens verificados.`,
             url: window.location.href,
           })
           .catch(console.error);
@@ -496,6 +534,10 @@ export default {
           "Seu navegador não suporta a funcionalidade de compartilhamento."
         );
       }
+    },
+
+    voltarParaLista() {
+      this.$emit("voltar-para-lista");
     },
   },
 };
@@ -511,11 +553,11 @@ export default {
 
 /* Header do Perfil */
 .perfil-header {
-  background: white;
+  background: rgb(255, 255, 255);
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  margin-bottom: 30px;
+  margin-top: 20px;
 }
 
 .perfil-cover {
@@ -535,7 +577,7 @@ export default {
 
 .perfil-info {
   padding: 0 30px 30px;
-  margin-top: -75px;
+  margin-top: -30px;
   display: flex;
   align-items: flex-end;
   gap: 30px;
@@ -650,6 +692,31 @@ export default {
   gap: 10px;
 }
 
+.conquistas-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 2px solid #e1e5e9;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.filter-btn.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
 .selos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -672,6 +739,22 @@ export default {
   border-left-color: #ffd43b;
 }
 
+.selo-card.rara {
+  border-left: 4px solid #ffd43b;
+  background: linear-gradient(135deg, #fff9db 0%, #ffec99 100%);
+}
+
+.selo-card.especial {
+  border-left: 4px solid #9c36b5;
+  background: linear-gradient(135deg, #eebefa 0%, #cc5de8 100%);
+  color: white;
+}
+
+.selo-card.especial .selo-info h3,
+.selo-card.especial .selo-info p {
+  color: white;
+}
+
 .selo-icon {
   font-size: 2.5rem;
 }
@@ -691,13 +774,77 @@ export default {
   font-size: 0.9rem;
 }
 
-.selo-status .desbloqueado {
-  color: #51cf66;
-  font-weight: 600;
+.selo-nivel {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff6b6b;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
 }
 
-.selo-status .bloqueado {
-  color: #adb5bd;
+.selo-progresso {
+  margin-top: 10px;
+}
+
+.progresso-bar {
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: #51cf66;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progresso-texto {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.selo-recompensa {
+  margin-top: 8px;
+}
+
+.recompensa-texto {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f76707;
+}
+
+.estatisticas-conquistas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.estatistica {
+  text-align: center;
+}
+
+.estatistica .numero {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.estatistica .label {
+  font-size: 0.9rem;
+  color: #7f8c8d;
 }
 
 /* Estatísticas */

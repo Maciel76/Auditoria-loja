@@ -7,12 +7,18 @@
         <router-link to="/usuarios">Usuários</router-link>
         <router-link to="/hanking">Hanking</router-link>
         <router-link to="/setores">Setores</router-link>
+        <router-link to="/lista">Lista de Usuários</router-link>
       </nav>
     </header>
 
     <router-view />
   </div>
 </template>
+<script>
+export default {
+  name: "App",
+};
+</script>
 
 <style>
 header {
