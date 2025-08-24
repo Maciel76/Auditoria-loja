@@ -2,268 +2,300 @@
   <div class="perfil-usuario-container">
     <!-- Botão Voltar -->
     <div class="navigation-section">
-      <button class="back-btn" @click="$router.push('/')">
+      <button class="back-btn" @click="voltarParaLista">
         <span class="icon">←</span> Voltar para Lista
       </button>
     </div>
-    <!-- Header do Perfil -->
-    <div class="perfil-header">
-      <div class="perfil-cover">
-        <div class="cover-pattern"></div>
-      </div>
 
-      <div class="perfil-info">
-        <div class="avatar-container">
-          <div class="avatar-wrapper">
-            <img
-              v-if="usuario.foto"
-              :src="usuario.foto"
-              :alt="usuario.nome"
-              class="avatar-img"
-            />
-            <div v-else class="avatar-placeholder">
-              {{ usuario.iniciais }}
-            </div>
-            <div class="avatar-badge" v-if="usuario.contador >= 500">
-              <span class="icon">⭐</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="perfil-details">
-          <h1 class="usuario-nome">{{ usuario.nome }}</h1>
-          <p class="usuario-matricula">Matrícula: {{ usuario.id }}</p>
-          <p class="usuario-cargo">Auditor de Estoque</p>
-        </div>
-
-        <div class="perfil-stats">
-          <div class="stat-item">
-            <span class="stat-number">{{ usuario.contador }}</span>
-            <span class="stat-label">Itens Lidos</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">{{ corredoresUnicos.length }}</span>
-            <span class="stat-label">Corredores</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">{{ percentualConcluido }}%</span>
-            <span class="stat-label">Concluído</span>
-          </div>
-        </div>
-      </div>
+    <div v-if="carregando" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando perfil...</p>
     </div>
 
-    <!-- Selos e Conquistas -->
-    <div class="selos-section">
-      <h2 class="section-title">🏆 Conquistas e Selos</h2>
-      <div class="selos-grid">
-        <div
-          v-for="selo in selos"
-          :key="selo.id"
-          :class="['selo-card', { desbloqueado: selo.desbloqueado }]"
-        >
-          <div class="selo-icon">
-            <span class="icon">{{ selo.icone }}</span>
-          </div>
-          <div class="selo-info">
-            <h3>{{ selo.nome }}</h3>
-            <p>{{ selo.descricao }}</p>
-          </div>
-          <div class="selo-status">
-            <span v-if="selo.desbloqueado" class="desbloqueado"
-              >✅ Desbloqueado</span
-            >
-            <span v-else class="bloqueado">🔒 Bloqueado</span>
-          </div>
-        </div>
+    <div v-else-if="!usuario.id" class="error-container">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-triangle"></i>
       </div>
-    </div>
-
-    <!-- Estatísticas Principais -->
-    <div class="estatisticas-section">
-      <div class="stats-grid">
-        <!-- Progresso Geral -->
-        <div class="stat-card main">
-          <h3>📊 Progresso de Auditoria</h3>
-          <div class="progress-container">
-            <div class="progress-circle">
-              <div class="circle-bg"></div>
-              <div class="circle-progress" :style="progressStyle"></div>
-              <div class="circle-text">
-                <span class="percent">{{ percentualConcluido }}%</span>
-                <span class="label">Concluído</span>
-              </div>
-            </div>
-          </div>
-          <div class="progress-details">
-            <div class="detail-item">
-              <span class="value">{{ usuario.contador }}/500</span>
-              <span class="label">Meta de Itens</span>
-            </div>
-            <div class="detail-item">
-              <span
-                class="value"
-                :class="{
-                  positive: diferencaMedia > 0,
-                  negative: diferencaMedia < 0,
-                }"
-              >
-                {{ diferencaMedia > 0 ? "+" : "" }}{{ diferencaMedia }}
-              </span>
-              <span class="label">vs Média Geral</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comparação com Média -->
-        <div class="stat-card">
-          <h3>📈 Desempenho</h3>
-          <div class="comparacao-chart">
-            <div class="bar-container">
-              <div class="bar-label">Sua média</div>
-              <div class="bar">
-                <div
-                  class="bar-fill usuario"
-                  :style="{ width: calcularLarguraBarra(usuario.contador) }"
-                ></div>
-                <span class="bar-value">{{ usuario.contador }}</span>
-              </div>
-            </div>
-            <div class="bar-container">
-              <div class="bar-label">Média geral</div>
-              <div class="bar">
-                <div
-                  class="bar-fill media"
-                  :style="{ width: calcularLarguraBarra(mediaGeral) }"
-                ></div>
-                <span class="bar-value">{{ mediaGeral }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="comparacao-texto">
-            <p v-if="diferencaMedia > 0">
-              🎉 Você está <strong>{{ diferencaMedia }} itens</strong> acima da
-              média!
-            </p>
-            <p v-else-if="diferencaMedia < 0">
-              📉 Você está
-              <strong>{{ Math.abs(diferencaMedia) }} itens</strong> abaixo da
-              média.
-            </p>
-            <p v-else>📊 Você está na média geral.</p>
-          </div>
-        </div>
-
-        <!-- Distribuição por Corredor -->
-        <div class="stat-card">
-          <h3>🗺️ Distribuição por Corredor</h3>
-          <div class="corredores-list">
-            <div
-              v-for="corredor in corredoresComContagem"
-              :key="corredor.nome"
-              class="corredor-item"
-            >
-              <span class="corredor-nome">{{ corredor.nome }}</span>
-              <span class="corredor-contagem"
-                >{{ corredor.contagem }} itens</span
-              >
-              <div class="corredor-bar">
-                <div
-                  class="corredor-progress"
-                  :style="{ width: corredor.percentual + '%' }"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Timeline de Atividades -->
-    <div class="timeline-section" v-if="atividadesRecentes.length > 0">
-      <h2 class="section-title">⏰ Atividades Recentes</h2>
-      <div class="timeline">
-        <div
-          v-for="(atividade, index) in atividadesRecentes"
-          :key="index"
-          class="timeline-item"
-        >
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <h4>{{ atividade.descricao }}</h4>
-            <p class="timeline-time">
-              {{ formatarTempo(atividade.timestamp) }}
-            </p>
-            <p class="timeline-details" v-if="atividade.detalhes">
-              {{ atividade.detalhes }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Itens Faltantes -->
-    <div class="faltantes-section" v-if="itensFaltantes.length > 0">
-      <h2 class="section-title">⚠️ Itens com Baixo Estoque</h2>
-      <div class="faltantes-grid">
-        <div
-          v-for="item in itensFaltantes.slice(0, 6)"
-          :key="item.Código"
-          class="faltante-card"
-        >
-          <div class="faltante-header">
-            <span class="faltante-codigo">{{ item.Código }}</span>
-            <span class="faltante-alerta">⚠️</span>
-          </div>
-          <h4 class="faltante-nome">{{ item.Produto }}</h4>
-          <div class="faltante-details">
-            <div class="detail">
-              <span class="icon">📦</span>
-              <span>Estoque: {{ item["Estoque atual"] }}</span>
-            </div>
-            <div class="detail">
-              <span class="icon">📍</span>
-              <span>{{ item.Local }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Botões de Ação -->
-    <div class="actions-section">
-      <button class="action-btn primary" @click="exportarRelatorio">
-        <span class="icon">📊</span> Exportar Relatório
+      <h3>Usuário não encontrado</h3>
+      <p>O colaborador solicitado não foi encontrado no sistema.</p>
+      <button @click="voltarParaLista" class="btn btn-primary">
+        Voltar para lista
       </button>
-      <button class="action-btn secondary" @click="compartilharPerfil">
-        <span class="icon">📤</span> Compartilhar Perfil
-      </button>
+    </div>
+
+    <div v-else>
+      <!-- Header do Perfil -->
+      <div class="perfil-header">
+        <div class="perfil-cover">
+          <div class="cover-pattern"></div>
+        </div>
+
+        <div class="perfil-info">
+          <div class="avatar-container">
+            <div class="avatar-wrapper">
+              <img
+                v-if="usuario.foto"
+                :src="usuario.foto"
+                :alt="usuario.nome"
+                class="avatar-img"
+              />
+              <div v-else class="avatar-placeholder">
+                {{ usuario.iniciais }}
+              </div>
+              <div class="avatar-badge" v-if="usuario.contador >= 500">
+                <span class="icon">⭐</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="perfil-details">
+            <h1 class="usuario-nome">{{ usuario.nome }}</h1>
+            <p class="usuario-matricula">Matrícula: {{ usuario.id }}</p>
+            <p class="usuario-cargo">Auditor de Estoque</p>
+          </div>
+
+          <div class="perfil-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ usuario.contador }}</span>
+              <span class="stat-label">Itens Lidos</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ corredoresUnicos.length }}</span>
+              <span class="stat-label">Corredores</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ percentualConcluido }}%</span>
+              <span class="stat-label">Concluído</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selos e Conquistas -->
+      <div class="selos-section">
+        <h2 class="section-title">🏆 Conquistas e Selos</h2>
+        <div class="selos-grid">
+          <div
+            v-for="selo in selos"
+            :key="selo.id"
+            :class="['selo-card', { desbloqueado: selo.desbloqueado }]"
+          >
+            <div class="selo-icon">
+              <span class="icon">{{ selo.icone }}</span>
+            </div>
+            <div class="selo-info">
+              <h3>{{ selo.nome }}</h3>
+              <p>{{ selo.descricao }}</p>
+            </div>
+            <div class="selo-status">
+              <span v-if="selo.desbloqueado" class="desbloqueado"
+                >✅ Desbloqueado</span
+              >
+              <span v-else class="bloqueado">🔒 Bloqueado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas Principais -->
+      <div class="estatisticas-section">
+        <div class="stats-grid">
+          <!-- Progresso Geral -->
+          <div class="stat-card main">
+            <h3>📊 Progresso de Auditoria</h3>
+            <div class="progress-container">
+              <div class="progress-circle">
+                <div class="circle-bg"></div>
+                <div class="circle-progress" :style="progressStyle"></div>
+                <div class="circle-text">
+                  <span class="percent">{{ percentualConcluido }}%</span>
+                  <span class="label">Concluído</span>
+                </div>
+              </div>
+            </div>
+            <div class="progress-details">
+              <div class="detail-item">
+                <span class="value">{{ usuario.contador }}/500</span>
+                <span class="label">Meta de Itens</span>
+              </div>
+              <div class="detail-item">
+                <span
+                  class="value"
+                  :class="{
+                    positive: diferencaMedia > 0,
+                    negative: diferencaMedia < 0,
+                  }"
+                >
+                  {{ diferencaMedia > 0 ? "+" : "" }}{{ diferencaMedia }}
+                </span>
+                <span class="label">vs Média Geral</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparação com Média -->
+          <div class="stat-card">
+            <h3>📈 Desempenho</h3>
+            <div class="comparacao-chart">
+              <div class="bar-container">
+                <div class="bar-label">Sua média</div>
+                <div class="bar">
+                  <div
+                    class="bar-fill usuario"
+                    :style="{ width: calcularLarguraBarra(usuario.contador) }"
+                  ></div>
+                  <span class="bar-value">{{ usuario.contador }}</span>
+                </div>
+              </div>
+              <div class="bar-container">
+                <div class="bar-label">Média geral</div>
+                <div class="bar">
+                  <div
+                    class="bar-fill media"
+                    :style="{ width: calcularLarguraBarra(mediaGeral) }"
+                  ></div>
+                  <span class="bar-value">{{ mediaGeral }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="comparacao-texto">
+              <p v-if="diferencaMedia > 0">
+                🎉 Você está <strong>{{ diferencaMedia }} itens</strong> acima
+                da média!
+              </p>
+              <p v-else-if="diferencaMedia < 0">
+                📉 Você está
+                <strong>{{ Math.abs(diferencaMedia) }} itens</strong> abaixo da
+                média.
+              </p>
+              <p v-else>📊 Você está na média geral.</p>
+            </div>
+          </div>
+
+          <!-- Distribuição por Corredor -->
+          <div class="stat-card">
+            <h3>🗺️ Distribuição por Corredor</h3>
+            <div class="corredores-list">
+              <div
+                v-for="corredor in corredoresComContagem"
+                :key="corredor.nome"
+                class="corredor-item"
+              >
+                <span class="corredor-nome">{{ corredor.nome }}</span>
+                <span class="corredor-contagem"
+                  >{{ corredor.contagem }} itens</span
+                >
+                <div class="corredor-bar">
+                  <div
+                    class="corredor-progress"
+                    :style="{ width: corredor.percentual + '%' }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline de Atividades -->
+      <div class="timeline-section" v-if="atividadesRecentes.length > 0">
+        <h2 class="section-title">⏰ Atividades Recentes</h2>
+        <div class="timeline">
+          <div
+            v-for="(atividade, index) in atividadesRecentes"
+            :key="index"
+            class="timeline-item"
+          >
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+              <h4>{{ atividade.descricao }}</h4>
+              <p class="timeline-time">
+                {{ formatarTempo(atividade.timestamp) }}
+              </p>
+              <p class="timeline-details" v-if="atividade.detalhes">
+                {{ atividade.detalhes }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Itens Faltantes -->
+      <div class="faltantes-section" v-if="itensFaltantes.length > 0">
+        <h2 class="section-title">⚠️ Itens com Baixo Estoque</h2>
+        <div class="faltantes-grid">
+          <div
+            v-for="item in itensFaltantes.slice(0, 6)"
+            :key="item.Código"
+            class="faltante-card"
+          >
+            <div class="faltante-header">
+              <span class="faltante-codigo">{{ item.Código }}</span>
+              <span class="faltante-alerta">⚠️</span>
+            </div>
+            <h4 class="faltante-nome">{{ item.Produto }}</h4>
+            <div class="faltante-details">
+              <div class="detail">
+                <span class="icon">📦</span>
+                <span>Estoque: {{ item["Estoque atual"] }}</span>
+              </div>
+              <div class="detail">
+                <span class="icon">📍</span>
+                <span>{{ item.Local }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="actions-section">
+        <button class="action-btn primary" @click="exportarRelatorio">
+          <span class="icon">📊</span> Exportar Relatório
+        </button>
+        <button class="action-btn secondary" @click="compartilharPerfil">
+          <span class="icon">📤</span> Compartilhar Perfil
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { useRouter } from "vue-router";
+
 export default {
-  name: "ListaUsuarios",
+  name: "PerfilUsuario",
   props: {
     id: {
-      // Recebido da rota como parâmetro
       type: String,
       required: true,
     },
   },
+  setup() {
+    const router = useRouter();
+
+    const voltarParaLista = () => {
+      router.push("/lista");
+    };
+
+    return {
+      voltarParaLista,
+    };
+  },
   data() {
     return {
       usuario: {
-        id: this.id,
+        id: "",
         nome: "",
         contador: 0,
         iniciais: "",
         foto: null,
       },
+      carregando: true,
       mediaGeral: 85,
       atividadesRecentes: [],
-      dadosUsuario: [], // Adicionado para armazenar dados específicos do usuário
+      dadosUsuario: [],
       selos: [
         {
           id: 1,
@@ -306,11 +338,101 @@ export default {
           desbloqueado: false,
           condicao: (usuario, itensFaltantes) => itensFaltantes.length >= 10,
         },
+        // Novas conquistas
+        {
+          id: 6,
+          nome: "Maratona",
+          descricao: "Leu mais de 1000 itens",
+          icone: "🏅",
+          desbloqueado: false,
+          condicao: (usuario) => usuario.contador >= 1000,
+        },
+        {
+          id: 7,
+          nome: "Corredor Mestre",
+          descricao: "Cobriu 10+ corredores",
+          icone: "🏆",
+          desbloqueado: false,
+          condicao: (usuario, corredores) => corredores.length >= 10,
+        },
+        {
+          id: 8,
+          nome: "Zero Faltas",
+          descricao: "Nenhum item com estoque baixo",
+          icone: "🛡️",
+          desbloqueado: false,
+          condicao: (usuario, itensFaltantes) => itensFaltantes.length === 0,
+        },
+        {
+          id: 9,
+          nome: "Relâmpago",
+          descricao: "Verificou 50 itens em menos de 1 hora",
+          icone: "⚡",
+          desbloqueado: false,
+          condicao: (
+            usuario,
+            corredores,
+            mediaGeral,
+            itensFaltantes,
+            atividadesRecentes
+          ) => {
+            // Exemplo: verifica se há 50 atividades recentes em menos de 1 hora
+            if (!atividadesRecentes || atividadesRecentes.length < 50)
+              return false;
+            const primeira = atividadesRecentes[0]?.timestamp;
+            const ultima = atividadesRecentes[49]?.timestamp;
+            if (!primeira || !ultima) return false;
+            return (primeira - ultima) / (1000 * 60 * 60) < 1;
+          },
+        },
+        {
+          id: 10,
+          nome: "Regularidade",
+          descricao: "Fez auditoria por 5 dias seguidos",
+          icone: "📅",
+          desbloqueado: false,
+          condicao: (usuario) => {
+            // Exemplo: verifica se há auditorias em 5 dias consecutivos
+            if (!usuario.auditorias || usuario.auditorias.length < 5)
+              return false;
+            const datas = usuario.auditorias
+              .map((a) => new Date(a.data).setHours(0, 0, 0, 0))
+              .sort();
+            let consecutivos = 1;
+            for (let i = 1; i < datas.length; i++) {
+              if (datas[i] - datas[i - 1] === 86400000) {
+                consecutivos++;
+                if (consecutivos >= 5) return true;
+              } else {
+                consecutivos = 1;
+              }
+            }
+            return false;
+          },
+        },
+        {
+          id: 11,
+          nome: "Primeiro Dia",
+          descricao: "Fez sua primeira auditoria",
+          icone: "🎉",
+          desbloqueado: false,
+          condicao: (usuario) =>
+            usuario.auditorias && usuario.auditorias.length > 0,
+        },
+        {
+          id: 12,
+          nome: "Veterano",
+          descricao: "Fez auditoria em 20 dias diferentes",
+          icone: "🥇",
+          desbloqueado: false,
+          condicao: (usuario) =>
+            usuario.auditorias && usuario.auditorias.length >= 20,
+        },
       ],
     };
   },
-  mounted() {
-    this.carregarUsuarioPorId(this.id);
+  async mounted() {
+    await this.carregarUsuarioPorId(this.id);
   },
   computed: {
     percentualConcluido() {
@@ -367,20 +489,38 @@ export default {
   },
   // Removido watcher usuarioSelecionado, não utilizado
   methods: {
-    carregarUsuarioPorId(usuarioId) {
-      const usuariosSalvos = localStorage.getItem("usuariosAuditoria");
-      if (usuariosSalvos) {
-        const usuarios = JSON.parse(usuariosSalvos);
-        const usuarioEncontrado = usuarios.find((u) => u.id === usuarioId);
-        if (usuarioEncontrado) {
-          this.usuario = { ...usuarioEncontrado };
-          this.usuario.iniciais = this.obterIniciais(this.usuario.nome);
-          this.carregarDadosDetalhados(usuarioId);
+    async carregarUsuarioPorId(usuarioId) {
+      try {
+        this.carregando = true;
+        // Busca usuário pelo backend
+        const response = await fetch(`http://localhost:3000/usuarios`);
+        if (response.ok) {
+          const usuarios = await response.json();
+          // Busca pelo id ou _id
+          const usuarioEncontrado = Array.isArray(usuarios)
+            ? usuarios.find((u) => u.id === usuarioId || u._id === usuarioId)
+            : usuarios.id === usuarioId || usuarios._id === usuarioId
+            ? usuarios
+            : null;
+          if (usuarioEncontrado) {
+            this.usuario = {
+              ...usuarioEncontrado,
+              iniciais: this.obterIniciais(usuarioEncontrado.nome),
+            };
+            await this.carregarDadosDetalhados(
+              usuarioEncontrado.id || usuarioEncontrado._id
+            );
+          } else {
+            console.error("Usuário não encontrado:", usuarioId);
+            this.$router.push("/");
+          }
         } else {
-          console.error("Usuário não encontrado:", usuarioId);
-          // Redirecionar para lista se usuário não for encontrado
-          this.$router.push("/");
+          console.error("Erro ao carregar usuário:", response.status);
         }
+      } catch (error) {
+        console.error("Erro ao carregar usuário:", error);
+      } finally {
+        this.carregando = false;
       }
     },
     // ...existing code...
@@ -390,27 +530,24 @@ export default {
       this.carregarDadosDetalhados(usuario.id);
     },
 
-    carregarDadosDetalhados(usuarioId) {
-      // Carregar dados específicos deste usuário
-      const dadosPlanilha = localStorage.getItem("dadosPlanilha");
-      if (dadosPlanilha) {
-        const dados = JSON.parse(dadosPlanilha);
-
-        // Filtrar dados para este usuário específico
-        this.dadosUsuario = dados.filter((item) => {
-          if (!item.Usuario) return false;
-
-          // Verifica se o campo Usuario contém o ID do usuário
-          // Formato esperado: "3642445 (ADILSON CESAR SILVA DOS REIS)"
-          const match = item.Usuario.match(/^(\d+)\s*\(/);
-          return match && match[1] === usuarioId;
-        });
-
-        // Processar timeline a partir dos dados reais
-        this.processarTimeline();
+    async carregarDadosDetalhados(usuarioId) {
+      // Busca auditorias e itens do usuário pelo backend
+      try {
+        const response = await fetch(
+          `http://localhost:3000/usuarios/${usuarioId}/auditorias`
+        );
+        if (response.ok) {
+          const auditorias = await response.json();
+          // Supondo que auditorias seja um array de itens auditados
+          this.dadosUsuario = auditorias;
+          this.processarTimeline();
+          this.verificarSelos();
+        } else {
+          console.error("Erro ao carregar dados detalhados:", response.status);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados detalhados:", error);
       }
-
-      this.verificarSelos();
     },
 
     processarTimeline() {
@@ -452,11 +589,13 @@ export default {
 
     verificarSelos() {
       this.selos.forEach((selo) => {
+        // Passa todos os parâmetros possíveis para as conquistas
         selo.desbloqueado = selo.condicao(
           this.usuario,
           this.corredoresUnicos,
           this.mediaGeral,
-          this.itensFaltantes
+          this.itensFaltantes,
+          this.atividadesRecentes
         );
       });
     },
@@ -537,13 +676,45 @@ export default {
     },
 
     voltarParaLista() {
-      this.$emit("voltar-para-lista");
+      // Garante navegação para rota correta
+      if (this.$router) {
+        this.$router.push({ name: "ListaUsuarios" });
+      } else {
+        window.location.href = "/lista";
+      }
     },
   },
 };
 </script>
 
 <style scoped>
+.navigation-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+  transform: translateY(-2px);
+}
 .perfil-usuario-container {
   max-width: 1200px;
   margin: 0 auto;

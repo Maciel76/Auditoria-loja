@@ -6,33 +6,8 @@
       <p>Gestão de colaboradores e auditorias</p>
     </div>
 
-    <!-- Filtros de data -->
-    <div class="filtros-data">
-      <div class="filtro-group">
-        <label>Filtrar por data:</label>
-        <select v-model="dataFiltro" @change="carregarUsuariosDoBackend">
-          <option value="">Todas as datas</option>
-          <option v-for="data in datasAuditoria" :key="data" :value="data">
-            {{ formatarData(data) }}
-          </option>
-        </select>
-      </div>
-      <div class="filtro-group">
-        <label>Período:</label>
-        <select v-model="periodoFiltro" @change="aplicarFiltroPeriodo">
-          <option value="hoje">Hoje</option>
-          <option value="semana">Esta semana</option>
-          <option value="mes">Este mês</option>
-          <option value="personalizado">Personalizado</option>
-        </select>
-      </div>
-      <div v-if="periodoFiltro === 'personalizado'" class="filtro-group">
-        <label>De:</label>
-        <input type="date" v-model="dataInicio" />
-        <label>Até:</label>
-        <input type="date" v-model="dataFim" />
-        <button @click="aplicarFiltroPersonalizado">Aplicar</button>
-      </div>
+    <!-- Filtros -->
+    <div class="filtros-section">
       <div class="search-box">
         <i class="fas fa-search"></i>
         <input
@@ -42,12 +17,20 @@
           class="search-input"
         />
       </div>
+
+      <div class="filtro-data">
+        <label>Filtrar por data:</label>
+        <select v-model="dataFiltro" @change="carregarUsuarios">
+          <option value="">Todas as datas</option>
+          <option v-for="data in datasAuditoria" :key="data" :value="data">
+            {{ formatarData(data) }}
+          </option>
+        </select>
+      </div>
+
       <div class="actions">
-        <button @click="carregarUsuariosDoBackend" class="btn btn-refresh">
+        <button @click="carregarUsuarios" class="btn btn-refresh">
           <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-        <button @click="confirmarLimpeza" class="btn btn-clear">
-          <i class="fas fa-trash"></i> Limpar Tudo
         </button>
       </div>
     </div>
@@ -136,13 +119,6 @@
             <h3 class="usuario-nome">{{ usuario.nome }}</h3>
             <span class="usuario-matricula">Matrícula: {{ usuario.id }}</span>
           </div>
-          <button
-            @click="removerUsuario(usuario.id)"
-            class="btn-remove"
-            title="Remover usuário"
-          >
-            <i class="fas fa-times"></i>
-          </button>
         </div>
 
         <div class="card-stats">
@@ -150,44 +126,16 @@
             <i class="fas fa-clipboard-list"></i>
             <span>{{ usuario.contador }} Itens Lidos</span>
           </div>
+          <div class="stat" v-if="dataFiltro">
+            <i class="fas fa-calendar-day"></i>
+            <span>Nesta data: {{ usuario.contadorDia || 0 }}</span>
+          </div>
         </div>
 
         <div class="card-actions">
-          <label class="upload-btn">
-            <input
-              type="file"
-              @change="definirFoto($event, usuario.id)"
-              accept="image/*"
-            />
-            <i class="fas fa-camera"></i>
-            Alterar Foto
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de confirmação -->
-    <div v-if="showConfirmModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Confirmar ação</h3>
-          <button @click="showConfirmModal = false" class="modal-close">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>
-            Tem certeza que deseja remover todos os colaboradores? Esta ação não
-            pode ser desfeita.
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button @click="showConfirmModal = false" class="btn btn-secondary">
-            Cancelar
-          </button>
-          <button @click="limparTodosUsuarios" class="btn btn-danger">
-            Confirmar
-          </button>
+          <router-link :to="'/perfil/' + usuario.id" class="action-btn">
+            <i class="fas fa-eye"></i> Ver Detalhes
+          </router-link>
         </div>
       </div>
     </div>
@@ -202,18 +150,16 @@ const usuarios = ref([]);
 const filtro = ref("");
 const carregando = ref(true);
 const erro = ref("");
-const showConfirmModal = ref(false);
 const dataFiltro = ref("");
 const datasAuditoria = ref([]);
-const periodoFiltro = ref("hoje");
-const dataInicio = ref("");
-const dataFim = ref("");
 
+// Carregar usuários do backend MongoDB ao inicializar
 onMounted(() => {
   carregarDatasAuditoria();
-  carregarUsuariosDoBackend();
+  carregarUsuarios();
 });
 
+// Carregar datas de auditoria disponíveis
 const carregarDatasAuditoria = async () => {
   try {
     const { data } = await axios.get("http://localhost:3000/datas-auditoria");
@@ -223,24 +169,29 @@ const carregarDatasAuditoria = async () => {
   }
 };
 
-const carregarUsuariosDoBackend = async () => {
+// Carregar usuários do backend MongoDB
+const carregarUsuarios = async () => {
   try {
     carregando.value = true;
-    let params = {};
+    erro.value = "";
+
+    const params = {};
     if (dataFiltro.value) {
       params.data = dataFiltro.value;
     }
+
     const { data } = await axios.get("http://localhost:3000/usuarios", {
       params,
     });
+
     usuarios.value = data.map((user) => ({
       id: user.id || user.nome,
       nome: user.nome,
-      contador: dataFiltro.value ? user.contadorDia : user.contadorTotal,
-      contadorTotal: user.contadorTotal,
+      contador: user.contador || 0,
+      contadorDia: user.contadorDia || 0,
+      contadorTotal: user.contadorTotal || 0,
       iniciais: obterIniciais(user.nome),
       foto: null,
-      auditorias: user.auditorias || [],
     }));
   } catch (error) {
     console.error("Erro ao carregar usuários:", error);
@@ -250,141 +201,9 @@ const carregarUsuariosDoBackend = async () => {
   }
 };
 
-const aplicarFiltroPeriodo = () => {
-  const hoje = new Date();
-  let inicio, fim;
-  switch (periodoFiltro.value) {
-    case "hoje":
-      dataFiltro.value = hoje.toISOString().split("T")[0];
-      break;
-    case "semana":
-      inicio = new Date(hoje);
-      inicio.setDate(hoje.getDate() - hoje.getDay());
-      fim = new Date(inicio);
-      fim.setDate(inicio.getDate() + 6);
-      // Implementar lógica para múltiplas datas se necessário
-      dataFiltro.value = "";
-      break;
-    case "mes":
-      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-      // Implementar lógica para múltiplas datas se necessário
-      dataFiltro.value = "";
-      break;
-  }
-  carregarUsuariosDoBackend();
-};
-
-const aplicarFiltroPersonalizado = () => {
-  // Aqui você pode implementar lógica para buscar usuários por intervalo personalizado
-  // Exemplo: buscar todas as datas entre dataInicio e dataFim
-  // Por enquanto, apenas limpa o filtro de data
-  dataFiltro.value = "";
-  carregarUsuariosDoBackend();
-};
-
-const formatarData = (dataString) => {
-  const data = new Date(dataString);
-  return data.toLocaleDateString("pt-BR");
-};
-
-// Carregar usuários da planilha
-const carregarUsuarios = () => {
-  try {
-    const dadosSalvos = localStorage.getItem("dadosPlanilha");
-
-    if (!dadosSalvos) {
-      // Se não há planilha, mantém os usuários existentes
-      return;
-    }
-
-    const dadosPlanilha = JSON.parse(dadosSalvos);
-
-    if (!Array.isArray(dadosPlanilha) || dadosPlanilha.length === 0) {
-      return;
-    }
-
-    // Encontrar coluna de usuários
-    const primeiraLinha = dadosPlanilha[0];
-    let colunaUsuario = null;
-
-    if (primeiraLinha.hasOwnProperty("Usuário")) {
-      colunaUsuario = "Usuário";
-    } else if (primeiraLinha.hasOwnProperty("Usuario")) {
-      colunaUsuario = "Usuario";
-    } else {
-      const colunas = Object.keys(primeiraLinha);
-      if (colunas.length >= 4) {
-        colunaUsuario = colunas[3];
-      }
-    }
-
-    if (!colunaUsuario) return;
-
-    // Contar ocorrências de cada usuário
-    const contador = {};
-    dadosPlanilha.forEach((linha) => {
-      if (linha[colunaUsuario]) {
-        const usuarioStr = linha[colunaUsuario].toString().trim();
-        if (usuarioStr) {
-          contador[usuarioStr] = (contador[usuarioStr] || 0) + 1;
-        }
-      }
-    });
-
-    // Processar usuários
-    const usuariosNovos = Object.keys(contador).map((usuarioStr) => {
-      const match = usuarioStr.match(/^(\d+)\s*\((.*)\)$/);
-
-      let id, nome;
-      if (match && match[1] && match[2]) {
-        id = match[1].trim();
-        nome = match[2].trim();
-      } else {
-        id = usuarioStr;
-        nome = usuarioStr;
-      }
-
-      return { id, nome, contador: contador[usuarioStr] };
-    });
-
-    // Combinar com usuários existentes (manter fotos)
-    usuariosNovos.forEach((novoUsuario) => {
-      const usuarioExistente = usuarios.value.find(
-        (u) => u.id === novoUsuario.id
-      );
-
-      if (usuarioExistente) {
-        // Atualizar contador mantendo a foto
-        usuarioExistente.contador = novoUsuario.contador;
-        usuarioExistente.nome = novoUsuario.nome; // Atualizar nome se mudou
-      } else {
-        // Adicionar novo usuário
-        usuarios.value.push({
-          ...novoUsuario,
-          iniciais: obterIniciais(novoUsuario.nome),
-          foto: null,
-        });
-      }
-    });
-
-    // Ordenar por nome
-    usuarios.value.sort((a, b) => a.nome.localeCompare(b.nome));
-
-    // Salvar no localStorage
-    salvarUsuariosNoStorage();
-  } catch (error) {
-    console.error("Erro ao processar usuários:", error);
-  }
-};
-
-// Salvar usuários no localStorage
-const salvarUsuariosNoStorage = () => {
-  localStorage.setItem("usuariosAuditoria", JSON.stringify(usuarios.value));
-};
-
 // Obter iniciais do nome
 const obterIniciais = (nome) => {
+  if (!nome) return "??";
   const nomeLimpo = nome.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
   return (
     nomeLimpo
@@ -396,38 +215,10 @@ const obterIniciais = (nome) => {
   );
 };
 
-// Definir foto do usuário
-const definirFoto = (event, usuarioId) => {
-  const file = event.target.files[0];
-  if (!file || !file.type.match("image.*")) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const usuario = usuarios.value.find((u) => u.id === usuarioId);
-    if (usuario) {
-      usuario.foto = e.target.result;
-      salvarUsuariosNoStorage();
-    }
-  };
-  reader.readAsDataURL(file);
-};
-
-// Remover usuário individual
-const removerUsuario = (usuarioId) => {
-  usuarios.value = usuarios.value.filter((u) => u.id !== usuarioId);
-  salvarUsuariosNoStorage();
-};
-
-// Confirmar limpeza
-const confirmarLimpeza = () => {
-  showConfirmModal.value = true;
-};
-
-// Limpar todos os usuários
-const limparTodosUsuarios = () => {
-  usuarios.value = [];
-  localStorage.removeItem("usuariosAuditoria");
-  showConfirmModal.value = false;
+// Formatar data para exibição
+const formatarData = (dataString) => {
+  const data = new Date(dataString);
+  return data.toLocaleDateString("pt-BR");
 };
 
 // Computed properties
@@ -435,7 +226,7 @@ const usuariosFiltrados = computed(() =>
   usuarios.value.filter(
     (u) =>
       u.nome.toLowerCase().includes(filtro.value.toLowerCase()) ||
-      u.id.toLowerCase().includes(filtro.value.toLowerCase())
+      (u.id && u.id.toLowerCase().includes(filtro.value.toLowerCase()))
   )
 );
 
@@ -860,6 +651,57 @@ const mediaItensPorUsuario = computed(() =>
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+filtros-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-data label {
+  font-weight: bold;
+}
+
+.filtro-data select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.usuario-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.usuario-card:hover {
+  transform: translateY(-2px);
+}
+
+.card-actions {
+  padding: 15px;
+  border-top: 1px solid #eee;
+}
+
+.action-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.action-btn:hover {
+  background: #5a67d8;
 }
 
 /* Responsivo */

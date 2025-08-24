@@ -5,6 +5,7 @@ import Hanking from "../views/Hanking.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
+import Relatorios from "../views/Relatorios.vue"; // Importe o novo componente
 
 const routes = [
   { path: "/", name: "Upload", component: Upload },
@@ -12,6 +13,7 @@ const routes = [
   { path: "/hanking", name: "Hanking", component: Hanking },
   { path: "/setores", name: "Setores", component: Setores },
   { path: "/lista", name: "ListaUsuarios", component: ListaUsuarios },
+  { path: "/relatorios", name: "Relatorios", component: Relatorios }, // Adicione esta linha
   {
     path: "/perfil/:id",
     name: "PerfilUsuario",

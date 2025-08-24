@@ -8,6 +8,8 @@
         <router-link to="/hanking">Hanking</router-link>
         <router-link to="/setores">Setores</router-link>
         <router-link to="/lista">Lista de Usuários</router-link>
+        <router-link to="/relatorios">Relatórios</router-link>
+        <!-- Adicione esta linha -->
       </nav>
     </header>
 

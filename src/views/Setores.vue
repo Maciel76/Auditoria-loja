@@ -10,239 +10,274 @@
       </p>
     </div>
 
-    <!-- Filtros -->
-    <div class="filters-section">
-      <div class="filter-group">
-        <label class="filter-label">
-          <span class="icon">📍</span> Filtrar por Local/Corredor:
-        </label>
-        <select v-model="filtroLocal" class="filter-select">
-          <option value="">Todos os locais</option>
-          <option v-for="local in locaisUnicos" :key="local" :value="local">
-            {{ local }}
-          </option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">
-          <span class="icon">📊</span> Status:
-        </label>
-        <select v-model="filtroStatus" class="filter-select">
-          <option value="">Todos os status</option>
-          <option value="Atualizado">Itens Lidos</option>
-          <option value="Não lido">Itens Não Lidos</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">
-          <span class="icon">🔍</span> Buscar produto:
-        </label>
-        <input
-          v-model="filtroProduto"
-          type="text"
-          placeholder="Digite o nome do produto..."
-          class="filter-input"
-        />
-      </div>
+    <!-- Loading -->
+    <div v-if="carregando" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando dados dos setores...</p>
     </div>
 
-    <!-- Estatísticas do Local -->
-    <div v-if="filtroLocal" class="local-stats-section">
-      <h2 class="stats-title">Estatísticas do Local: {{ filtroLocal }}</h2>
-      <div class="stats-grid">
-        <div class="stat-card primary">
-          <div class="stat-icon">
-            <span class="icon">📦</span>
-          </div>
-          <div class="stat-content">
-            <h3>{{ totalItensLocal }}</h3>
-            <p>Total de Itens</p>
-          </div>
-        </div>
-
-        <div class="stat-card success">
-          <div class="stat-icon">
-            <span class="icon">✅</span>
-          </div>
-          <div class="stat-content">
-            <h3>{{ itensLidosLocal }}</h3>
-            <p>Itens Lidos</p>
-            <span class="stat-percentage">{{ percentualLidos }}%</span>
-          </div>
-        </div>
-
-        <div class="stat-card warning">
-          <div class="stat-icon">
-            <span class="icon">⏳</span>
-          </div>
-          <div class="stat-content">
-            <h3>{{ itensNaoLidosLocal }}</h3>
-            <p>Itens Não Lidos</p>
-            <span class="stat-percentage">{{ percentualNaoLidos }}%</span>
-          </div>
-        </div>
-
-        <div class="stat-card info">
-          <div class="stat-icon">
-            <span class="icon">📋</span>
-          </div>
-          <div class="stat-content">
-            <h3>{{ colaboradoresLocal.length }}</h3>
-            <p>Colaboradores Atuantes</p>
-          </div>
-        </div>
+    <!-- Erro -->
+    <div v-else-if="erro" class="error-container">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-triangle"></i>
       </div>
+      <h3>Ocorreu um erro</h3>
+      <p>{{ erro }}</p>
+      <button @click="carregarDados" class="btn btn-primary">
+        <i class="fas fa-redo"></i> Tentar Novamente
+      </button>
     </div>
 
-    <!-- Tabs de Visualização -->
-    <div class="tabs-section">
-      <div class="tabs-header">
-        <button
-          @click="abaAtiva = 'todos'"
-          :class="['tab-btn', { active: abaAtiva === 'todos' }]"
-        >
-          <span class="icon">📋</span> Todos os Itens
-        </button>
-        <button
-          @click="abaAtiva = 'lidos'"
-          :class="['tab-btn', { active: abaAtiva === 'lidos' }]"
-        >
-          <span class="icon">✅</span> Itens Lidos
-        </button>
-        <button
-          @click="abaAtiva = 'naoLidos'"
-          :class="['tab-btn', { active: abaAtiva === 'naoLidos' }]"
-        >
-          <span class="icon">⏳</span> Itens Não Lidos
-        </button>
+    <!-- Sem dados -->
+    <div v-else-if="dadosPlanilha.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-warehouse"></i>
+      </div>
+      <h3>Nenhum dado de setores disponível</h3>
+      <p>Faça o upload de uma planilha para visualizar os setores</p>
+      <router-link to="/" class="btn btn-primary">
+        <i class="fas fa-upload"></i> Fazer Upload
+      </router-link>
+    </div>
+
+    <!-- Com dados -->
+    <div v-else>
+      <!-- Filtros -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label class="filter-label">
+            <span class="icon">📍</span> Filtrar por Local/Corredor:
+          </label>
+          <select v-model="filtroLocal" class="filter-select">
+            <option value="">Todos os locais</option>
+            <option v-for="local in locaisUnicos" :key="local" :value="local">
+              {{ local }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <span class="icon">📊</span> Status:
+          </label>
+          <select v-model="filtroStatus" class="filter-select">
+            <option value="">Todos os status</option>
+            <option value="Atualizado">Itens Lidos</option>
+            <option value="Não lido">Itens Não Lidos</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <span class="icon">🔍</span> Buscar produto:
+          </label>
+          <input
+            v-model="filtroProduto"
+            type="text"
+            placeholder="Digite o nome do produto..."
+            class="filter-input"
+          />
+        </div>
       </div>
 
-      <div class="tab-content">
-        <!-- Resumo -->
-        <div class="resumo-section">
-          <h3>Resumo do Local</h3>
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div
-                class="progress-fill lidos"
-                :style="{ width: percentualLidos + '%' }"
-              ></div>
-              <div
-                class="progress-fill nao-lidos"
-                :style="{ width: percentualNaoLidos + '%' }"
-              ></div>
+      <!-- Estatísticas do Local -->
+      <div v-if="filtroLocal" class="local-stats-section">
+        <h2 class="stats-title">Estatísticas do Local: {{ filtroLocal }}</h2>
+        <div class="stats-grid">
+          <div class="stat-card primary">
+            <div class="stat-icon">
+              <span class="icon">📦</span>
             </div>
-            <div class="progress-labels">
-              <span>✅ {{ percentualLidos }}% Lidos</span>
-              <span>⏳ {{ percentualNaoLidos }}% Não Lidos</span>
+            <div class="stat-content">
+              <h3>{{ totalItensLocal }}</h3>
+              <p>Total de Itens</p>
+            </div>
+          </div>
+
+          <div class="stat-card success">
+            <div class="stat-icon">
+              <span class="icon">✅</span>
+            </div>
+            <div class="stat-content">
+              <h3>{{ itensLidosLocal }}</h3>
+              <p>Itens Lidos</p>
+              <span class="stat-percentage">{{ percentualLidos }}%</span>
+            </div>
+          </div>
+
+          <div class="stat-card warning">
+            <div class="stat-icon">
+              <span class="icon">⏳</span>
+            </div>
+            <div class="stat-content">
+              <h3>{{ itensNaoLidosLocal }}</h3>
+              <p>Itens Não Lidos</p>
+              <span class="stat-percentage">{{ percentualNaoLidos }}%</span>
+            </div>
+          </div>
+
+          <div class="stat-card info">
+            <div class="stat-icon">
+              <span class="icon">📋</span>
+            </div>
+            <div class="stat-content">
+              <h3>{{ colaboradoresLocal.length }}</h3>
+              <p>Colaboradores Atuantes</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Lista de Itens -->
-        <div class="itens-section">
-          <h3>{{ tituloAbaAtiva }}</h3>
+      <!-- Tabs de Visualização -->
+      <div class="tabs-section">
+        <div class="tabs-header">
+          <button
+            @click="abaAtiva = 'todos'"
+            :class="['tab-btn', { active: abaAtiva === 'todos' }]"
+          >
+            <span class="icon">📋</span> Todos os Itens
+          </button>
+          <button
+            @click="abaAtiva = 'lidos'"
+            :class="['tab-btn', { active: abaAtiva === 'lidos' }]"
+          >
+            <span class="icon">✅</span> Itens Lidos
+          </button>
+          <button
+            @click="abaAtiva = 'naoLidos'"
+            :class="['tab-btn', { active: abaAtiva === 'naoLidos' }]"
+          >
+            <span class="icon">⏳</span> Itens Não Lidos
+          </button>
+        </div>
 
-          <div class="itens-grid">
-            <div
-              v-for="item in itensFiltrados"
-              :key="item.Código"
-              :class="[
-                'item-card',
-                { 'nao-lido': item.Situacao !== 'Atualizado' },
-              ]"
-            >
-              <div class="item-header">
-                <span class="item-codigo">{{ item.Código }}</span>
-                <span
-                  :class="[
-                    'item-status',
-                    item.Situacao === 'Atualizado' ? 'lido' : 'nao-lido',
-                  ]"
-                >
-                  {{
-                    item.Situacao === "Atualizado" ? "✅ Lido" : "⏳ Não Lido"
-                  }}
-                </span>
+        <div class="tab-content">
+          <!-- Resumo -->
+          <div class="resumo-section">
+            <h3>Resumo do Local</h3>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div
+                  class="progress-fill lidos"
+                  :style="{ width: percentualLidos + '%' }"
+                ></div>
+                <div
+                  class="progress-fill nao-lidos"
+                  :style="{ width: percentualNaoLidos + '%' }"
+                ></div>
               </div>
+              <div class="progress-labels">
+                <span>✅ {{ percentualLidos }}% Lidos</span>
+                <span>⏳ {{ percentualNaoLidos }}% Não Lidos</span>
+              </div>
+            </div>
+          </div>
 
-              <div class="item-body">
-                <h4 class="item-nome">{{ item.Produto }}</h4>
-                <div class="item-details">
-                  <div class="detail">
-                    <span class="icon">📦</span>
-                    <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
-                  </div>
-                  <div class="detail">
-                    <span class="icon">👤</span>
-                    <span>{{ item.Usuario || "N/A" }}</span>
-                  </div>
-                  <div class="detail">
-                    <span class="icon">📅</span>
-                    <span
-                      >Última compra:
-                      {{ formatarData(item["Última compra"]) }}</span
-                    >
+          <!-- Lista de Itens -->
+          <div class="itens-section">
+            <h3>{{ tituloAbaAtiva }}</h3>
+
+            <div class="itens-grid">
+              <div
+                v-for="item in itensFiltrados"
+                :key="item.Código"
+                :class="[
+                  'item-card',
+                  { 'nao-lido': item.Situacao !== 'Atualizado' },
+                ]"
+              >
+                <div class="item-header">
+                  <span class="item-codigo">{{ item.Código }}</span>
+                  <span
+                    :class="[
+                      'item-status',
+                      item.Situacao === 'Atualizado' ? 'lido' : 'nao-lido',
+                    ]"
+                  >
+                    {{
+                      item.Situacao === "Atualizado" ? "✅ Lido" : "⏳ Não Lido"
+                    }}
+                  </span>
+                </div>
+
+                <div class="item-body">
+                  <h4 class="item-nome">{{ item.Produto }}</h4>
+                  <div class="item-details">
+                    <div class="detail">
+                      <span class="icon">📦</span>
+                      <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon">👤</span>
+                      <span>{{ item.Usuario || "N/A" }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon">📅</span>
+                      <span
+                        >Última compra:
+                        {{ formatarData(item["Última compra"]) }}</span
+                      >
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="item-actions">
-                <button
-                  class="action-btn primary"
-                  v-if="item.Situacao !== 'Atualizado'"
-                >
-                  <span class="icon">✏️</span> Marcar como Lido
-                </button>
-                <button class="action-btn secondary">
-                  <span class="icon">📊</span> Detalhes
-                </button>
+                <div class="item-actions">
+                  <button
+                    class="action-btn primary"
+                    v-if="item.Situacao !== 'Atualizado'"
+                  >
+                    <span class="icon">✏️</span> Marcar como Lido
+                  </button>
+                  <button class="action-btn secondary">
+                    <span class="icon">📊</span> Detalhes
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="itensFiltrados.length === 0" class="empty-state">
-            <span class="icon">🔍</span>
-            <p>Nenhum item encontrado para os filtros selecionados.</p>
+            <div v-if="itensFiltrados.length === 0" class="empty-state">
+              <span class="icon">🔍</span>
+              <p>Nenhum item encontrado para os filtros selecionados.</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Mapa de Calor dos Corredores -->
-    <div class="heatmap-section">
-      <h2 class="section-title">Mapa de Calor por Corredor</h2>
-      <div class="heatmap-grid">
-        <div
-          v-for="local in locaisComEstatisticas"
-          :key="local.nome"
-          :class="['heatmap-item', getHeatmapClass(local.percentualLidos)]"
-          @click="filtroLocal = local.nome"
-        >
-          <div class="heatmap-header">
-            <span class="heatmap-title">{{ local.nome }}</span>
-            <span class="heatmap-percentage">{{ local.percentualLidos }}%</span>
-          </div>
-          <div class="heatmap-progress">
-            <div
-              class="heatmap-progress-bar"
-              :style="{ width: local.percentualLidos + '%' }"
-            ></div>
-          </div>
-          <div class="heatmap-stats">
-            <span>{{ local.lidos }}/{{ local.total }} itens</span>
+      <!-- Mapa de Calor dos Corredores -->
+      <div class="heatmap-section">
+        <h2 class="section-title">Mapa de Calor por Corredor</h2>
+        <div class="heatmap-grid">
+          <div
+            v-for="local in locaisComEstatisticas"
+            :key="local.nome"
+            :class="['heatmap-item', getHeatmapClass(local.percentualLidos)]"
+            @click="filtroLocal = local.nome"
+          >
+            <div class="heatmap-header">
+              <span class="heatmap-title">{{ local.nome }}</span>
+              <span class="heatmap-percentage"
+                >{{ local.percentualLidos }}%</span
+              >
+            </div>
+            <div class="heatmap-progress">
+              <div
+                class="heatmap-progress-bar"
+                :style="{ width: local.percentualLidos + '%' }"
+              ></div>
+            </div>
+            <div class="heatmap-stats">
+              <span>{{ local.lidos }}/{{ local.total }} itens</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Exportar Relatório -->
-    <div class="export-section">
-      <button @click="exportarRelatorio" class="export-btn">
-        <span class="icon">📤</span> Exportar Relatório Completo
-      </button>
+      <!-- Exportar Relatório -->
+      <div class="export-section">
+        <button @click="exportarRelatorio" class="export-btn">
+          <span class="icon">📤</span> Exportar Relatório Completo
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -259,6 +294,8 @@ export default {
       filtroStatus: "",
       filtroProduto: "",
       abaAtiva: "todos",
+      carregando: true,
+      erro: "",
     };
   },
   computed: {
@@ -373,35 +410,52 @@ export default {
       });
     },
   },
-  mounted() {
-    this.carregarDados();
+  async mounted() {
+    await this.carregarDados();
   },
   methods: {
     async carregarDados() {
       try {
-        const { data } = await axios.get(
+        this.carregando = true;
+        this.erro = "";
+
+        // Buscar dados da API do backend
+        const response = await axios.get(
           "http://localhost:3000/dados-planilha"
         );
-        this.dadosPlanilha = data.map((item) => ({
-          ...item,
-          Situacao: item.Situacao || item.Situação || "Não lido",
-          Local: item.Local || "Não especificado",
-        }));
+
+        if (response.data && Array.isArray(response.data)) {
+          this.dadosPlanilha = response.data.map((item) => ({
+            ...item,
+            Situacao: item.Situacao || item.Situação || "Não lido",
+            Local: item.Local || "Não especificado",
+          }));
+        } else {
+          this.erro = "Formato de dados inválido";
+        }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
+        this.erro = "Falha ao carregar dados da planilha";
+
+        // Fallback para dados de exemplo (remova isso em produção)
+        this.dadosPlanilha = [
+          {
+            Código: "1062218",
+            Produto: "CIGARRO CHESTERFIELD BLUE BOX C/10 KS RCB",
+            Local: "C01 - C01",
+            Usuario: "3285030 (MARLUCIA OLIVEIRA DA SILVA)",
+            Situacao: "Atualizado",
+            "Estoque atual": "24",
+            "Última compra": "01/01/2023",
+          },
+        ];
+      } finally {
+        this.carregando = false;
       }
     },
 
     formatarData(data) {
       if (!data) return "N/A";
-
-      // Converter número do Excel para data (se necessário)
-      if (typeof data === "number") {
-        const excelEpoch = new Date(1899, 11, 30);
-        const date = new Date(excelEpoch.getTime() + data * 86400000);
-        return date.toLocaleDateString("pt-BR");
-      }
-
       return data;
     },
 
@@ -459,6 +513,57 @@ export default {
 </script>
 
 <style scoped>
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e1e5e9;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.error-container {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  font-size: 3rem;
+  color: #e74c3c;
+  margin-bottom: 20px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #bdc3c7;
+  margin-bottom: 20px;
+}
 .setores-container {
   max-width: 1400px;
   margin: 0 auto;
