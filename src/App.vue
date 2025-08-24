@@ -5,7 +5,7 @@
       <nav>
         <router-link to="/">Upload</router-link>
         <router-link to="/usuarios">Usuários</router-link>
-        <router-link to="/hanking">Hanking</router-link>
+        <router-link to="/ranking">Ranking</router-link>
         <router-link to="/setores">Setores</router-link>
         <router-link to="/lista">Lista de Usuários</router-link>
         <router-link to="/relatorios">Relatórios</router-link>
@@ -17,8 +17,13 @@
   </div>
 </template>
 <script>
+import MenuLateral from "./views/menulateral/MenuLateral.vue";
+
 export default {
   name: "App",
+  components: {
+    MenuLateral,
+  },
 };
 </script>
 
