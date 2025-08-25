@@ -186,7 +186,6 @@ export default {
           desbloqueado: false,
           condicao: (usuario, itensFaltantes) => itensFaltantes.length === 0,
         },
-
         {
           id: 9,
           nome: "Relâmpago",
@@ -198,15 +197,14 @@ export default {
             corredores,
             mediaGeral,
             itensFaltantes,
-            atividadesRecentes,
-            dadosUsuario
+            atividadesRecentes
           ) => {
-            // Usar dadosUsuario em vez de atividadesRecentes para a lógica
-            if (!dadosUsuario || dadosUsuario.length < 50) return false;
-
-            // Verificar se há 50 itens com timestamp próximo (exemplo simplificado)
-            // Em produção, você precisaria de dados reais de timestamp
-            return dadosUsuario.length >= 50;
+            if (!atividadesRecentes || atividadesRecentes.length < 50)
+              return false;
+            const primeira = atividadesRecentes[0]?.timestamp;
+            const ultima = atividadesRecentes[49]?.timestamp;
+            if (!primeira || !ultima) return false;
+            return (primeira - ultima) / (1000 * 60 * 60) < 1;
           },
         },
         {
@@ -215,16 +213,22 @@ export default {
           descricao: "Fez auditoria por 5 dias seguidos",
           icone: "📅",
           desbloqueado: false,
-          condicao: (
-            usuario,
-            corredores,
-            mediaGeral,
-            itensFaltantes,
-            atividadesRecentes,
-            dadosUsuario
-          ) => {
-            // Exemplo simplificado - em produção você precisaria de datas reais
-            return dadosUsuario && dadosUsuario.length >= 20; // Ajuste conforme sua lógica
+          condicao: (usuario) => {
+            if (!usuario.auditorias || usuario.auditorias.length < 5)
+              return false;
+            const datas = usuario.auditorias
+              .map((a) => new Date(a.data).setHours(0, 0, 0, 0))
+              .sort();
+            let consecutivos = 1;
+            for (let i = 1; i < datas.length; i++) {
+              if (datas[i] - datas[i - 1] === 86400000) {
+                consecutivos++;
+                if (consecutivos >= 5) return true;
+              } else {
+                consecutivos = 1;
+              }
+            }
+            return false;
           },
         },
         {
@@ -233,17 +237,8 @@ export default {
           descricao: "Fez sua primeira auditoria",
           icone: "🎉",
           desbloqueado: false,
-          condicao: (
-            usuario,
-            corredores,
-            mediaGeral,
-            itensFaltantes,
-            atividadesRecentes,
-            dadosUsuario
-          ) => {
-            // Verifica se há dados de auditoria
-            return dadosUsuario && dadosUsuario.length > 0;
-          },
+          condicao: (usuario) =>
+            usuario.auditorias && usuario.auditorias.length > 0,
         },
         {
           id: 12,
@@ -251,16 +246,8 @@ export default {
           descricao: "Fez auditoria em 20 dias diferentes",
           icone: "🥇",
           desbloqueado: false,
-          condicao: (
-            usuario,
-            corredores,
-            mediaGeral,
-            itensFaltantes,
-            atividadesRecentes,
-            dadosUsuario
-          ) => {
-            return dadosUsuario && dadosUsuario.length >= 20;
-          },
+          condicao: (usuario) =>
+            usuario.auditorias && usuario.auditorias.length >= 20,
         },
       ],
     };
@@ -428,8 +415,7 @@ export default {
           this.corredoresUnicos,
           this.mediaGeral,
           this.itensFaltantes,
-          this.atividadesRecentes,
-          this.dadosUsuario // ← Adicione este parâmetro
+          this.atividadesRecentes
         );
       });
     },
