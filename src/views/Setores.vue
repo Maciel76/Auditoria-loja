@@ -9,6 +9,21 @@
         Controle e monitoramento de auditoria por localização
       </p>
     </div>
+    <!-- Seletor de Data -->
+    <div class="date-selector">
+      <label class="filter-label">
+        <span class="icon">📅</span> Selecione a data de auditoria:
+      </label>
+      <select
+        v-model="dataSelecionada"
+        @change="carregarDados"
+        class="filter-select"
+      >
+        <option v-for="data in datasAuditoria" :key="data" :value="data">
+          {{ formatarDataParaExibicao(data) }}
+        </option>
+      </select>
+    </div>
 
     <!-- Loading -->
     <div v-if="carregando" class="loading-container">
@@ -290,6 +305,8 @@ export default {
   data() {
     return {
       dadosPlanilha: [],
+      datasAuditoria: [],
+      dataSelecionada: "",
       filtroLocal: "",
       filtroStatus: "",
       filtroProduto: "",
@@ -411,17 +428,40 @@ export default {
     },
   },
   async mounted() {
+    await this.carregarDatasAuditoria();
     await this.carregarDados();
   },
   methods: {
+    async carregarDatasAuditoria() {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/datas-auditoria"
+        );
+        this.datasAuditoria = response.data;
+        if (this.datasAuditoria.length > 0) {
+          this.dataSelecionada = this.datasAuditoria[0];
+        }
+      } catch (error) {
+        console.error("Erro ao carregar datas:", error);
+      }
+    },
+
+    formatarDataParaExibicao(data) {
+      return new Date(data).toLocaleDateString("pt-BR");
+    },
+
     async carregarDados() {
       try {
         this.carregando = true;
         this.erro = "";
 
-        // Buscar dados da API do backend
+        // Usar a nova rota para buscar dados de setores
+        const params = this.dataSelecionada
+          ? { data: this.dataSelecionada }
+          : {};
         const response = await axios.get(
-          "http://localhost:3000/dados-planilha"
+          "http://localhost:3000/dados-setores",
+          { params }
         );
 
         if (response.data && Array.isArray(response.data)) {
@@ -436,7 +476,6 @@ export default {
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         this.erro = "Falha ao carregar dados da planilha";
-
         // Fallback para dados de exemplo (remova isso em produção)
         this.dadosPlanilha = [
           {
@@ -589,6 +628,27 @@ export default {
 .header-subtitle {
   font-size: 1.2rem;
   opacity: 0.9;
+}
+date-selector {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  max-width: 400px;
+  margin: 20px auto 0;
+}
+
+.date-selector .filter-label {
+  color: white;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.date-selector .filter-select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
 }
 
 /* Filtros */
