@@ -3,55 +3,74 @@
     <!-- Header -->
     <div class="header-section">
       <h1 class="header-title">
-        <span class="icon">🏢</span> Análise por Setores
+        <span class="icon" aria-hidden="true">🏢</span> Análise por Setores
       </h1>
       <p class="header-subtitle">
         Controle e monitoramento de auditoria por localização
       </p>
     </div>
-    <!-- Seletor de Data -->
+
+    <!-- Seletor de Data com Loading Específico -->
     <div class="date-selector">
-      <label class="filter-label">
-        <span class="icon">📅</span> Selecione a data de auditoria:
+      <label class="filter-label" for="data-auditoria-select">
+        <span class="icon" aria-hidden="true">📅</span> Selecione a data de
+        auditoria:
       </label>
-      <select
-        v-model="dataSelecionada"
-        @change="carregarDados"
-        class="filter-select"
-      >
-        <option v-for="data in datasAuditoria" :key="data" :value="data">
-          {{ formatarDataParaExibicao(data) }}
-        </option>
-      </select>
+      <div class="select-wrapper">
+        <select
+          id="data-auditoria-select"
+          v-model="dataSelecionada"
+          @change="trocarDataAuditoria"
+          class="filter-select"
+          :disabled="carregando || carregandoData"
+          aria-label="Selecionar data de auditoria"
+          aria-describedby="data-loading-status"
+        >
+          <option v-if="datasAuditoria.length === 0" value="" disabled>
+            Carregando datas...
+          </option>
+          <option v-for="data in datasAuditoria" :key="data" :value="data">
+            {{ formatarDataParaExibicao(data) }}
+          </option>
+        </select>
+        <span
+          v-if="carregandoData"
+          class="select-loading"
+          aria-hidden="true"
+        ></span>
+      </div>
+      <span id="data-loading-status" class="sr-only" aria-live="polite">
+        {{ carregandoData ? "Carregando dados para a data selecionada" : "" }}
+      </span>
     </div>
 
-    <!-- Loading -->
-    <div v-if="carregando" class="loading-container">
-      <div class="spinner"></div>
+    <!-- Loading Principal -->
+    <div v-if="carregando && !carregandoData" class="loading-container">
+      <div class="spinner" aria-hidden="true"></div>
       <p>Carregando dados dos setores...</p>
     </div>
 
     <!-- Erro -->
     <div v-else-if="erro" class="error-container">
-      <div class="error-icon">
-        <i class="fas fa-exclamation-triangle"></i>
+      <div class="error-icon" aria-hidden="true">
+        <span class="icon">⚠️</span>
       </div>
       <h3>Ocorreu um erro</h3>
       <p>{{ erro }}</p>
       <button @click="carregarDados" class="btn btn-primary">
-        <i class="fas fa-redo"></i> Tentar Novamente
+        <span class="icon" aria-hidden="true">🔄</span> Tentar Novamente
       </button>
     </div>
 
     <!-- Sem dados -->
     <div v-else-if="dadosPlanilha.length === 0" class="empty-state">
-      <div class="empty-icon">
-        <i class="fas fa-warehouse"></i>
+      <div class="empty-icon" aria-hidden="true">
+        <span class="icon">🏭</span>
       </div>
       <h3>Nenhum dado de setores disponível</h3>
       <p>Faça o upload de uma planilha para visualizar os setores</p>
       <router-link to="/" class="btn btn-primary">
-        <i class="fas fa-upload"></i> Fazer Upload
+        <span class="icon" aria-hidden="true">📤</span> Fazer Upload
       </router-link>
     </div>
 
@@ -60,10 +79,11 @@
       <!-- Filtros -->
       <div class="filters-section">
         <div class="filter-group">
-          <label class="filter-label">
-            <span class="icon">📍</span> Filtrar por Local/Corredor:
+          <label class="filter-label" for="filtro-local">
+            <span class="icon" aria-hidden="true">📍</span> Filtrar por
+            Local/Corredor:
           </label>
-          <select v-model="filtroLocal" class="filter-select">
+          <select id="filtro-local" v-model="filtroLocal" class="filter-select">
             <option value="">Todos os locais</option>
             <option v-for="local in locaisUnicos" :key="local" :value="local">
               {{ local }}
@@ -72,10 +92,14 @@
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">
-            <span class="icon">📊</span> Status:
+          <label class="filter-label" for="filtro-status">
+            <span class="icon" aria-hidden="true">📊</span> Status:
           </label>
-          <select v-model="filtroStatus" class="filter-select">
+          <select
+            id="filtro-status"
+            v-model="filtroStatus"
+            class="filter-select"
+          >
             <option value="">Todos os status</option>
             <option value="Atualizado">Itens Lidos</option>
             <option value="Não lido">Itens Não Lidos</option>
@@ -83,16 +107,53 @@
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">
-            <span class="icon">🔍</span> Buscar produto:
+          <label class="filter-label" for="produto-search">
+            <span class="icon" aria-hidden="true">🔍</span> Buscar produto:
           </label>
-          <input
-            v-model="filtroProduto"
-            type="text"
-            placeholder="Digite o nome do produto..."
-            class="filter-input"
-          />
+          <div class="search-wrapper">
+            <input
+              id="produto-search"
+              v-model="filtroProdutoInput"
+              type="text"
+              placeholder="Digite o nome do produto..."
+              class="filter-input"
+              aria-label="Buscar produto"
+            />
+            <span
+              v-if="buscandoProduto"
+              class="search-loading"
+              aria-hidden="true"
+            ></span>
+          </div>
         </div>
+      </div>
+
+      <!-- Resumo dos filtros ativos -->
+      <div v-if="filtrosAtivos.length > 0" class="active-filters">
+        <h3 class="active-filters-title">Filtros aplicados:</h3>
+        <div class="filters-list">
+          <span
+            v-for="(filtro, index) in filtrosAtivos"
+            :key="index"
+            class="filter-tag"
+          >
+            {{ filtro }}
+            <button
+              @click="removerFiltro(filtro)"
+              class="remove-filter"
+              :aria-label="`Remover filtro ${filtro}`"
+            >
+              &times;
+            </button>
+          </span>
+        </div>
+        <button
+          @click="limparFiltros"
+          class="btn btn-secondary"
+          aria-label="Limpar todos os filtros"
+        >
+          Limpar todos
+        </button>
       </div>
 
       <!-- Estatísticas do Local -->
@@ -100,7 +161,7 @@
         <h2 class="stats-title">Estatísticas do Local: {{ filtroLocal }}</h2>
         <div class="stats-grid">
           <div class="stat-card primary">
-            <div class="stat-icon">
+            <div class="stat-icon" aria-hidden="true">
               <span class="icon">📦</span>
             </div>
             <div class="stat-content">
@@ -110,7 +171,7 @@
           </div>
 
           <div class="stat-card success">
-            <div class="stat-icon">
+            <div class="stat-icon" aria-hidden="true">
               <span class="icon">✅</span>
             </div>
             <div class="stat-content">
@@ -121,7 +182,7 @@
           </div>
 
           <div class="stat-card warning">
-            <div class="stat-icon">
+            <div class="stat-icon" aria-hidden="true">
               <span class="icon">⏳</span>
             </div>
             <div class="stat-content">
@@ -132,8 +193,8 @@
           </div>
 
           <div class="stat-card info">
-            <div class="stat-icon">
-              <span class="icon">📋</span>
+            <div class="stat-icon" aria-hidden="true">
+              <span class="icon">👥</span>
             </div>
             <div class="stat-content">
               <h3>{{ colaboradoresLocal.length }}</h3>
@@ -145,24 +206,36 @@
 
       <!-- Tabs de Visualização -->
       <div class="tabs-section">
-        <div class="tabs-header">
+        <div class="tabs-header" role="tablist">
           <button
             @click="abaAtiva = 'todos'"
             :class="['tab-btn', { active: abaAtiva === 'todos' }]"
+            role="tab"
+            :aria-selected="abaAtiva === 'todos'"
+            aria-controls="tab-todos"
+            id="tab-todos-btn"
           >
-            <span class="icon">📋</span> Todos os Itens
+            <span class="icon" aria-hidden="true">📋</span> Todos os Itens
           </button>
           <button
             @click="abaAtiva = 'lidos'"
             :class="['tab-btn', { active: abaAtiva === 'lidos' }]"
+            role="tab"
+            :aria-selected="abaAtiva === 'lidos'"
+            aria-controls="tab-lidos"
+            id="tab-lidos-btn"
           >
-            <span class="icon">✅</span> Itens Lidos
+            <span class="icon" aria-hidden="true">✅</span> Itens Lidos
           </button>
           <button
             @click="abaAtiva = 'naoLidos'"
             :class="['tab-btn', { active: abaAtiva === 'naoLidos' }]"
+            role="tab"
+            :aria-selected="abaAtiva === 'naoLidos'"
+            aria-controls="tab-naoLidos"
+            id="tab-naoLidos-btn"
           >
-            <span class="icon">⏳</span> Itens Não Lidos
+            <span class="icon" aria-hidden="true">⏳</span> Itens Não Lidos
           </button>
         </div>
 
@@ -171,7 +244,13 @@
           <div class="resumo-section">
             <h3>Resumo do Local</h3>
             <div class="progress-container">
-              <div class="progress-bar">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                :aria-valuenow="percentualLidos"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
                 <div
                   class="progress-fill lidos"
                   :style="{ width: percentualLidos + '%' }"
@@ -189,10 +268,21 @@
           </div>
 
           <!-- Lista de Itens -->
-          <div class="itens-section">
+          <div
+            v-show="abaAtiva === 'todos'"
+            role="tabpanel"
+            id="tab-todos"
+            aria-labelledby="tab-todos-btn"
+            class="tab-panel"
+          >
             <h3>{{ tituloAbaAtiva }}</h3>
-
-            <div class="itens-grid">
+            <p v-if="itensFiltrados.length === 0" class="no-results">
+              Nenhum item encontrado para os filtros selecionados.
+              <span v-if="filtrosAtivos.length > 0"
+                >Tente ajustar os filtros aplicados.</span
+              >
+            </p>
+            <div v-else class="itens-grid">
               <div
                 v-for="item in itensFiltrados"
                 :key="item.Código"
@@ -216,18 +306,21 @@
                 </div>
 
                 <div class="item-body">
-                  <h4 class="item-nome">{{ item.Produto }}</h4>
+                  <h4
+                    class="item-nome"
+                    v-html="destacarTermo(item.Produto, filtroProduto)"
+                  ></h4>
                   <div class="item-details">
                     <div class="detail">
-                      <span class="icon">📦</span>
+                      <span class="icon" aria-hidden="true">📦</span>
                       <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
                     </div>
                     <div class="detail">
-                      <span class="icon">👤</span>
+                      <span class="icon" aria-hidden="true">👤</span>
                       <span>{{ item.Usuario || "N/A" }}</span>
                     </div>
                     <div class="detail">
-                      <span class="icon">📅</span>
+                      <span class="icon" aria-hidden="true">📅</span>
                       <span
                         >Última compra:
                         {{ formatarData(item["Última compra"]) }}</span
@@ -238,21 +331,142 @@
 
                 <div class="item-actions">
                   <button
-                    class="action-btn primary"
                     v-if="item.Situacao !== 'Atualizado'"
+                    class="action-btn primary"
+                    aria-label="Marcar item como lido"
                   >
-                    <span class="icon">✏️</span> Marcar como Lido
+                    <span class="icon" aria-hidden="true">✏️</span> Marcar como
+                    Lido
                   </button>
-                  <button class="action-btn secondary">
-                    <span class="icon">📊</span> Detalhes
+                  <button
+                    class="action-btn secondary"
+                    aria-label="Ver detalhes do item"
+                  >
+                    <span class="icon" aria-hidden="true">📊</span> Detalhes
                   </button>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div v-if="itensFiltrados.length === 0" class="empty-state">
-              <span class="icon">🔍</span>
-              <p>Nenhum item encontrado para os filtros selecionados.</p>
+          <div
+            v-show="abaAtiva === 'lidos'"
+            role="tabpanel"
+            id="tab-lidos"
+            aria-labelledby="tab-lidos-btn"
+            class="tab-panel"
+          >
+            <h3>{{ tituloAbaAtiva }}</h3>
+            <p v-if="itensLidosFiltrados.length === 0" class="no-results">
+              Nenhum item lido encontrado para os filtros selecionados.
+            </p>
+            <div v-else class="itens-grid">
+              <div
+                v-for="item in itensLidosFiltrados"
+                :key="item.Código"
+                class="item-card"
+              >
+                <!-- Conteúdo similar ao tab todos, mas apenas para itens lidos -->
+                <div class="item-header">
+                  <span class="item-codigo">{{ item.Código }}</span>
+                  <span class="item-status lido">✅ Lido</span>
+                </div>
+                <div class="item-body">
+                  <h4
+                    class="item-nome"
+                    v-html="destacarTermo(item.Produto, filtroProduto)"
+                  ></h4>
+                  <div class="item-details">
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">📦</span>
+                      <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">👤</span>
+                      <span>{{ item.Usuario || "N/A" }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">📅</span>
+                      <span
+                        >Última compra:
+                        {{ formatarData(item["Última compra"]) }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button
+                    class="action-btn secondary"
+                    aria-label="Ver detalhes do item"
+                  >
+                    <span class="icon" aria-hidden="true">📊</span> Detalhes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-show="abaAtiva === 'naoLidos'"
+            role="tabpanel"
+            id="tab-naoLidos"
+            aria-labelledby="tab-naoLidos-btn"
+            class="tab-panel"
+          >
+            <h3>{{ tituloAbaAtiva }}</h3>
+            <p v-if="itensNaoLidosFiltrados.length === 0" class="no-results">
+              Nenhum item não lido encontrado para os filtros selecionados.
+            </p>
+            <div v-else class="itens-grid">
+              <div
+                v-for="item in itensNaoLidosFiltrados"
+                :key="item.Código"
+                class="item-card nao-lido"
+              >
+                <!-- Conteúdo similar ao tab todos, mas apenas para itens não lidos -->
+                <div class="item-header">
+                  <span class="item-codigo">{{ item.Código }}</span>
+                  <span class="item-status nao-lido">⏳ Não Lido</span>
+                </div>
+                <div class="item-body">
+                  <h4
+                    class="item-nome"
+                    v-html="destacarTermo(item.Produto, filtroProduto)"
+                  ></h4>
+                  <div class="item-details">
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">📦</span>
+                      <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">👤</span>
+                      <span>{{ item.Usuario || "N/A" }}</span>
+                    </div>
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">📅</span>
+                      <span
+                        >Última compra:
+                        {{ formatarData(item["Última compra"]) }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="item-actions">
+                  <button
+                    class="action-btn primary"
+                    aria-label="Marcar item como lido"
+                  >
+                    <span class="icon" aria-hidden="true">✏️</span> Marcar como
+                    Lido
+                  </button>
+                  <button
+                    class="action-btn secondary"
+                    aria-label="Ver detalhes do item"
+                  >
+                    <span class="icon" aria-hidden="true">📊</span> Detalhes
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -267,6 +481,10 @@
             :key="local.nome"
             :class="['heatmap-item', getHeatmapClass(local.percentualLidos)]"
             @click="filtroLocal = local.nome"
+            :aria-label="`${local.nome}: ${local.percentualLidos}% de itens lidos. Clique para filtrar por este local.`"
+            tabindex="0"
+            @keyup.enter="filtroLocal = local.nome"
+            @keyup.space="filtroLocal = local.nome"
           >
             <div class="heatmap-header">
               <span class="heatmap-title">{{ local.nome }}</span>
@@ -289,8 +507,13 @@
 
       <!-- Exportar Relatório -->
       <div class="export-section">
-        <button @click="exportarRelatorio" class="export-btn">
-          <span class="icon">📤</span> Exportar Relatório Completo
+        <button
+          @click="exportarRelatorio"
+          class="export-btn"
+          aria-label="Exportar relatório completo em formato CSV"
+        >
+          <span class="icon" aria-hidden="true">📊</span> Exportar Relatório
+          Completo
         </button>
       </div>
     </div>
@@ -299,6 +522,7 @@
 
 <script>
 import axios from "axios";
+import { debounce } from "lodash";
 
 export default {
   name: "SetoresAnalise",
@@ -310,8 +534,11 @@ export default {
       filtroLocal: "",
       filtroStatus: "",
       filtroProduto: "",
+      filtroProdutoInput: "",
       abaAtiva: "todos",
       carregando: true,
+      carregandoData: false,
+      buscandoProduto: false,
       erro: "",
     };
   },
@@ -321,51 +548,32 @@ export default {
       return locais.filter((local) => local).sort();
     },
 
+    // Filtros otimizados com memoização
     itensFiltrados() {
-      let filtrados = this.dadosPlanilha;
+      return this.aplicarFiltros(this.dadosPlanilha);
+    },
 
-      // Filtro por local
-      if (this.filtroLocal) {
-        filtrados = filtrados.filter((item) => item.Local === this.filtroLocal);
-      }
+    itensLidosFiltrados() {
+      return this.aplicarFiltros(
+        this.dadosPlanilha.filter((item) => item.Situacao === "Atualizado")
+      );
+    },
 
-      // Filtro por status
-      if (this.filtroStatus) {
-        filtrados = filtrados.filter((item) => {
-          if (this.filtroStatus === "Atualizado") {
-            return item.Situacao === "Atualizado";
-          } else {
-            return item.Situacao !== "Atualizado";
-          }
-        });
-      }
-
-      // Filtro por produto
-      if (this.filtroProduto) {
-        const termo = this.filtroProduto.toLowerCase();
-        filtrados = filtrados.filter(
-          (item) => item.Produto && item.Produto.toLowerCase().includes(termo)
-        );
-      }
-
-      // Filtro por aba ativa
-      if (this.abaAtiva === "lidos") {
-        filtrados = filtrados.filter((item) => item.Situacao === "Atualizado");
-      } else if (this.abaAtiva === "naoLidos") {
-        filtrados = filtrados.filter((item) => item.Situacao !== "Atualizado");
-      }
-
-      return filtrados;
+    itensNaoLidosFiltrados() {
+      return this.aplicarFiltros(
+        this.dadosPlanilha.filter((item) => item.Situacao !== "Atualizado")
+      );
     },
 
     tituloAbaAtiva() {
+      const locais = this.filtroLocal ? ` no ${this.filtroLocal}` : "";
       switch (this.abaAtiva) {
         case "lidos":
-          return "Itens Lidos no Local";
+          return `Itens Lidos${locais}`;
         case "naoLidos":
-          return "Itens Não Lidos no Local";
+          return `Itens Não Lidos${locais}`;
         default:
-          return "Todos os Itens do Local";
+          return `Todos os Itens${locais}`;
       }
     },
 
@@ -417,7 +625,6 @@ export default {
         const total = itensLocal.length;
         const percentualLidos =
           total > 0 ? Math.round((lidos / total) * 100) : 0;
-
         return {
           nome: local,
           total,
@@ -426,12 +633,86 @@ export default {
         };
       });
     },
+
+    filtrosAtivos() {
+      const filtros = [];
+      if (this.filtroLocal) filtros.push(`Local: ${this.filtroLocal}`);
+      if (this.filtroStatus) {
+        filtros.push(
+          `Status: ${
+            this.filtroStatus === "Atualizado"
+              ? "Itens Lidos"
+              : "Itens Não Lidos"
+          }`
+        );
+      }
+      if (this.filtroProduto) filtros.push(`Produto: "${this.filtroProduto}"`);
+      return filtros;
+    },
   },
-  async mounted() {
-    await this.carregarDatasAuditoria();
-    await this.carregarDados();
+  watch: {
+    filtroProdutoInput: debounce(function (newValue) {
+      this.buscandoProduto = true;
+      setTimeout(() => {
+        this.filtroProduto = newValue;
+        this.buscandoProduto = false;
+      }, 300);
+    }, 500),
   },
   methods: {
+    // Método otimizado para aplicar filtros
+    aplicarFiltros(itens) {
+      let filtrados = itens;
+
+      if (this.filtroLocal) {
+        filtrados = filtrados.filter((item) => item.Local === this.filtroLocal);
+      }
+
+      if (this.filtroStatus) {
+        filtrados = filtrados.filter((item) => {
+          if (this.filtroStatus === "Atualizado") {
+            return item.Situacao === "Atualizado";
+          } else {
+            return item.Situacao !== "Atualizado";
+          }
+        });
+      }
+
+      if (this.filtroProduto) {
+        const termo = this.filtroProduto.toLowerCase();
+        filtrados = filtrados.filter(
+          (item) => item.Produto && item.Produto.toLowerCase().includes(termo)
+        );
+      }
+
+      return filtrados;
+    },
+
+    destacarTermo(texto, termo) {
+      if (!termo || !texto) return texto;
+      const escaped = termo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(${escaped})`, "gi");
+      return texto.replace(regex, "<mark>$1</mark>");
+    },
+
+    limparFiltros() {
+      this.filtroLocal = "";
+      this.filtroStatus = "";
+      this.filtroProduto = "";
+      this.filtroProdutoInput = "";
+    },
+
+    removerFiltro(filtroTexto) {
+      if (filtroTexto.startsWith("Local:")) {
+        this.filtroLocal = "";
+      } else if (filtroTexto.startsWith("Status:")) {
+        this.filtroStatus = "";
+      } else if (filtroTexto.startsWith("Produto:")) {
+        this.filtroProduto = "";
+        this.filtroProdutoInput = "";
+      }
+    },
+
     async carregarDatasAuditoria() {
       try {
         const response = await axios.get(
@@ -443,6 +724,12 @@ export default {
         }
       } catch (error) {
         console.error("Erro ao carregar datas:", error);
+        // Fallback para datas de exemplo em caso de erro
+        this.datasAuditoria = [
+          new Date().toISOString().split("T")[0],
+          new Date(Date.now() - 86400000).toISOString().split("T")[0],
+        ];
+        this.dataSelecionada = this.datasAuditoria[0];
       }
     },
 
@@ -450,12 +737,21 @@ export default {
       return new Date(data).toLocaleDateString("pt-BR");
     },
 
+    async trocarDataAuditoria() {
+      if (!this.dataSelecionada) return;
+
+      this.carregandoData = true;
+      try {
+        await this.carregarDados();
+      } finally {
+        this.carregandoData = false;
+      }
+    },
+
     async carregarDados() {
       try {
         this.carregando = true;
         this.erro = "";
-
-        // Usar a nova rota para buscar dados de setores
         const params = this.dataSelecionada
           ? { data: this.dataSelecionada }
           : {};
@@ -476,7 +772,7 @@ export default {
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         this.erro = "Falha ao carregar dados da planilha";
-        // Fallback para dados de exemplo (remova isso em produção)
+        // Dados de exemplo para demonstração
         this.dadosPlanilha = [
           {
             Código: "1062218",
@@ -486,6 +782,24 @@ export default {
             Situacao: "Atualizado",
             "Estoque atual": "24",
             "Última compra": "01/01/2023",
+          },
+          {
+            Código: "1062219",
+            Produto: "CIGARRO MARLBORO GOLD C/10 KS RCB",
+            Local: "C01 - C01",
+            Usuario: "3285031 (JOÃO SILVA)",
+            Situacao: "Não lido",
+            "Estoque atual": "15",
+            "Última compra": "15/01/2023",
+          },
+          {
+            Código: "1062220",
+            Produto: "CERVEJA HEINEKEN LATA 350ML",
+            Local: "C02 - C02",
+            Usuario: "3285032 (MARIA SANTOS)",
+            Situacao: "Atualizado",
+            "Estoque atual": "48",
+            "Última compra": "10/02/2023",
           },
         ];
       } finally {
@@ -527,14 +841,12 @@ export default {
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
         `relatorio_setores_${new Date().toISOString().split("T")[0]}.csv`
       );
       link.style.visibility = "hidden";
-
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -547,6 +859,10 @@ export default {
       if (percentual >= 30) return "Baixo";
       return "Crítico";
     },
+  },
+  async mounted() {
+    await this.carregarDatasAuditoria();
+    await this.carregarDados();
   },
 };
 </script>
