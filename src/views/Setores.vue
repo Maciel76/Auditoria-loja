@@ -920,7 +920,7 @@ export default {
   margin-bottom: 20px;
 }
 .setores-container {
-  max-width: 1400px;
+  max-width: auto;
   margin: 0 auto;
   padding: 20px;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;

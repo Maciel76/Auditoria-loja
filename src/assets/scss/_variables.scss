@@ -1,0 +1,48 @@
+// Cores primárias
+$primary-color: #4361ee;
+$secondary-color: #3a0ca3;
+$accent-color: #f72585;
+$success-color: #4cc9f0;
+$warning-color: #fca311;
+$danger-color: #e63946;
+
+// Cores neutras
+$dark-color: #14213d;
+$light-color: #f8f9fa;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+
+// Gradientes
+$gradient-primary: linear-gradient(135deg, $primary-color, $secondary-color);
+$gradient-accent: linear-gradient(135deg, $accent-color, #b5179e);
+$gradient-success: linear-gradient(135deg, $success-color, #4895ef);
+
+// Sombras
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+// Bordas
+$border-radius-sm: 8px;
+$border-radius-md: 12px;
+$border-radius-lg: 16px;
+$border-radius-xl: 24px;
+
+// Transições
+$transition-fast: all 0.2s ease;
+$transition-normal: all 0.3s ease;
+$transition-slow: all 0.5s ease;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
