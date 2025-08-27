@@ -5,12 +5,12 @@ import Ranking from "../views/Ranking.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
-import Relatorios from "../views/Relatorios.vue"; // Importe o novo componente
 import Dashboard from "../views/Dashboard.vue";
 import EtiquetaContent from "../views/dashboard/EtiquetaContent.vue";
 import PresencaContent from "../views/dashboard/PresencaContent.vue";
 import RupturaContent from "../views/dashboard/RupturaContent.vue";
 import DashboadWiews from "../views/dashboard/DashboadWiews.vue";
+import RelatoriosDashboard from "../views/RelatoriosDashboard.vue";
 
 const routes = [
   { path: "/", name: "Upload", component: Upload },
@@ -18,7 +18,7 @@ const routes = [
   { path: "/ranking", name: "Ranking", component: Ranking },
   { path: "/setores", name: "Setores", component: Setores },
   { path: "/lista", name: "ListaUsuarios", component: ListaUsuarios },
-  { path: "/relatorios", name: "Relatorios", component: Relatorios }, // Adicione esta linha
+  { path: "/relatorios", name: "Relatorios", component: RelatoriosDashboard }, // Adicione esta linha
   { path: "/dashboard", name: "Dashboard", component: Dashboard },
   {
     path: "/dashboard/etiqueta",

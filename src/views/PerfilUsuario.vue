@@ -509,10 +509,10 @@ export default {
 
 <style scoped>
 .perfil-usuario-container {
-  max-width: 1200px;
+  max-width: auto;
   margin: 0 auto;
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 2px;
+  font-family: "Poppins", sans-serif;
 }
 
 .navigation-section {
