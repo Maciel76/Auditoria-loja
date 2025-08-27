@@ -922,8 +922,8 @@ export default {
 .setores-container {
   max-width: auto;
   margin: 0 auto;
-  padding: 20px;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 2px;
+  font-family: "Poppins", sans-serif;
 }
 
 /* Header */

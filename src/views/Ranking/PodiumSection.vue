@@ -7,7 +7,11 @@
         <div class="podium-position">2º</div>
         <div class="podium-content">
           <div class="medal-icon">
-            <span class="icon">🥈</span>
+            <img
+              src="../../assets/svg/icon-ranking/medalsilver.svg"
+              alt="Medalha de Prata"
+              class="nav-icon floating-animation"
+            />
           </div>
           <div class="user-avatar">
             <img
@@ -33,7 +37,11 @@
         <div class="podium-position">1º</div>
         <div class="podium-content">
           <div class="crown-icon">
-            <span class="icon">👑</span>
+            <img
+              src="../../assets/svg/icon-ranking/coroa.svg"
+              alt="Coroa"
+              class="nav-icon floating-animation"
+            />
           </div>
           <div class="user-avatar">
             <img
@@ -48,7 +56,11 @@
           <h3 class="user-name">{{ usuariosOrdenados[0].nome }}</h3>
           <p class="user-id">Matrícula: {{ usuariosOrdenados[0].id }}</p>
           <div class="score-badge gold">
-            <span class="icon">🏆</span>
+            <img
+              src="../../assets/svg/icon-ranking/medalgold.svg"
+              alt="Troféu"
+              class="nav-icon-small"
+            />
             {{ usuariosOrdenados[0].contador }} itens
           </div>
         </div>
@@ -59,7 +71,11 @@
         <div class="podium-position">3º</div>
         <div class="podium-content">
           <div class="medal-icon">
-            <span class="icon">🥉</span>
+            <img
+              src="../../assets/svg/icon-ranking/medalbronze.svg"
+              alt="Medalha de Bronze"
+              class="nav-icon floating-animation"
+            />
           </div>
           <div class="user-avatar">
             <img
@@ -161,8 +177,50 @@ export default {
 
 .medal-icon,
 .crown-icon {
-  font-size: 3rem;
   margin-bottom: 15px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-icon {
+  width: 70px;
+  height: auto;
+  margin-left: 13px;
+}
+
+.nav-icon-small {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.floating-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.gold-medal .floating-animation {
+  animation-delay: 0s;
+}
+
+.silver-medal .floating-animation {
+  animation-delay: 0.3s;
+}
+
+.bronze-medal .floating-animation {
+  animation-delay: 0.6s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .user-avatar {

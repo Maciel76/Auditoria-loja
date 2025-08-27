@@ -4,7 +4,7 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <span class="icon">👔</span>
+          <img src="../../assets/svg/star.svg" alt="Upload" class="nav-icon" />
         </div>
         <h3>Top Performer</h3>
         <p class="stat-value">{{ topPerformer.nome }}</p>
@@ -13,7 +13,7 @@
 
       <div class="stat-card">
         <div class="stat-icon">
-          <span class="icon">⚡</span>
+          <img src="../../assets/svg/raio.svg" alt="Upload" class="nav-icon" />
         </div>
         <h3>Maior Média</h3>
         <p class="stat-value">{{ mediaItensPorUsuario }} itens/colaborador</p>
@@ -21,8 +21,8 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">
-          <span class="icon">🎯</span>
+        <div class="stat-icon-alvo">
+          <img src="../../assets/svg/alvo.svg" alt="Upload" class="nav-icon" />
         </div>
         <h3>Meta Coletiva</h3>
         <p class="stat-value">{{ totalItensLidos }} itens</p>
@@ -31,7 +31,11 @@
 
       <div class="stat-card">
         <div class="stat-icon">
-          <span class="icon">📈</span>
+          <img
+            src="../../assets/svg/icon-ranking/grafico.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
         </div>
         <h3>Eficiência</h3>
         <p class="stat-value">{{ percentualAboveAverage }}%</p>
@@ -104,6 +108,18 @@ export default {
   font-size: 1.5rem;
   margin: 0 auto 15px;
 }
+.stat-icon-alvo {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ffffff 0%, #9e9e9e 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  margin: 0 auto 15px;
+}
 
 .stat-value {
   font-size: 1.5rem;
@@ -115,5 +131,10 @@ export default {
 .stat-label {
   color: #7f8c8d;
   font-size: 0.9rem;
+}
+.nav-icon {
+  width: 40px;
+  height: auto;
+  margin: 10px;
 }
 </style>

@@ -261,9 +261,9 @@ const mediaItensPorUsuario = computed(() =>
   font-weight: bold;
 }
 .usuarios-modern-container {
-  max-width: 1200px;
+  max-width: auto;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2px;
   font-family: "Poppins", sans-serif;
 }
 

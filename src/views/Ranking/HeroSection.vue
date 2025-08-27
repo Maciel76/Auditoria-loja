@@ -2,7 +2,11 @@
   <div class="hero-section">
     <div class="hero-content">
       <h1 class="hero-title">
-        <span class="icon">🏆</span> Ranking de Colaboradores
+        <img
+          src="../../assets/svg/icon-ranking/ranking.svg"
+          alt="Upload"
+          class="nav-icon icon gold"
+        />Ranking de Colaboradores
       </h1>
       <p class="hero-subtitle">
         Reconhecimento aos melhores desempenhos em auditorias
@@ -24,9 +28,26 @@
     </div>
     <div class="hero-decoration">
       <div class="trophy-animation">
-        <span class="icon gold">🥇</span>
-        <span class="icon silver">🥈</span>
-        <span class="icon bronze">🥉</span>
+        <span class="icon gold"></span>
+        <img
+          src="../../assets/svg/icon-ranking/medalsilver.svg"
+          alt="Upload"
+          class="nav-icon icon gold"
+        />
+        <span class="icon silver">
+          <img
+            src="../../assets/svg/icon-ranking/medalgold.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
+        </span>
+        <span class="icon bronze">
+          <img
+            src="../../assets/svg/icon-ranking/medalbronze.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
+        </span>
       </div>
     </div>
   </div>
@@ -119,7 +140,11 @@ export default {
 .trophy-animation {
   position: relative;
   display: flex;
-  gap: 15px;
+  gap: 10px;
+}
+.nav-icon {
+  width: 100px;
+  height: auto;
 }
 
 .trophy-animation .icon {

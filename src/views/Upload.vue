@@ -1,6 +1,6 @@
 <template>
   <div class="upload-container">
-    <h2>Upload da Planilha</h2>
+    <h2>Enviar Planilha da Auditoria</h2>
     <div class="upload-box" @dragover.prevent @drop="handleDrop">
       <p>Arraste sua planilha aqui ou</p>
       <input
@@ -19,7 +19,7 @@
       class="upload-btn"
     >
       <span v-if="enviando">Enviando...</span>
-      <span v-else>Enviar Planilha</span>
+      <span v-else>Processar Planilha</span>
     </button>
 
     <div v-if="resposta" class="resposta-container">
@@ -32,7 +32,7 @@
         <p class="success-message">{{ resposta.mensagem }}</p>
         <p>Total de itens na planilha: {{ resposta.totalItens }}</p>
         <p>Itens processados: {{ resposta.totalProcessados }}</p>
-        <p>Usuários afetados: {{ resposta.totalUsuarios }}</p>
+        <p>Usuários Encontrados: {{ resposta.totalUsuarios }}</p>
 
         <button @click="irParaUsuarios" class="use-data-btn">
           Ver Colaboradores
@@ -111,6 +111,7 @@ const irParaUsuarios = () => {
 .upload-container {
   margin: 0 auto;
   padding: 20px;
+  font-family: "Poppins", sans-serif;
 }
 
 .upload-box {
@@ -146,7 +147,7 @@ input[type="file"] {
 }
 
 .upload-btn {
-  background: #42b883;
+  background: #3372d1;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -159,6 +160,10 @@ input[type="file"] {
 .upload-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+.upload-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(51, 114, 209, 0.5);
 }
 
 .resposta-container {

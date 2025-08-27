@@ -20,7 +20,11 @@
             <span class="nav-text">Usuários</span>
           </router-link>
           <router-link to="/ranking" class="nav-item">
-            <img src="./assets/svg/trophy.svg" alt="Ranking" class="nav-icon" />
+            <img
+              src="./assets/svg/ranking.svg"
+              alt="Ranking"
+              class="nav-icon"
+            />
             <span class="nav-text">Ranking</span>
           </router-link>
           <router-link to="/setores" class="nav-item">
@@ -141,7 +145,7 @@ body {
 .nav-icon {
   font-size: 1.2rem;
   margin-right: 0.75rem;
-  width: 24px;
+  width: 30px;
   text-align: center;
 }
 

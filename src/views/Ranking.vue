@@ -258,9 +258,9 @@ export default {
 
 <style scoped>
 .ranking-premium-container {
-  max-width: 1500px;
+  max-width: auto;
   margin: 0 auto;
-  padding: 20px;
+  padding: 2px;
   font-family: "Poppins", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
