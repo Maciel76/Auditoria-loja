@@ -11,6 +11,9 @@ import PresencaContent from "../views/dashboard/PresencaContent.vue";
 import RupturaContent from "../views/dashboard/RupturaContent.vue";
 import DashboadWiews from "../views/dashboard/DashboadWiews.vue";
 import RelatoriosDashboard from "../views/RelatoriosDashboard.vue";
+import Etiqueta from "../views/uploadview/Etiqueta.vue";
+import Presenca from "../views/uploadview/Presenca.vue";
+import Ruptura from "../views/uploadview/Ruptura.vue";
 
 const routes = [
   { path: "/", name: "Upload", component: Upload },
@@ -46,6 +49,9 @@ const routes = [
     name: "DashboardViews",
     component: DashboadWiews,
   },
+  { path: "/upload/etiqueta", name: "Etiqueta", component: Etiqueta },
+  { path: "/upload/presenca", name: "Presenca", component: Presenca },
+  { path: "/upload/ruptura", name: "Ruptura", component: Ruptura },
 ];
 
 const router = createRouter({

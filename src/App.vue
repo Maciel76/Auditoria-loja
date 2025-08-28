@@ -7,51 +7,66 @@
           <h1>Auditoria Loja</h1>
         </div>
         <nav class="sidebar-nav">
-          <router-link to="/" class="nav-item">
-            <img src="./assets/svg/upload.svg" alt="Upload" class="nav-icon" />
-            <span class="nav-text">Upload</span>
-          </router-link>
-          <router-link to="/dashboard" class="nav-item">
+          <!-- Item de Upload com submenu ativado por clique -->
+          <div class="nav-item-container">
+            <div 
+              class="nav-item main-nav-item" 
+              :class="{ 'router-link-active': isUploadActive, 'submenu-open': showUploadSubmenu }"
+              @click="toggleUploadSubmenu"
+            >
+              <img src="./assets/svg/upload.svg" alt="Upload" class="nav-icon" />
+              <span class="nav-text">Upload</span>
+              <span class="submenu-arrow" :class="{ 'rotated': showUploadSubmenu }">›</span>
+            </div>
+          </div>
+          
+          <router-link to="/dashboard" class="nav-item" @click.native="closeSubmenu">
             <img src="./assets/svg/dash.svg" alt="Dashboard" class="nav-icon" />
             <span class="nav-text">Dashboard</span>
           </router-link>
-          <router-link to="/usuarios" class="nav-item">
+          <router-link to="/usuarios" class="nav-item" @click.native="closeSubmenu">
             <img src="./assets/svg/user.svg" alt="Usuários" class="nav-icon" />
             <span class="nav-text">Usuários</span>
           </router-link>
-          <router-link to="/ranking" class="nav-item">
-            <img
-              src="./assets/svg/ranking.svg"
-              alt="Ranking"
-              class="nav-icon"
-            />
+          <router-link to="/ranking" class="nav-item" @click.native="closeSubmenu">
+            <img src="./assets/svg/ranking.svg" alt="Ranking" class="nav-icon" />
             <span class="nav-text">Ranking</span>
           </router-link>
-          <router-link to="/setores" class="nav-item">
-            <img
-              src="./assets/svg/setores.svg"
-              alt="Setores"
-              class="nav-icon"
-            />
+          <router-link to="/setores" class="nav-item" @click.native="closeSubmenu">
+            <img src="./assets/svg/setores.svg" alt="Setores" class="nav-icon" />
             <span class="nav-text">Setores</span>
           </router-link>
-          <router-link to="/lista" class="nav-item">
-            <img
-              src="./assets/svg/list.svg"
-              alt="Lista de Usuários"
-              class="nav-icon"
-            />
+          <router-link to="/lista" class="nav-item" @click.native="closeSubmenu">
+            <img src="./assets/svg/list.svg" alt="Lista de Usuários" class="nav-icon" />
             <span class="nav-text">Lista de Usuários</span>
           </router-link>
-          <router-link to="/relatorios" class="nav-item">
-            <img
-              src="./assets/svg/report.svg"
-              alt="Relatórios"
-              class="nav-icon"
-            />
+          <router-link to="/relatorios" class="nav-item" @click.native="closeSubmenu">
+            <img src="./assets/svg/report.svg" alt="Relatórios" class="nav-icon" />
             <span class="nav-text">Relatórios</span>
           </router-link>
         </nav>
+        
+        <!-- Submenu de Upload (sobrepõe a sidebar) -->
+        <transition name="submenu-slide">
+          <div v-if="showUploadSubmenu" class="submenu-overlay">
+            <div class="submenu-content">
+              <h3>Opções de Upload</h3>
+              <router-link to="/upload/etiqueta" class="submenu-item" @click.native="closeSubmenu">
+                <img src="./assets/svg/upload.svg" alt="Upload" class="nav-icon" />
+                <span class="submenu-text">Upload Etiqueta</span>
+              </router-link>
+              <router-link to="/upload/presenca" class="submenu-item" @click.native="closeSubmenu">
+                <img src="./assets/svg/upload.svg" alt="Upload" class="nav-icon" />
+                <span class="submenu-text">Upload Presença</span>
+              </router-link>
+              <router-link to="/upload/ruptura" class="submenu-item" @click.native="closeSubmenu">
+                <img src="./assets/svg/upload.svg" alt="Upload" class="nav-icon" />
+                <span class="submenu-text">Upload Ruptura</span>
+              </router-link>
+              <button class="close-submenu" @click="closeSubmenu">×</button>
+            </div>
+          </div>
+        </transition>
       </aside>
 
       <!-- Conteúdo Principal -->
@@ -65,6 +80,31 @@
 <script>
 export default {
   name: "App",
+  data() {
+    return {
+      showUploadSubmenu: false
+    };
+  },
+  computed: {
+    isUploadActive() {
+      // Ativa apenas se estiver em uma das rotas de upload
+      return this.$route.path.startsWith('/upload/');
+    }
+  },
+  methods: {
+    toggleUploadSubmenu() {
+      this.showUploadSubmenu = !this.showUploadSubmenu;
+    },
+    closeSubmenu() {
+      this.showUploadSubmenu = false;
+    }
+  },
+  watch: {
+    // Fecha o submenu quando a rota muda
+    $route() {
+      this.closeSubmenu();
+    }
+  }
 };
 </script>
 
@@ -118,6 +158,12 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.nav-item-container {
+  position: relative;
 }
 
 .nav-item {
@@ -129,17 +175,22 @@ body {
   border-radius: 8px;
   transition: all 0.3s ease;
   margin: 0 0.5rem;
+  cursor: pointer;
 }
 
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: translateX(5px);
 }
 
 .nav-item.router-link-active {
   background: rgba(255, 255, 255, 0.2);
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item.submenu-open {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .nav-icon {
@@ -151,6 +202,93 @@ body {
 
 .nav-text {
   flex: 1;
+}
+
+.submenu-arrow {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.submenu-arrow.rotated {
+  transform: rotate(90deg);
+}
+
+/* Submenu Overlay (sobrepõe a sidebar) */
+.submenu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.submenu-content {
+  width: 250px;
+  height: 100vh;
+  background: linear-gradient(135deg, #132d47 0%, #2c3e50 100%);
+  padding: 1rem;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.submenu-content h3 {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.submenu-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.submenu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.submenu-item.router-link-active {
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+}
+
+.submenu-text {
+  margin-left: 10px;
+}
+
+.close-submenu {
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.close-submenu:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Animações para o submenu */
+.submenu-slide-enter-active, .submenu-slide-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.submenu-slide-enter-from, .submenu-slide-leave-to {
+  opacity: 0;
 }
 
 /* Conteúdo Principal */
@@ -189,6 +327,10 @@ body {
     padding: 0.5rem;
     border-radius: 4px;
     cursor: pointer;
+  }
+
+  .submenu-content {
+    width: 200px;
   }
 }
 
