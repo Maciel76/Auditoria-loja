@@ -8,7 +8,7 @@
         <div class="podium-content">
           <div class="medal-icon">
             <img
-              src="../../assets/svg/icon-ranking/medalsilver.svg"
+              src="../../../assets/svg/icon-ranking/medalsilver.svg"
               alt="Medalha de Prata"
               class="nav-icon floating-animation"
             />
@@ -38,7 +38,7 @@
         <div class="podium-content">
           <div class="crown-icon">
             <img
-              src="../../assets/svg/icon-ranking/coroa.svg"
+              src="../../../assets/svg/icon-ranking/coroa.svg"
               alt="Coroa"
               class="nav-icon floating-animation"
             />
@@ -57,7 +57,7 @@
           <p class="user-id">Matrícula: {{ usuariosOrdenados[0].id }}</p>
           <div class="score-badge gold">
             <img
-              src="../../assets/svg/icon-ranking/medalgold.svg"
+              src="../../../assets/svg/icon-ranking/medalgold.svg"
               alt="Troféu"
               class="nav-icon-small"
             />
@@ -72,7 +72,7 @@
         <div class="podium-content">
           <div class="medal-icon">
             <img
-              src="../../assets/svg/icon-ranking/medalbronze.svg"
+              src="../../../assets/svg/icon-ranking/medalbronze.svg"
               alt="Medalha de Bronze"
               class="nav-icon floating-animation"
             />

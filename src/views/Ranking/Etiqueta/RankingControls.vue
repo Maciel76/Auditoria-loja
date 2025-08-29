@@ -4,7 +4,7 @@
     <div class="search-container">
       <div class="search-icon">
         <img
-          src="../../assets/svg/icon-ranking/search.svg"
+          src="../../../assets/svg/icon-ranking/search.svg"
           alt="Buscar"
           class="nav-icon"
         />
@@ -51,7 +51,7 @@
       <!-- Botão para buscar dados -->
       <button @click="$emit('buscarDados')" class="filter-btn">
         <img
-          src="../../assets/svg/icon-ranking/update.svg"
+          src="../../../assets/svg/icon-ranking/update.svg"
           alt="Atualizar"
           class="nav-icon-small"
         />
@@ -66,7 +66,7 @@
         :class="['view-btn', { active: viewMode === 'podium' }]"
       >
         <img
-          src="../../assets/svg/icon-ranking/medalgold.svg"
+          src="../../../assets/svg/icon-ranking/medalgold.svg"
           alt="Visualização em pódio"
           class="nav-icon-small"
         />
@@ -77,7 +77,7 @@
         :class="['view-btn', { active: viewMode === 'all' }]"
       >
         <img
-          src="../../assets/svg/icon-ranking/clipboard.svg"
+          src="../../../assets/svg/icon-ranking/clipboard.svg"
           alt="Visualização completa"
           class="nav-icon-small"
         />

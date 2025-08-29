@@ -34,7 +34,7 @@
           <router-link
             to="/dashboard"
             class="nav-item"
-            @click.native="closeSubmenu"
+            @click.native="closeSubmenus"
           >
             <img src="./assets/svg/dash.svg" alt="Dashboard" class="nav-icon" />
             <span class="nav-text">Dashboard</span>
@@ -42,27 +42,40 @@
           <router-link
             to="/usuarios"
             class="nav-item"
-            @click.native="closeSubmenu"
+            @click.native="closeSubmenus"
           >
             <img src="./assets/svg/user.svg" alt="Usuários" class="nav-icon" />
             <span class="nav-text">Usuários</span>
           </router-link>
-          <router-link
-            to="/ranking"
-            class="nav-item"
-            @click.native="closeSubmenu"
-          >
-            <img
-              src="./assets/svg/ranking.svg"
-              alt="Ranking"
-              class="nav-icon"
-            />
-            <span class="nav-text">Ranking</span>
-          </router-link>
+
+          <!-- Item de Ranking com submenu ativado por clique -->
+          <div class="nav-item-container">
+            <div
+              class="nav-item main-nav-item"
+              :class="{
+                'router-link-active': isRankingActive,
+                'submenu-open': showRankingSubmenu,
+              }"
+              @click="toggleRankingSubmenu"
+            >
+              <img
+                src="./assets/svg/ranking.svg"
+                alt="Ranking"
+                class="nav-icon"
+              />
+              <span class="nav-text">Ranking</span>
+              <span
+                class="submenu-arrow"
+                :class="{ rotated: showRankingSubmenu }"
+                >›</span
+              >
+            </div>
+          </div>
+
           <router-link
             to="/setores"
             class="nav-item"
-            @click.native="closeSubmenu"
+            @click.native="closeSubmenus"
           >
             <img
               src="./assets/svg/setores.svg"
@@ -74,7 +87,7 @@
           <router-link
             to="/lista"
             class="nav-item"
-            @click.native="closeSubmenu"
+            @click.native="closeSubmenus"
           >
             <img
               src="./assets/svg/list.svg"
@@ -86,7 +99,7 @@
           <router-link
             to="/relatorios"
             class="nav-item"
-            @click.native="closeSubmenu"
+            @click.native="closeSubmenus"
           >
             <img
               src="./assets/svg/report.svg"
@@ -105,7 +118,7 @@
               <router-link
                 to="/upload/etiqueta"
                 class="submenu-item"
-                @click.native="closeSubmenu"
+                @click.native="closeSubmenus"
               >
                 <img
                   src="./assets/svg/upload.svg"
@@ -117,7 +130,7 @@
               <router-link
                 to="/upload/presenca"
                 class="submenu-item"
-                @click.native="closeSubmenu"
+                @click.native="closeSubmenus"
               >
                 <img
                   src="./assets/svg/upload.svg"
@@ -129,7 +142,7 @@
               <router-link
                 to="/upload/ruptura"
                 class="submenu-item"
-                @click.native="closeSubmenu"
+                @click.native="closeSubmenus"
               >
                 <img
                   src="./assets/svg/upload.svg"
@@ -138,7 +151,53 @@
                 />
                 <span class="submenu-text">Upload Ruptura</span>
               </router-link>
-              <button class="close-submenu" @click="closeSubmenu">×</button>
+              <button class="close-submenu" @click="closeSubmenus">×</button>
+            </div>
+          </div>
+        </transition>
+
+        <!-- Submenu de Ranking (sobrepõe a sidebar) -->
+        <transition name="submenu-slide">
+          <div v-if="showRankingSubmenu" class="submenu-overlay">
+            <div class="submenu-content">
+              <h3>Opções de Ranking</h3>
+              <router-link
+                to="/ranking/etiqueta"
+                class="submenu-item"
+                @click.native="closeSubmenus"
+              >
+                <img
+                  src="./assets/svg/ranking.svg"
+                  alt="Ranking Etiqueta"
+                  class="nav-icon"
+                />
+                <span class="submenu-text">Ranking Etiqueta</span>
+              </router-link>
+              <router-link
+                to="/ranking/ruptura"
+                class="submenu-item"
+                @click.native="closeSubmenus"
+              >
+                <img
+                  src="./assets/svg/ranking.svg"
+                  alt="Ranking Ruptura"
+                  class="nav-icon"
+                />
+                <span class="submenu-text">Ranking Ruptura</span>
+              </router-link>
+              <router-link
+                to="/ranking/presenca"
+                class="submenu-item"
+                @click.native="closeSubmenus"
+              >
+                <img
+                  src="./assets/svg/ranking.svg"
+                  alt="Ranking Presença"
+                  class="nav-icon"
+                />
+                <span class="submenu-text">Ranking Presença</span>
+              </router-link>
+              <button class="close-submenu" @click="closeSubmenus">×</button>
             </div>
           </div>
         </transition>
@@ -158,6 +217,7 @@ export default {
   data() {
     return {
       showUploadSubmenu: false,
+      showRankingSubmenu: false,
     };
   },
   computed: {
@@ -165,25 +225,42 @@ export default {
       // Ativa apenas se estiver em uma das rotas de upload
       return this.$route.path.startsWith("/upload/");
     },
+    isRankingActive() {
+      // Ativa apenas se estiver em uma das rotas de ranking
+      return this.$route.path.startsWith("/ranking/");
+    },
   },
   methods: {
     toggleUploadSubmenu() {
       this.showUploadSubmenu = !this.showUploadSubmenu;
+      // Fecha o submenu de ranking se estiver aberto
+      if (this.showRankingSubmenu) {
+        this.showRankingSubmenu = false;
+      }
     },
-    closeSubmenu() {
+    toggleRankingSubmenu() {
+      this.showRankingSubmenu = !this.showRankingSubmenu;
+      // Fecha o submenu de upload se estiver aberto
+      if (this.showUploadSubmenu) {
+        this.showUploadSubmenu = false;
+      }
+    },
+    closeSubmenus() {
       this.showUploadSubmenu = false;
+      this.showRankingSubmenu = false;
     },
   },
   watch: {
-    // Fecha o submenu quando a rota muda
+    // Fecha os submenus quando a rota muda
     $route() {
-      this.closeSubmenu();
+      this.closeSubmenus();
     },
   },
 };
 </script>
 
 <style>
+/* Seus estilos existentes permanecem os mesmos */
 * {
   margin: 0;
   padding: 0;

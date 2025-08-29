@@ -3,10 +3,10 @@
     <div class="hero-content">
       <h1 class="hero-title">
         <img
-          src="../../assets/svg/icon-ranking/ranking.svg"
+          src="../../../assets/svg/icon-ranking/ranking.svg"
           alt="Upload"
           class="nav-icon icon gold"
-        />Ranking de Colaboradores
+        />Ranking de Colaboradores - Etiqueta
       </h1>
       <p class="hero-subtitle">
         Reconhecimento aos melhores desempenhos em auditorias
@@ -30,20 +30,20 @@
       <div class="trophy-animation">
         <span class="icon gold"></span>
         <img
-          src="../../assets/svg/icon-ranking/medalsilver.svg"
+          src="../../../assets/svg/icon-ranking/medalsilver.svg"
           alt="Upload"
           class="nav-icon icon gold"
         />
         <span class="icon silver">
           <img
-            src="../../assets/svg/icon-ranking/medalgold.svg"
+            src="../../../assets/svg/icon-ranking/medalgold.svg"
             alt="Upload"
             class="nav-icon"
           />
         </span>
         <span class="icon bronze">
           <img
-            src="../../assets/svg/icon-ranking/medalbronze.svg"
+            src="../../../assets/svg/icon-ranking/medalbronze.svg"
             alt="Upload"
             class="nav-icon"
           />

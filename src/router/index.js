@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Upload from "../views/Upload.vue";
 import Usuarios from "../views/Usuarios.vue";
-import Ranking from "../views/Ranking.vue";
+import Ranking from "../views/RankingEtiqueta.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
@@ -14,11 +14,23 @@ import RelatoriosDashboard from "../views/RelatoriosDashboard.vue";
 import Etiqueta from "../views/uploadview/Etiqueta.vue";
 import Presenca from "../views/uploadview/Presenca.vue";
 import Ruptura from "../views/uploadview/Ruptura.vue";
+import RankingPresença from "../views/RankingPresença.vue";
+import RankingRuptura from "../views/RankingRuptura.vue";
 
 const routes = [
   { path: "/", name: "Upload", component: Upload },
   { path: "/usuarios", name: "Usuarios", component: Usuarios },
-  { path: "/ranking", name: "Ranking", component: Ranking },
+  { path: "/ranking/etiqueta", name: "Ranking", component: Ranking },
+  {
+    path: "/ranking/presenca",
+    name: "RankingPresenca",
+    component: RankingPresença,
+  },
+  {
+    path: "/ranking/ruptura",
+    name: "RankingRuptura",
+    component: RankingRuptura,
+  },
   { path: "/setores", name: "Setores", component: Setores },
   { path: "/lista", name: "ListaUsuarios", component: ListaUsuarios },
   { path: "/relatorios", name: "Relatorios", component: RelatoriosDashboard }, // Adicione esta linha

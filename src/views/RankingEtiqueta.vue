@@ -48,15 +48,15 @@
 
 <script>
 import { ref, computed, onMounted } from "vue";
-import HeroSection from "./Ranking/HeroSection.vue";
-import RankingControls from "./Ranking/RankingControls.vue";
-import PodiumSection from "./Ranking/PodiumSection.vue";
-import RankingList from "./Ranking/RankingList.vue";
-import AdvancedStats from "./Ranking/AdvancedStats.vue";
-import ExportSection from "./Ranking/ExportSection.vue";
+import HeroSection from "./Ranking/Etiqueta/HeroSection.vue";
+import RankingControls from "./Ranking/Etiqueta/RankingControls.vue";
+import PodiumSection from "./Ranking/Etiqueta/PodiumSection.vue";
+import RankingList from "./Ranking/Etiqueta/RankingList.vue";
+import AdvancedStats from "./Ranking/Etiqueta/AdvancedStats.vue";
+import ExportSection from "./Ranking/Etiqueta/ExportSection.vue";
 
 export default {
-  name: "RankingPremium",
+  name: "RankingEtiqueta",
   components: {
     HeroSection,
     RankingControls,

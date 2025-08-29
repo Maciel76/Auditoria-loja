@@ -4,7 +4,11 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">
-          <img src="../../assets/svg/star.svg" alt="Upload" class="nav-icon" />
+          <img
+            src="../../../assets/svg/star.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
         </div>
         <h3>Top Performer</h3>
         <p class="stat-value">{{ topPerformer.nome }}</p>
@@ -13,7 +17,11 @@
 
       <div class="stat-card">
         <div class="stat-icon">
-          <img src="../../assets/svg/raio.svg" alt="Upload" class="nav-icon" />
+          <img
+            src="../../../assets/svg/raio.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
         </div>
         <h3>Maior Média</h3>
         <p class="stat-value">{{ mediaItensPorUsuario }} itens/colaborador</p>
@@ -22,7 +30,11 @@
 
       <div class="stat-card">
         <div class="stat-icon-alvo">
-          <img src="../../assets/svg/alvo.svg" alt="Upload" class="nav-icon" />
+          <img
+            src="../../../assets/svg/alvo.svg"
+            alt="Upload"
+            class="nav-icon"
+          />
         </div>
         <h3>Meta Coletiva</h3>
         <p class="stat-value">{{ totalItensLidos }} itens</p>
@@ -32,7 +44,7 @@
       <div class="stat-card">
         <div class="stat-icon">
           <img
-            src="../../assets/svg/icon-ranking/grafico.svg"
+            src="../../../assets/svg/icon-ranking/grafico.svg"
             alt="Upload"
             class="nav-icon"
           />
