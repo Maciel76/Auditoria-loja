@@ -98,6 +98,7 @@ export default {
   align-items: flex-end;
   gap: 30px;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .avatar-container {
