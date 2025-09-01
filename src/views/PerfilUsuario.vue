@@ -30,6 +30,7 @@
         :corredoresUnicos="corredoresUnicos"
         :percentualConcluido="percentualConcluido"
       />
+     
 
       <!-- Selos e Conquistas -->
       <SelosConquistas
@@ -49,6 +50,8 @@
         :percentualConcluido="percentualConcluido"
         :corredoresComContagem="corredoresComContagem"
       />
+       <!-- QR Code da Matrícula -->
+      <QrCodeMatricula :usuario="usuario" />
 
       <!-- Timeline de Atividades -->
       <TimelineAtividades
@@ -79,6 +82,7 @@ import EstatisticasPrincipais from "./Perfiltemplate/EstatisticasPrincipais.vue"
 import TimelineAtividades from "./Perfiltemplate/TimelineAtividades.vue";
 import ItensFaltantes from "./Perfiltemplate/ItensFaltantes.vue";
 import BotoesAcao from "./Perfiltemplate/BotoesAcao.vue";
+import QrCodeMatricula from "./Perfiltemplate/QrCodeMatricula.vue";
 
 export default {
   name: "PerfilUsuario",
@@ -89,6 +93,7 @@ export default {
     TimelineAtividades,
     ItensFaltantes,
     BotoesAcao,
+    QrCodeMatricula,
   },
   props: {
     id: {
@@ -557,6 +562,32 @@ export default {
   height: 40px;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
+}
+stats-qr-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.stats-section {
+  grid-column: 1;
+}
+
+.qr-section {
+  grid-column: 2;
+}
+
+@media (max-width: 1024px) {
+  .stats-qr-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .stats-section,
+  .qr-section {
+    grid-column: 1;
+  }
 }
 
 @keyframes spin {
