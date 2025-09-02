@@ -69,10 +69,11 @@ const enviarArquivo = async () => {
     enviando.value = true;
     const formData = new FormData();
     formData.append("file", arquivo.value);
+    // ⬇️ ALTERAR PARA A NOVA ROTA ESPECÍFICA
     formData.append("tipoAuditoria", "ruptura");
 
     const { data } = await axios.post(
-      "http://localhost:3000/upload",
+      "http://localhost:3000/upload-ruptura", // ⬅️ NOVA ROTA
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
