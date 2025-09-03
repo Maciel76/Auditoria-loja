@@ -124,7 +124,7 @@ export default {
     const buscarDados = async () => {
       try {
         carregando.value = true;
-        let url = "http://localhost:3000/api/ranking";
+        let url = "http://localhost:3000/api/ranking-ruptura"; // URL alterada
         // Adicionar parâmetros de filtro
         const params = new URLSearchParams();
         if (filtroTipo.value !== "todos")
