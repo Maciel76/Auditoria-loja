@@ -120,79 +120,44 @@ export default {
       ).length;
       return Math.round((aboveAverage / usuarios.value.length) * 100);
     });
-
-    const buscarDados = async () => {
-      try {
-        carregando.value = true;
-        let url = "http://localhost:3000/api/ranking";
-        // Adicionar parâmetros de filtro
-        const params = new URLSearchParams();
-        if (filtroTipo.value !== "todos")
-          params.append("tipo", filtroTipo.value);
-        if (filtroPeriodo.value !== "todos")
-          params.append("periodo", filtroPeriodo.value);
-        if (params.toString()) {
-          url += `?${params.toString()}`;
-        }
-        const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          usuarios.value = data.map((usuario) => ({
-            ...usuario,
-            iniciais: obterIniciais(usuario.nome),
-            contador: usuario.contador || 0,
-          }));
-        } else {
-          console.error("Erro ao carregar dados do ranking");
-          // Fallback para dados locais se a API falhar
-          usuarios.value = [
-            {
-              id: "001",
-              nome: "João Silva",
-              contador: 156,
-              iniciais: "JS",
-            },
-            {
-              id: "002",
-              nome: "Maria Santos",
-              contador: 203,
-              iniciais: "MS",
-            },
-            {
-              id: "003",
-              nome: "Pedro Oliveira",
-              contador: 178,
-              iniciais: "PO",
-            },
-          ];
-        }
-      } catch (error) {
-        console.error("Erro ao conectar com o backend:", error);
-        // Fallback para dados locais em caso de erro
-        usuarios.value = [
-          {
-            id: "001",
-            nome: "João Silva",
-            contador: 156,
-            iniciais: "JS",
-          },
-          {
-            id: "002",
-            nome: "Maria Santos",
-            contador: 203,
-            iniciais: "MS",
-          },
-          {
-            id: "003",
-            nome: "Pedro Oliveira",
-            contador: 178,
-            iniciais: "PO",
-          },
-        ];
-      } finally {
-        carregando.value = false;
-      }
-    };
+const buscarDados = async () => {
+  try {
+    carregando.value = true;
+    let url = "http://localhost:3000/api/ranking";
+    
+    // Adicionar parâmetros de filtro
+    const params = new URLSearchParams();
+    if (filtroTipo.value !== "todos") {
+      params.append("tipo", filtroTipo.value); // Agora envia o tipo: "etiqueta", "presenca" ou "ruptura"
+    }
+    if (filtroPeriodo.value !== "todos") {
+      params.append("periodo", filtroPeriodo.value);
+    }
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    
+    const response = await fetch(url);
+    if (response.ok) {
+      const data = await response.json();
+      usuarios.value = data.map((usuario) => ({
+        ...usuario,
+        iniciais: obterIniciais(usuario.nome),
+        contador: usuario.contador || 0,
+      }));
+    } else {
+      // Fallback para dados locais
+      usuarios.value = [/* dados de fallback */];
+    }
+  } catch (error) {
+    console.error("Erro ao conectar com o backend:", error);
+    // Fallback para dados locais
+    usuarios.value = [/* dados de fallback */];
+  } finally {
+    carregando.value = false;
+  }
+};
 
     const obterIniciais = (nome) => {
       if (!nome) return "??";
