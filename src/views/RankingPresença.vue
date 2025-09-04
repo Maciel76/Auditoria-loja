@@ -20,14 +20,21 @@
       @buscarDados="buscarDados"
     />
 
+    <!-- Loading State -->
+    <div v-if="carregando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando dados do ranking...</p>
+    </div>
+
     <!-- Pódio - Top 3 -->
     <PodiumSection
-      v-if="viewMode === 'podium' && usuariosOrdenados.length >= 3"
+      v-else-if="viewMode === 'podium' && usuariosOrdenados.length >= 3"
       :usuariosOrdenados="usuariosOrdenados"
     />
 
     <!-- Lista Completa de Ranking -->
     <RankingList
+      v-if="!carregando"
       :usuariosFiltradosOrdenados="usuariosFiltradosOrdenados"
       :viewMode="viewMode"
       :usuariosOrdenados="usuariosOrdenados"
@@ -35,6 +42,7 @@
 
     <!-- Estatísticas Avançadas -->
     <AdvancedStats
+      v-if="!carregando"
       :topPerformer="topPerformer"
       :mediaItensPorUsuario="mediaItensPorUsuario"
       :totalItensLidos="totalItensLidos"
@@ -42,7 +50,21 @@
     />
 
     <!-- Botão de Exportar -->
-    <ExportSection @exportarRanking="exportarRanking" />
+    <ExportSection v-if="!carregando" @exportarRanking="exportarRanking" />
+
+    <!-- Empty State -->
+    <div v-if="!carregando && usuarios.length === 0" class="empty-state">
+      <img
+        src="../../../assets/svg/icon-ranking/empty-state.svg"
+        alt="Nenhum dado encontrado"
+        class="empty-icon"
+      />
+      <h3>Nenhum dado de presença encontrado</h3>
+      <p>
+        Os dados serão exibidos aqui após o processamento de planilhas de
+        presença.
+      </p>
+    </div>
   </div>
 </template>
 
@@ -69,9 +91,10 @@ export default {
     const usuarios = ref([]);
     const filtro = ref("");
     const viewMode = ref("podium");
-    const filtroTipo = ref("todos");
-    const filtroPeriodo = ref("hoje");
+    const filtroTipo = ref("presenca"); // Padrão para presença
+    const filtroPeriodo = ref("todos"); // Padrão para todos os períodos
     const carregando = ref(false);
+    const erro = ref(null);
 
     const usuariosOrdenados = computed(() => {
       return [...usuarios.value].sort((a, b) => b.contador - a.contador);
@@ -85,7 +108,7 @@ export default {
         filtered = filtered.filter(
           (usuario) =>
             usuario.nome.toLowerCase().includes(searchTerm) ||
-            usuario.id.toLowerCase().includes(searchTerm)
+            (usuario.id && usuario.id.toLowerCase().includes(searchTerm))
         );
       }
 
@@ -98,7 +121,7 @@ export default {
 
     const totalItensLidos = computed(() => {
       return usuarios.value.reduce(
-        (total, usuario) => total + usuario.contador,
+        (total, usuario) => total + (usuario.contador || 0),
         0
       );
     });
@@ -124,69 +147,64 @@ export default {
     const buscarDados = async () => {
       try {
         carregando.value = true;
-        let url = "http://localhost:3000/api/ranking-presenca"; // URL alterada
+        erro.value = null;
+
+        let url = "http://localhost:3000/api/ranking-presenca";
+
         // Adicionar parâmetros de filtro
         const params = new URLSearchParams();
-        if (filtroTipo.value !== "todos")
+        if (filtroTipo.value && filtroTipo.value !== "todos") {
           params.append("tipo", filtroTipo.value);
-        if (filtroPeriodo.value !== "todos")
+        }
+        if (filtroPeriodo.value && filtroPeriodo.value !== "todos") {
           params.append("periodo", filtroPeriodo.value);
+        }
+
         if (params.toString()) {
           url += `?${params.toString()}`;
         }
+
+        console.log("Buscando dados de:", url);
+
         const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          usuarios.value = data.map((usuario) => ({
-            ...usuario,
-            iniciais: obterIniciais(usuario.nome),
-            contador: usuario.contador || 0,
-          }));
-        } else {
-          console.error("Erro ao carregar dados do ranking");
-          // Fallback para dados locais se a API falhar
-          usuarios.value = [
-            {
-              id: "001",
-              nome: "João Silva",
-              contador: 156,
-              iniciais: "JS",
-            },
-            {
-              id: "002",
-              nome: "Maria Santos",
-              contador: 203,
-              iniciais: "MS",
-            },
-            {
-              id: "003",
-              nome: "Pedro Oliveira",
-              contador: 178,
-              iniciais: "PO",
-            },
-          ];
+
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log("Dados recebidos da API:", data);
+
+        usuarios.value = data.map((usuario) => ({
+          ...usuario,
+          iniciais: obterIniciais(usuario.nome),
+          contador: usuario.contador || 0,
+        }));
+
+        console.log("Usuários processados:", usuarios.value);
       } catch (error) {
-        console.error("Erro ao conectar com o backend:", error);
-        // Fallback para dados locais em caso de erro
+        console.error("Erro ao buscar dados:", error);
+        erro.value = error.message;
+
+        // Fallback para dados de exemplo baseados na imagem
         usuarios.value = [
           {
-            id: "001",
-            nome: "João Silva",
-            contador: 156,
-            iniciais: "JS",
+            id: "2764270",
+            nome: "GARDENIA VIANA BERNARDES",
+            contador: 1423,
+            iniciais: "GV",
           },
           {
-            id: "002",
-            nome: "Maria Santos",
-            contador: 203,
-            iniciais: "MS",
+            id: "1234567",
+            nome: "EXEMPLO SILVA",
+            contador: 987,
+            iniciais: "ES",
           },
           {
-            id: "003",
-            nome: "Pedro Oliveira",
-            contador: 178,
-            iniciais: "PO",
+            id: "7654321",
+            nome: "TESTE OLIVEIRA",
+            contador: 654,
+            iniciais: "TO",
           },
         ];
       } finally {
@@ -225,7 +243,7 @@ export default {
       const url = URL.createObjectURL(blob);
 
       link.setAttribute("href", url);
-      link.setAttribute("download", "ranking_colaboradores.csv");
+      link.setAttribute("download", "ranking_presenca_colaboradores.csv");
       link.style.visibility = "hidden";
 
       document.body.appendChild(link);
@@ -243,6 +261,8 @@ export default {
       viewMode,
       filtroTipo,
       filtroPeriodo,
+      carregando,
+      erro,
       usuariosOrdenados,
       usuariosFiltradosOrdenados,
       totalItensLidos,
@@ -264,5 +284,73 @@ export default {
   font-family: "Poppins", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  background: white;
+  border-radius: 15px;
+  margin: 20px 0;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 15px;
+  margin: 20px 0;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  color: #6c757d;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+.error-message {
+  background: #ffe6e6;
+  color: #d63384;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+  border-left: 4px solid #d63384;
 }
 </style>
