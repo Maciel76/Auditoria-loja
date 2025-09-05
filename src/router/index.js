@@ -16,11 +16,16 @@ import Presenca from "../views/uploadview/Presenca.vue";
 import Ruptura from "../views/uploadview/Ruptura.vue";
 import RankingPresença from "../views/RankingPresença.vue";
 import RankingRuptura from "../views/RankingRuptura.vue";
-
+import ReadingDetails from "../views/dashboard/contente/ReadingDetails.vue"; //demostração de leitura detalhada
+import DadosSetor from "../views/dashboard/contente/DadosSetor.vue"; //demostração de leitura detalhada
+import StatusEtiquetas from "../views/dashboard/contente/StatusEtiquetas.vue";
 const routes = [
   { path: "/", name: "Upload", component: Upload },
   { path: "/usuarios", name: "Usuarios", component: Usuarios },
   { path: "/ranking/etiqueta", name: "Ranking", component: Ranking },
+  { path: "/dashboard/details", name: "ReadingDetails", component: ReadingDetails },
+  { path: "/dashboard/setor", name: "DadosSetor", component: DadosSetor },
+  { path: "/dashboard/status", name: "StatusEtiquetas", component: StatusEtiquetas },
   {
     path: "/ranking/presenca",
     name: "RankingPresenca",
