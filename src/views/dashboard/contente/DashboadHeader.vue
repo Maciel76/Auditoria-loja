@@ -78,8 +78,9 @@ export default {
 .dashboard-header {
   background-color: #fff;
   border-bottom: 1px solid #e0e0e0;
-  padding: 16px 24px;
+  padding: 12px 16px; /* Reduzir padding */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .header-content {

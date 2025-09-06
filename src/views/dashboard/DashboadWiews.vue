@@ -1,15 +1,18 @@
 <template>
   <div class="dashboard-container">
-    <DashboardHeader @tab-changed="handleTabChange" @refresh-data="refreshAllData" />
-    
-    <div class="main-content">
+    <DashboardHeader
+      @tab-changed="handleTabChange"
+      @refresh-data="refreshAllData"
+    />
+
+    <div class="conteudor-principal">
       <div class="content-header">
         <h1>{{ currentTitle }}</h1>
         <div class="header-actions">
-          <button class="export-btn" @click="exportData">
+          <!-- <button class="export-btn" @click="exportData">
             <span class="btn-icon">📊</span>
             Exportar Dados
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -17,37 +20,48 @@
         <!-- Primeira linha: Resumo e Status -->
         <div class="grid-row">
           <div class="grid-col span-6">
-            <SummaryPanel 
-              :total="summaryData.total" 
-              :read="summaryData.read" 
+            <SummaryPanel
+              :total="summaryData.total"
+              :read="summaryData.read"
               :unread="summaryData.unread"
               @refresh="refreshSummary"
             />
           </div>
           <div class="grid-col span-6">
-            <StatusChart 
+            <StatusChart
               :updated="statusData.updated"
               :outdated="statusData.outdated"
               :unread="statusData.unread"
             />
           </div>
         </div>
-
-        <!-- Segunda linha: Leituras por Categoria e Colaborador -->
         <div class="grid-row">
-          <div class="grid-col span-6">
-            <CategoryChart :categories="categoryData" @refresh="refreshCategories" />
-          </div>
           <div class="grid-col span-6">
             <EmployeeChart :employees="employeeData" />
           </div>
         </div>
 
-        <!-- Terceira linha: Detalhes de Leitura e Custo -->
+        <!-- Segunda linha: Leituras por Categoria e Colaborador -->
         <div class="grid-row">
           <div class="grid-col span-6">
-            <ReadingDetails :last-reading="lastReadingTime" @refresh="refreshReadingDetails" />
+            <CategoryChart
+              :categories="categoryData"
+              @refresh="refreshCategories"
+            />
           </div>
+        </div>
+
+        <div class="grid-row">
+          <div class="grid-col span-6">
+            <ReadingDetails
+              :last-reading="lastReadingTime"
+              @refresh="refreshReadingDetails"
+            />
+          </div>
+        </div>
+        <!-- Terceira linha: Detalhes de Leitura e Custo -->
+
+        <div class="grid-row">
           <div class="grid-col span-6">
             <CostPanel cost="25,16 Mi" />
           </div>
@@ -75,7 +89,7 @@ export default {
     CategoryChart,
     EmployeeChart,
     ReadingDetails,
-    CostPanel
+    CostPanel,
   },
   data() {
     return {
@@ -83,22 +97,24 @@ export default {
       summaryData: {
         total: 10000,
         read: 9299,
-        unread: 701
+        unread: 701,
       },
       statusData: {
         updated: 6500,
         outdated: 2500,
-        unread: 1000
+        unread: 1000,
       },
       categoryData: [
-        { name: "Eletrônicos", value: 2450, color: "#4361ee" },
-        { name: "Roupas", value: 1890, color: "#3a0ca3" },
-        { name: "Alimentos", value: 1560, color: "#f72585" },
-        { name: "Livros", value: 1320, color: "#4cc9f0" },
-        { name: "Esportes", value: 980, color: "#fca311" },
-        { name: "Casa", value: 760, color: "#e63946" },
-        { name: "Beleza", value: 620, color: "#7209b7" },
-        { name: "Brinquedos", value: 450, color: "#4895ef" }
+        { name: "Liquida", value: 2450, color: "#4361ee" },
+        { name: "Alto Giro", value: 1890, color: "#3a0ca3" },
+        { name: "Bazar", value: 1560, color: "#f72585" },
+        { name: "Seca Doce", value: 1320, color: "#4cc9f0" },
+        { name: "Perecível", value: 980, color: "#fca311" },
+        { name: "Seca Salgado", value: 760, color: "#e63946" },
+        { name: "Dhp", value: 620, color: "#7209b7" },
+        { name: "FLV", value: 450, color: "#4895ef" },
+        { name: "Laticínios", value: 350, color: "#f0a500" },
+        { name: "Diversos", value: 280, color: "#218f13" },
       ],
       employeeData: [
         { name: "João Silva", value: 1250 },
@@ -110,9 +126,16 @@ export default {
         { name: "Fernando Lima", value: 620 },
         { name: "Patrícia Rodrigues", value: 580 },
         { name: "Ricardo Nunes", value: 520 },
-        { name: "Amanda Ferreira", value: 480 }
+        { name: "Amanda Ferreira", value: 480 },
+        { name: "Maciel", value: 450 },
+        { name: "Carlos Pereira", value: 760 },
+        { name: "Juliana Almeida", value: 680 },
+        { name: "Fernando Lima", value: 620 },
+        { name: "Livia Santos", value: 600 },
+        { name: "Ricardo Nunes", value: 520 },
+        { name: "Amanda Ferreira", value: 480 },
       ],
-      lastReadingTime: "14:30"
+      lastReadingTime: "14:30",
     };
   },
   computed: {
@@ -123,7 +146,7 @@ export default {
         ruptura: "Auditoria de Ruptura",
       };
       return titles[this.activeTab];
-    }
+    },
   },
   methods: {
     handleTabChange(tab) {
@@ -135,7 +158,7 @@ export default {
       this.refreshSummary();
       this.refreshCategories();
       this.refreshReadingDetails();
-      
+
       // Simular atualização de dados
       this.lastReadingTime = new Date().toLocaleTimeString("pt-BR");
     },
@@ -148,34 +171,35 @@ export default {
     refreshCategories() {
       console.log("Atualizando categorias...");
       // Simular atualização de dados de categoria
-      this.categoryData.forEach(item => {
+      this.categoryData.forEach((item) => {
         item.value += Math.floor(Math.random() * 20);
       });
     },
     refreshReadingDetails() {
       console.log("Atualizando detalhes de leitura...");
     },
-    exportData() {
-      console.log("Exportando dados do dashboard...");
-      // Lógica para exportar dados
-    }
-  }
+    // exportData() {
+    //   console.log("Exportando dados do dashboard...");
+    //   // Lógica para exportar dados
+    // },
+  },
 };
 </script>
 
-<style>
+<style scoped>
 .dashboard-container {
+  margin: auto;
   min-height: 100vh;
-  background-color: #f5f7f9;
+  background-color: #efeff0;
 }
 
-.main-content {
+.conteudor-principal {
   padding: 24px;
 }
 
 .content-header {
   display: flex;
-  
+
   align-items: center;
   margin-bottom: 24px;
 }
@@ -221,7 +245,6 @@ export default {
 }
 
 .grid-col.span-6 {
-  flex: 0 0 calc(50% - 12px);
 }
 
 /* Responsividade */
@@ -229,17 +252,17 @@ export default {
   .grid-row {
     flex-direction: column;
   }
-  
+
   .grid-col.span-6 {
     flex: 1;
   }
 }
 
 @media (max-width: 768px) {
-  .main-content {
+  .conteudor-principal {
     padding: 16px;
   }
-  
+
   .content-header {
     flex-direction: column;
     align-items: flex-start;

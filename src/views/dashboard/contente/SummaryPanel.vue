@@ -4,7 +4,7 @@
       <div class="header-content">
         <div class="title-section">
           <div class="title-icon">📋</div>
-          <h2>Resumo de Leituras</h2>
+          <h2>Progresso na Auditoria</h2>
         </div>
         <div
           class="status-badge"
@@ -233,7 +233,7 @@ export default {
 
 .status-badge.warning {
   background: rgba(255, 152, 0, 0.15);
-  color: #ef6c00;
+  color: #383838;
   border: 1px solid rgba(255, 152, 0, 0.2);
   animation: pulse 2s infinite;
 }

@@ -32,7 +32,7 @@
           </div>
 
           <router-link
-            to="/dashboard"
+            to="dashboard/views"
             class="nav-item"
             @click.native="closeSubmenus"
           >

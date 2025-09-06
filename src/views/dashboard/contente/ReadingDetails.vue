@@ -24,7 +24,6 @@
               <span class="btn-icon">🔄</span>
               Atualizar Dados
             </button>
-            
           </div>
         </div>
       </div>
@@ -145,8 +144,10 @@
                   <span class="progress-item-value">1.2h</span>
                 </div>
                 <div class="progress-item">
-                  <span class="progress-item-label">Tempo Restante</span>
-                  <span class="progress-item-value">~0.1h</span>
+                  <span class="progress-item-label">Itens Restante</span>
+                  <span class="progress-item-value">
+                    <span style="color: orange">700</span>/10.000</span
+                  >
                 </div>
                 <div class="progress-item">
                   <span class="progress-item-label">Velocidade Média</span>
@@ -253,7 +254,9 @@
                   <div class="action-icon">📈</div>
                   <div class="action-content">
                     <div class="action-title">Análise Detalhada</div>
-                    <div class="action-desc">Relatório completo de performance</div>
+                    <div class="action-desc">
+                      Relatório completo de performance
+                    </div>
                   </div>
                 </button>
 
@@ -337,8 +340,8 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import Chart from 'chart.js/auto';
+import { ref, onMounted } from "vue";
+import Chart from "chart.js/auto";
 
 export default {
   name: "ReadingDetailsFull",
@@ -351,30 +354,32 @@ export default {
 
     onMounted(() => {
       if (statusChart.value) {
-        const ctx = statusChart.value.getContext('2d');
-        
+        const ctx = statusChart.value.getContext("2d");
+
         chartInstance = new Chart(ctx, {
-          type: 'doughnut',
+          type: "doughnut",
           data: {
-            labels: ['Bem-sucedidas', 'Com Avisos', 'Falhas'],
-            datasets: [{
-              data: [7800, 1499, 701],
-              backgroundColor: ['#4CAF50', '#FF9800', '#F44336'],
-              borderWidth: 0,
-              borderRadius: 4,
-              hoverOffset: 10,
-            }]
+            labels: ["Bem-sucedidas", "Com Avisos", "Falhas"],
+            datasets: [
+              {
+                data: [7800, 1499, 701],
+                backgroundColor: ["#4CAF50", "#FF9800", "#F44336"],
+                borderWidth: 0,
+                borderRadius: 4,
+                hoverOffset: 10,
+              },
+            ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '70%',
+            cutout: "70%",
             plugins: {
               legend: {
                 display: false,
               },
               tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                backgroundColor: "rgba(0, 0, 0, 0.7)",
               },
             },
           },
@@ -383,7 +388,7 @@ export default {
     });
 
     return {
-      statusChart
+      statusChart,
     };
   },
   data() {
@@ -398,7 +403,8 @@ export default {
       timelineData: [
         {
           time: "13:58",
-          description: "Leitura finalizada - 9299 itens processados com 92.99% de sucesso",
+          description:
+            "Leitura finalizada - 9299 itens processados com 92.99% de sucesso",
         },
         {
           time: "13:45",
@@ -414,11 +420,13 @@ export default {
         },
         {
           time: "10:00",
-          description: "Leitura iniciada - Sistema preparado para processar 10000 itens",
+          description:
+            "Leitura iniciada - Sistema preparado para processar 10000 itens",
         },
       ],
-      progressPercentage: 92.99,
+      progressPercentage: 66.0,
       progressMarkers: [
+        { percentage: 10, label: "10%" },
         { percentage: 25, label: "25%" },
         { percentage: 50, label: "50%" },
         { percentage: 75, label: "75%" },
@@ -721,9 +729,10 @@ export default {
 
   height: 100%;
 }
-  .card-graph {
-    width: 50%;
-  }
+.card-graph {
+  width: 100%; /* Mudar de 50% para 100% */
+  max-width: 100%;
+}
 
 .card-header {
   display: flex;
@@ -1179,11 +1188,11 @@ export default {
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .content-row {
     grid-template-columns: 1fr;
   }
-  
+
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1195,42 +1204,42 @@ export default {
     gap: 16px;
     text-align: center;
   }
-  
+
   .header-controls {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .header-buttons {
     justify-content: center;
   }
-  
+
   .stats-row {
     grid-template-columns: 1fr;
   }
-  
+
   .progress-details {
     grid-template-columns: 1fr;
   }
-  
+
   .actions-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .metrics-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .timeline-item {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .timeline-marker {
     flex-direction: row;
     align-items: center;
   }
-  
+
   .marker-line {
     width: 100%;
     height: 2px;
@@ -1241,23 +1250,23 @@ export default {
   .reading-details-full {
     padding: 10px;
   }
-  
+
   .header-main {
     padding: 16px;
   }
-  
+
   .title-section h1 {
     font-size: 1.4rem;
   }
-  
+
   .stat-card {
     padding: 16px;
   }
-  
+
   .stat-value {
     font-size: 1.8rem;
   }
-  
+
   .card {
     padding: 16px;
   }

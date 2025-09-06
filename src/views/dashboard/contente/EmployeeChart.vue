@@ -57,24 +57,24 @@
       </div>
     </div>
 
-    <div v-if="viewMode === 'chart'" class="chart-view">
-      <div class="chart-bars">
+    <div v-if="viewMode === 'chart'" class="chart-view horizontal">
+      <div class="chart-container">
         <div
           v-for="(employee, index) in displayedEmployees"
           :key="employee.name"
-          class="employee-bar-item"
+          class="horizontal-bar-item"
         >
-          <div class="employee-info">
+          <div class="bar-info">
             <div class="employee-rank" :class="getRankClass(index)">
               {{ index + 1 }}
             </div>
             <div class="employee-name">{{ employee.name }}</div>
             <div class="employee-value">{{ employee.value }}</div>
           </div>
-          <div class="bar-container">
+          <div class="horizontal-bar-container">
             <div
-              class="bar-fill"
-              :style="{ width: (employee.value / maxValue) * 100 + '%' }"
+              class="horizontal-bar-fill"
+              :style="{ height: (employee.value / maxValue) * 100 + '%' }"
               :class="getRankClass(index)"
             >
               <div class="bar-shimmer"></div>
@@ -371,54 +371,103 @@ export default {
   font-weight: 500;
 }
 
-.chart-view {
+/* ESTILOS PARA VISUALIZAÇÃO HORIZONTAL */
+.chart-view.horizontal {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
   margin: 10px 0;
 }
 
-.chart-bars {
+.chart-view.horizontal .chart-container {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 1px;
+  height: 300px;
+  width: 100%;
+  padding: 0 20px;
 }
 
-.employee-bar-item {
+.horizontal-bar-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 1px;
+  position: relative;
   transition: all 0.3s ease;
 }
 
-.employee-bar-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  transform: translateX(4px);
+.horizontal-bar-item:hover {
+  transform: translateY(-4px);
 }
 
-.employee-info {
+.bar-info {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 200px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.horizontal-bar-container {
+  width: 50%;
+  height: 300px;
+  background: rgba(216, 216, 216, 0.1);
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.horizontal-bar-fill {
+  width: 100%;
+  transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.horizontal-bar-fill.rank-1 {
+  background: linear-gradient(to top, var(--employee-rank1), #ffed4e);
+}
+
+.horizontal-bar-fill.rank-2 {
+  background: linear-gradient(to top, var(--employee-rank2), #e8e8e8);
+}
+
+.horizontal-bar-fill.rank-3 {
+  background: linear-gradient(to top, var(--employee-rank3), #e3964c);
+}
+
+.horizontal-bar-fill:not(.rank-1):not(.rank-2):not(.rank-3) {
+  background: linear-gradient(
+    to top,
+    var(--employee-primary),
+    var(--employee-secondary)
+  );
+}
+
+.employee-percentage {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--employee-text-light);
+  font-size: 0.9rem;
 }
 
 .employee-rank {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.1);
   font-weight: 700;
-  font-size: 0.9rem;
-  flex-shrink: 0;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
 }
 
 .employee-rank.rank-1 {
@@ -439,76 +488,20 @@ export default {
 .employee-name {
   font-weight: 600;
   color: var(--employee-text);
-  flex: 1;
+  font-size: 0.85rem;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .employee-value {
   font-weight: 700;
   color: var(--employee-primary);
-  min-width: 50px;
-  text-align: right;
-}
-
-.bar-container {
-  flex: 2;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-  min-width: 150px;
-}
-
-.bar-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.bar-fill.rank-1 {
-  background: linear-gradient(90deg, var(--employee-rank1), #ffed4e);
-}
-
-.bar-fill.rank-2 {
-  background: linear-gradient(90deg, var(--employee-rank2), #e8e8e8);
-}
-
-.bar-fill.rank-3 {
-  background: linear-gradient(90deg, var(--employee-rank3), #e3964c);
-}
-
-.bar-fill:not(.rank-1):not(.rank-2):not(.rank-3) {
-  background: linear-gradient(
-    90deg,
-    var(--employee-primary),
-    var(--employee-secondary)
-  );
-}
-
-.bar-shimmer {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.4),
-    transparent
-  );
-  animation: shimmer 2s infinite;
-}
-
-.employee-percentage {
-  font-weight: 600;
-  color: var(--employee-text-light);
-  min-width: 50px;
-  text-align: right;
   font-size: 0.9rem;
 }
+
+/* FIM DOS ESTILOS HORIZONTAIS */
 
 .list-view {
   flex: 1;
@@ -688,6 +681,21 @@ export default {
   box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
+.bar-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
 @keyframes shimmer {
   0% {
     left: -100%;
@@ -709,10 +717,6 @@ export default {
     width: 100%;
     justify-content: space-between;
   }
-
-  .employee-info {
-    min-width: 150px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -726,18 +730,44 @@ export default {
     gap: 12px;
   }
 
-  .chart-view {
-    gap: 8px;
-  }
-
-  .employee-bar-item {
+  /* Ajustes para visualização horizontal em mobile */
+  .chart-view.horizontal .chart-container {
     flex-direction: column;
-    align-items: stretch;
+    height: auto;
     gap: 12px;
   }
 
-  .employee-info {
-    min-width: auto;
+  .horizontal-bar-item {
+    flex-direction: row;
+    height: auto;
+    width: 100%;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-info {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .horizontal-bar-container {
+    width: 100%;
+    height: 24px;
+    border-radius: 12px;
+  }
+
+  .horizontal-bar-fill {
+    height: 100%;
+    border-radius: 12px;
+  }
+
+  .employee-percentage {
+    margin-top: 0;
+    min-width: 50px;
+    text-align: right;
   }
 
   .list-header {
@@ -786,8 +816,18 @@ export default {
     width: 100%;
   }
 
-  .employee-percentage {
-    display: none;
+  /* Ajustes adicionais para mobile */
+  .chart-view.horizontal .chart-container {
+    padding: 0 10px;
+  }
+
+  .employee-name {
+    max-width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .employee-value {
+    font-size: 0.8rem;
   }
 }
 </style>

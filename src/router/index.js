@@ -19,13 +19,29 @@ import RankingRuptura from "../views/RankingRuptura.vue";
 import ReadingDetails from "../views/dashboard/contente/ReadingDetails.vue"; //demostração de leitura detalhada
 import DadosSetor from "../views/dashboard/contente/DadosSetor.vue"; //demostração de leitura detalhada
 import StatusEtiquetas from "../views/dashboard/contente/StatusEtiquetas.vue";
+import EmployeeChart from "../views/dashboard/contente/EmployeeChart.vue";
+import AnaliseSetor from "../views/dashboard/contente/NextContente/AnaliseSetor.vue";
 const routes = [
   { path: "/", name: "Upload", component: Upload },
   { path: "/usuarios", name: "Usuarios", component: Usuarios },
   { path: "/ranking/etiqueta", name: "Ranking", component: Ranking },
-  { path: "/dashboard/details", name: "ReadingDetails", component: ReadingDetails },
+  {
+    path: "/dashboard/details",
+    name: "ReadingDetails",
+    component: ReadingDetails,
+  },
+  { path: "/dashboard/analise", name: "AnaliseSetor", component: AnaliseSetor },
   { path: "/dashboard/setor", name: "DadosSetor", component: DadosSetor },
-  { path: "/dashboard/status", name: "StatusEtiquetas", component: StatusEtiquetas },
+  {
+    path: "/dashboard/status",
+    name: "StatusEtiquetas",
+    component: StatusEtiquetas,
+  },
+  {
+    path: "/dashboard/employee",
+    name: "EmployeeChart",
+    component: EmployeeChart,
+  },
   {
     path: "/ranking/presenca",
     name: "RankingPresenca",

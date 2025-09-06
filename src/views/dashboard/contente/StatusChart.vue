@@ -1,7 +1,7 @@
 <template>
   <div class="status-chart">
     <div class="panel-header">
-      <h2>Status de Atualização</h2>
+      <h2>Status da Auditoria</h2>
       <div class="info-icon">
         <i class="fas fa-info-circle"></i>
       </div>
@@ -16,7 +16,7 @@
         <div class="status-color" style="background-color: #4caf50"></div>
         <div class="status-info">
           <div class="status-value">{{ updated }}</div>
-          <div class="status-label">Atualizado</div>
+          <div class="status-label">Etiqueta Atualizadas</div>
         </div>
         <div class="status-percentage">{{ updatedPercentage }}%</div>
       </div>
@@ -25,7 +25,7 @@
         <div class="status-color" style="background-color: #ff9800"></div>
         <div class="status-info">
           <div class="status-value">{{ outdated }}</div>
-          <div class="status-label">Desatualizado</div>
+          <div class="status-label">Etiqueta Desatualizada</div>
         </div>
         <div class="status-percentage">{{ outdatedPercentage }}%</div>
       </div>
@@ -34,7 +34,7 @@
         <div class="status-color" style="background-color: #f44336"></div>
         <div class="status-info">
           <div class="status-value">{{ unread }}</div>
-          <div class="status-label">Não Lidos</div>
+          <div class="status-label">Etiqueta Não Lidas</div>
         </div>
         <div class="status-percentage">{{ unreadPercentage }}%</div>
       </div>
@@ -139,6 +139,7 @@ export default {
 .status-chart {
   background: white;
   border-radius: 12px;
+  border-top: #e7c91c 4px solid;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   height: 100%;

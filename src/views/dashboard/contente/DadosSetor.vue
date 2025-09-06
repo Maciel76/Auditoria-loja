@@ -1,7 +1,7 @@
 <template>
   <div class="pereciveis-flv">
     <div class="header">
-      <h2>Perecíveis - FLV</h2>
+      <h2>Analise por Categoria</h2>
       <div class="header-actions">
         <button class="filter-btn" @click="toggleFilter">
           <i class="fas fa-filter"></i>
@@ -11,9 +11,9 @@
     </div>
 
     <div class="categories-grid">
-      <div 
-        v-for="category in categories" 
-        :key="category.id" 
+      <div
+        v-for="category in categories"
+        :key="category.id"
         class="category-card"
         :class="{ active: selectedCategory === category.id }"
         @click="selectCategory(category.id)"
@@ -78,113 +78,116 @@
 
 <script>
 export default {
-  name: 'PereciveisFLV',
+  name: "PereciveisFLV",
   data() {
     return {
       selectedCategory: null,
-      lastUpdate: new Date().toLocaleTimeString('pt-BR'),
+      lastUpdate: new Date().toLocaleTimeString("pt-BR"),
       categories: [
         {
-          id: 'pfo2',
-          name: 'PFO2',
-          icon: '🥬',
-          quantity: '1.245',
-          percentage: '18.5',
-          trend: 'up',
-          trendIcon: 'fa-arrow-up',
-          trendValue: '+2.3%',
-          status: 'Estável',
-          statusClass: 'stable'
+          id: "pfo2",
+          name: "Liquida",
+          icon: "🧃",
+          quantity: "1.245",
+          percentage: "18.5",
+          trend: "up",
+          trendIcon: "fa-arrow-up",
+          trendValue: "+2.3%",
+          status: "Estável",
+          statusClass: "stable",
         },
         {
-          id: 'f01',
-          name: 'F01',
-          icon: '🍎',
-          quantity: '987',
-          percentage: '14.7',
-          trend: 'up',
-          trendIcon: 'fa-arrow-up',
-          trendValue: '+1.8%',
-          status: 'Crescendo',
-          statusClass: 'growth'
+          id: "f01",
+          name: "Alto Giro",
+          icon: "🍙",
+          quantity: "987",
+          percentage: "14.7",
+          trend: "up",
+          trendIcon: "fa-arrow-up",
+          trendValue: "+1.8%",
+          status: "Crescendo",
+          statusClass: "growth",
         },
         {
-          id: 'pf01',
-          name: 'PF01',
-          icon: '🥦',
-          quantity: '1.562',
-          percentage: '23.2',
-          trend: 'down',
-          trendIcon: 'fa-arrow-down',
-          trendValue: '-0.9%',
-          status: 'Estável',
-          statusClass: 'stable'
+          id: "pf01",
+          name: "Bazar",
+          icon: "🍫",
+          quantity: "1.562",
+          percentage: "23.2",
+          trend: "down",
+          trendIcon: "fa-arrow-down",
+          trendValue: "-0.9%",
+          status: "Estável",
+          statusClass: "stable",
         },
         {
-          id: 'flv',
-          name: 'FLV',
-          icon: '🥗',
-          quantity: '2.348',
-          percentage: '34.9',
-          trend: 'up',
-          trendIcon: 'fa-arrow-up',
-          trendValue: '+3.1%',
-          status: 'Crescendo',
-          statusClass: 'growth'
+          id: "flv",
+          name: "Seca Doce",
+          icon: "🍬",
+          quantity: "2.348",
+          percentage: "34.9",
+          trend: "up",
+          trendIcon: "fa-arrow-up",
+          trendValue: "+3.1%",
+          status: "Crescendo",
+          statusClass: "growth",
         },
         {
-          id: 'f02',
-          name: 'F02',
-          icon: '🍇',
-          quantity: '756',
-          percentage: '11.2',
-          trend: 'down',
-          trendIcon: 'fa-arrow-down',
-          trendValue: '-1.2%',
-          status: 'Queda',
-          statusClass: 'decline'
+          id: "f02",
+          name: "Seca Salgado",
+          icon: "🥨",
+          quantity: "756",
+          percentage: "11.2",
+          trend: "down",
+          trendIcon: "fa-arrow-down",
+          trendValue: "-1.2%",
+          status: "Queda",
+          statusClass: "decline",
         },
         {
-          id: 'f03',
-          name: 'F03',
-          icon: '🍓',
-          quantity: '632',
-          percentage: '9.4',
-          trend: 'up',
-          trendIcon: 'fa-arrow-up',
-          trendValue: '+0.7%',
-          status: 'Estável',
-          statusClass: 'stable'
+          id: "f03",
+          name: "Perecíveis",
+          icon: "🍖",
+          quantity: "632",
+          percentage: "9.4",
+          trend: "up",
+          trendIcon: "fa-arrow-up",
+          trendValue: "+0.7%",
+          status: "Estável",
+          statusClass: "stable",
         },
         {
-          id: 'sorvete',
-          name: 'SORVETE',
-          icon: '🍦',
-          quantity: '423',
-          percentage: '6.3',
-          trend: 'up',
-          trendIcon: 'fa-arrow-up',
-          trendValue: '+4.5%',
-          status: 'Crescendo',
-          statusClass: 'growth'
-        }
-      ]
-    }
+          id: "sorvete",
+          name: "SORVETE",
+          icon: "🍦",
+          quantity: "423",
+          percentage: "6.3",
+          trend: "up",
+          trendIcon: "fa-arrow-up",
+          trendValue: "+4.5%",
+          status: "Crescendo",
+          statusClass: "growth",
+        },
+      ],
+    };
   },
   computed: {
     getSelectedCategory() {
-      return this.categories.find(cat => cat.id === this.selectedCategory) || {}
-    }
+      return (
+        this.categories.find((cat) => cat.id === this.selectedCategory) || {}
+      );
+    },
   },
   methods: {
     selectCategory(categoryId) {
-      this.selectedCategory = this.selectedCategory === categoryId ? null : categoryId
+      this.selectedCategory =
+        this.selectedCategory === categoryId ? null : categoryId;
     },
     toggleFilter() {
-      console.log('Abrir filtros')
-    }
-  }
-}
+      console.log("Abrir filtros");
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -193,7 +196,7 @@ export default {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .header {
@@ -255,7 +258,7 @@ export default {
 }
 
 .category-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -453,26 +456,26 @@ export default {
   .pereciveis-flv {
     padding: 16px;
   }
-  
+
   .header {
     flex-direction: column;
     gap: 12px;
     text-align: center;
   }
-  
+
   .categories-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .category-card {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .category-stats {
     justify-content: center;
   }
-  
+
   .detail-item {
     flex-direction: column;
     align-items: flex-start;
@@ -484,13 +487,13 @@ export default {
   .header h2 {
     font-size: 1.3rem;
   }
-  
+
   .category-icon {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
   }
-  
+
   .category-name {
     font-size: 1rem;
   }
