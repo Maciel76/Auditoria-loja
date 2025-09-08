@@ -20,7 +20,7 @@
         <!-- Primeira linha: Resumo e Status -->
         <div class="grid-row">
           <div class="grid-col span-6">
-            <SummaryPanel
+            <ConteudoTeste
               :total="summaryData.total"
               :read="summaryData.read"
               :unread="summaryData.unread"
@@ -28,11 +28,16 @@
             />
           </div>
           <div class="grid-col span-6">
-            <StatusChart
+            <ConteudoTeste1
               :updated="statusData.updated"
               :outdated="statusData.outdated"
               :unread="statusData.unread"
             />
+          </div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-col span-6">
+            <ConteudoTeste2 />
           </div>
         </div>
         <div class="grid-row">
@@ -79,6 +84,9 @@ import CategoryChart from "./contente/CategoryChart.vue";
 import EmployeeChart from "./contente/EmployeeChart.vue";
 import ReadingDetails from "./contente/ReadingDetails.vue";
 import CostPanel from "./contente/CostPanel.vue";
+import ConteudoTeste1 from "../Conteudo/ConteudoTeste1.vue";
+import ConteudoTeste from "../Conteudo/ConteudoTeste.vue";
+import ConteudoTeste2 from "../Conteudo/ConteudoTeste2.vue";
 
 export default {
   name: "ConsolidatedDashboard",
@@ -90,6 +98,9 @@ export default {
     EmployeeChart,
     ReadingDetails,
     CostPanel,
+    ConteudoTeste,
+    ConteudoTeste1,
+    ConteudoTeste2,
   },
   data() {
     return {

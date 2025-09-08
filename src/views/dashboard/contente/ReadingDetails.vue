@@ -59,7 +59,6 @@
             <div class="stat-icon-container primary">
               <span class="stat-icon">⏰</span>
             </div>
-            <div class="stat-trend positive">+15min</div>
           </div>
           <div class="stat-value">{{ lastReading }}</div>
           <div class="stat-label">Última Leitura</div>
@@ -71,9 +70,9 @@
             <div class="stat-icon-container success">
               <span class="stat-icon">✅</span>
             </div>
-            <div class="stat-trend positive">+2.5%</div>
           </div>
           <div class="stat-value">92.99%</div>
+          <br />
           <div class="stat-label">Taxa de Sucesso</div>
           <div class="stat-comparison">Meta: 95%</div>
         </div>
@@ -83,7 +82,6 @@
             <div class="stat-icon-container warning">
               <span class="stat-icon">⚡</span>
             </div>
-            <div class="stat-trend positive">-0.3s</div>
           </div>
           <div class="stat-value">1.2s</div>
           <div class="stat-label">Tempo Médio</div>
@@ -95,7 +93,6 @@
             <div class="stat-icon-container info">
               <span class="stat-icon">📊</span>
             </div>
-            <div class="stat-trend positive">+18/min</div>
           </div>
           <div class="stat-value">245/min</div>
           <div class="stat-label">Velocidade</div>
@@ -631,6 +628,7 @@ export default {
 }
 
 .stat-card.large {
+  display: flex;
   padding: 28px;
 }
 

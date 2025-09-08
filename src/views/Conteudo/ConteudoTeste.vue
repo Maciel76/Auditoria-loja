@@ -1,0 +1,908 @@
+<template>
+  <div class="summary-panel">
+    <!-- Header -->
+    <div class="header-section">
+      <h1 class="header-title">
+        <span class="icon" aria-hidden="true">📊</span> Resumo da Auditoria
+      </h1>
+      <p class="header-subtitle">
+        Visão geral do progresso e estatísticas da auditoria de Etiquetas
+      </p>
+    </div>
+
+    <!-- Seletor de Data -->
+    <div class="date-selector">
+      <label class="filter-label" for="data-auditoria-select">
+        <span class="icon" aria-hidden="true">📅</span> Selecione a data de
+        auditoria:
+      </label>
+      <div class="select-wrapper">
+        <select
+          id="data-auditoria-select"
+          v-model="dataSelecionada"
+          @change="trocarDataAuditoria"
+          class="filter-select"
+          :disabled="carregando || carregandoData"
+          aria-label="Selecionar data de auditoria"
+        >
+          <option v-if="datasAuditoria.length === 0" value="" disabled>
+            Carregando datas...
+          </option>
+          <option v-for="data in datasAuditoria" :key="data" :value="data">
+            {{ formatarDataParaExibicao(data) }}
+          </option>
+        </select>
+        <span
+          v-if="carregandoData"
+          class="select-loading"
+          aria-hidden="true"
+        ></span>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="carregando" class="loading-container">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Carregando dados da auditoria...</p>
+    </div>
+
+    <!-- Erro -->
+    <div v-else-if="erro" class="error-container">
+      <div class="error-icon" aria-hidden="true">
+        <span class="icon">⚠️</span>
+      </div>
+      <h3>Ocorreu um erro</h3>
+      <p>{{ erro }}</p>
+      <button @click="carregarDados" class="btn btn-primary">
+        <span class="icon" aria-hidden="true">🔄</span> Tentar Novamente
+      </button>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div v-else class="panel-content">
+      <!-- Status Badge -->
+      <div
+        class="status-badge"
+        :class="percentualNaoLidos > 5 ? 'warning' : 'success'"
+      >
+        <span class="badge-icon">{{
+          percentualNaoLidos > 5 ? "⚠️" : "✅"
+        }}</span>
+        <span class="badge-text"
+          >{{ percentualNaoLidos.toFixed(2) }}% não lidos</span
+        >
+      </div>
+
+      <!-- Progresso -->
+      <div class="progress-section">
+        <div class="progress-info">
+          <div class="progress-labels">
+            <span class="progress-label">
+              <span class="icon">✔️</span>
+              Lidos: {{ itensLidos }}
+            </span>
+            <span class="progress-label">
+              <span class="icon">📦</span>
+              Total com estoque: {{ totalComEstoque }}
+            </span>
+            <span class="progress-label">
+              <span class="icon">🚫</span>
+              Sem estoque: {{ itensSemEstoque }}
+            </span>
+          </div>
+          <div class="progress-percentage">
+            {{ percentualLidos.toFixed(1) }}% concluído
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: percentualLidos + '%' }"
+            >
+              <div class="progress-shimmer"></div>
+            </div>
+          </div>
+          <div class="progress-marker" :style="{ left: percentualLidos + '%' }">
+            <div class="marker-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ totalItens }}</div>
+            <div class="stat-label">Total de Itens</div>
+          </div>
+        </div>
+
+        <div class="stat-card success">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ itensLidos }}</div>
+            <div class="stat-label">Itens Lidos</div>
+          </div>
+        </div>
+
+        <div class="stat-card warning">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ itensNaoLidos }}</div>
+            <div class="stat-label">Não Lidos c/ Estoque</div>
+          </div>
+        </div>
+
+        <div class="stat-card danger">
+          <div class="stat-icon">🚫</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ itensSemEstoque }}</div>
+            <div class="stat-label">Sem Estoque</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance -->
+      <div class="performance-section">
+        <div class="performance-item">
+          <div class="performance-icon">⚡</div>
+          <div class="performance-info">
+            <div class="performance-value">{{ efficiency }}%</div>
+            <div class="performance-label">Eficiência</div>
+          </div>
+        </div>
+        <div class="performance-item">
+          <div class="performance-icon">🕒</div>
+          <div class="performance-info">
+            <div class="performance-value">{{ averageTime }}</div>
+            <div class="performance-label">Tempo médio</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="panel-footer">
+        <div class="footer-info">
+          <span class="update-info">🔄 Atualizado: {{ lastUpdate }}</span>
+        </div>
+        <button class="action-btn" @click="carregarDados">
+          <span class="btn-icon">↻</span>
+          Atualizar
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+
+export default {
+  name: "SummaryPanel",
+  data() {
+    return {
+      carregando: true,
+      carregandoData: false,
+      erro: "",
+      dadosPlanilha: [],
+      datasAuditoria: [],
+      dataSelecionada: "",
+      lastUpdate: new Date().toLocaleTimeString("pt-BR"),
+      efficiency: 0,
+      averageTime: "0h",
+    };
+  },
+  computed: {
+    // Total de todos os itens (incluindo sem estoque)
+    totalItens() {
+      return this.dadosPlanilha.length;
+    },
+
+    // Itens com estoque (exclui "Sem Estoque")
+    itensComEstoque() {
+      return this.dadosPlanilha.filter(
+        (item) =>
+          item.Situacao !== "Sem Estoque" &&
+          item.Situacao !== "Lido sem estoque"
+      );
+    },
+
+    // Total de itens com estoque
+    totalComEstoque() {
+      return this.itensComEstoque.length;
+    },
+
+    // Itens lidos (Atualizado)
+    itensLidos() {
+      return this.itensComEstoque.filter(
+        (item) => item.Situacao === "Atualizado" || item.Situacao === "Lido"
+      ).length;
+    },
+
+    // Itens não lidos com estoque (Não lidos com estoque)
+    itensNaoLidos() {
+      return this.itensComEstoque.filter(
+        (item) =>
+          item.Situacao === "Não lido" ||
+          item.Situacao === "Não lidos com estoque"
+      ).length;
+    },
+
+    // Itens sem estoque (excluídos dos cálculos principais)
+    itensSemEstoque() {
+      return this.dadosPlanilha.filter(
+        (item) =>
+          item.Situacao === "Sem Estoque" ||
+          item.Situacao === "Lido sem estoque"
+      ).length;
+    },
+
+    // Percentual de itens lidos (baseado apenas em itens com estoque)
+    percentualLidos() {
+      return this.totalComEstoque > 0
+        ? (this.itensLidos / this.totalComEstoque) * 100
+        : 0;
+    },
+
+    // Percentual de itens não lidos (baseado apenas em itens com estoque)
+    percentualNaoLidos() {
+      return this.totalComEstoque > 0
+        ? (this.itensNaoLidos / this.totalComEstoque) * 100
+        : 0;
+    },
+
+    // Detalhamento de todos os status presentes nos dados
+    statusDetalhados() {
+      const statusCount = {};
+
+      this.dadosPlanilha.forEach((item) => {
+        const status = item.Situacao || "Não especificado";
+        statusCount[status] = (statusCount[status] || 0) + 1;
+      });
+
+      return Object.keys(statusCount).map((status) => ({
+        nome: status,
+        quantidade: statusCount[status],
+        percentual:
+          this.totalItens > 0
+            ? ((statusCount[status] / this.totalItens) * 100).toFixed(1)
+            : 0,
+      }));
+    },
+  },
+  methods: {
+    async carregarDatasAuditoria() {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/datas-auditoria"
+        );
+        this.datasAuditoria = response.data;
+        if (this.datasAuditoria.length > 0) {
+          this.dataSelecionada = this.datasAuditoria[0];
+        }
+      } catch (error) {
+        console.error("Erro ao carregar datas:", error);
+        // Fallback para datas de exemplo em caso de erro
+        this.datasAuditoria = [
+          new Date().toISOString().split("T")[0],
+          new Date(Date.now() - 86400000).toISOString().split("T")[0],
+        ];
+        this.dataSelecionada = this.datasAuditoria[0];
+      }
+    },
+
+    formatarDataParaExibicao(data) {
+      return new Date(data).toLocaleDateString("pt-BR");
+    },
+
+    async trocarDataAuditoria() {
+      if (!this.dataSelecionada) return;
+
+      this.carregandoData = true;
+      try {
+        await this.carregarDados();
+      } finally {
+        this.carregandoData = false;
+      }
+    },
+
+    async carregarDados() {
+      try {
+        this.carregando = true;
+        this.erro = "";
+        const params = this.dataSelecionada
+          ? { data: this.dataSelecionada }
+          : {};
+        const response = await axios.get(
+          "http://localhost:3000/dados-setores",
+          { params }
+        );
+
+        if (response.data && Array.isArray(response.data)) {
+          this.dadosPlanilha = response.data.map((item) => ({
+            ...item,
+            Situacao: item.Situacao || item.Situação || "Não lido",
+          }));
+        } else {
+          this.erro = "Formato de dados inválido";
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        this.erro = "Falha ao carregar dados da auditoria";
+        // Dados de exemplo para demonstração com diferentes status
+        this.dadosPlanilha = this.getDadosExemplo();
+      } finally {
+        this.carregando = false;
+        this.lastUpdate = new Date().toLocaleTimeString("pt-BR");
+        this.calculateMetrics();
+      }
+    },
+
+    calculateMetrics() {
+      // Calcular eficiência baseada na proporção de itens lidos (com estoque)
+      this.efficiency = this.percentualLidos.toFixed(1);
+
+      // Simular tempo médio baseado no total de itens com estoque
+      const estimatedHours = Math.max(
+        0.5,
+        (this.totalComEstoque / 80) * 0.4
+      ).toFixed(1);
+      this.averageTime = `${estimatedHours}h`;
+    },
+
+    getDadosExemplo() {
+      // Dados de exemplo com diferentes status
+      return [
+        {
+          Código: "1062218",
+          Produto: "CTGARRO CHESTERFIELD BLUE BOX C/10 KS RGB",
+          Local: "C01 - C01",
+          Usuario: "3642445 (ADILSON CESAR SILVA DOS REIS)",
+          Situacao: "Atualizado",
+          "Estoque atual": "24",
+          "Última compra": "45744",
+          dataAuditoria: new Date().toISOString(),
+          tipoAuditoria: "etiqueta",
+        },
+        {
+          Código: "1062219",
+          Produto: "PRODUTO EXEMPLO 2",
+          Local: "C02 - C02",
+          Usuario: "3642446 (FUNCIONARIO EXEMPLO)",
+          Situacao: "Não lido",
+          "Estoque atual": "15",
+          "Última compra": "45745",
+          dataAuditoria: new Date().toISOString(),
+          tipoAuditoria: "etiqueta",
+        },
+        {
+          Código: "1062220",
+          Produto: "PRODUTO EXEMPLO 3",
+          Local: "C03 - C03",
+          Usuario: "3642447 (OUTRO FUNCIONARIO)",
+          Situacao: "Atualizado",
+          "Estoque atual": "30",
+          "Última compra": "45746",
+          dataAuditoria: new Date(Date.now() - 86400000).toISOString(),
+          tipoAuditoria: "etiqueta",
+        },
+        {
+          Código: "1062221",
+          Produto: "PRODUTO SEM ESTOQUE",
+          Local: "C04 - C04",
+          Usuario: "3642448 (FUNCIONARIO)",
+          Situacao: "Sem Estoque",
+          "Estoque atual": "0",
+          "Última compra": "45747",
+          dataAuditoria: new Date().toISOString(),
+          tipoAuditoria: "etiqueta",
+        },
+        {
+          Código: "1062222",
+          Produto: "PRODUTO LIDO SEM ESTOQUE",
+          Local: "C05 - C05",
+          Usuario: "3642449 (FUNCIONARIO)",
+          Situacao: "Lido sem estoque",
+          "Estoque atual": "0",
+          "Última compra": "45748",
+          dataAuditoria: new Date().toISOString(),
+          tipoAuditoria: "etiqueta",
+        },
+      ];
+    },
+  },
+  async mounted() {
+    await this.carregarDatasAuditoria();
+    await this.carregarDados();
+  },
+};
+</script>
+
+<style>
+:root {
+  /* Cores para o painel de resumo */
+  --summary-primary: #4361ee;
+  --summary-secondary: #3a0ca3;
+  --summary-success: #4caf50;
+  --summary-warning: #ff9800;
+  --summary-danger: #f44336;
+  --summary-bg: #ffffff;
+  --summary-text: #212529;
+  --summary-text-light: #6c757d;
+  --summary-border: #dee2e6;
+  --summary-shadow: rgba(0, 0, 0, 0.08);
+}
+
+.summary-panel {
+  background: var(--summary-bg);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 32px var(--summary-shadow);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--summary-primary),
+    var(--summary-secondary)
+  );
+}
+
+.panel-header {
+  margin-bottom: 10px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  font-size: 28px;
+}
+
+.title-section h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--summary-text);
+  background: linear-gradient(
+    135deg,
+    var(--summary-primary),
+    var(--summary-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+}
+
+.status-badge.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #2e7d32;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.status-badge.warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: #383838;
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.progress-section {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding: 20px;
+  border-radius: 16px;
+  margin: 10px 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.progress-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--summary-text-light);
+  font-weight: 500;
+}
+
+.label-icon {
+  font-size: 0.8rem;
+}
+
+.progress-percentage {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--summary-success);
+  background: rgba(76, 175, 80, 0.1);
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+
+.progress-container {
+  position: relative;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--summary-success),
+    #66bb6a,
+    var(--summary-success)
+  );
+  border-radius: 10px;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.progress-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.marker-dot {
+  width: 20px;
+  height: 20px;
+  background: var(--summary-bg);
+  border: 3px solid var(--summary-success);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 10px 0;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--summary-primary),
+    var(--summary-secondary)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--summary-shadow);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.stat-icon.total {
+  background: rgba(67, 97, 238, 0.15);
+  color: var(--summary-primary);
+}
+
+.stat-icon.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--summary-success);
+}
+
+.stat-icon.warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--summary-warning);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--summary-text);
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--summary-text-light);
+  font-weight: 500;
+}
+
+.stat-trend {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.stat-trend.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--summary-success);
+}
+
+.stat-trend.warning {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--summary-warning);
+}
+
+.performance-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.performance-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+}
+
+.performance-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+}
+
+.performance-info {
+  flex: 1;
+}
+
+.performance-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--summary-text);
+  margin-bottom: 2px;
+}
+
+.performance-label {
+  font-size: 0.75rem;
+  color: var(--summary-text-light);
+  font-weight: 500;
+}
+
+.panel-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--summary-border);
+}
+
+.footer-info {
+  font-size: 0.85rem;
+  color: var(--summary-text-light);
+}
+
+.update-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--summary-border);
+  border-radius: 20px;
+  background: var(--summary-bg);
+  color: var(--summary-text);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.action-btn:hover {
+  background: var(--summary-primary);
+  color: white;
+  border-color: var(--summary-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.btn-icon {
+  transition: transform 0.3s ease;
+}
+
+.action-btn:hover .btn-icon {
+  transform: rotate(180deg);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .summary-panel {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .performance-section {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .progress-info {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .panel-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .title-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .stat-content {
+    text-align: center;
+  }
+
+  .performance-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+}
+</style>

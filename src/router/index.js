@@ -21,7 +21,13 @@ import DadosSetor from "../views/dashboard/contente/DadosSetor.vue"; //demostra√
 import StatusEtiquetas from "../views/dashboard/contente/StatusEtiquetas.vue";
 import EmployeeChart from "../views/dashboard/contente/EmployeeChart.vue";
 import AnaliseSetor from "../views/dashboard/contente/NextContente/AnaliseSetor.vue";
+import ConteudoTeste from "../views/Conteudo/ConteudoTeste.vue"; // teste de conteudo
+import ConteudoTeste1 from "../views/Conteudo/ConteudoTeste1.vue"; // teste de conteudo
+import ConteudoTeste2 from "../views/Conteudo/ConteudoTeste2.vue"; // teste de conteudo
 const routes = [
+  { path: "/teste", name: "ConteudoTeste", component: ConteudoTeste }, // rota de teste
+  { path: "/teste1", name: "ConteudoTeste1", component: ConteudoTeste1 }, // rota de teste 1
+  { path: "/teste2", name: "ConteudoTeste2", component: ConteudoTeste2 }, // rota de teste 2
   { path: "/", name: "Upload", component: Upload },
   { path: "/usuarios", name: "Usuarios", component: Usuarios },
   { path: "/ranking/etiqueta", name: "Ranking", component: Ranking },
