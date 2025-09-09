@@ -55,7 +55,7 @@
     <!-- Empty State -->
     <div v-if="!carregando && usuarios.length === 0" class="empty-state">
       <img
-        src="../../../assets/svg/icon-ranking/empty-state.svg"
+        src="../assets/svg/icon-ranking/empty-state.svg"
         alt="Nenhum dado encontrado"
         class="empty-icon"
       />

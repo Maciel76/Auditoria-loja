@@ -14,7 +14,7 @@ import RelatoriosDashboard from "../views/RelatoriosDashboard.vue";
 import Etiqueta from "../views/uploadview/Etiqueta.vue";
 import Presenca from "../views/uploadview/Presenca.vue";
 import Ruptura from "../views/uploadview/Ruptura.vue";
-import RankingPresença from "../views/RankingPresença.vue";
+import RankingPresença from "../views/RankingPresenca.vue";
 import RankingRuptura from "../views/RankingRuptura.vue";
 import ReadingDetails from "../views/dashboard/contente/ReadingDetails.vue"; //demostração de leitura detalhada
 import DadosSetor from "../views/dashboard/contente/DadosSetor.vue"; //demostração de leitura detalhada
