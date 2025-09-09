@@ -145,6 +145,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
+import api from "@/config/api";
 
 const usuarios = ref([]);
 const filtro = ref("");
@@ -162,7 +163,7 @@ onMounted(() => {
 // Carregar datas de auditoria disponíveis
 const carregarDatasAuditoria = async () => {
   try {
-    const { data } = await axios.get("http://localhost:3000/datas-auditoria");
+    const { data } = await api.get("/datas-auditoria");
     datasAuditoria.value = data;
   } catch (error) {
     console.error("Erro ao carregar datas:", error);
@@ -180,7 +181,7 @@ const carregarUsuarios = async () => {
       params.data = dataFiltro.value;
     }
 
-    const { data } = await axios.get("http://localhost:3000/usuarios", {
+    const { data } = await api.get("/usuarios", {
       params,
     });
 

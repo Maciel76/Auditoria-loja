@@ -111,6 +111,7 @@
 
 <script>
 import { useRouter } from "vue-router";
+import api from "@/config/api";
 
 export default {
   name: "ListaUsuarios",
@@ -181,7 +182,7 @@ export default {
   methods: {
     async carregarUsuarios() {
       try {
-        const response = await fetch("http://localhost:3000/usuarios");
+        const response = await api.get("/usuarios");
         if (response.ok) {
           this.usuarios = await response.json();
 

@@ -45,6 +45,7 @@
 import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import api from "@/config/api";
 
 const arquivo = ref(null);
 const resposta = ref(null);
@@ -72,13 +73,9 @@ const enviarArquivo = async () => {
     // ⬇️ ALTERAR PARA A NOVA ROTA ESPECÍFICA
     formData.append("tipoAuditoria", "ruptura");
 
-    const { data } = await axios.post(
-      "http://localhost:3000/upload-ruptura", // ⬅️ NOVA ROTA
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
+    const { data } = await api.post("/upload-ruptura", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
     resposta.value = data;
   } catch (error) {

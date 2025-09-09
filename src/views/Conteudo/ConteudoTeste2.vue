@@ -173,6 +173,7 @@
 
 <script>
 import axios from "axios";
+import api from "@/config/api";
 
 export default {
   name: "EmployeeChart",
@@ -238,7 +239,7 @@ export default {
           params.periodo = this.periodoSelecionado;
         }
 
-        const response = await axios.get("http://localhost:3000/api/ranking", {
+        const response = await api.get("/api/ranking", {
           params,
         });
 

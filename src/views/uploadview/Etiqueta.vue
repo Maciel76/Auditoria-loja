@@ -57,6 +57,7 @@
 import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import api from "@/config/api";
 
 const arquivo = ref(null);
 const resposta = ref(null);
@@ -84,13 +85,9 @@ const enviarArquivo = async () => {
     formData.append("file", arquivo.value);
     formData.append("tipoAuditoria", "etiqueta");
 
-    const { data } = await axios.post(
-      "http://localhost:3000/upload",
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
+    const { data } = await api.post("/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
 
     resposta.value = data;
   } catch (error) {

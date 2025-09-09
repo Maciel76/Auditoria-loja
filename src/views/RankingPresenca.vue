@@ -76,6 +76,7 @@ import PodiumSection from "./Ranking/Presenca/PodiumSection.vue";
 import RankingList from "./Ranking/Presenca/RankingList.vue";
 import AdvancedStats from "./Ranking/Presenca/AdvancedStats.vue";
 import ExportSection from "./Ranking/Presenca/ExportSection.vue";
+import api from "@/config/api";
 
 export default {
   name: "RankingPresença",
@@ -149,7 +150,7 @@ export default {
         carregando.value = true;
         erro.value = null;
 
-        let url = "http://localhost:3000/api/ranking-presenca";
+        let url = "/ranking-presenca";
 
         // Adicionar parâmetros de filtro
         const params = new URLSearchParams();

@@ -67,6 +67,8 @@
 </template>
 
 <script>
+import api from "@/config/api";
+
 export default {
   name: "RupturaPorUsuario",
   data() {
@@ -87,7 +89,7 @@ export default {
   methods: {
     async carregarDatasDisponiveis() {
       try {
-        const response = await fetch("http://localhost:3000/datas-auditoria");
+        const response = await api.get("/datas-auditoria");
         this.datasDisponiveis = await response.json();
       } catch (error) {
         console.error("Erro ao carregar datas disponíveis:", error);
@@ -98,12 +100,12 @@ export default {
       try {
         this.loading = true;
 
-        let url = "http://localhost:3000/dados-ruptura";
+        let url = "/dados-ruptura";
         if (this.dataSelecionada) {
           url += `?data=${this.dataSelecionada}`;
         }
 
-        const response = await fetch(url);
+        const response = await api.get(url);
         const dados = await response.json();
 
         // Filtrar apenas itens com custo de ruptura válido

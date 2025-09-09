@@ -54,6 +54,7 @@ import PodiumSection from "./Ranking/Etiqueta/PodiumSection.vue";
 import RankingList from "./Ranking/Etiqueta/RankingList.vue";
 import AdvancedStats from "./Ranking/Etiqueta/AdvancedStats.vue";
 import ExportSection from "./Ranking/Etiqueta/ExportSection.vue";
+import api from "@/config/api";
 
 export default {
   name: "RankingEtiqueta",
@@ -120,44 +121,48 @@ export default {
       ).length;
       return Math.round((aboveAverage / usuarios.value.length) * 100);
     });
-const buscarDados = async () => {
-  try {
-    carregando.value = true;
-    let url = "http://localhost:3000/api/ranking";
-    
-    // Adicionar parâmetros de filtro
-    const params = new URLSearchParams();
-    if (filtroTipo.value !== "todos") {
-      params.append("tipo", filtroTipo.value); // Agora envia o tipo: "etiqueta", "presenca" ou "ruptura"
-    }
-    if (filtroPeriodo.value !== "todos") {
-      params.append("periodo", filtroPeriodo.value);
-    }
-    
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-    
-    const response = await fetch(url);
-    if (response.ok) {
-      const data = await response.json();
-      usuarios.value = data.map((usuario) => ({
-        ...usuario,
-        iniciais: obterIniciais(usuario.nome),
-        contador: usuario.contador || 0,
-      }));
-    } else {
-      // Fallback para dados locais
-      usuarios.value = [/* dados de fallback */];
-    }
-  } catch (error) {
-    console.error("Erro ao conectar com o backend:", error);
-    // Fallback para dados locais
-    usuarios.value = [/* dados de fallback */];
-  } finally {
-    carregando.value = false;
-  }
-};
+    const buscarDados = async () => {
+      try {
+        carregando.value = true;
+        let url = "/ranking-etiqueta";
+        erro.value = null;
+        // Adicionar parâmetros de filtro
+        const params = new URLSearchParams();
+        if (filtroTipo.value !== "todos") {
+          params.append("tipo", filtroTipo.value); // Agora envia o tipo: "etiqueta", "presenca" ou "ruptura"
+        }
+        if (filtroPeriodo.value !== "todos") {
+          params.append("periodo", filtroPeriodo.value);
+        }
+
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          usuarios.value = data.map((usuario) => ({
+            ...usuario,
+            iniciais: obterIniciais(usuario.nome),
+            contador: usuario.contador || 0,
+          }));
+        } else {
+          // Fallback para dados locais
+          usuarios.value = [
+            /* dados de fallback */
+          ];
+        }
+      } catch (error) {
+        console.error("Erro ao conectar com o backend:", error);
+        // Fallback para dados locais
+        usuarios.value = [
+          /* dados de fallback */
+        ];
+      } finally {
+        carregando.value = false;
+      }
+    };
 
     const obterIniciais = (nome) => {
       if (!nome) return "??";

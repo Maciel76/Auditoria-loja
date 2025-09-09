@@ -30,7 +30,6 @@
         :corredoresUnicos="corredoresUnicos"
         :percentualConcluido="percentualConcluido"
       />
-     
 
       <!-- Selos e Conquistas -->
       <SelosConquistas
@@ -50,7 +49,7 @@
         :percentualConcluido="percentualConcluido"
         :corredoresComContagem="corredoresComContagem"
       />
-       <!-- QR Code da Matrícula -->
+      <!-- QR Code da Matrícula -->
       <QrCodeMatricula :usuario="usuario" />
 
       <!-- Timeline de Atividades -->
@@ -83,6 +82,7 @@ import TimelineAtividades from "./Perfiltemplate/TimelineAtividades.vue";
 import ItensFaltantes from "./Perfiltemplate/ItensFaltantes.vue";
 import BotoesAcao from "./Perfiltemplate/BotoesAcao.vue";
 import QrCodeMatricula from "./Perfiltemplate/QrCodeMatricula.vue";
+import api from "@/config/api";
 
 export default {
   name: "PerfilUsuario",
@@ -318,7 +318,7 @@ export default {
       try {
         this.carregando = true;
         // Busca usuário pelo backend
-        const response = await fetch(`http://localhost:3000/usuarios`);
+        const response = await api.get(`/usuarios`);
         if (response.ok) {
           const usuarios = await response.json();
           // Busca pelo id ou _id
@@ -358,9 +358,7 @@ export default {
     async carregarDadosDetalhados(usuarioId) {
       // Busca auditorias e itens do usuário pelo backend
       try {
-        const response = await fetch(
-          `http://localhost:3000/usuarios/${usuarioId}/auditorias`
-        );
+        const response = await api.get(`/usuarios/${usuarioId}/auditorias`);
         if (response.ok) {
           const auditorias = await response.json();
           // Supondo que auditorias seja um array de itens auditados
@@ -583,7 +581,7 @@ stats-qr-container {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .stats-section,
   .qr-section {
     grid-column: 1;

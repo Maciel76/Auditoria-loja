@@ -86,6 +86,7 @@ import PodiumSection from "./Ranking/Ruptura/PodiumSection.vue";
 import RankingList from "./Ranking/Ruptura/RankingList.vue";
 import AdvancedStats from "./Ranking/Ruptura/AdvancedStats.vue";
 import ExportSection from "./Ranking/Ruptura/ExportSection.vue";
+import api from "@/config/api";
 
 export default {
   name: "RankingRuptura",
@@ -159,7 +160,7 @@ export default {
         carregando.value = true;
         erro.value = null;
 
-        let url = "http://localhost:3000/api/ranking-ruptura";
+        let url = "/ruptura-ranking";
 
         // Adicionar parâmetros de filtro
         const params = new URLSearchParams();

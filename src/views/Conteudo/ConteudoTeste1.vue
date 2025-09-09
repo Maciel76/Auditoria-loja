@@ -117,7 +117,7 @@
 
 <script>
 import Chart from "chart.js/auto";
-import axios from "axios";
+import api from "@/config/api";
 
 export default {
   name: "StatusChart",
@@ -234,9 +234,7 @@ export default {
   methods: {
     async carregarDatasAuditoria() {
       try {
-        const response = await axios.get(
-          "http://localhost:3000/datas-auditoria"
-        );
+        const response = await api.get("/datas-auditoria");
         this.datasAuditoria = response.data;
         if (this.datasAuditoria.length > 0) {
           this.dataSelecionada = this.datasAuditoria[0];
@@ -269,10 +267,7 @@ export default {
         const params = this.dataSelecionada
           ? { data: this.dataSelecionada }
           : {};
-        const response = await axios.get(
-          "http://localhost:3000/dados-setores",
-          { params }
-        );
+        const response = await api.get("/dados-setores", { params });
 
         if (response.data && Array.isArray(response.data)) {
           this.dadosPlanilha = response.data;
