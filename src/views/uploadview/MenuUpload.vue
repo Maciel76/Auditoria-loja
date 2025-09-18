@@ -1,7 +1,7 @@
 <!-- Upload.vue (agora será o menu principal) -->
 <template>
   <div class="upload-menu-container">
-    <h2>Selecionar Tipo de Auditoria</h2>
+    <h2>Selecionar Tipo de Auditoria asa1</h2>
 
     <div class="audit-type-buttons">
       <button @click="navegarPara('etiqueta')" class="type-btn">

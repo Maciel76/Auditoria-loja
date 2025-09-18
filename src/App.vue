@@ -4,10 +4,10 @@
       <!-- Barra Lateral -->
       <aside class="sidebar">
         <div class="sidebar-header">
-          <h1>Auditoria Loja</h1>
+          <h1>Auditoria Loja {{ lojaNumero }}</h1>
         </div>
         <nav class="sidebar-nav">
-          <!-- Item de Upload com submenu ativado por clique -->
+          <!-- Itens do menu (mantidos iguais) -->
           <div class="nav-item-container">
             <div
               class="nav-item main-nav-item"
@@ -48,7 +48,6 @@
             <span class="nav-text">Usuários</span>
           </router-link>
 
-          <!-- Item de Ranking com submenu ativado por clique -->
           <div class="nav-item-container">
             <div
               class="nav-item main-nav-item"
@@ -108,9 +107,39 @@
             />
             <span class="nav-text">Relatórios</span>
           </router-link>
+          <router-link
+            to="/perfil-loja"
+            class="nav-item"
+            @click.native="closeSubmenus"
+          >
+            <img
+              src="./assets/svg/user.svg"
+              alt="Relatórios"
+              class="nav-icon"
+            />
+            <span class="nav-text">Perfil Lojas</span>
+          </router-link>
         </nav>
 
-        <!-- Submenu de Upload (sobrepõe a sidebar) -->
+        <!-- Perfil da Loja no final da sidebar - CORRIGIDO -->
+        <div class="loja-profile">
+          <div class="loja-image">
+            <img
+              :src="lojaImagem"
+              :alt="'Imagem da ' + lojaNome"
+              @error="handleImageError"
+            />
+          </div>
+          <div class="loja-info">
+            <h3>Loja {{ lojaNumero }}</h3>
+            <p>{{ lojaNome }}</p>
+          </div>
+          <button class="logout-btn" @click="sair" title="Sair da loja">
+            <span class="logout-icon">↩</span>
+          </button>
+        </div>
+
+        <!-- Submenus (mantidos iguais) -->
         <transition name="submenu-slide">
           <div v-if="showUploadSubmenu" class="submenu-overlay">
             <div class="submenu-content">
@@ -156,7 +185,6 @@
           </div>
         </transition>
 
-        <!-- Submenu de Ranking (sobrepõe a sidebar) -->
         <transition name="submenu-slide">
           <div v-if="showRankingSubmenu" class="submenu-overlay">
             <div class="submenu-content">
@@ -212,8 +240,62 @@
 </template>
 
 <script>
+import { useLojaStore } from "./store/lojaStore";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+
 export default {
   name: "App",
+  setup() {
+    const lojaStore = useLojaStore();
+    const router = useRouter();
+    const defaultImage = ref("/images/lojas/default.jpg");
+
+    // Carrega a loja ao inicializar
+    onMounted(() => {
+      lojaStore.carregarLoja();
+    });
+
+    // Computed properties para a loja
+    const lojaSelecionada = computed(() => lojaStore.lojaSelecionada);
+    const lojaNumero = computed(() => lojaSelecionada.value?.codigo || "000");
+    const lojaNome = computed(
+      () => lojaSelecionada.value?.nome || "Nenhuma loja selecionada"
+    );
+
+    // Imagem da loja - método mais robusto
+    const lojaImagem = computed(() => {
+      if (lojaSelecionada.value?.imagem) {
+        return lojaSelecionada.value.imagem;
+      }
+
+      // Tenta encontrar imagem baseada no código da loja
+      const codigo = lojaSelecionada.value?.codigo;
+      if (codigo) {
+        return `/images/lojas/${codigo}.jpg`;
+      }
+
+      return defaultImage.value;
+    });
+
+    const handleImageError = (event) => {
+      // Se a imagem específica falhar, usa a imagem padrão
+      event.target.src = defaultImage.value;
+    };
+
+    const sair = () => {
+      lojaStore.limparLoja();
+      router.push("/");
+    };
+
+    return {
+      lojaNumero,
+      lojaNome,
+      lojaImagem,
+      sair,
+      handleImageError,
+    };
+  },
   data() {
     return {
       showUploadSubmenu: false,
@@ -222,25 +304,21 @@ export default {
   },
   computed: {
     isUploadActive() {
-      // Ativa apenas se estiver em uma das rotas de upload
       return this.$route.path.startsWith("/upload/");
     },
     isRankingActive() {
-      // Ativa apenas se estiver em uma das rotas de ranking
       return this.$route.path.startsWith("/ranking/");
     },
   },
   methods: {
     toggleUploadSubmenu() {
       this.showUploadSubmenu = !this.showUploadSubmenu;
-      // Fecha o submenu de ranking se estiver aberto
       if (this.showRankingSubmenu) {
         this.showRankingSubmenu = false;
       }
     },
     toggleRankingSubmenu() {
       this.showRankingSubmenu = !this.showRankingSubmenu;
-      // Fecha o submenu de upload se estiver aberto
       if (this.showUploadSubmenu) {
         this.showUploadSubmenu = false;
       }
@@ -251,7 +329,6 @@ export default {
     },
   },
   watch: {
-    // Fecha os submenus quando a rota muda
     $route() {
       this.closeSubmenus();
     },
@@ -292,6 +369,8 @@ body {
   height: 100vh;
   overflow-y: auto;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-header {
@@ -312,8 +391,82 @@ body {
   padding: 0 0.5rem;
   position: relative;
   z-index: 2;
+  flex: 1;
 }
 
+/* Perfil da Loja - NOVO ESTILO */
+.loja-profile {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.loja-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.loja-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loja-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.loja-info h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.loja-info p {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) invert(1);
+}
+
+/* Resto dos estilos existentes mantidos... */
 .nav-item-container {
   position: relative;
 }
@@ -366,7 +519,7 @@ body {
   transform: rotate(90deg);
 }
 
-/* Submenu Overlay (sobrepõe a sidebar) */
+/* Submenu Overlay */
 .submenu-overlay {
   position: fixed;
   top: 0;
@@ -448,9 +601,54 @@ body {
 /* Conteúdo Principal */
 .main-content {
   flex: 1;
-  margin-left: 250px; /* Largura da sidebar */
+  margin-left: 250px;
   padding: 2rem;
   min-height: 100vh;
+}
+/* Ajustes para o botão de sair */
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-icon {
+  font-size: 1.2rem;
+  color: white;
+}
+
+/* Garantir que a imagem padrão exista */
+.loja-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: linear-gradient(45deg, #62809e, #132d47);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.loja-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Responsividade */
@@ -485,6 +683,16 @@ body {
 
   .submenu-content {
     width: 200px;
+  }
+
+  .loja-profile {
+    flex-direction: column;
+    text-align: center;
+    padding: 0.75rem;
+  }
+
+  .loja-info {
+    text-align: center;
   }
 }
 

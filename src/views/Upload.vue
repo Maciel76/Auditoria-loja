@@ -2,16 +2,16 @@
 <template>
   <div class="upload-menu-container">
     <h2>Selecionar Tipo de Auditoria</h2>
-    
+
     <div class="audit-type-buttons">
       <button @click="navegarPara('etiqueta')" class="type-btn">
         📋 Auditoria de Etiquetas
       </button>
-      
+
       <button @click="navegarPara('presenca')" class="type-btn">
         👥 Auditoria de Presença
       </button>
-      
+
       <button @click="navegarPara('ruptura')" class="type-btn">
         📦 Auditoria de Ruptura
       </button>
@@ -23,8 +23,10 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { useLojaStore } from "../store/lojaStore";
 
 const router = useRouter();
+const lojaStore = useLojaStore();
 
 const navegarPara = (tipo) => {
   router.push(`/upload/${tipo}`);
