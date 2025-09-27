@@ -1,11 +1,6 @@
 <template>
   <div class="perfil-loja-container">
     <!-- Botão Voltar -->
-    <div class="navigation-section">
-      <button class="back-btn" @click="voltarParaDashboard">
-        <span class="icon">←</span> Voltar para Dashboard
-      </button>
-    </div>
 
     <div v-if="carregando" class="loading-container">
       <div class="spinner"></div>
@@ -30,38 +25,8 @@
         :metricas="metricas"
         :percentualDesempenho="percentualDesempenho"
       />
-
-      <!-- Estatísticas Principais -->
-      <div class="stats-grid">
-        <EstatisticaCard
-          titulo="Total de Auditorias"
-          :valor="metricas.totalAuditorias"
-          icone="📊"
-          variacao="+12%"
-          cor="azul"
-        />
-        <EstatisticaCard
-          titulo="Itens Verificados"
-          :valor="metricas.itensVerificados"
-          icone="📦"
-          variacao="+8%"
-          cor="verde"
-        />
-        <EstatisticaCard
-          titulo="Taxa de Acerto"
-          :valor="`${metricas.taxaAcerto}%`"
-          icone="🎯"
-          variacao="+3%"
-          cor="laranja"
-        />
-        <EstatisticaCard
-          titulo="Colaboradores Ativos"
-          :valor="metricas.colaboradoresAtivos"
-          icone="👥"
-          variacao="+2"
-          cor="roxo"
-        />
-      </div>
+      <!-- Cards de Estatísticas -->
+      <EstatisticaCard />
 
       <!-- Mapa de Performance -->
       <PerformanceMap

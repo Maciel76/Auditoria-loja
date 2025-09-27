@@ -81,8 +81,8 @@ const lojaStore = useLojaStore();
 
 // Imagens locais - substitua pelos caminhos reais das suas imagens
 const imagensLojas = {
-  "056": "/images/lojas/56.jpg",
-  "084": "/images/lojas/84.jpg",
+  "056": "/images/lojas/056.jpg",
+  "084": "/images/lojas/084.jpg",
   105: "/images/lojas/105.jpg",
   111: "/images/lojas/111.jpg",
   140: "/images/lojas/140.jpg",
@@ -99,12 +99,12 @@ const imagemPadrao = "/images/lojas/default.jpg";
 const lojas = ref([
   {
     codigo: "56",
-    nome: "Goiania Buritis",
+    nome: "Buritis",
     cidade: "Goiânia",
   },
   {
     codigo: "84",
-    nome: "Goiania Independência",
+    nome: "Independência",
     cidade: "Goiânia",
   },
   {
@@ -152,12 +152,15 @@ const lojas = ref([
 const lojaSelecionada = ref(null);
 
 function getImagemLoja(codigo) {
-  // Retorna a imagem local se existir, senão usa a padrão
-  return imagensLojas[codigo] || imagemPadrao;
+  // Padroniza para 3 dígitos (ex: 56 -> 056)
+  const codigoPadronizado = codigo.toString().padStart(3, "0");
+  return imagensLojas[codigoPadronizado] || imagemPadrao;
 }
 
 function selecionarLoja(loja) {
-  lojaSelecionada.value = loja;
+  // Monta nome completo: Loja [codigo] [nome]
+  const nomeCompleto = `Loja ${loja.codigo} ${loja.nome}`;
+  lojaSelecionada.value = { ...loja, nomeCompleto };
 }
 
 function continuar() {

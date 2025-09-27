@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="sidbar">
     <div class="app-container">
       <!-- Barra Lateral -->
       <aside class="sidebar">
@@ -108,7 +108,7 @@
             <span class="nav-text">Relatórios</span>
           </router-link>
           <router-link
-            to="/perfil-loja"
+            :to="`/perfil-loja/${lojaNumero}`"
             class="nav-item"
             @click.native="closeSubmenus"
           >
@@ -134,9 +134,20 @@
             <h3>Loja {{ lojaNumero }}</h3>
             <p>{{ lojaNome }}</p>
           </div>
-          <button class="logout-btn" @click="sair" title="Sair da loja">
-            <span class="logout-icon">↩</span>
-          </button>
+          <router-link to="/" custom v-slot="{ navigate }">
+            <button
+              class="logout-btn"
+              @click="
+                () => {
+                  sair();
+                  navigate();
+                }
+              "
+              title="Sair da loja"
+            >
+              <span class="logout-icon">↩</span>
+            </button>
+          </router-link>
         </div>
 
         <!-- Submenus (mantidos iguais) -->
@@ -245,7 +256,7 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 export default {
-  name: "App",
+  name: "sidbar",
   setup() {
     const lojaStore = useLojaStore();
     const router = useRouter();
@@ -269,10 +280,11 @@ export default {
         return lojaSelecionada.value.imagem;
       }
 
-      // Tenta encontrar imagem baseada no código da loja
+      // Tenta encontrar imagem baseada no código da loja, padronizando para 3 dígitos
       const codigo = lojaSelecionada.value?.codigo;
       if (codigo) {
-        return `/images/lojas/${codigo}.jpg`;
+        const codigoPadronizado = codigo.toString().padStart(3, "0");
+        return `/images/lojas/${codigoPadronizado}.jpg`;
       }
 
       return defaultImage.value;
@@ -285,7 +297,7 @@ export default {
 
     const sair = () => {
       lojaStore.limparLoja();
-      router.push("/");
+      router.push("/"); // Volta para seleção de loja
     };
 
     return {

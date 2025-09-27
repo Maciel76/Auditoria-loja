@@ -27,9 +27,16 @@ import ConteudoTeste2 from "../views/Conteudo/ConteudoTeste2.vue";
 import SelecionarLoja from "../views/SelecionarLoja.vue";
 import PerfilLoja from "@/views/PerfilLoja.vue";
 import { useLojaStore } from "../store/lojaStore";
+import Login from "@/views/Login.vue";
 
 const routes = [
   // Rota principal - Seleção de Loja (SEM Layout do App.vue)
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+    meta: { requiresLoja: false },
+  },
   {
     path: "/",
     name: "SelecionarLoja",
@@ -172,9 +179,10 @@ const routes = [
     meta: { requiresLoja: true },
   },
   {
-    path: "/perfil-loja",
+    path: "/perfil-loja/:codigo",
     name: "perfilLoja",
     component: PerfilLoja,
+    props: true,
     meta: { requiresLoja: false },
   },
 

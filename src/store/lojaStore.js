@@ -7,7 +7,6 @@ export const useLojaStore = defineStore("loja", {
   actions: {
     selecionarLoja(loja) {
       this.lojaSelecionada = loja;
-      // Opcional: salvar no localStorage para persistência
       localStorage.setItem("lojaSelecionada", JSON.stringify(loja));
     },
     carregarLoja() {
@@ -16,7 +15,10 @@ export const useLojaStore = defineStore("loja", {
         this.lojaSelecionada = JSON.parse(lojaSalva);
       }
     },
-    // No seu store/lojaStore.js
+    limparLoja() {
+      this.lojaSelecionada = null;
+      localStorage.removeItem("lojaSelecionada");
+    },
     lojas: [
       {
         codigo: "056",
