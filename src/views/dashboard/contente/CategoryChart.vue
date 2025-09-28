@@ -152,7 +152,7 @@ export default {
   --danger-color: #e63946;
 
   /* Cores neutras */
-  --bg-color: #f8f9fa;
+  --bg-color: #ffffff;
   --card-bg: #ffffff;
   --text-primary: #212529;
   --text-secondary: #6c757d;

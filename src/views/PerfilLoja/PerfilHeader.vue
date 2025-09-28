@@ -635,11 +635,13 @@ export default {
 
 .stat-item {
   text-align: center;
+  align-items: center;
   flex: 1;
   padding: 4px 0;
 }
 
 .stat-number {
+  margin-left: 10px;
   display: block;
   font-size: 1.2rem;
   font-weight: 700;

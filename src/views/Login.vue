@@ -30,7 +30,7 @@
       </form>
 
       <div class="login-footer">
-        <p>Não sabe sua matrícula? Contate o administrador.</p>
+        <p>Não sabe sua matrícula? Contate seu superior.</p>
       </div>
     </div>
   </div>

@@ -155,7 +155,11 @@ export default {
 }
 
 .usuario-nome {
-  font-size: 2.5rem;
+  font-weight: 200;
+  position: relative;
+  z-index: 100;
+  margin-top: -10px;
+
   margin-bottom: 5px;
   color: #2c3e50;
 }
