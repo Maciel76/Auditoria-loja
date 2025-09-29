@@ -215,7 +215,10 @@ export default {
             texto: "Auditoria começa em",
             classe: "pre-auditoria",
             icone: "fa-clock",
-            contagem: `${minutosParaInicio} min`,
+            contagem:
+              minutosParaInicio >= 60
+                ? `${Math.floor(minutosParaInicio / 60)} horas`
+                : `${minutosParaInicio} min`,
           };
         } else if (agora >= inicioAuditoria && agora <= fimAuditoria) {
           // Auditoria rolando
@@ -370,8 +373,39 @@ export default {
 
 /* Status: Pré-auditoria (contagem regressiva) */
 .loja-status.pre-auditoria {
-  background: rgba(255, 152, 0, 0.25);
-  color: #ef6c00;
+  background: #fff;
+  color: #757575;
+  position: relative;
+  padding-left: 28px;
+}
+
+.loja-status.pre-auditoria::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #bdbdbd;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: pulse-gray 1.5s infinite;
+}
+
+@keyframes pulse-gray {
+  0% {
+    box-shadow: 0 0 0 0 rgba(189, 189, 189, 0.5);
+    opacity: 0.8;
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(189, 189, 189, 0);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(189, 189, 189, 0);
+    opacity: 0.8;
+  }
 }
 
 .contagem-regressiva {
