@@ -336,7 +336,7 @@ export default {
 
 <style scoped>
 .perfil-loja-container {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
   font-family: "Poppins", sans-serif;
@@ -440,6 +440,7 @@ export default {
 /* Responsividade */
 @media (max-width: 768px) {
   .perfil-loja-container {
+    max-width: 100%;
     padding: 15px;
   }
 
@@ -463,7 +464,13 @@ export default {
   .navigation-section {
     margin-bottom: 20px;
   }
+}
 
+@media (max-width: 768px) {
+  .perfil-loja-container {
+    max-width: 100%;
+    padding: 15px;
+  }
   .back-btn {
     width: 100%;
     justify-content: center;

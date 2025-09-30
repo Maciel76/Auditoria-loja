@@ -316,7 +316,7 @@ export default {
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  margin-top: 20px;
+  margin-top: -20px;
   position: relative;
 }
 
@@ -332,7 +332,15 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="5" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="50" r="8" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="80" r="5" fill="rgba(255,255,255,0.1)"/></svg>');
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0px,
+    rgba(255, 255, 255, 0.1) 16px,
+    transparent 16px,
+    transparent 32px
+  );
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .cover-overlay {

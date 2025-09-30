@@ -30,7 +30,6 @@
         :corredoresUnicos="corredoresUnicos"
         :percentualConcluido="percentualConcluido"
       />
-     
 
       <!-- Selos e Conquistas -->
       <SelosConquistas
@@ -50,7 +49,7 @@
         :percentualConcluido="percentualConcluido"
         :corredoresComContagem="corredoresComContagem"
       />
-       <!-- QR Code da Matrícula -->
+      <!-- QR Code da Matrícula -->
       <QrCodeMatricula :usuario="usuario" />
 
       <!-- Timeline de Atividades -->
@@ -583,7 +582,7 @@ stats-qr-container {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .stats-section,
   .qr-section {
     grid-column: 1;

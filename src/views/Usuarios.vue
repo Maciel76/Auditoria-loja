@@ -1,141 +1,270 @@
 <template>
-  <div class="usuarios-modern-container">
-    <!-- Header -->
-    <div class="header">
-      <h1><i class="fas fa-users"></i> Sistema de Auditoria</h1>
-      <p>Gestão de colaboradores e auditorias</p>
-    </div>
-
-    <!-- Filtros -->
-    <div class="filtros-section">
-      <div class="search-box">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          v-model="filtro"
-          placeholder="Buscar por nome ou matrícula..."
-          class="search-input"
-        />
-      </div>
-
-      <div class="filtro-data">
-        <label>Filtrar por data:</label>
-        <select v-model="dataFiltro" @change="carregarUsuarios">
-          <option value="">Todas as datas</option>
-          <option v-for="data in datasAuditoria" :key="data" :value="data">
-            {{ formatarData(data) }}
-          </option>
-        </select>
-      </div>
-
-      <div class="actions">
-        <button @click="carregarUsuarios" class="btn btn-refresh">
-          <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-      </div>
-    </div>
-
-    <!-- Estatísticas -->
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fas fa-user-friends"></i>
+  <div class="usuarios-container">
+    <!-- Seletor de Loja Obrigatório -->
+    <div v-if="!lojaStore.isLojaSelected" class="loja-selection">
+      <div class="loja-selection-content">
+        <div class="loja-icon">
+          <i class="fas fa-store"></i>
         </div>
-        <div class="stat-info">
-          <h3>{{ usuarios.length }}</h3>
-          <p>Colaboradores</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fas fa-clipboard-check"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ totalItensLidos }}</h3>
-          <p>Itens Lidos</p>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class="fas fa-chart-line"></i>
-        </div>
-        <div class="stat-info">
-          <h3>{{ mediaItensPorUsuario }}</h3>
-          <p>Média/Colaborador</p>
-        </div>
-      </div>
-    </div>
+        <h2>Selecione uma Loja</h2>
+        <p>Para visualizar os colaboradores, você precisa selecionar uma loja primeiro.</p>
 
-    <!-- Loading -->
-    <div v-if="carregando" class="loading-container">
-      <div class="spinner"></div>
-      <p>Carregando colaboradores...</p>
-    </div>
-
-    <!-- Erro -->
-    <div v-else-if="erro" class="error-container">
-      <div class="error-icon">
-        <i class="fas fa-exclamation-triangle"></i>
-      </div>
-      <h3>Ocorreu um erro</h3>
-      <p>{{ erro }}</p>
-      <button @click="carregarUsuarios" class="btn btn-primary">
-        <i class="fas fa-redo"></i> Tentar Novamente
-      </button>
-    </div>
-
-    <!-- Sem dados -->
-    <div v-else-if="usuarios.length === 0" class="empty-state">
-      <div class="empty-icon">
-        <i class="fas fa-user-slash"></i>
-      </div>
-      <h3>Nenhum colaborador encontrado</h3>
-      <p>Faça o upload de uma planilha para começar</p>
-      <router-link to="/upload" class="btn btn-primary">
-        <i class="fas fa-upload"></i> Fazer Upload
-      </router-link>
-    </div>
-
-    <!-- Grid de usuários -->
-    <div v-else class="usuarios-grid">
-      <div
-        v-for="usuario in usuariosFiltrados"
-        :key="usuario.id"
-        class="usuario-card"
-      >
-        <div class="card-header">
-          <div class="usuario-avatar">
-            <img
-              v-if="usuario.foto"
-              :src="usuario.foto"
-              alt="Foto"
-              class="avatar-img"
-            />
-            <div v-else class="avatar-placeholder">
-              {{ usuario.iniciais }}
+        <div class="lojas-grid">
+          <div
+            v-for="loja in lojaStore.lojas"
+            :key="loja.codigo"
+            class="loja-card"
+            @click="selecionarLoja(loja)"
+            :class="{ loading: lojaStore.loading }"
+          >
+            <div class="loja-image">
+              <img :src="loja.imagem" :alt="loja.nome" />
+            </div>
+            <div class="loja-info">
+              <h3>{{ loja.nome }}</h3>
+              <p><i class="fas fa-map-marker-alt"></i> {{ loja.cidade }}</p>
+              <span class="loja-codigo">{{ loja.codigo }}</span>
             </div>
           </div>
-          <div class="usuario-info">
-            <h3 class="usuario-nome">{{ usuario.nome }}</h3>
-            <span class="usuario-matricula">Matrícula: {{ usuario.id }}</span>
+        </div>
+
+        <div v-if="lojaStore.error" class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          {{ lojaStore.error }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal (apenas quando loja selecionada) -->
+    <div v-else>
+      <!-- Header com Loja Selecionada -->
+      <div class="page-header">
+        <div class="header-content">
+          <div class="header-text">
+            <h1>
+              <i class="fas fa-users-cog"></i>
+              Colaboradores - {{ lojaStore.nomeLojaAtual }}
+            </h1>
+            <p>Gestão de colaboradores da loja {{ lojaStore.codigoLojaAtual }}</p>
+          </div>
+          <div class="header-actions">
+            <button
+              @click="carregarUsuarios"
+              class="btn-icon-refresh"
+              title="Atualizar dados"
+              :disabled="carregando"
+            >
+              <i class="fas fa-sync-alt" :class="{ spinning: carregando }"></i>
+            </button>
+            <button
+              @click="trocarLoja"
+              class="btn-trocar-loja"
+              title="Trocar loja"
+            >
+              <i class="fas fa-exchange-alt"></i>
+              Trocar Loja
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros e Busca -->
+      <div class="filters-bar">
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            v-model="filtro"
+            placeholder="Buscar por nome ou matrícula..."
+            class="search-field"
+          />
+          <span v-if="filtro" @click="filtro = ''" class="clear-search">
+            <i class="fas fa-times"></i>
+          </span>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <i class="fas fa-filter"></i>
+            Filtro:
+          </label>
+          <select
+            v-model="filtroLoja"
+            @change="carregarUsuarios"
+            class="filter-select"
+          >
+            <option value="loja">Apenas desta loja</option>
+            <option value="todos">Todos os usuários</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <i class="fas fa-calendar-alt"></i>
+            Data:
+          </label>
+          <select
+            v-model="dataFiltro"
+            @change="carregarUsuarios"
+            class="filter-select"
+          >
+            <option value="">Todas as datas</option>
+            <option v-for="data in datasAuditoria" :key="data.timestamp" :value="data.data">
+              {{ data.dataFormatada }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Cards de Estatísticas -->
+      <div class="metrics-grid">
+        <div class="metric-card primary">
+          <div class="metric-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value">{{ usuarios.length }}</span>
+            <span class="metric-label">Colaboradores Ativos</span>
           </div>
         </div>
 
-        <div class="card-stats">
-          <div class="stat">
-            <i class="fas fa-clipboard-list"></i>
-            <span>{{ usuario.contador }} Itens Lidos</span>
+        <div class="metric-card success">
+          <div class="metric-icon">
+            <i class="fas fa-store-alt"></i>
           </div>
-          <div class="stat" v-if="dataFiltro">
-            <i class="fas fa-calendar-day"></i>
-            <span>Nesta data: {{ usuario.contadorDia || 0 }}</span>
+          <div class="metric-data">
+            <span class="metric-value">{{ lojaStore.codigoLojaAtual }}</span>
+            <span class="metric-label">Loja Selecionada</span>
           </div>
         </div>
 
-        <div class="card-actions">
-          <router-link :to="'/perfil/' + usuario.id" class="action-btn">
-            <i class="fas fa-eye"></i> Ver Detalhes
-          </router-link>
+        <div class="metric-card info">
+          <div class="metric-icon">
+            <i class="fas fa-clipboard-check"></i>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value">{{ totalItensLidos }}</span>
+            <span class="metric-label">Itens Lidos Total</span>
+          </div>
+        </div>
+
+        <div class="metric-card warning">
+          <div class="metric-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value">{{ mediaItensPorUsuario }}</span>
+            <span class="metric-label">Média por Colaborador</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="carregando" class="loading-state">
+        <div class="loader"></div>
+        <p>Carregando colaboradores da loja {{ lojaStore.codigoLojaAtual }}...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="erro" class="error-state">
+        <div class="error-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3>Ops! Algo deu errado</h3>
+        <p>{{ erro }}</p>
+        <button @click="carregarUsuarios" class="btn-retry">
+          <i class="fas fa-redo-alt"></i> Tentar Novamente
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="usuariosFiltrados.length === 0" class="empty-state">
+        <div class="empty-illustration">
+          <i class="fas fa-user-slash"></i>
+        </div>
+        <h3>Nenhum colaborador encontrado</h3>
+        <p v-if="filtro">Tente ajustar os filtros de busca</p>
+        <p v-else>Faça o upload de uma planilha para esta loja para começar</p>
+        <button
+          v-if="filtro"
+          @click="limparFiltros"
+          class="btn-clear-filter"
+        >
+          <i class="fas fa-times"></i> Limpar Filtros
+        </button>
+        <router-link v-else to="/upload" class="btn-upload">
+          <i class="fas fa-cloud-upload-alt"></i> Fazer Upload
+        </router-link>
+      </div>
+
+      <!-- Grid de Usuários -->
+      <div v-else class="users-grid">
+        <div
+          v-for="usuario in usuariosFiltrados"
+          :key="usuario.id"
+          class="user-card"
+          @click="verDetalhes(usuario.id)"
+        >
+          <div class="user-avatar-section">
+            <div class="avatar-circle">
+              <img
+                v-if="usuario.foto"
+                :src="usuario.foto"
+                alt="Avatar"
+                class="avatar-image"
+              />
+              <span v-else class="avatar-initials">{{ usuario.iniciais }}</span>
+            </div>
+            <div class="user-status online"></div>
+          </div>
+
+          <div class="user-details">
+            <h3 class="user-name">{{ usuario.nome }}</h3>
+            <p class="user-matricula">
+              <i class="fas fa-id-badge"></i> {{ usuario.id }}
+            </p>
+            <p class="user-loja">
+              <i class="fas fa-store"></i>
+              <span v-if="filtroLoja === 'todos'">{{ usuario.lojaCompleta }} ({{ usuario.loja }})</span>
+              <span v-else>{{ usuario.loja }}</span>
+            </p>
+          </div>
+
+          <div class="user-metrics">
+            <div class="metric-item">
+              <i class="fas fa-clipboard-list"></i>
+              <div class="metric-content">
+                <span class="metric-number">{{ usuario.contador }}</span>
+                <span class="metric-text">Itens Lidos</span>
+              </div>
+            </div>
+            <div class="metric-item">
+              <i class="fas fa-calendar-check"></i>
+              <div class="metric-content">
+                <span class="metric-number">{{ usuario.totalAuditorias }}</span>
+                <span class="metric-text">Auditorias</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-last-activity" v-if="usuario.ultimaAuditoria">
+            <p class="activity-label">
+              <i class="fas fa-clock"></i>
+              Última atividade:
+            </p>
+            <p class="activity-date">{{ formatarData(usuario.ultimaAuditoria) }}</p>
+          </div>
+
+          <div class="card-footer">
+            <router-link
+              :to="'/perfil/' + usuario.id"
+              class="btn-details"
+              @click.stop
+            >
+              <i class="fas fa-eye"></i>
+              Ver Perfil Completo
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -143,59 +272,113 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
+import { useLojaStore } from "@/store/lojaStore";
 import axios from "axios";
+
+const router = useRouter();
+const lojaStore = useLojaStore();
 
 const usuarios = ref([]);
 const filtro = ref("");
-const carregando = ref(true);
+const carregando = ref(false);
 const erro = ref("");
 const dataFiltro = ref("");
+const filtroLoja = ref("loja");
 const datasAuditoria = ref([]);
 
-// Carregar usuários do backend MongoDB ao inicializar
-onMounted(() => {
-  carregarDatasAuditoria();
-  carregarUsuarios();
+onMounted(async () => {
+  // Carregar loja do localStorage se existir
+  lojaStore.carregarLoja();
+
+  // Se tem loja selecionada, carregar dados
+  if (lojaStore.isLojaSelected) {
+    await carregarDatasAuditoria();
+    await carregarUsuarios();
+  }
 });
+
+// Watch para recarregar dados quando loja mudar
+watch(() => lojaStore.lojaSelecionada, async (novaLoja) => {
+  if (novaLoja) {
+    await carregarDatasAuditoria();
+    await carregarUsuarios();
+  } else {
+    usuarios.value = [];
+    datasAuditoria.value = [];
+  }
+});
+
+// Selecionar loja
+const selecionarLoja = async (loja) => {
+  const sucesso = await lojaStore.selecionarLoja(loja);
+  if (sucesso) {
+    await carregarDatasAuditoria();
+    await carregarUsuarios();
+  }
+};
+
+// Trocar loja
+const trocarLoja = () => {
+  lojaStore.limparLoja();
+  usuarios.value = [];
+  datasAuditoria.value = [];
+};
 
 // Carregar datas de auditoria disponíveis
 const carregarDatasAuditoria = async () => {
   try {
-    const { data } = await axios.get("http://localhost:3000/datas-auditoria");
+    const { data } = await axios.get("http://localhost:3000/datas-auditoria", {
+      headers: {
+        'x-loja': lojaStore.codigoLojaAtual
+      }
+    });
     datasAuditoria.value = data;
   } catch (error) {
     console.error("Erro ao carregar datas:", error);
   }
 };
 
-// Carregar usuários do backend MongoDB
+// Carregar usuários da loja selecionada
 const carregarUsuarios = async () => {
+  if (!lojaStore.isLojaSelected) return;
+
   try {
     carregando.value = true;
     erro.value = "";
 
     const params = {};
     if (dataFiltro.value) {
-      params.data = dataFiltro.value;
+      params.dataAuditoria = dataFiltro.value;
+    }
+    if (filtroLoja.value === 'todos') {
+      params.todos = 'true';
     }
 
     const { data } = await axios.get("http://localhost:3000/usuarios", {
       params,
+      headers: {
+        'x-loja': lojaStore.codigoLojaAtual
+      }
     });
 
     usuarios.value = data.map((user) => ({
-      id: user.id || user.nome,
+      id: user.id,
       nome: user.nome,
       contador: user.contador || 0,
-      contadorDia: user.contadorDia || 0,
-      contadorTotal: user.contadorTotal || 0,
-      iniciais: obterIniciais(user.nome),
-      foto: null,
+      iniciais: user.iniciais || obterIniciais(user.nome),
+      loja: user.loja || lojaStore.codigoLojaAtual,
+      lojaCompleta: user.lojaCompleta || lojaStore.nomeLojaAtual,
+      foto: user.foto,
+      ultimaAuditoria: user.ultimaAuditoria,
+      totalAuditorias: user.totalAuditorias || 0,
     }));
+
+    console.log(`✅ ${usuarios.value.length} usuários carregados da loja ${lojaStore.codigoLojaAtual}`);
   } catch (error) {
     console.error("Erro ao carregar usuários:", error);
-    erro.value = "Erro ao carregar dados do servidor";
+    erro.value = error.response?.data?.erro || "Erro ao carregar dados do servidor";
   } finally {
     carregando.value = false;
   }
@@ -217,23 +400,44 @@ const obterIniciais = (nome) => {
 
 // Formatar data para exibição
 const formatarData = (dataString) => {
+  if (!dataString) return "-";
   const data = new Date(dataString);
   return data.toLocaleDateString("pt-BR");
 };
 
-// Computed properties
-const usuariosFiltrados = computed(() =>
-  usuarios.value.filter(
-    (u) =>
-      u.nome.toLowerCase().includes(filtro.value.toLowerCase()) ||
-      (u.id && u.id.toLowerCase().includes(filtro.value.toLowerCase()))
-  )
-);
+// Navegar para detalhes do usuário
+const verDetalhes = (id) => {
+  router.push(`/perfil/${id}?loja=${lojaStore.codigoLojaAtual}`);
+};
 
+// Limpar filtros
+const limparFiltros = () => {
+  filtro.value = "";
+};
+
+// Computed: Usuários filtrados
+const usuariosFiltrados = computed(() => {
+  let resultado = usuarios.value;
+
+  // Filtro por nome ou matrícula
+  if (filtro.value) {
+    const filtroLower = filtro.value.toLowerCase();
+    resultado = resultado.filter(
+      (u) =>
+        u.nome.toLowerCase().includes(filtroLower) ||
+        u.id.toLowerCase().includes(filtroLower)
+    );
+  }
+
+  return resultado;
+});
+
+// Computed: Total de itens lidos
 const totalItensLidos = computed(() =>
   usuarios.value.reduce((total, usuario) => total + usuario.contador, 0)
 );
 
+// Computed: Média de itens por usuário
 const mediaItensPorUsuario = computed(() =>
   usuarios.value.length
     ? Math.round(totalItensLidos.value / usuarios.value.length)
@@ -242,492 +446,838 @@ const mediaItensPorUsuario = computed(() =>
 </script>
 
 <style scoped>
-/* Filtros de data */
-.filtros-data {
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.usuarios-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+  font-family: "Inter", sans-serif;
+}
+
+/* ===== SELEÇÃO DE LOJA ===== */
+.loja-selection {
   display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
+  min-height: 80vh;
 }
 
-.filtro-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filtro-group label {
-  font-weight: bold;
-}
-.usuarios-modern-container {
-  max-width: auto;
-  margin: 0 auto;
-  padding: 2px;
-  font-family: "Poppins", sans-serif;
-}
-
-/* Header */
-.header {
+.loja-selection-content {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem;
   text-align: center;
-  margin-bottom: 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 30px;
-  border-radius: 15px;
-  margin: 0 -20px 30px -20px;
-}
-
-.header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-.header p {
-  font-size: 1.1rem;
-  opacity: 0.9;
-}
-
-/* Controles */
-.controles {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.search-box {
-  position: relative;
-  flex: 1;
-  min-width: 300px;
-}
-
-.search-box i {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-}
-
-.search-input {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
   width: 100%;
-  padding: 12px 20px 12px 45px;
-  border: 2px solid #e1e5e9;
-  border-radius: 25px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
 }
 
-.search-input:focus {
-  outline: none;
+.loja-icon {
+  font-size: 4rem;
+  color: #667eea;
+  margin-bottom: 2rem;
+}
+
+.loja-selection-content h2 {
+  font-size: 2.5rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.loja-selection-content p {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-bottom: 3rem;
+}
+
+.lojas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.loja-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loja-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
   border-color: #667eea;
 }
 
-.actions {
-  display: flex;
-  gap: 10px;
+.loja-card.loading {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
-/* Botões */
-.btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
+.loja-image {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e2e8f0;
+}
+
+.loja-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loja-info h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.loja-info p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.loja-codigo {
+  background: #667eea;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.btn-primary {
+/* ===== HEADER ===== */
+.page-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  animation: pulse 15s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.header-text h1 {
   color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.btn-secondary {
-  background: #6c757d;
+.header-text p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 300;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-icon-refresh, .btn-trocar-loja {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
 }
 
-.btn-danger {
-  background: #dc3545;
-  color: white;
+.btn-icon-refresh {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.2rem;
 }
 
-.btn-refresh {
-  background: #17a2b8;
-  color: white;
+.btn-trocar-loja {
+  padding: 0.75rem 1.5rem;
+  gap: 0.5rem;
 }
 
-.btn-clear {
-  background: #ffc107;
-  color: #212529;
+.btn-icon-refresh:hover, .btn-trocar-loja:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+.btn-icon-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* Estatísticas */
-.stats-container {
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== FILTROS ===== */
+.filters-bar {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.search-field {
+  width: 100%;
+  padding: 0.875rem 3rem 0.875rem 3rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+}
+
+.search-field:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.clear-search {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.clear-search:hover {
+  color: #ef4444;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-label {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+  min-width: 180px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* ===== MÉTRICAS ===== */
+.metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.stat-card {
+.metric-card {
   background: white;
-  padding: 25px;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  padding: 1.75rem;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 1.25rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.stat-icon {
+.metric-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  opacity: 0.1;
+  transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card:hover::before {
+  transform: scale(1.5);
+}
+
+.metric-card.primary {
+  border-left: 4px solid #667eea;
+}
+.metric-card.primary .metric-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.metric-card.primary::before {
+  background: #667eea;
+}
+
+.metric-card.success {
+  border-left: 4px solid #10b981;
+}
+.metric-card.success .metric-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+.metric-card.success::before {
+  background: #10b981;
+}
+
+.metric-card.info {
+  border-left: 4px solid #3b82f6;
+}
+.metric-card.info .metric-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+.metric-card.info::before {
+  background: #3b82f6;
+}
+
+.metric-card.warning {
+  border-left: 4px solid #f59e0b;
+}
+.metric-card.warning .metric-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.metric-card.warning::before {
+  background: #f59e0b;
+}
+
+.metric-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.stat-info h3 {
+.metric-data {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-value {
   font-size: 2rem;
-  margin: 0;
-  color: #2c3e50;
+  font-weight: 700;
+  color: #1e293b;
 }
 
-.stat-info p {
-  margin: 5px 0 0 0;
-  color: #7f8c8d;
+.metric-label {
+  font-size: 0.9rem;
+  color: #64748b;
   font-weight: 500;
 }
 
-/* Loading */
-.loading-container {
+/* ===== LOADING ===== */
+.loading-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e1e5e9;
+.loader {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #f3f4f6;
   border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
+  margin: 0 auto 1.5rem;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.loading-state p {
+  color: #64748b;
+  font-size: 1.1rem;
 }
 
-/* Error */
-.error-container {
+/* ===== ERROR STATE ===== */
+.error-state {
   text-align: center;
-  padding: 40px;
+  padding: 4rem 2rem;
   background: white;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
 }
 
 .error-icon {
-  font-size: 3rem;
-  color: #e74c3c;
-  margin-bottom: 20px;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.empty-icon {
   font-size: 4rem;
-  color: #bdc3c7;
-  margin-bottom: 20px;
+  color: #ef4444;
+  margin-bottom: 1.5rem;
 }
 
-/* Grid de usuários */
-.usuarios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+.error-state h3 {
+  color: #1e293b;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
 }
 
-.usuario-card {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.error-state p {
+  color: #64748b;
+  margin-bottom: 2rem;
 }
 
-.usuario-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.card-header {
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  position: relative;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.usuario-avatar {
-  flex-shrink: 0;
-}
-
-.avatar-img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.avatar-placeholder {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+.btn-retry {
+  padding: 0.875rem 2rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 1.2rem;
-  border: 3px solid white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.usuario-info {
-  flex: 1;
-}
-
-.usuario-nome {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.usuario-matricula {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-}
-
-.btn-remove {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
   border: none;
-  color: #dc3545;
+  border-radius: 12px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  transition: background 0.3s ease;
-}
-
-.btn-remove:hover {
-  background: rgba(220, 53, 69, 0.1);
-}
-
-.card-stats {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e1e5e9;
-}
-
-.stat {
-  display: flex;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #667eea;
-  font-weight: 500;
+  gap: 0.5rem;
+  font-size: 1rem;
 }
 
-.card-actions {
-  padding: 15px 20px;
+.btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
 }
 
-.upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 15px;
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-illustration {
+  font-size: 5rem;
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+  color: #1e293b;
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.btn-clear-filter,
+.btn-upload {
+  padding: 0.875rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #6c757d;
-  font-weight: 500;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 1rem;
 }
 
-.upload-btn:hover {
-  background: #e9ecef;
-  border-color: #667eea;
-  color: #667eea;
+.btn-clear-filter:hover,
+.btn-upload:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
 }
 
-.upload-btn input {
-  display: none;
+/* ===== GRID DE USUÁRIOS ===== */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
+.user-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: "";
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.user-card:hover::before {
+  transform: scaleX(1);
+}
+
+.user-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.user-avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
 }
 
-.modal {
-  background: white;
-  border-radius: 15px;
-  max-width: 500px;
+.avatar-image {
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  height: 100%;
+  object-fit: cover;
 }
 
-.modal-header {
-  padding: 20px;
-  border-bottom: 1px solid #e1e5e9;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #6c757d;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-footer {
-  padding: 20px;
-  border-top: 1px solid #e1e5e9;
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-filtros-section {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.filtro-data {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filtro-data label {
-  font-weight: bold;
-}
-
-.filtro-data select {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.usuario-card {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.usuario-card:hover {
-  transform: translateY(-2px);
-}
-
-.card-actions {
-  padding: 15px;
-  border-top: 1px solid #eee;
-}
-
-.action-btn {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #667eea;
+.avatar-initials {
   color: white;
-  text-decoration: none;
-  border-radius: 4px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.user-status {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid white;
+}
+
+.user-status.online {
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.user-details {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.user-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.user-matricula, .user-loja {
+  color: #64748b;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.user-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.metric-item i {
+  color: #667eea;
+  font-size: 1.25rem;
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.metric-text {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.user-last-activity {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.activity-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.activity-date {
   font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 600;
 }
 
-.action-btn:hover {
-  background: #5a67d8;
+.card-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
 }
 
-/* Responsivo */
+.btn-details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.btn-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
-  .controles {
-    flex-direction: column;
+  .usuarios-container {
+    padding: 1rem;
   }
 
-  .search-box {
+  .loja-selection-content {
+    padding: 2rem;
+  }
+
+  .lojas-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  .header-text h1 {
+    font-size: 1.75rem;
+  }
+
+  .header-text p {
+    font-size: 0.95rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-wrapper {
     min-width: 100%;
   }
 
-  .stats-container {
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-select {
+    min-width: 100%;
+  }
+
+  .metrics-grid {
     grid-template-columns: 1fr;
   }
 
-  .usuarios-grid {
+  .users-grid {
     grid-template-columns: 1fr;
   }
 
-  .header {
-    padding: 20px;
+  .user-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .header h1 {
-    font-size: 2rem;
+  .btn-icon-refresh {
+    width: 45px;
+    height: 45px;
+  }
+
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+  }
+
+  .avatar-initials {
+    font-size: 1.5rem;
+  }
+
+  .user-name {
+    font-size: 1.2rem;
   }
 }
 </style>
