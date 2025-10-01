@@ -40,15 +40,13 @@
         :itensFaltantes="itensFaltantes"
         :atividadesRecentes="atividadesRecentes"
       />
-
-      <!-- Estatísticas Principais -->
-      <EstatisticasPrincipais
+      <ConquistasTimeline
         :usuario="usuario"
-        :mediaGeral="mediaGeral"
-        :diferencaMedia="diferencaMedia"
-        :percentualConcluido="percentualConcluido"
-        :corredoresComContagem="corredoresComContagem"
+        :corredoresUnicos="corredoresUnicos"
+        :itensFaltantes="itensFaltantes"
+        :atividadesRecentes="atividadesRecentes"
       />
+
       <!-- QR Code da Matrícula -->
       <QrCodeMatricula :usuario="usuario" />
 
@@ -56,18 +54,6 @@
       <TimelineAtividades
         :atividadesRecentes="atividadesRecentes"
         v-if="atividadesRecentes.length > 0"
-      />
-
-      <!-- Itens Faltantes -->
-      <ItensFaltantes
-        :itensFaltantes="itensFaltantes"
-        v-if="itensFaltantes.length > 0"
-      />
-
-      <!-- Botões de Ação -->
-      <BotoesAcao
-        @exportarRelatorio="exportarRelatorio"
-        @compartilharPerfil="compartilharPerfil"
       />
     </div>
   </div>
@@ -79,22 +65,18 @@ import { useNivelStore } from "@/store/nivelStore";
 import { useLojaStore } from "@/store/lojaStore";
 import PerfilHeader from "./Perfiltemplate/PerfilHeader.vue";
 import SelosConquistas from "./Perfiltemplate/SelosConquistas.vue";
-import EstatisticasPrincipais from "./Perfiltemplate/EstatisticasPrincipais.vue";
 import TimelineAtividades from "./Perfiltemplate/TimelineAtividades.vue";
-import ItensFaltantes from "./Perfiltemplate/ItensFaltantes.vue";
-import BotoesAcao from "./Perfiltemplate/BotoesAcao.vue";
 import QrCodeMatricula from "./Perfiltemplate/QrCodeMatricula.vue";
+import ConquistasTimeline from "./Perfiltemplate/ConquistasTimeline.vue";
 
 export default {
   name: "PerfilUsuario",
   components: {
     PerfilHeader,
     SelosConquistas,
-    EstatisticasPrincipais,
     TimelineAtividades,
-    ItensFaltantes,
-    BotoesAcao,
     QrCodeMatricula,
+    ConquistasTimeline,
   },
   props: {
     id: {
@@ -230,8 +212,8 @@ export default {
         // Busca usuário pelo backend com header da loja
         const response = await fetch(`http://localhost:3000/usuarios`, {
           headers: {
-            'x-loja': this.getLojaAtual()
-          }
+            "x-loja": this.getLojaAtual(),
+          },
         });
         if (response.ok) {
           const usuarios = await response.json();
@@ -245,7 +227,8 @@ export default {
             this.usuario = {
               ...usuarioEncontrado,
               iniciais: this.obterIniciais(usuarioEncontrado.nome),
-              xpConquistas: this.nivelStore?.calcularXpConquistas(usuarioEncontrado) || 0,
+              xpConquistas:
+                this.nivelStore?.calcularXpConquistas(usuarioEncontrado) || 0,
             };
             await this.carregarDadosDetalhados(
               usuarioEncontrado.id || usuarioEncontrado._id
@@ -302,7 +285,7 @@ export default {
           Produto: `Produto ${i + 1}`,
           Local: `Corredor ${Math.floor(Math.random() * 10) + 1}`,
           "Estoque atual": Math.floor(Math.random() * 50),
-          Situacao: Math.random() > 0.3 ? "Atualizado" : "Pendente"
+          Situacao: Math.random() > 0.3 ? "Atualizado" : "Pendente",
         });
       }
 
@@ -350,19 +333,20 @@ export default {
       // Sistema de conquistas agora é gerenciado pelos componentes modulares
       // Atualizar XP com base nas conquistas disponíveis
       if (this.nivelStore) {
-        const conquistasDisponiveis = this.nivelStore.verificarConquistasDisponiveis(
-          this.usuario,
-          {
+        const conquistasDisponiveis =
+          this.nivelStore.verificarConquistasDisponiveis(this.usuario, {
             corredoresUnicos: this.corredoresUnicos,
             itensFaltantes: this.itensFaltantes,
-            atividadesRecentes: this.atividadesRecentes
-          }
-        );
+            atividadesRecentes: this.atividadesRecentes,
+          });
 
         // Calcular XP total das conquistas
-        this.usuario.xpConquistas = conquistasDisponiveis.reduce((total, conquista) => {
-          return total + conquista.xp;
-        }, 0);
+        this.usuario.xpConquistas = conquistasDisponiveis.reduce(
+          (total, conquista) => {
+            return total + conquista.xp;
+          },
+          0
+        );
       }
     },
 
@@ -451,7 +435,7 @@ export default {
     },
 
     getLojaAtual() {
-      return this.lojaStore.codigoLojaAtual || '056'; // fallback para loja padrão
+      return this.lojaStore.codigoLojaAtual || "056"; // fallback para loja padrão
     },
   },
 };

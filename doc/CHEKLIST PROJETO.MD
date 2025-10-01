@@ -4,17 +4,17 @@ Checklist de Desenvolvimento - Sistema de Auditorias Multi-Lojas
 
 ( ✔) Configurar backend Node.js com Express e dependências básicas
 
-( ) Configurar frontend Vue.js 3 com Vite e Pinia
+(x ) Configurar frontend Vue.js 3 com Vite e Pinia
 
-( ) Configurar ESLint, Prettier e husky para padronização de código
+( x) Configurar ESLint, Prettier e husky para padronização de código
 
 ( ) Configurar ambiente de desenvolvimento com variáveis de ambiente
 
-( ) Configurar conexão com MongoDB e criar modelos base
+( x) Configurar conexão com MongoDB e criar modelos base
 
 ( ) Configurar sistema de logging (Winston ou Morgan)
 
-( ) Configurar scripts de desenvolvimento e build no package.json
+( x) Configurar scripts de desenvolvimento e build no package.json
 
 ( ) Configurar Docker e docker-compose para containerização
 
@@ -41,45 +41,45 @@ Implementar modelo User com hierarquia de roles
 
 ( ) Adicionar tratamento de erros de autenticação
 
-( ) Criar página de perfil do usuário
+( x) Criar página de perfil do usuário
 
 📋 Etapa 3: Gestão de Lojas e Hierarquia
 Implementar modelo Store com dados completos das lojas
 
-( ) Criar middleware de validação de acesso à loja
+(x ) Criar middleware de validação de acesso à loja
 
 ( ) Implementar CRUD de lojas (apenas para admin)
 
-( ) Criar página de seleção de loja no frontend
+( x) Criar página de seleção de loja no frontend
 
-( ) Implementar store para gestão de lojas no frontend
+(x ) Implementar store para gestão de lojas no frontend
 
-( ) Criar componente de card de loja reutilizável
+( x) Criar componente de card de loja reutilizável
 
-( ) Implementar vinculação usuário-loja
+(x ) Implementar vinculação usuário-loja
 
 ( ) Criar página administrativa de gestão de lojas
 
 ( ) Adicionar upload de imagens para lojas
 
-( ) Implementar validações de dados de lojas
+( x) Implementar validações de dados de lojas
 
 📋 Etapa 4: Sistema de Upload e Processamento de Arquivos
 Configurar multer para upload de arquivos
 
-( ) Implementar modelo FileProcess para controle de processamento
+(x ) Implementar modelo FileProcess para controle de processamento
 
-( ) Criar service de processamento de planilhas Excel
+(x ) Criar service de processamento de planilhas Excel
 
-( ) Implementar parser para diferentes formatos de planilhas
+(x ) Implementar parser para diferentes formatos de planilhas
 
 ( ) Criar sistema de filas para processamento em background
 
-( ) Implementar validação de dados da planilha
+(x ) Implementar validação de dados da planilha
 
 ( ) Criar interface de upload no frontend com drag-and-drop
 
-( ) Implementar feedback visual de progresso de upload
+(x ) Implementar feedback visual de progresso de upload
 
 ( ) Criar histórico de arquivos processados
 
@@ -88,13 +88,13 @@ Configurar multer para upload de arquivos
 ( ) Adicionar opção de download de template de planilha
 
 📋 Etapa 5: Modelos de Dados e Banco de Dados
-( ) Implementar modelo Audit unificado para todos os tipos de auditoria
+(x ) Implementar modelo Audit unificado para todos os tipos de auditoria
 
-( ) Criar índices para otimização de consultas
+( x) Criar índices para otimização de consultas
 
 ( ) Implementar relações entre modelos (User, Store, Audit)
 
-( ) Criar scripts de migração de dados antigos
+(x ) Criar scripts de migração de dados antigos
 
 ( ) Implementar agregações para relatórios
 
@@ -111,15 +111,15 @@ Criar controller para fornecer dados do dashboard
 
 ( ) Implementar cálculos de métricas e KPI's
 
-( ) Criar componentes de cartões de estatísticas
+(x ) Criar componentes de cartões de estatísticas
 
-( ) Implementar gráficos para visualização de dados (Chart.js ou similar)
+(x ) Implementar gráficos para visualização de dados (Chart.js ou similar)
 
-( ) Criar sistema de filtros por período e loja
+( x) Criar sistema de filtros por período e loja
 
-( ) I( ) mplementar atualização em tempo real dos dados
+( ) I( x) mplementar atualização em tempo real dos dados
 
-( ) Criar dashboard para cada tipo de usuário (auditor, supervisor, etc.)
+( x) Criar dashboard para cada tipo de usuário (auditor, supervisor, etc.)
 
 ( ) Adicionar modo escuro/claro (opcional)
 
@@ -128,11 +128,11 @@ Criar controller para fornecer dados do dashboard
 📋 Etapa 7: Sistema de Relatórios e Análises
 ( ) Implementar service de geração de relatórios
 
-( ) Criar sistema de filtros avançados para relatórios
+( x) Criar sistema de filtros avançados para relatórios
 
 ( ) Implementar exportação para Excel e PDF
 
-( ) Criar visualizações gráficas para relatórios
+( x) Criar visualizações gráficas para relatórios
 
 ( ) Implementar comparativos entre lojas e períodos
 
@@ -145,9 +145,9 @@ Criar controller para fornecer dados do dashboard
 ( ) Criar templates de relatórios personalizáveis
 
 📋 Etapa 8: Frontend - Componentes e Views
-( ) Criar componentes reutilizáveis (Header, Sidebar, Modal, etc.)
+( x) Criar componentes reutilizáveis (Header, Sidebar, Modal, etc.)
 
-( ) Implementar views para cada módulo (Dashboard, Auditorias, Relatórios, etc.)
+( x) Implementar views para cada módulo (Dashboard, Auditorias, Relatórios, etc.)
 
 ( ) Criar sistema de notificações/toast
 

@@ -33,7 +33,7 @@ function onLojaAlterada(loja) {
 }
 </script>
 
-<style>
+<style scoped>
 /* Reset e base */
 * {
   margin: 0;
