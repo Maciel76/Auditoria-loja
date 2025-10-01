@@ -1,38 +1,91 @@
 <template>
-  <div class="selos-section">
-    <h2 class="section-title">🏆 Conquistas e Selos</h2>
-    <div class="selos-grid">
-      <div
-        v-for="selo in selosAtualizados"
-        :key="selo.id"
-        :class="['selo-card', { desbloqueado: selo.desbloqueado }]"
+  <div class="conquistas-section">
+    <div class="conquistas-header">
+      <h2 class="section-title">🏆 Conquistas e Selos</h2>
+      <div class="xp-summary">
+        <span class="xp-total">{{ xpTotal }} XP Total</span>
+        <span class="xp-nivel">Nível {{ nivelAtual }}</span>
+      </div>
+    </div>
+
+    <div class="conquistas-grid" :class="{ 'expandido': mostrarTodas }">
+      <!-- Conquistas Principais -->
+      <PrimeiroDia :usuario="usuario" />
+      <MetaBatida :usuario="usuario" />
+      <Explorador :usuario="usuario" :corredores-unicos="corredoresUnicos" />
+      <Maratona :usuario="usuario" />
+      <Consistencia :usuario="usuario" />
+
+      <!-- Conquistas Expandidas -->
+      <template v-if="mostrarTodas">
+        <Relampago :usuario="usuario" :atividades-recentes="atividadesRecentes" />
+        <ZeroFaltas :usuario="usuario" :itens-faltantes="itensFaltantes" />
+        <Detetive :usuario="usuario" :itens-faltantes="itensFaltantes" />
+      </template>
+    </div>
+
+    <div class="mostrar-mais-container">
+      <button
+        @click="toggleMostrarTodas"
+        class="btn-mostrar-mais"
+        :class="{ 'expandido': mostrarTodas }"
       >
-        <div class="selo-icon">
-          <span class="icon">{{ selo.icone }}</span>
-        </div>
-        <div class="selo-info">
-          <h3>{{ selo.nome }}</h3>
-          <p>{{ selo.descricao }}</p>
-        </div>
-        <div class="selo-status">
-          <span v-if="selo.desbloqueado" class="desbloqueado"
-            >✅ Desbloqueado</span
-          >
-          <span v-else class="bloqueado">🔒 Bloqueado</span>
-        </div>
+        <span v-if="!mostrarTodas">
+          <i class="fas fa-chevron-down"></i>
+          Mostrar Mais Conquistas
+        </span>
+        <span v-else>
+          <i class="fas fa-chevron-up"></i>
+          Mostrar Menos
+        </span>
+      </button>
+    </div>
+
+    <!-- Estatísticas de Conquistas -->
+    <div class="conquistas-stats">
+      <div class="stat-card">
+        <span class="stat-number">{{ conquistasDesbloqueadas }}</span>
+        <span class="stat-label">Desbloqueadas</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ totalConquistas }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ Math.round((conquistasDesbloqueadas / totalConquistas) * 100) }}%</span>
+        <span class="stat-label">Completadas</span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { ref, computed } from 'vue'
+import { useNivelStore } from '@/store/nivelStore'
+import {
+  PrimeiroDia,
+  MetaBatida,
+  Explorador,
+  Maratona,
+  Consistencia,
+  Relampago,
+  ZeroFaltas,
+  Detetive
+} from '@/components/conquistas'
+
 export default {
   name: "SelosConquistas",
+  components: {
+    PrimeiroDia,
+    MetaBatida,
+    Explorador,
+    Maratona,
+    Consistencia,
+    Relampago,
+    ZeroFaltas,
+    Detetive
+  },
   props: {
-    selos: {
-      type: Array,
-      required: true,
-    },
     usuario: {
       type: Object,
       required: true,
@@ -40,10 +93,6 @@ export default {
     corredoresUnicos: {
       type: Array,
       default: () => [],
-    },
-    mediaGeral: {
-      type: Number,
-      default: 0,
     },
     itensFaltantes: {
       type: Array,
@@ -54,94 +103,224 @@ export default {
       default: () => [],
     },
   },
-  computed: {
-    selosAtualizados() {
-      return this.selos.map((selo) => ({
-        ...selo,
-        desbloqueado: selo.condicao(
-          this.usuario,
-          this.corredoresUnicos,
-          this.mediaGeral,
-          this.itensFaltantes,
-          this.atividadesRecentes
-        ),
-      }));
-    },
-  },
-};
+  setup(props) {
+    const nivelStore = useNivelStore()
+    const mostrarTodas = ref(false)
+
+    const xpTotal = computed(() => {
+      return (props.usuario.contador || 0) + (props.usuario.xpConquistas || 0)
+    })
+
+    const nivelAtual = computed(() => {
+      return nivelStore.calcularNivel(xpTotal.value)
+    })
+
+    const totalConquistas = computed(() => 8) // Número total de conquistas
+
+    const conquistasDesbloqueadas = computed(() => {
+      // Simular contagem de conquistas desbloqueadas
+      let count = 0
+      if ((props.usuario.contador || 0) > 0) count++ // PrimeiroDia
+      if ((props.usuario.contador || 0) >= 500) count++ // MetaBatida
+      if (props.corredoresUnicos.length >= 5) count++ // Explorador
+      if ((props.usuario.contador || 0) >= 1000) count++ // Maratona
+      if (((props.usuario.contador || 0) / 500) >= 0.75) count++ // Consistencia
+      if (props.atividadesRecentes.length >= 50) count++ // Relampago
+      if (props.itensFaltantes.length === 0 && (props.usuario.contador || 0) > 0) count++ // ZeroFaltas
+      if (props.itensFaltantes.length >= 10) count++ // Detetive
+
+      return count
+    })
+
+    const toggleMostrarTodas = () => {
+      mostrarTodas.value = !mostrarTodas.value
+    }
+
+    return {
+      mostrarTodas,
+      xpTotal,
+      nivelAtual,
+      totalConquistas,
+      conquistasDesbloqueadas,
+      toggleMostrarTodas
+    }
+  }
+}
 </script>
 
 <style scoped>
-/* Copiar os estilos relacionados a selos do arquivo original */
-.selos-section {
+.conquistas-section {
   background: white;
   border-radius: 20px;
-  padding: 30px;
-  margin-top: 2px;
-  margin-bottom: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.conquistas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .section-title {
   font-size: 1.8rem;
-  margin-bottom: 20px;
   color: #2c3e50;
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.5rem;
 }
 
-.selos-grid {
+.xp-summary {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.xp-total {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.xp-nivel {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.conquistas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  max-height: 600px;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
 }
 
-.selo-card {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 15px;
-  border-left: 4px solid #dee2e6;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  transition: all 0.3s ease;
+.conquistas-grid.expandido {
+  max-height: none;
 }
 
-.selo-card.desbloqueado {
-  background: linear-gradient(135deg, #fff9db 0%, #ffec99 100%);
-  border-left-color: #ffd43b;
+.mostrar-mais-container {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-.selo-icon {
-  font-size: 2.5rem;
-}
-
-.selo-info {
-  flex: 1;
-}
-
-.selo-info h3 {
-  margin: 0 0 5px 0;
-  color: #2c3e50;
-}
-
-.selo-info p {
-  margin: 0;
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
-.selo-status {
-  font-size: 0.9rem;
-}
-
-.desbloqueado {
-  color: #51cf66;
+.btn-mostrar-mais {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 25px;
   font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
 }
 
-.bloqueado {
-  color: #868e96;
+.btn-mostrar-mais:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-mostrar-mais.expandido {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.btn-mostrar-mais i {
+  transition: transform 0.3s ease;
+}
+
+.btn-mostrar-mais.expandido i {
+  transform: rotate(180deg);
+}
+
+.conquistas-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.stat-card {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 15px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .conquistas-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .conquistas-grid {
+    grid-template-columns: 1fr;
+    max-height: 400px;
+  }
+
+  .conquistas-stats {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .xp-summary {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .conquistas-section {
+    padding: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .btn-mostrar-mais {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

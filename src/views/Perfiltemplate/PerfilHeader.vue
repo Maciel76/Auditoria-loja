@@ -2,6 +2,10 @@
   <div class="perfil-header">
     <div class="perfil-cover">
       <div class="cover-pattern"></div>
+      <div class="nivel-badge">
+        <span class="nivel-number">{{ nivelAtual }}</span>
+        <span class="nivel-label">NÍVEL</span>
+      </div>
     </div>
 
     <div class="perfil-info">
@@ -16,30 +20,44 @@
           <div v-else class="avatar-placeholder">
             {{ usuario.iniciais }}
           </div>
-          <div class="avatar-badge" v-if="usuario.contador >= 500">
-            <span class="icon">⭐</span>
+          <div class="avatar-badge">
+            <span class="icon">{{ tituloIcon }}</span>
           </div>
+        </div>
+
+        <!-- Barra de XP -->
+        <div class="xp-container">
+          <div class="xp-bar">
+            <div class="xp-fill" :style="{ width: `${progressoXp}%` }"></div>
+          </div>
+          <span class="xp-text">
+            {{ xpAtual % 100 }}/100 XP para nível {{ nivelAtual + 1 }}
+          </span>
         </div>
       </div>
 
       <div class="perfil-details">
         <h1 class="usuario-nome">{{ usuario.nome }}</h1>
         <p class="usuario-matricula">Matrícula: {{ usuario.id }}</p>
-        <p class="usuario-cargo">Auditor de Estoque</p>
+        <p class="usuario-titulo">{{ tituloAtual }}</p>
       </div>
 
       <div class="perfil-stats">
-        <div class="stat-item">
-          <span class="stat-number">{{ usuario.contador }}</span>
-          <span class="stat-label">Itens Lidos</span>
+        <div class="stat-item nivel">
+          <span class="stat-number">{{ nivelAtual }}</span>
+          <span class="stat-label">Nível Atual</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ corredoresUnicos.length }}</span>
-          <span class="stat-label">Corredores</span>
+        <div class="stat-item auditorias">
+          <span class="stat-number">{{ totalAuditorias }}</span>
+          <span class="stat-label">Auditorias</span>
         </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ percentualConcluido }}%</span>
-          <span class="stat-label">Concluído</span>
+        <div class="stat-item ranking">
+          <span class="stat-number">#{{ posicaoRanking }}</span>
+          <span class="stat-label">Posição</span>
+        </div>
+        <div class="stat-item desempenho">
+          <span class="stat-number">{{ mediaDesempenho }}%</span>
+          <span class="stat-label">Desempenho</span>
         </div>
       </div>
     </div>
@@ -47,6 +65,9 @@
 </template>
 
 <script>
+import { useNivelStore } from '@/store/nivelStore'
+import { computed } from 'vue'
+
 export default {
   name: "PerfilHeader",
   props: {
@@ -62,7 +83,58 @@ export default {
       type: Number,
       default: 0,
     },
+    posicaoRanking: {
+      type: Number,
+      default: 1,
+    },
+    mediaDesempenho: {
+      type: Number,
+      default: 0,
+    },
   },
+  setup(props) {
+    const nivelStore = useNivelStore()
+
+    const xpAtual = computed(() => {
+      return (props.usuario.contador || 0) + (props.usuario.xpConquistas || 0)
+    })
+
+    const nivelAtual = computed(() => {
+      return nivelStore.calcularNivel(xpAtual.value)
+    })
+
+    const tituloAtual = computed(() => {
+      return nivelStore.obterTitulo(nivelAtual.value)
+    })
+
+    const progressoXp = computed(() => {
+      return (xpAtual.value % 100)
+    })
+
+    const totalAuditorias = computed(() => {
+      return props.usuario.totalAuditorias || 0
+    })
+
+    const tituloIcon = computed(() => {
+      const nivel = nivelAtual.value
+      if (nivel >= 50) return '👑'
+      if (nivel >= 40) return '💎'
+      if (nivel >= 30) return '🏆'
+      if (nivel >= 20) return '🥇'
+      if (nivel >= 10) return '⭐'
+      if (nivel >= 5) return '🎯'
+      return '🆕'
+    })
+
+    return {
+      xpAtual,
+      nivelAtual,
+      tituloAtual,
+      progressoXp,
+      totalAuditorias,
+      tituloIcon
+    }
+  }
 };
 </script>
 
@@ -80,6 +152,10 @@ export default {
   height: 150px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 1rem 2rem;
 }
 
 .cover-pattern {
@@ -171,12 +247,13 @@ export default {
 }
 
 .perfil-stats {
-  display: flex;
-  gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
   background: #f8f9fa;
   padding: 20px;
   border-radius: 15px;
-  min-width: 300px;
+  min-width: 400px;
 }
 
 .stat-item {
@@ -195,6 +272,82 @@ export default {
   color: #7f8c8d;
 }
 
+/* Novos estilos para elementos de nível e XP */
+.nivel-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 0.8rem 1.2rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.nivel-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+}
+
+.nivel-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.5px;
+}
+
+.xp-container {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.xp-bar {
+  width: 150px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 auto 0.5rem;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd43b 0%, #ffb800 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.xp-text {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.usuario-titulo {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.stat-item.nivel .stat-number {
+  color: #8b5cf6;
+}
+
+.stat-item.auditorias .stat-number {
+  color: #10b981;
+}
+
+.stat-item.ranking .stat-number {
+  color: #f59e0b;
+}
+
+.stat-item.desempenho .stat-number {
+  color: #3b82f6;
+}
+
 @media (max-width: 768px) {
   .perfil-info {
     flex-direction: column;
@@ -203,8 +356,25 @@ export default {
   }
 
   .perfil-stats {
-    flex-direction: column;
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    min-width: auto;
+  }
+
+  .perfil-cover {
+    justify-content: center;
+  }
+
+  .nivel-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .perfil-stats {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -426,8 +426,8 @@ export default {
 
 /* Status: Auditoria encerrada */
 .loja-status.encerrada {
-  background: rgba(158, 158, 158, 0.25);
-  color: #616161;
+  background: #e0e0e0;
+  color: #e99b3c;
 }
 
 /* Status: Sem auditoria */
