@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Upload from "../views/Upload.vue";
 import Usuarios from "../views/Usuarios.vue";
-import Ranking from "../views/RankingEtiqueta.vue";
+import RankingColaboradores from "../views/RankingColaboradores.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
@@ -14,6 +14,9 @@ import RelatoriosDashboard from "../views/RelatoriosDashboard.vue";
 import Etiqueta from "../views/uploadview/Etiqueta.vue";
 import Presenca from "../views/uploadview/Presenca.vue";
 import Ruptura from "../views/uploadview/Ruptura.vue";
+
+// Legacy components - mantidos para compatibilidade temporária
+import RankingEtiqueta from "../views/RankingEtiqueta.vue";
 import RankingPresença from "../views/RankingPresenca.vue";
 import RankingRuptura from "../views/RankingRuptura.vue";
 import ReadingDetails from "../views/dashboard/contente/ReadingDetails.vue";
@@ -57,10 +60,11 @@ const routes = [
     component: Usuarios,
     meta: { requiresLoja: true },
   },
+  // Nova rota unificada de ranking
   {
-    path: "/ranking/etiqueta",
-    name: "Ranking",
-    component: Ranking,
+    path: "/ranking",
+    name: "RankingColaboradores",
+    component: RankingColaboradores,
     meta: { requiresLoja: true },
   },
   {
@@ -91,6 +95,13 @@ const routes = [
     path: "/dashboard/employee",
     name: "EmployeeChart",
     component: EmployeeChart,
+    meta: { requiresLoja: true },
+  },
+  // Rotas legacy - mantidas para compatibilidade durante transição
+  {
+    path: "/ranking/etiqueta",
+    name: "RankingEtiqueta",
+    component: RankingEtiqueta,
     meta: { requiresLoja: true },
   },
   {

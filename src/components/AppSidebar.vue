@@ -260,123 +260,22 @@
             <span class="nav-text" v-if="!sidebarCollapsed">Usuários</span>
           </router-link>
 
-          <!-- Ranking Menu com Dropdown -->
-          <div class="nav-item-container">
-            <div
-              class="nav-item main-nav-item"
-              :class="{
-                'router-link-active': isRankingActive,
-                'dropdown-open': showRankingSubmenu && !sidebarCollapsed,
-              }"
-              @click="handleMenuClick('ranking')"
-              :title="sidebarCollapsed ? 'Ranking' : ''"
+          <!-- Ranking Unificado -->
+          <router-link
+            to="/ranking"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Ranking Colaboradores' : ''"
+          >
+            <img
+              src="../assets/svg/ranking.svg"
+              alt="Ranking"
+              class="nav-icon"
+            />
+            <span class="nav-text" v-if="!sidebarCollapsed"
+              >Ranking Colaboradores</span
             >
-              <img
-                src="../assets/svg/ranking.svg"
-                alt="Ranking"
-                class="nav-icon"
-              />
-              <span class="nav-text" v-if="!sidebarCollapsed">Ranking</span>
-              <span
-                class="dropdown-arrow"
-                v-if="!sidebarCollapsed"
-                :class="{ rotated: showRankingSubmenu }"
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 20 20"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style="display: inline; vertical-align: middle"
-                >
-                  <path
-                    d="M7 5l5 5-5 5"
-                    stroke="#667eea"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <!-- Dropdown do Ranking -->
-            <transition name="dropdown">
-              <div
-                v-if="showRankingSubmenu && !sidebarCollapsed"
-                class="dropdown-menu"
-              >
-                <router-link
-                  to="/ranking/etiqueta"
-                  class="dropdown-item"
-                  @click="closeSubmenus"
-                >
-                  <img
-                    src="../assets/svg/ranking.svg"
-                    alt="Ranking Etiqueta"
-                    class="dropdown-icon"
-                  />
-                  <span class="dropdown-text">Ranking Etiqueta</span>
-                </router-link>
-                <router-link
-                  to="/ranking/ruptura"
-                  class="dropdown-item"
-                  @click="closeSubmenus"
-                >
-                  <img
-                    src="../assets/svg/ranking.svg"
-                    alt="Ranking Ruptura"
-                    class="dropdown-icon"
-                  />
-                  <span class="dropdown-text">Ranking Ruptura</span>
-                </router-link>
-                <router-link
-                  to="/ranking/presenca"
-                  class="dropdown-item"
-                  @click="closeSubmenus"
-                >
-                  <img
-                    src="../assets/svg/ranking.svg"
-                    alt="Ranking Presença"
-                    class="dropdown-icon"
-                  />
-                  <span class="dropdown-text">Ranking Presença</span>
-                </router-link>
-              </div>
-            </transition>
-
-            <!-- Tooltip para modo colapsado -->
-            <div
-              v-if="sidebarCollapsed && showRankingSubmenu"
-              class="tooltip-menu"
-            >
-              <div class="tooltip-content">
-                <div class="tooltip-header">Ranking</div>
-                <router-link
-                  to="/ranking/etiqueta"
-                  class="tooltip-item"
-                  @click="closeSubmenus"
-                >
-                  Ranking Etiqueta
-                </router-link>
-                <router-link
-                  to="/ranking/ruptura"
-                  class="tooltip-item"
-                  @click="closeSubmenus"
-                >
-                  Ranking Ruptura
-                </router-link>
-                <router-link
-                  to="/ranking/presenca"
-                  class="tooltip-item"
-                  @click="closeSubmenus"
-                >
-                  Ranking Presença
-                </router-link>
-              </div>
-            </div>
-          </div>
+          </router-link>
 
           <router-link
             to="/setores"
@@ -517,7 +416,6 @@ const lojaStore = useLojaStore();
 
 // Estados do componente
 const showUploadSubmenu = ref(false);
-const showRankingSubmenu = ref(false);
 const sidebarOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const mostrarTrocaLoja = ref(false);
@@ -525,7 +423,6 @@ const lojaAtual = ref(null);
 
 // Computed
 const isUploadActive = computed(() => route.path.startsWith("/upload/"));
-const isRankingActive = computed(() => route.path.startsWith("/ranking/"));
 
 // Verificação de loja obrigatória
 const verificarLojaSelecionada = () => {
@@ -590,17 +487,6 @@ function handleImageError(event) {
 function toggleUploadSubmenu() {
   if (sidebarCollapsed.value) return;
   showUploadSubmenu.value = !showUploadSubmenu.value;
-  if (showRankingSubmenu.value) {
-    showRankingSubmenu.value = false;
-  }
-}
-
-function toggleRankingSubmenu() {
-  if (sidebarCollapsed.value) return;
-  showRankingSubmenu.value = !showRankingSubmenu.value;
-  if (showUploadSubmenu.value) {
-    showUploadSubmenu.value = false;
-  }
 }
 
 function handleMenuClick(menuType) {
@@ -608,24 +494,17 @@ function handleMenuClick(menuType) {
     // No modo colapsado, mostra tooltip
     if (menuType === "upload") {
       showUploadSubmenu.value = !showUploadSubmenu.value;
-      showRankingSubmenu.value = false;
-    } else if (menuType === "ranking") {
-      showRankingSubmenu.value = !showRankingSubmenu.value;
-      showUploadSubmenu.value = false;
     }
   } else {
     // No modo expandido, comportamento normal
     if (menuType === "upload") {
       toggleUploadSubmenu();
-    } else if (menuType === "ranking") {
-      toggleRankingSubmenu();
     }
   }
 }
 
 function closeSubmenus() {
   showUploadSubmenu.value = false;
-  showRankingSubmenu.value = false;
   mostrarTrocaLoja.value = false;
 }
 
