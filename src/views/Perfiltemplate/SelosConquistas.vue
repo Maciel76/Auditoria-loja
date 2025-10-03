@@ -21,6 +21,15 @@
         <Relampago :usuario="usuario" :atividades-recentes="atividadesRecentes" />
         <ZeroFaltas :usuario="usuario" :itens-faltantes="itensFaltantes" />
         <Detetive :usuario="usuario" :itens-faltantes="itensFaltantes" />
+
+        <!-- Novas Conquistas -->
+        <GuardiaoPresenca :usuario="usuario" />
+        <LendaViva :usuario="usuario" />
+        <LiderPodio :usuario="usuario" />
+        <MestreCorredores :usuario="usuario" />
+        <OInvencivel :usuario="usuario" />
+        <PioneiroDia :usuario="usuario" />
+        <TopPerformer :usuario="usuario" />
       </template>
     </div>
 
@@ -70,7 +79,14 @@ import {
   Consistencia,
   Relampago,
   ZeroFaltas,
-  Detetive
+  Detetive,
+  GuardiaoPresenca,
+  LendaViva,
+  LiderPodio,
+  MestreCorredores,
+  OInvencivel,
+  PioneiroDia,
+  TopPerformer
 } from '@/components/conquistas'
 
 export default {
@@ -83,7 +99,14 @@ export default {
     Consistencia,
     Relampago,
     ZeroFaltas,
-    Detetive
+    Detetive,
+    GuardiaoPresenca,
+    LendaViva,
+    LiderPodio,
+    MestreCorredores,
+    OInvencivel,
+    PioneiroDia,
+    TopPerformer
   },
   props: {
     usuario: {
@@ -115,11 +138,13 @@ export default {
       return nivelStore.calcularNivel(xpTotal.value)
     })
 
-    const totalConquistas = computed(() => 8) // Número total de conquistas
+    const totalConquistas = computed(() => 15) // Número total de conquistas (8 antigas + 7 novas)
 
     const conquistasDesbloqueadas = computed(() => {
       // Simular contagem de conquistas desbloqueadas
       let count = 0
+
+      // Conquistas originais
       if ((props.usuario.contador || 0) > 0) count++ // PrimeiroDia
       if ((props.usuario.contador || 0) >= 500) count++ // MetaBatida
       if (props.corredoresUnicos.length >= 5) count++ // Explorador
@@ -128,6 +153,16 @@ export default {
       if (props.atividadesRecentes.length >= 50) count++ // Relampago
       if (props.itensFaltantes.length === 0 && (props.usuario.contador || 0) > 0) count++ // ZeroFaltas
       if (props.itensFaltantes.length >= 10) count++ // Detetive
+
+      // Novas conquistas
+      if ((props.usuario.diasAtivos || 0) >= 30) count++ // GuardiaoPresenca
+      if ((props.usuario.diasAuditados || 0) >= 365) count++ // LendaViva
+      if ((props.usuario.posicaoRanking || 999) <= 3) count++ // LiderPodio
+      if ((props.usuario.metricas?.velocidadeMedia || 0) >= 100) count++ // MestreCorredores
+      if ((props.usuario.sequenciaVitorias || 0) >= 30) count++ // OInvencivel
+      if ((props.usuario.primeiroDodia || 0) >= 10) count++ // PioneiroDia
+      // TopPerformer baseia-se em métricas comparativas, assumindo critério básico
+      if ((props.usuario.metricas?.ranking || 100) <= 10) count++ // TopPerformer
 
       return count
     })

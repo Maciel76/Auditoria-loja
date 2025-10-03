@@ -277,6 +277,19 @@
             >
           </router-link>
 
+          <!-- Ranking das Lojas -->
+          <router-link
+            to="/ranking-lojas"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Ranking das Lojas' : ''"
+          >
+            <i class="fas fa-store nav-icon-fa"></i>
+            <span class="nav-text" v-if="!sidebarCollapsed"
+              >Ranking das Lojas</span
+            >
+          </router-link>
+
           <router-link
             to="/setores"
             class="nav-item"
@@ -813,6 +826,31 @@ body {
   opacity: 1;
   filter: brightness(0) saturate(100%) invert(44%) sepia(58%) saturate(2015%)
     hue-rotate(229deg) brightness(95%) contrast(87%);
+}
+
+/* FontAwesome icons for nav items */
+.nav-icon-fa {
+  width: 24px;
+  height: 24px;
+  margin-right: 1rem;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  color: #6b7280;
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar.collapsed .nav-icon-fa {
+  margin-right: 0;
+}
+
+.nav-item:hover .nav-icon-fa,
+.nav-item.router-link-active .nav-icon-fa {
+  opacity: 1;
+  color: #667eea;
 }
 
 .nav-text {

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Upload from "../views/Upload.vue";
 import Usuarios from "../views/Usuarios.vue";
 import RankingColaboradores from "../views/RankingColaboradores.vue";
+import RankingLojas from "../views/RankingLojas.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
@@ -66,6 +67,12 @@ const routes = [
     name: "RankingColaboradores",
     component: RankingColaboradores,
     meta: { requiresLoja: true },
+  },
+  {
+    path: "/ranking-lojas",
+    name: "RankingLojas",
+    component: RankingLojas,
+    meta: { requiresLoja: false }, // Ranking de lojas não precisa de loja específica
   },
   {
     path: "/dashboard/details",
