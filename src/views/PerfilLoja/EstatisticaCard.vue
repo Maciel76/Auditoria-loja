@@ -1,13 +1,13 @@
 <template>
   <div class="estatisticas-container">
-    <!-- Header Moderno -->
+    <!-- Cabeçalho -->
     <div class="estatisticas-header">
       <div class="header-content">
         <div class="title-section">
-          <div class="title-icon">📈</div>
+          <div class="title-icon">📊</div>
           <div class="title-text">
-            <h1>Performance da Loja</h1>
-            <p>Métricas e insights em tempo real</p>
+            <h1>Dashboard de Auditorias</h1>
+            <p>Visão geral das métricas e desempenho</p>
           </div>
         </div>
         <div class="header-actions">
@@ -15,144 +15,165 @@
             <button
               v-for="period in timePeriods"
               :key="period.value"
-              :class="['filter-btn', { active: activePeriod === period.value }]"
+              class="filter-btn"
+              :class="{ active: activePeriod === period.value }"
               @click="activePeriod = period.value"
             >
               {{ period.label }}
             </button>
           </div>
-          <button class="export-btn">
-            <span class="export-icon">📥</span>
-            Exportar
-          </button>
+          <button class="export-btn">📥 Exportar Relatório</button>
         </div>
       </div>
     </div>
 
-    <!-- Cards de Estatísticas Modernos -->
-    <div class="stats-grid">
-      <div
-        v-for="(stat, index) in statistics"
-        :key="stat.title"
-        class="stat-card-modern"
-        :style="{ '--animation-order': index }"
-      >
-        <div class="stat-background">
-          <div class="bg-shape shape-1"></div>
-          <div class="bg-shape shape-2"></div>
-        </div>
-        <div class="stat-content-modern">
-          <div class="stat-header">
-            <div class="stat-icon-modern" :style="{ background: stat.color }">
-              <span class="stat-emoji">{{ stat.emoji }}</span>
-            </div>
-            <div class="stat-trend-modern" :class="stat.trend">
-              <span class="trend-icon">{{ stat.trendIcon }}</span>
-              <span class="trend-value">{{ stat.trendValue }}</span>
-            </div>
+    <!-- Cards de Estatísticas -->
+    <div class="stats-section">
+      <h2 class="section-title">Métricas Principais</h2>
+      <div class="stats-grid">
+        <div
+          v-for="(stat, index) in statistics"
+          :key="stat.title"
+          class="stat-card"
+          :style="{ '--animation-order': index }"
+        >
+          <div class="stat-background">
+            <div class="bg-shape shape-1"></div>
+            <div class="bg-shape shape-2"></div>
           </div>
-          <div class="stat-values">
-            <div class="stat-value-modern">{{ stat.value }}</div>
-            <div class="stat-title-modern">{{ stat.title }}</div>
-          </div>
-          <div class="stat-progress">
-            <div class="progress-bar-modern">
-              <div
-                class="progress-fill-modern"
-                :style="{ width: stat.progress + '%', background: stat.color }"
-              ></div>
+          <div class="stat-content">
+            <div class="stat-header">
+              <div class="stat-icon" :style="{ background: stat.color }">
+                <span class="stat-emoji">{{ stat.emoji }}</span>
+              </div>
+              <div class="stat-trend" :class="stat.trend">
+                <span class="trend-icon">{{ stat.trendIcon }}</span>
+                <span class="trend-value">{{ stat.trendValue }}</span>
+              </div>
             </div>
-            <span class="progress-text">{{ stat.progress }}% da meta</span>
+            <div class="stat-values">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-title">{{ stat.title }}</div>
+            </div>
+            <div class="stat-progress">
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  :style="{
+                    width: stat.progress + '%',
+                    background: stat.color,
+                  }"
+                ></div>
+              </div>
+              <span class="progress-text">{{ stat.progress }}% da meta</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Grid de Gráficos Moderno -->
-    <div class="charts-grid-modern">
-      <!-- Gráfico de Radar - Desempenho por Setor -->
-      <div class="chart-card-modern large">
-        <div class="chart-header-modern">
-          <div class="chart-title">
-            <h3>Desempenho por Setor</h3>
-            <p>Análise comparativa entre áreas</p>
+    <!-- Gráficos -->
+    <div class="charts-section">
+      <h2 class="section-title">Análises Visuais</h2>
+      <div class="charts-grid">
+        <!-- Gráfico de Radar - Desempenho por Setor -->
+        <div class="chart-card large">
+          <div class="chart-header">
+            <div class="chart-title">
+              <h3>Desempenho por Setor</h3>
+              <p>Análise comparativa entre áreas</p>
+            </div>
+            <div class="chart-actions">
+              <button class="chart-action-btn">🔍 Detalhes</button>
+            </div>
           </div>
-          <div class="chart-actions">
-            <button class="chart-action-btn">🔍 Detalhes</button>
+          <div class="chart-container">
+            <canvas ref="radarChart"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-color high"></div>
+              <span>Alto (90-100%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color medium"></div>
+              <span>Médio (80-89%)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color low"></div>
+              <span>Baixo (&lt;80%)</span>
+            </div>
           </div>
         </div>
-        <div class="chart-container-modern">
-          <canvas ref="radarChart"></canvas>
-        </div>
-        <div class="chart-legend-modern">
-          <div class="legend-item">
-            <div class="legend-color high"></div>
-            <span>Alto (90-100%)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color medium"></div>
-            <span>Médio (80-89%)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color low"></div>
-            <span>Baixo (&lt;80%)</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Gráfico de Barras - Auditorias Mensais -->
-      <div class="chart-card-modern">
-        <div class="chart-header-modern">
-          <div class="chart-title">
-            <h3>Auditorias Mensais</h3>
-            <p>Volume ao longo do ano</p>
+        <!-- Gráfico de Barras - Auditorias Mensais -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <h3>Auditorias Mensais</h3>
+              <p>Volume ao longo do ano</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas ref="barChart"></canvas>
           </div>
         </div>
-        <div class="chart-container-modern">
-          <canvas ref="barChart"></canvas>
-        </div>
-      </div>
 
-      <!-- Gráfico de Rosca - Tipos de Auditoria -->
-      <div class="chart-card-modern">
-        <div class="chart-header-modern">
-          <div class="chart-title">
-            <h3>Tipos de Auditoria</h3>
-            <p>Distribuição por categoria</p>
+        <!-- Gráfico de Rosca - Tipos de Auditoria -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <h3>Tipos de Auditoria</h3>
+              <p>Distribuição por categoria</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas ref="doughnutChart"></canvas>
+          </div>
+          <div class="chart-stats">
+            <div class="stat-mini">
+              <div class="stat-mini-item">
+                <span class="stat-mini-label">Etiquetas</span>
+                <span class="stat-mini-value">240</span>
+              </div>
+              <div class="stat-mini-item">
+                <span class="stat-mini-label">Presença</span>
+                <span class="stat-mini-value">120</span>
+              </div>
+              <div class="stat-mini-item">
+                <span class="stat-mini-label">Ruptura</span>
+                <span class="stat-mini-value">50</span>
+              </div>
+              <div class="stat-mini-item">
+                <span class="stat-mini-label">Total</span>
+                <span class="stat-mini-value">410</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="chart-container-modern">
-          <canvas ref="doughnutChart"></canvas>
-        </div>
-        <div class="chart-stats">
-          <div class="stat-mini">
-            <span class="stat-mini-value">156</span>
-            <span class="stat-mini-label">Total</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Gráfico de Linha - Evolução Semanal -->
-      <div class="chart-card-modern">
-        <div class="chart-header-modern">
-          <div class="chart-title">
-            <h3>Evolução Semanal</h3>
-            <p>Performance nos últimos 7 dias</p>
+        <!-- Gráfico de Linha - Evolução Semanal -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <h3>Evolução nas Auditorias</h3>
+              <p>Performance nos últimos 7 auditorias</p>
+            </div>
           </div>
-        </div>
-        <div class="chart-container-modern">
-          <canvas ref="lineChart"></canvas>
-        </div>
-        <div class="performance-badge positive">
-          <span>+5.2% em relação à semana anterior</span>
+          <div class="chart-container">
+            <canvas ref="lineChart"></canvas>
+          </div>
+          <div class="performance-badge positive">
+            <span>+5.2% em relação às últimas 7 auditorias</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Insights Rápidos -->
+    <!-- Insights -->
     <div class="insights-section">
       <div class="insights-header">
-        <h3>📊 Insights da Performance</h3>
+        <h2>📊 Insights da Performance</h2>
         <span class="insights-count">3 insights identificados</span>
       </div>
       <div class="insights-grid">
@@ -248,7 +269,7 @@ const timePeriods = [
 const statistics = ref([
   {
     title: "Total de Auditorias",
-    value: "156",
+    value: "5",
     trend: "up",
     trendValue: "+12%",
     trendIcon: "↑",
@@ -257,34 +278,34 @@ const statistics = ref([
     progress: 85,
   },
   {
-    title: "Taxa de Acerto",
-    value: "92%",
+    title: "Colaboradores da Loja",
+    value: "34",
     trend: "up",
-    trendValue: "+3.2%",
+    trendValue: "34",
     trendIcon: "↑",
-    emoji: "🎯",
+    emoji: "👷‍♀️",
     color: "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)",
-    progress: 92,
+    progress: 50,
   },
   {
-    title: "Itens Verificados",
-    value: "12.4k",
+    title: "Ranking Geral",
+    value: "3",
     trend: "up",
     trendValue: "+8.7%",
     trendIcon: "↑",
-    emoji: "📦",
+    emoji: "🏆",
     color: "linear-gradient(135deg, #FF9800 0%, #F57C00 100%)",
-    progress: 78,
+    progress: 98,
   },
   {
-    title: "Tempo Médio",
-    value: "24min",
-    trend: "down",
-    trendValue: "-15%",
-    trendIcon: "↓",
-    emoji: "⏱️",
+    title: "Cancelamentos Auditorias",
+    value: "20",
+    trend: "up",
+    trendValue: "+150%",
+    trendIcon: "↑",
+    emoji: "🚫",
     color: "linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)",
-    progress: 110,
+    progress: 220,
   },
 ]);
 
@@ -319,16 +340,11 @@ const chartData = {
 onMounted(async () => {
   await nextTick();
   initializeCharts();
-
-  // Adicionar listener para resize
   window.addEventListener("resize", handleResize);
 });
 
 onUnmounted(() => {
-  // Destruir todas as instâncias dos gráficos para evitar memory leaks
   destroyCharts();
-
-  // Remover listener de resize
   window.removeEventListener("resize", handleResize);
 });
 
@@ -337,7 +353,6 @@ watch(activePeriod, () => {
 });
 
 const handleResize = () => {
-  // Redimensionar gráficos quando a janela for redimensionada
   if (barChartInstance.value) barChartInstance.value.resize();
   if (doughnutChartInstance.value) doughnutChartInstance.value.resize();
   if (lineChartInstance.value) lineChartInstance.value.resize();
@@ -365,7 +380,6 @@ const destroyCharts = () => {
 
 const initializeCharts = () => {
   try {
-    // Verificar se os elementos refs existem antes de criar os gráficos
     if (
       !radarChart.value ||
       !barChart.value ||
@@ -376,7 +390,7 @@ const initializeCharts = () => {
       return;
     }
 
-    // Gráfico de Radar - Desempenho por Setor
+    // Gráfico de Radar
     radarChartInstance.value = new Chart(radarChart.value, {
       type: "radar",
       data: {
@@ -434,7 +448,7 @@ const initializeCharts = () => {
       },
     });
 
-    // Gráfico de Barras - Auditorias Mensais
+    // Gráfico de Barras
     const barLabels =
       activePeriod.value === "week"
         ? ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
@@ -504,7 +518,7 @@ const initializeCharts = () => {
       },
     });
 
-    // Gráfico de Rosca - Tipos de Auditoria
+    // Gráfico de Rosca
     doughnutChartInstance.value = new Chart(doughnutChart.value, {
       type: "doughnut",
       data: {
@@ -546,7 +560,7 @@ const initializeCharts = () => {
       },
     });
 
-    // Gráfico de Linha - Evolução Semanal
+    // Gráfico de Linha
     lineChartInstance.value = new Chart(lineChart.value, {
       type: "line",
       data: {
@@ -662,8 +676,6 @@ const updateChartData = () => {
       lineChartInstance.value.data.datasets[0].data = currentData.performance;
       lineChartInstance.value.update("active");
     }
-
-    console.log(`Gráficos atualizados para o período: ${activePeriod.value}`);
   } catch (error) {
     console.error("Erro ao atualizar dados dos gráficos:", error);
   }
@@ -671,16 +683,23 @@ const updateChartData = () => {
 </script>
 
 <style scoped>
+/* Estilos Gerais */
 .estatisticas-container {
   background: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 32px rgba(102, 126, 234, 0.08);
-  padding: 0;
   margin: 2rem 0;
   overflow: hidden;
 }
 
-/* Header Moderno */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+/* Header */
 .estatisticas-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2.5rem 2rem;
@@ -714,7 +733,6 @@ const updateChartData = () => {
   font-weight: 700;
   margin: 0 0 0.5rem 0;
   background: linear-gradient(135deg, #fff 0%, #f0f4ff 100%);
-  background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -783,17 +801,19 @@ const updateChartData = () => {
   transform: translateY(-1px);
 }
 
-/* Stats Grid Moderno */
+/* Seção de Estatísticas */
+.stats-section {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-.stat-card-modern {
+.stat-card {
   background: #fff;
   border-radius: 20px;
   padding: 2rem;
@@ -818,7 +838,7 @@ const updateChartData = () => {
   }
 }
 
-.stat-card-modern:hover {
+.stat-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
@@ -855,7 +875,7 @@ const updateChartData = () => {
   left: -20px;
 }
 
-.stat-content-modern {
+.stat-content {
   position: relative;
   z-index: 2;
 }
@@ -867,7 +887,7 @@ const updateChartData = () => {
   margin-bottom: 1.5rem;
 }
 
-.stat-icon-modern {
+.stat-icon {
   width: 60px;
   height: 60px;
   border-radius: 16px;
@@ -881,7 +901,7 @@ const updateChartData = () => {
   font-size: 1.8rem;
 }
 
-.stat-trend-modern {
+.stat-trend {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -891,12 +911,12 @@ const updateChartData = () => {
   font-size: 0.9rem;
 }
 
-.stat-trend-modern.up {
+.stat-trend.up {
   background: rgba(76, 175, 80, 0.1);
   color: #4caf50;
 }
 
-.stat-trend-modern.down {
+.stat-trend.down {
   background: rgba(244, 67, 54, 0.1);
   color: #f44336;
 }
@@ -909,7 +929,7 @@ const updateChartData = () => {
   margin-bottom: 1.5rem;
 }
 
-.stat-value-modern {
+.stat-value {
   font-size: 2.5rem;
   font-weight: 800;
   color: #2c3e50;
@@ -920,7 +940,7 @@ const updateChartData = () => {
   -webkit-text-fill-color: transparent;
 }
 
-.stat-title-modern {
+.stat-title {
   font-size: 1rem;
   color: #718096;
   font-weight: 500;
@@ -932,7 +952,7 @@ const updateChartData = () => {
   gap: 0.5rem;
 }
 
-.progress-bar-modern {
+.progress-bar {
   width: 100%;
   height: 8px;
   background: rgba(0, 0, 0, 0.06);
@@ -940,7 +960,7 @@ const updateChartData = () => {
   overflow: hidden;
 }
 
-.progress-fill-modern {
+.progress-fill {
   height: 100%;
   border-radius: 10px;
   transition: width 1s ease-in-out;
@@ -953,17 +973,19 @@ const updateChartData = () => {
   font-weight: 500;
 }
 
-/* Charts Grid Moderno */
-.charts-grid-modern {
+/* Seção de Gráficos */
+.charts-section {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
-  padding: 0 2rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
-.chart-card-modern {
+.chart-card {
   background: #fff;
   border-radius: 20px;
   padding: 2rem;
@@ -972,15 +994,15 @@ const updateChartData = () => {
   transition: all 0.3s ease;
 }
 
-.chart-card-modern:hover {
+.chart-card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
-.chart-card-modern.large {
+.chart-card.large {
   grid-column: span 2;
 }
 
-.chart-header-modern {
+.chart-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -1021,12 +1043,12 @@ const updateChartData = () => {
   background: rgba(102, 126, 234, 0.2);
 }
 
-.chart-container-modern {
+.chart-container {
   height: 300px;
   position: relative;
 }
 
-.chart-legend-modern {
+.chart-legend {
   display: flex;
   gap: 1.5rem;
   margin-top: 1.5rem;
@@ -1061,16 +1083,20 @@ const updateChartData = () => {
 }
 
 .chart-stats {
-  display: flex;
-  justify-content: center;
   margin-top: 1rem;
 }
 
 .stat-mini {
-  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
   padding: 1rem;
   background: rgba(102, 126, 234, 0.05);
   border-radius: 12px;
+}
+
+.stat-mini-item {
+  text-align: center;
 }
 
 .stat-mini-value {
@@ -1101,11 +1127,9 @@ const updateChartData = () => {
   color: #4caf50;
 }
 
-/* Insights Section */
+/* Seção de Insights */
 .insights-section {
-  background: #f8fafc;
   padding: 2.5rem 2rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .insights-header {
@@ -1113,12 +1137,9 @@ const updateChartData = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
-.insights-header h3 {
+.insights-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #2c3e50;
@@ -1134,8 +1155,6 @@ const updateChartData = () => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .insight-card {
@@ -1212,7 +1231,7 @@ const updateChartData = () => {
 
 /* Responsividade */
 @media (max-width: 1200px) {
-  .chart-card-modern.large {
+  .chart-card.large {
     grid-column: span 1;
   }
 }
@@ -1236,23 +1255,23 @@ const updateChartData = () => {
     justify-content: center;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-  }
-
-  .charts-grid-modern {
-    grid-template-columns: 1fr;
-    padding: 0 1.5rem 1.5rem;
-  }
-
-  .chart-header-modern {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
+  .stats-section,
+  .charts-section,
   .insights-section {
     padding: 2rem 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .insights-header {
@@ -1272,11 +1291,11 @@ const updateChartData = () => {
     font-size: 1.8rem;
   }
 
-  .stat-card-modern {
+  .stat-card {
     padding: 1.5rem;
   }
 
-  .stat-value-modern {
+  .stat-value {
     font-size: 2rem;
   }
 
@@ -1285,15 +1304,11 @@ const updateChartData = () => {
     font-size: 0.85rem;
   }
 
-  .charts-grid-modern {
-    grid-template-columns: 1fr;
-  }
-
-  .chart-card-modern {
+  .chart-card {
     padding: 1.5rem;
   }
 
-  .chart-container-modern {
+  .chart-container {
     height: 250px;
   }
 }
