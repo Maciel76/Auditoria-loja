@@ -9,44 +9,19 @@
       @focus-metric="focusMetric"
     />
 
-    <!-- Insights Panel -->
-    <InsightsPanel
-      :insights="insights"
-      @insight-click="handleInsightClick"
-    />
-
-    <!-- Controls Panel -->
-    <ControlsPanel
+    <!-- Ranking Controls -->
+    <RankingControls
       :view-mode="viewMode"
-      :search-term="filtro"
-      :suggestions="suggestions"
-      :regioes="regioes"
-      :ligas="ligas"
-      :regioes-ativas="regioesAtivas"
-      :ligas-ativas="ligasAtivas"
-      :range-itens="rangeItens"
-      :eficiencia-minima="eficienciaMinima"
       :filtro-tipo-auditoria="filtroTipoAuditoria"
       :filtro-periodo="filtroPeriodo"
-      :filtro-ordenacao="filtroOrdenacao"
-      :show-settings="showSettings"
-      :items-per-page="itemsPerPage"
-      :auto-refresh="autoRefresh"
-      :show-animations="showAnimations"
-      :compact-mode="compactMode"
-      @view-mode-change="viewMode = $event"
-      @search-input="onSearchInput"
-      @clear-search="clearSearch"
-      @select-suggestion="selectSuggestion"
-      @toggle-regiao="toggleRegiao"
-      @toggle-liga="toggleLiga"
-      @range-change="handleRangeChange"
-      @efficiency-change="eficienciaMinima = Number($event)"
-      @filter-change="handleFilterChange"
-      @export="handleExport"
-      @share="shareRanking"
-      @toggle-settings="showSettings = !showSettings"
-      @setting-change="handleSettingChange"
+      :filtro-regiao="filtroRegiao"
+      :filtro-liga="filtroLiga"
+      @update:view-mode="viewMode = $event"
+      @update:filtro-tipo-auditoria="handleFilterChange('tipo', $event)"
+      @update:filtro-periodo="handleFilterChange('periodo', $event)"
+      @update:filtro-regiao="handleFilterChange('regiao', $event)"
+      @update:filtro-liga="handleFilterChange('liga', $event)"
+      @buscar-dados="buscarDados"
     />
 
     <!-- Podium Section -->
@@ -127,8 +102,7 @@ import axios from 'axios'
 
 // Componentes
 import HeroSection from './HeroSection.vue'
-import InsightsPanel from './InsightsPanel.vue'
-import ControlsPanel from './ControlsPanel.vue'
+import RankingControls from './RankingControls.vue'
 import PodiumSection from './PodiumSection.vue'
 import RankingTable from './RankingTable.vue'
 import RankingCards from './RankingCards.vue'
@@ -152,6 +126,8 @@ const suggestions = ref([])
 // Filtros básicos
 const filtroTipoAuditoria = ref('todos')
 const filtroPeriodo = ref('mes')
+const filtroRegiao = ref('todas')
+const filtroLiga = ref('todas')
 const filtroOrdenacao = ref('itens')
 
 // Filtros avançados
@@ -196,17 +172,6 @@ const ligas = ref([
 const lojasFiltradas = computed(() => {
   let resultado = [...lojas.value]
 
-  // Aplicar dados mock se necessário
-  if (resultado.length > 0) {
-    resultado = resultado.map(loja => ({
-      ...loja,
-      tendencia: Math.floor(Math.random() * 30) - 10, // -10% a +20%
-      historico: generateMockHistorico(),
-      regiao: ['norte', 'sul', 'leste', 'oeste', 'centro'][Math.floor(Math.random() * 5)],
-      liga: getLiga(loja.itensAuditados || 0)
-    }))
-  }
-
   // Filtro por busca
   if (filtro.value) {
     const termo = filtro.value.toLowerCase()
@@ -217,7 +182,16 @@ const lojasFiltradas = computed(() => {
     )
   }
 
-  // Filtros avançados
+  // Filtros por região e liga
+  if (filtroRegiao.value !== 'todas') {
+    resultado = resultado.filter(loja => loja.regiao === filtroRegiao.value)
+  }
+
+  if (filtroLiga.value !== 'todas') {
+    resultado = resultado.filter(loja => loja.liga === filtroLiga.value)
+  }
+
+  // Filtros avançados (mantidos para compatibilidade)
   if (regioesAtivas.value.length > 0) {
     resultado = resultado.filter(loja => regioesAtivas.value.includes(loja.regiao))
   }
@@ -246,7 +220,10 @@ const lojasFiltradas = computed(() => {
         comparison = (b.usuariosAtivos || 0) - (a.usuariosAtivos || 0)
         break
       case 'eficiencia':
-        comparison = calcularEficiencia(b) - calcularEficiencia(a)
+        comparison = (b.eficiencia || 0) - (a.eficiencia || 0)
+        break
+      case 'pontuacao':
+        comparison = (b.pontuacao || 0) - (a.pontuacao || 0)
         break
       case 'codigo':
         comparison = a.codigo.localeCompare(b.codigo)
@@ -255,7 +232,7 @@ const lojasFiltradas = computed(() => {
         comparison = (b.tendencia || 0) - (a.tendencia || 0)
         break
       default:
-        comparison = (b.itensAuditados || 0) - (a.itensAuditados || 0)
+        comparison = (b.pontuacao || 0) - (a.pontuacao || 0) // Ordenar por pontuação por padrão
     }
     return sortDirection.value === 'desc' ? comparison : -comparison
   })
@@ -364,27 +341,43 @@ const buscarDados = async () => {
   error.value = null
 
   try {
-    const response = await axios.get('http://localhost:3000/api/ranking-lojas', {
+    const response = await axios.get('http://localhost:3000/api/metricas/lojas/ranking', {
       params: {
-        tipo: filtroTipoAuditoria.value,
-        periodo: filtroPeriodo.value
+        periodo: mapPeriodoToAPI(filtroPeriodo.value),
+        regiao: filtroRegiao.value !== 'todas' ? filtroRegiao.value : undefined,
+        limite: 50
       }
     })
 
-    lojas.value = response.data || []
-    console.log('✅ Dados das lojas carregados:', lojas.value.length)
+    // Mapear dados da API para o formato esperado pelo frontend
+    const dadosAPI = response.data?.ranking || []
+    lojas.value = dadosAPI.map(item => ({
+      codigo: item.loja.codigo,
+      nome: item.loja.nome,
+      regiao: item.loja.regiao,
+      itensAuditados: item.totalItens || 0,
+      usuariosAtivos: item.usuariosAtivos || 0,
+      eficiencia: Math.round(item.percentualConclusao || 0),
+      pontuacao: item.pontuacao || 0,
+      notaQualidade: item.notaQualidade || 0,
+      melhorUsuario: item.melhorUsuario,
+      alertas: item.alertas || 0,
+      ultimaAtualizacao: item.ultimaAtualizacao,
+      // Adicionar campos simulados para compatibilidade
+      liga: getLiga(item.totalItens || 0),
+      tendencia: Math.floor(Math.random() * 20) - 10, // -10% a +10%
+      historico: generateMockHistorico()
+    }))
 
-    // Limpar erro se houve sucesso
+    console.log('✅ Dados das lojas carregados:', lojas.value.length)
     error.value = null
   } catch (err) {
     console.error('❌ Erro ao buscar dados das lojas:', err)
 
-    // Apenas mostrar erro se não conseguiu carregar dados
     if (err.response?.status !== 200) {
-      error.value = err.response?.data?.mensagem || err.response?.data?.erro || 'Erro ao carregar dados das lojas'
+      error.value = err.response?.data?.erro || err.response?.data?.mensagem || 'Erro ao carregar dados das lojas'
     }
 
-    // Se não há dados, mostrar array vazio ao invés de dados mock
     if (!lojas.value || lojas.value.length === 0) {
       lojas.value = []
     }
@@ -397,20 +390,33 @@ const buscarDados = async () => {
   }
 }
 
+// Helper para mapear período do frontend para API
+const mapPeriodoToAPI = (periodo) => {
+  const map = {
+    'hoje': 'diario',
+    'semana': 'semanal',
+    'mes': 'mensal',
+    'trimestre': 'mensal', // API não tem trimestre, usar mensal
+    'todos': 'mensal'
+  }
+  return map[periodo] || 'mensal'
+}
+
 // Helper methods
 const calcularEficiencia = (loja) => {
-  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0
-
   // Se a eficiência já vem calculada da API, usar ela
   if (loja.eficiencia !== undefined) {
     return Math.min(loja.eficiencia, 100)
   }
 
-  // Caso contrário, calcular baseado na média por usuário
-  const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos
-  // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
-  const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100)
-  return Math.round(eficiencia)
+  // Fallback: calcular baseado na média por usuário se dados disponíveis
+  if (loja.usuariosAtivos && loja.usuariosAtivos > 0) {
+    const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos
+    const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100)
+    return Math.round(eficiencia)
+  }
+
+  return 0
 }
 
 const getLiga = (itens) => {
@@ -515,6 +521,12 @@ const handleFilterChange = (type, value) => {
   } else if (type === 'periodo') {
     filtroPeriodo.value = value
     buscarDados()
+  } else if (type === 'regiao') {
+    filtroRegiao.value = value
+    currentPage.value = 1
+  } else if (type === 'liga') {
+    filtroLiga.value = value
+    currentPage.value = 1
   } else if (type === 'ordenacao') {
     filtroOrdenacao.value = value
   }

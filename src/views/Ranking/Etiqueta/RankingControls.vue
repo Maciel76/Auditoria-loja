@@ -1,23 +1,5 @@
 <template>
   <div class="ranking-controls">
-    <!-- Busca -->
-    <div class="search-container">
-      <div class="search-icon">
-        <img
-          src="../../../assets/svg/icon-ranking/search.svg"
-          alt="Buscar"
-          class="nav-icon"
-        />
-      </div>
-      <input
-        :value="filtro"
-        @input="$emit('update:filtro', $event.target.value)"
-        type="text"
-        placeholder="Buscar colaborador..."
-        class="search-input"
-      />
-    </div>
-
     <!-- Filtros -->
     <div class="filters-container">
       <!-- Filtro por Tipo de Auditoria -->
@@ -91,10 +73,6 @@
 export default {
   name: "RankingControls",
   props: {
-    filtro: {
-      type: String,
-      default: "",
-    },
     viewMode: {
       type: String,
       default: "podium",
@@ -109,7 +87,6 @@ export default {
     },
   },
   emits: [
-    "update:filtro",
     "update:viewMode",
     "update:filtroTipo",
     "update:filtroPeriodo",
@@ -131,51 +108,9 @@ export default {
   flex-wrap: wrap;
 }
 
-.search-container {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
-  max-width: 300px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.nav-icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.6;
-}
-
 .nav-icon-small {
   width: 25px;
   height: auto;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px 8px 35px;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-  background: rgb(218, 216, 216);
-  height: 36px;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 }
 
 .filters-container {
@@ -266,14 +201,8 @@ export default {
     padding: 12px;
   }
 
-  .search-container {
-    min-width: 100%;
-    max-width: 100%;
-    order: 1;
-  }
-
   .filters-container {
-    order: 3;
+    order: 1;
     width: 100%;
     justify-content: space-between;
   }
@@ -296,7 +225,6 @@ export default {
     align-items: stretch;
   }
 
-  .search-container,
   .filters-container,
   .view-options {
     width: 100%;

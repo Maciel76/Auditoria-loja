@@ -10,22 +10,6 @@
 
     <!-- Controles e Filtros Unificados -->
     <div class="unified-controls">
-      <!-- Busca -->
-      <div class="search-container">
-        <div class="search-icon">
-          <i class="fas fa-search"></i>
-        </div>
-        <input
-          v-model="filtro"
-          type="text"
-          placeholder="Buscar colaborador por nome ou matrícula..."
-          class="search-input"
-        />
-        <button v-if="filtro" @click="filtro = ''" class="clear-search">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
       <!-- Filtros Principais -->
       <div class="filters-main">
         <!-- Filtro por Tipo de Auditoria -->
@@ -218,7 +202,6 @@ export default {
 
     // Estados principais
     const usuarios = ref([]);
-    const filtro = ref("");
     const viewMode = ref("podium");
     const filtroTipoAuditoria = ref("todos");
     const filtroPeriodo = ref("hoje");
@@ -234,15 +217,6 @@ export default {
 
     const usuariosFiltradosOrdenados = computed(() => {
       let filtered = usuariosOrdenados.value;
-
-      if (filtro.value) {
-        const searchTerm = filtro.value.toLowerCase();
-        filtered = filtered.filter(
-          (usuario) =>
-            usuario.nome.toLowerCase().includes(searchTerm) ||
-            (usuario.id && usuario.id.toLowerCase().includes(searchTerm))
-        );
-      }
 
       if (viewMode.value === "podium") {
         return filtered.slice(3);
@@ -430,7 +404,6 @@ export default {
     return {
       // Estados
       usuarios,
-      filtro,
       viewMode,
       filtroTipoAuditoria,
       filtroPeriodo,
@@ -480,58 +453,6 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.search-container {
-  position: relative;
-  margin-bottom: 1.5rem;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 1rem;
-  z-index: 2;
-}
-
-.search-input {
-  width: 100%;
-  padding: 1rem 3rem 1rem 3rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 15px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  font-family: "Inter", sans-serif;
-  background: #f8fafc;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background: white;
-}
-
-.clear-search {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  font-size: 1rem;
-  padding: 0.5rem;
-  border-radius: 50%;
-}
-
-.clear-search:hover {
-  color: #ef4444;
-  background: #fef2f2;
-}
 
 .filters-main {
   display: grid;
@@ -780,9 +701,6 @@ export default {
     flex-direction: column;
   }
 
-  .search-input {
-    padding: 0.875rem 2.5rem 0.875rem 2.5rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -797,8 +715,5 @@ export default {
     font-size: 0.8rem;
   }
 
-  .search-input {
-    padding: 0.75rem 2rem 0.75rem 2rem;
-  }
 }
 </style>

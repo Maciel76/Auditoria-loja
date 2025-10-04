@@ -5,9 +5,7 @@
         <i class="fas fa-list-ol"></i>
         Ranking Completo
       </h2>
-      <div class="results-info">
-        {{ lojas.length }} lojas encontradas
-      </div>
+      <div class="results-info">{{ lojas.length }} lojas encontradas</div>
     </div>
 
     <!-- Loading State -->
@@ -39,16 +37,16 @@
         :key="loja.codigo"
         class="ranking-card"
         :class="{
-          'gold': index === 0,
-          'silver': index === 1,
-          'bronze': index === 2
+          gold: index === 0,
+          silver: index === 1,
+          bronze: index === 2,
         }"
       >
         <!-- Posição -->
         <div class="position">
           <span class="position-number">{{ index + 1 }}</span>
           <div class="position-medal" v-if="index < 3">
-            {{ index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉' }}
+            {{ index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉" }}
           </div>
         </div>
 
@@ -56,11 +54,20 @@
         <div class="loja-main-info">
           <div class="loja-header">
             <h3 class="loja-codigo">{{ loja.codigo }}</h3>
-            <div class="loja-badge" :class="getLojaCategory(loja.itensAuditados)">
+            <div
+              class="loja-badge"
+              :class="getLojaCategory(loja.itensAuditados)"
+            >
               {{ getLojaCategory(loja.itensAuditados) }}
+            </div>
+            <div v-if="loja.liga" class="liga-badge" :class="loja.liga">
+              {{ getLigaIcon(loja.liga) }} {{ loja.liga }}
             </div>
           </div>
           <p class="loja-nome">{{ loja.nome || `Loja ${loja.codigo}` }}</p>
+          <p v-if="loja.regiao" class="loja-regiao">
+            {{ getRegiaoIcon(loja.regiao) }} {{ loja.regiao }}
+          </p>
         </div>
 
         <!-- Estatísticas -->
@@ -68,7 +75,9 @@
           <div class="stat-item">
             <div class="stat-icon">📊</div>
             <div class="stat-data">
-              <span class="stat-value">{{ loja.itensAuditados?.toLocaleString() || 0 }}</span>
+              <span class="stat-value">{{
+                loja.itensAuditados?.toLocaleString() || 0
+              }}</span>
               <span class="stat-label">Itens Auditados</span>
             </div>
           </div>
@@ -92,7 +101,9 @@
           <div class="stat-item">
             <div class="stat-icon">📈</div>
             <div class="stat-data">
-              <span class="stat-value">{{ calcularMediaPorUsuario(loja) }}</span>
+              <span class="stat-value">{{
+                calcularMediaPorUsuario(loja)
+              }}</span>
               <span class="stat-label">Média/Usuário</span>
             </div>
           </div>
@@ -134,61 +145,89 @@
 const props = defineProps({
   lojas: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   error: {
     type: String,
-    default: null
+    default: null,
   },
   maxItens: {
     type: Number,
-    default: 0
-  }
-})
+    default: 0,
+  },
+});
 
-defineEmits(['retry', 'view-details', 'compare'])
+defineEmits(["retry", "view-details", "compare"]);
 
 // Helper methods
 const calcularEficiencia = (loja) => {
-  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0
+  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0;
 
   // Se a eficiência já vem calculada da API, usar ela
   if (loja.eficiencia !== undefined) {
-    return Math.min(loja.eficiencia, 100)
+    return Math.min(loja.eficiencia, 100);
   }
 
   // Caso contrário, calcular baseado na média por usuário
-  const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos
+  const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos;
   // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
-  const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100)
-  return Math.round(eficiencia)
-}
+  const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100);
+  return Math.round(eficiencia);
+};
 
 const calcularMediaPorUsuario = (loja) => {
   // Se a média já vem calculada da API, usar ela
   if (loja.mediaPorUsuario !== undefined) {
-    return loja.mediaPorUsuario
+    return loja.mediaPorUsuario;
   }
 
   // Caso contrário, calcular
-  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0
-  return Math.round(loja.itensAuditados / loja.usuariosAtivos)
-}
+  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0;
+  return Math.round(loja.itensAuditados / loja.usuariosAtivos);
+};
 
 const getLojaCategory = (itens) => {
-  if (itens >= 8000) return 'elite'
-  if (itens >= 5000) return 'alta'
-  if (itens >= 2000) return 'media'
-  return 'iniciante'
-}
+  if (itens >= 8000) return "elite";
+  if (itens >= 5000) return "alta";
+  if (itens >= 2000) return "media";
+  return "iniciante";
+};
 
 const getProgressPercentage = (loja) => {
-  return props.maxItens > 0 ? ((loja.itensAuditados || 0) / props.maxItens) * 100 : 0
-}
+  return props.maxItens > 0
+    ? ((loja.itensAuditados || 0) / props.maxItens) * 100
+    : 0;
+};
+
+const getLigaIcon = (liga) => {
+  const icons = {
+    diamante: "💎",
+    ouro: "🥇",
+    prata: "🥈",
+    bronze: "🥉",
+  };
+  return icons[liga] || "🏆";
+};
+
+const getRegiaoIcon = (regiao) => {
+  const icons = {
+    Norte: "🌍",
+    Sul: "🏔️",
+    Leste: "🌅",
+    Oeste: "🌇",
+    "Centro-Oeste": "🎯",
+    centro: "🎯",
+    norte: "🌍",
+    sul: "🏔️",
+    leste: "🌅",
+    oeste: "🌇",
+  };
+  return icons[regiao] || "📍";
+};
 </script>
 
 <style scoped>
@@ -197,7 +236,8 @@ const getProgressPercentage = (loja) => {
   background: white;
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
 }
 
@@ -243,8 +283,12 @@ const getProgressPercentage = (loja) => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .retry-button {
@@ -291,7 +335,8 @@ const getProgressPercentage = (loja) => {
 
 .ranking-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: #e0e7ff;
 }
 
@@ -302,7 +347,11 @@ const getProgressPercentage = (loja) => {
 
 .ranking-card.silver {
   border-left: 4px solid #9ca3af;
-  background: linear-gradient(135deg, #f3f4f6 0%, rgba(156, 163, 175, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    #f3f4f6 0%,
+    rgba(156, 163, 175, 0.1) 100%
+  );
 }
 
 .ranking-card.bronze {
@@ -377,6 +426,45 @@ const getProgressPercentage = (loja) => {
 .loja-nome {
   color: #6b7280;
   margin: 0;
+}
+
+.loja-regiao {
+  color: #9ca3af;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.liga-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.liga-badge.diamante {
+  background: linear-gradient(45deg, #ede9fe, #ddd6fe);
+  color: #5b21b6;
+}
+
+.liga-badge.ouro {
+  background: linear-gradient(45deg, #fef3c7, #fde68a);
+  color: #92400e;
+}
+
+.liga-badge.prata {
+  background: linear-gradient(45deg, #f1f5f9, #e2e8f0);
+  color: #475569;
+}
+
+.liga-badge.bronze {
+  background: linear-gradient(45deg, #fed7aa, #fdba74);
+  color: #c2410c;
 }
 
 .loja-stats {
