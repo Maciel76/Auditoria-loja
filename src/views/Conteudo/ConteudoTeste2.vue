@@ -357,7 +357,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 :root {
   --employee-primary: #4361ee;
   --employee-secondary: #3a0ca3;

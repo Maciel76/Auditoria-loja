@@ -421,7 +421,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 :root {
   /* Cores para o painel de resumo */
   --summary-primary: #4361ee;

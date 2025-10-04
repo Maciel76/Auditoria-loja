@@ -135,7 +135,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .status-chart {
   background: white;
   border-radius: 12px;

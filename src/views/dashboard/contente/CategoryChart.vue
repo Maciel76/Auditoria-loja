@@ -141,7 +141,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 :root {
   /* Cores principais */
   --primary-color: #4361ee;

@@ -209,7 +209,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 :root {
   /* Cores para o painel de colaboradores */
   --employee-primary: #4361ee;

@@ -4,7 +4,20 @@
     <div class="metricas-header">
       <div class="header-left">
         <div class="icon-title">
-          <div class="icon-area">📊</div>
+          <div class="icon-area">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
           <div class="text-content">
             <div class="titulo">Métricas de Auditoria</div>
             <div class="descricao">
@@ -15,83 +28,224 @@
         </div>
       </div>
       <div class="header-controls">
-        <select v-model="periodoSelecionado" class="filtro-select">
-          <option value="hoje">Hoje</option>
-          <option value="semana">Esta Semana</option>
-          <option value="mes">Este Mês</option>
-          <option value="trimestre">Este Trimestre</option>
-        </select>
-        <button class="export-btn" @click="exportarDados">📥 Exportar</button>
+        <div class="filter-group">
+          <label for="periodo">Período</label>
+          <select
+            v-model="periodoSelecionado"
+            id="periodo"
+            class="filtro-select"
+          >
+            <option value="hoje">Hoje</option>
+            <option value="semana">Esta Semana</option>
+            <option value="mes">Este Mês</option>
+            <option value="trimestre">Este Trimestre</option>
+          </select>
+        </div>
+        <button class="export-btn" @click="exportarDados">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 9H15V3H9V9H5L12 16L19 9ZM5 18V20H19V18H5Z"
+              fill="currentColor"
+            />
+          </svg>
+          Exportar
+        </button>
       </div>
     </div>
 
     <!-- KPIs Principais -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-icon total">📋</div>
-        <div class="kpi-content">
-          <span class="kpi-valor">42</span>
-          <span class="kpi-label">Total de Auditorias</span>
-          <div class="kpi-variacao positiva">+18% vs anterior</div>
-        </div>
-        <div class="kpi-trend">
-          <div class="trend-chart">
-            <div class="trend-bar" style="height: 30%"></div>
-            <div class="trend-bar" style="height: 60%"></div>
-            <div class="trend-bar" style="height: 45%"></div>
-            <div class="trend-bar" style="height: 80%"></div>
-            <div class="trend-bar" style="height: 75%"></div>
-            <div class="trend-bar" style="height: 90%"></div>
-            <div class="trend-bar" style="height: 100%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon conformidade">✅</div>
-        <div class="kpi-content">
-          <span class="kpi-valor">94.2%</span>
-          <span class="kpi-label">Taxa de Conformidade</span>
-          <div class="kpi-variacao positiva">+5.3% vs anterior</div>
-        </div>
-        <div class="kpi-progress">
-          <div class="progress-circle">
-            <div class="circle-background"></div>
-            <div
-              class="circle-progress"
-              :style="{ transform: `rotate(${94.2 * 3.6}deg)` }"
-            ></div>
-            <div class="circle-text">94%</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon pendentes">⏳</div>
-        <div class="kpi-content">
-          <span class="kpi-valor">8</span>
-          <span class="kpi-label">Pendências</span>
-          <div class="kpi-variacao negativa">+2 vs anterior</div>
-        </div>
-        <div class="kpi-alertas">
-          <div class="alerta-item critico">3 Críticas</div>
-          <div class="alerta-item medio">5 Moderadas</div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon tempo">⏱️</div>
-        <div class="kpi-content">
-          <span class="kpi-valor">2.3</span>
-          <span class="kpi-label">Dias Médios</span>
-          <div class="kpi-variacao positiva">-0.7 vs anterior</div>
-        </div>
-        <div class="kpi-meta">
-          <div class="meta-progress">
-            <div class="meta-bar">
-              <div class="meta-fill" style="width: 76%"></div>
+    <div class="kpi-section">
+      <div class="kpi-grid">
+        <!-- Total de Auditorias -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon total">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z"
+                  fill="currentColor"
+                />
+              </svg>
             </div>
-            <span class="meta-text">Meta: 3 dias</span>
+            <div class="kpi-title">Total de Auditorias</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">42</div>
+            <div class="kpi-trend positive">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+              </svg>
+              +18%
+            </div>
+          </div>
+          <div class="kpi-chart">
+            <div class="mini-chart">
+              <div class="chart-bar" style="height: 30%"></div>
+              <div class="chart-bar" style="height: 60%"></div>
+              <div class="chart-bar" style="height: 45%"></div>
+              <div class="chart-bar" style="height: 80%"></div>
+              <div class="chart-bar" style="height: 75%"></div>
+              <div class="chart-bar" style="height: 90%"></div>
+              <div class="chart-bar" style="height: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Taxa de Conformidade -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon success">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <div class="kpi-title">Taxa de Conformidade</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">94.2%</div>
+            <div class="kpi-trend positive">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+              </svg>
+              +5.3%
+            </div>
+          </div>
+          <div class="kpi-progress">
+            <div class="circular-progress">
+              <div class="progress-background"></div>
+              <div
+                class="progress-fill"
+                :style="{ transform: `rotate(${94.2 * 3.6}deg)` }"
+              ></div>
+              <div class="progress-text">94%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pendências -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon warning">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <div class="kpi-title">Pendências</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">8</div>
+            <div class="kpi-trend negative">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
+              </svg>
+              +2
+            </div>
+          </div>
+          <div class="kpi-alerts">
+            <div class="alert-item critical">
+              <span class="alert-count">3</span>
+              <span class="alert-label">Críticas</span>
+            </div>
+            <div class="alert-item medium">
+              <span class="alert-count">5</span>
+              <span class="alert-label">Moderadas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tempo Médio -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon info">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M12.5 7H11V13L16.25 16.15L17 15.08L12.5 12.25V7Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <div class="kpi-title">Dias Médios</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">2.3</div>
+            <div class="kpi-trend positive">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+              </svg>
+              -0.7
+            </div>
+          </div>
+          <div class="kpi-goal">
+            <div class="goal-progress">
+              <div class="goal-bar">
+                <div class="goal-fill" style="width: 76%"></div>
+              </div>
+              <div class="goal-text">Meta: 3 dias</div>
+            </div>
           </div>
         </div>
       </div>
@@ -104,24 +258,22 @@
         <div class="chart-card large">
           <div class="chart-header">
             <h3>Conformidade por Setor</h3>
-            <span class="chart-subtitle"
-              >Percentual de conformidade por área</span
-            >
+            <p class="chart-subtitle">Percentual de conformidade por área</p>
           </div>
           <div class="chart-container">
-            <div class="horizontal-bars">
+            <div class="compliance-bars">
               <div
                 v-for="setor in conformidadeSetores"
                 :key="setor.nome"
-                class="bar-item"
+                class="compliance-item"
               >
-                <div class="bar-info">
-                  <span class="bar-label">{{ setor.nome }}</span>
-                  <span class="bar-value">{{ setor.percentual }}%</span>
+                <div class="sector-info">
+                  <span class="sector-name">{{ setor.nome }}</span>
+                  <span class="sector-value">{{ setor.percentual }}%</span>
                 </div>
-                <div class="bar-track">
+                <div class="compliance-bar">
                   <div
-                    class="bar-fill"
+                    class="compliance-fill"
                     :class="setor.status"
                     :style="{ width: setor.percentual + '%' }"
                   ></div>
@@ -135,46 +287,42 @@
         <div class="chart-card">
           <div class="chart-header">
             <h3>Status das Auditorias</h3>
-            <span class="chart-subtitle">Distribuição atual</span>
+            <p class="chart-subtitle">Distribuição atual</p>
           </div>
           <div class="chart-container">
-            <div class="pie-chart">
-              <div
-                class="pie-segment concluidas"
-                style="--percentage: 70; --color: #48bb78"
-              ></div>
-              <div
-                class="pie-segment andamento"
-                style="--percentage: 15; --color: #ed8936"
-              ></div>
-              <div
-                class="pie-segment pendentes"
-                style="--percentage: 10; --color: #e53e3e"
-              ></div>
-              <div
-                class="pie-segment atrasadas"
-                style="--percentage: 5; --color: #718096"
-              ></div>
-              <div class="pie-center">
-                <span class="pie-total">100%</span>
+            <div class="distribution-chart">
+              <div class="pie-chart">
+                <div
+                  class="pie-segment completed"
+                  style="--percentage: 70"
+                ></div>
+                <div
+                  class="pie-segment in-progress"
+                  style="--percentage: 15"
+                ></div>
+                <div class="pie-segment pending" style="--percentage: 10"></div>
+                <div class="pie-segment overdue" style="--percentage: 5"></div>
+                <div class="pie-center">
+                  <span class="pie-total">100%</span>
+                </div>
               </div>
-            </div>
-            <div class="chart-legend">
-              <div class="legend-item">
-                <div class="legend-color" style="background: #48bb78"></div>
-                <span>Concluídas (70%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background: #ed8936"></div>
-                <span>Em Andamento (15%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background: #e53e3e"></div>
-                <span>Pendentes (10%)</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background: #718096"></div>
-                <span>Atrasadas (5%)</span>
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-color completed"></div>
+                  <span>Concluídas (70%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color in-progress"></div>
+                  <span>Em Andamento (15%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color pending"></div>
+                  <span>Pendentes (10%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color overdue"></div>
+                  <span>Atrasadas (5%)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -184,31 +332,33 @@
         <div class="chart-card large">
           <div class="chart-header">
             <h3>Evolução da Conformidade</h3>
-            <span class="chart-subtitle">Últimos 30 dias</span>
+            <p class="chart-subtitle">Últimos 30 dias</p>
           </div>
           <div class="chart-container">
-            <div class="line-chart">
-              <div class="chart-grid">
-                <div
-                  class="grid-line"
-                  v-for="n in 5"
-                  :key="n"
-                  :style="{ bottom: n * 20 + '%' }"
-                ></div>
-              </div>
-              <div class="data-line">
-                <div
-                  v-for="(ponto, index) in evolucaoConformidade"
-                  :key="index"
-                  class="data-point"
-                  :style="{
-                    left:
-                      index * (100 / (evolucaoConformidade.length - 1)) + '%',
-                    bottom: ponto.valor * 0.8 + '%',
-                  }"
-                  :class="ponto.tendencia"
-                >
-                  <div class="point-tooltip">{{ ponto.valor }}%</div>
+            <div class="trend-chart">
+              <div class="chart-area">
+                <div class="grid-lines">
+                  <div
+                    class="grid-line"
+                    v-for="n in 5"
+                    :key="n"
+                    :style="{ bottom: n * 20 + '%' }"
+                  ></div>
+                </div>
+                <div class="data-line">
+                  <div
+                    v-for="(ponto, index) in evolucaoConformidade"
+                    :key="index"
+                    class="data-point"
+                    :style="{
+                      left:
+                        index * (100 / (evolucaoConformidade.length - 1)) + '%',
+                      bottom: ponto.valor * 0.8 + '%',
+                    }"
+                    :class="ponto.tendencia"
+                  >
+                    <div class="point-tooltip">{{ ponto.valor }}%</div>
+                  </div>
                 </div>
               </div>
               <div class="chart-labels">
@@ -232,7 +382,7 @@
         <div class="chart-card">
           <div class="chart-header">
             <h3>Top Não Conformidades</h3>
-            <span class="chart-subtitle">Itens mais frequentes</span>
+            <p class="chart-subtitle">Itens mais frequentes</p>
           </div>
           <div class="chart-container">
             <div class="nc-list">
@@ -241,14 +391,20 @@
                 :key="nc.id"
                 class="nc-item"
               >
-                <div class="nc-info">
-                  <span class="nc-descricao">{{ nc.descricao }}</span>
-                  <span class="nc-setor">{{ nc.setor }}</span>
+                <div class="nc-content">
+                  <div class="nc-description">{{ nc.descricao }}</div>
+                  <div class="nc-sector">{{ nc.setor }}</div>
                 </div>
                 <div class="nc-stats">
                   <span class="nc-count">{{ nc.ocorrencias }}x</span>
-                  <div class="nc-badge" :class="nc.severidade">
-                    {{ nc.severidade }}
+                  <div class="nc-severity" :class="nc.severidade">
+                    {{
+                      nc.severidade === "alta"
+                        ? "Alta"
+                        : nc.severidade === "media"
+                        ? "Média"
+                        : "Baixa"
+                    }}
                   </div>
                 </div>
               </div>
@@ -259,66 +415,72 @@
     </div>
 
     <!-- Tabela Detalhada -->
-    <div class="tabela-section">
-      <div class="tabela-card">
-        <div class="tabela-header">
+    <div class="table-section">
+      <div class="table-card">
+        <div class="table-header">
           <h3>Detalhamento por Auditor</h3>
-          <span class="tabela-subtitle">Performance individual</span>
+          <p class="table-subtitle">Performance individual</p>
         </div>
-        <div class="tabela-container">
-          <table class="performance-table">
-            <thead>
-              <tr>
-                <th>Auditor</th>
-                <th>Auditorias</th>
-                <th>Conformidade</th>
-                <th>NCs Encontradas</th>
-                <th>Tempo Médio</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="auditor in auditores" :key="auditor.id">
-                <td class="auditor-info">
-                  <div class="auditor-avatar">{{ auditor.avatar }}</div>
-                  <div class="auditor-details">
-                    <span class="auditor-nome">{{ auditor.nome }}</span>
-                    <span class="auditor-setor">{{ auditor.setor }}</span>
-                  </div>
-                </td>
-                <td class="auditorias-count">{{ auditor.auditorias }}</td>
-                <td>
-                  <div class="conformidade-cell">
-                    <span class="conformidade-value"
-                      >{{ auditor.conformidade }}%</span
-                    >
-                    <div class="progress-mini">
-                      <div
-                        class="progress-mini-fill"
-                        :class="auditor.status"
-                        :style="{ width: auditor.conformidade + '%' }"
-                      ></div>
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="performance-table">
+              <thead>
+                <tr>
+                  <th>Auditor</th>
+                  <th>Auditorias</th>
+                  <th>Conformidade</th>
+                  <th>NCs Encontradas</th>
+                  <th>Tempo Médio</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="auditor in auditores" :key="auditor.id">
+                  <td class="auditor-cell">
+                    <div class="auditor-info">
+                      <div class="auditor-avatar">
+                        <img :src="auditor.foto" :alt="auditor.nome" />
+                      </div>
+                      <div class="auditor-details">
+                        <span class="auditor-name">{{ auditor.nome }}</span>
+                        <span class="auditor-sector">{{ auditor.setor }}</span>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="nc-count">{{ auditor.ncs }}</td>
-                <td class="tempo-medio">{{ auditor.tempo }} dias</td>
-                <td>
-                  <div class="status-badge" :class="auditor.status">
-                    {{
-                      auditor.status === "excelente"
-                        ? "Excelente"
-                        : auditor.status === "bom"
-                        ? "Bom"
-                        : auditor.status === "medio"
-                        ? "Médio"
-                        : "Atenção"
-                    }}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <td class="audits-count">{{ auditor.auditorias }}</td>
+                  <td class="compliance-cell">
+                    <div class="compliance-display">
+                      <span class="compliance-value"
+                        >{{ auditor.conformidade }}%</span
+                      >
+                      <div class="compliance-bar-mini">
+                        <div
+                          class="compliance-fill-mini"
+                          :class="auditor.status"
+                          :style="{ width: auditor.conformidade + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="nc-count">{{ auditor.ncs }}</td>
+                  <td class="avg-time">{{ auditor.tempo }} dias</td>
+                  <td class="status-cell">
+                    <div class="status-badge" :class="auditor.status">
+                      {{
+                        auditor.status === "excelente"
+                          ? "Excelente"
+                          : auditor.status === "bom"
+                          ? "Bom"
+                          : auditor.status === "medio"
+                          ? "Médio"
+                          : "Atenção"
+                      }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -348,13 +510,13 @@ const conformidadeSetores = ref([
 ]);
 
 const evolucaoConformidade = ref([
-  { dia: "1/10", valor: 85, tendencia: "positiva" },
-  { dia: "5/10", valor: 87, tendencia: "positiva" },
-  { dia: "10/10", valor: 84, tendencia: "negativa" },
-  { dia: "15/10", valor: 89, tendencia: "positiva" },
-  { dia: "20/10", valor: 92, tendencia: "positiva" },
-  { dia: "25/10", valor: 90, tendencia: "negativa" },
-  { dia: "30/10", valor: 94, tendencia: "positiva" },
+  { dia: "1/10", valor: 85, tendencia: "positive" },
+  { dia: "5/10", valor: 87, tendencia: "positive" },
+  { dia: "10/10", valor: 84, tendencia: "negative" },
+  { dia: "15/10", valor: 89, tendencia: "positive" },
+  { dia: "20/10", valor: 92, tendencia: "positive" },
+  { dia: "25/10", valor: 90, tendencia: "negative" },
+  { dia: "30/10", valor: 94, tendencia: "positive" },
 ]);
 
 const topNaoConformidades = ref([
@@ -393,7 +555,7 @@ const auditores = ref([
     id: 1,
     nome: "Maria Silva",
     setor: "Qualidade",
-    avatar: "👩",
+    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80",
     auditorias: 15,
     conformidade: 98,
     ncs: 3,
@@ -404,7 +566,7 @@ const auditores = ref([
     id: 2,
     nome: "João Santos",
     setor: "Operações",
-    avatar: "👨",
+    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
     auditorias: 12,
     conformidade: 95,
     ncs: 5,
@@ -415,7 +577,7 @@ const auditores = ref([
     id: 3,
     nome: "Ana Oliveira",
     setor: "Qualidade",
-    avatar: "👩",
+    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
     auditorias: 8,
     conformidade: 88,
     ncs: 8,
@@ -426,7 +588,7 @@ const auditores = ref([
     id: 4,
     nome: "Pedro Costa",
     setor: "Operações",
-    avatar: "👨",
+    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
     auditorias: 6,
     conformidade: 82,
     ncs: 10,
@@ -437,7 +599,7 @@ const auditores = ref([
     id: 5,
     nome: "Carla Lima",
     setor: "Qualidade",
-    avatar: "👩",
+    foto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
     auditorias: 10,
     conformidade: 91,
     ncs: 6,
@@ -465,12 +627,13 @@ onMounted(() => {
 .metricas-container {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(67, 97, 238, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 2rem;
   margin: 1.5rem auto;
-  max-width: 1200px;
+  width: 100%;
   position: relative;
   overflow: hidden;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .metricas-header {
@@ -478,6 +641,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 2rem;
+  gap: 2rem;
 }
 
 .header-left {
@@ -491,15 +655,15 @@ onMounted(() => {
 }
 
 .icon-area {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 0.5rem;
   width: 60px;
   height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .text-content {
@@ -510,75 +674,95 @@ onMounted(() => {
 .titulo {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
 }
 
 .descricao {
-  font-size: 1.1rem;
-  color: #718096;
+  font-size: 1rem;
+  color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
 .header-controls {
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.5rem;
+  align-items: flex-end;
 }
 
-.filtro-select {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  background: white;
-  color: #4a5568;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.filtro-select:hover {
-  border-color: #667eea;
-}
-
-.export-btn {
-  padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, #48bb78, #38a169);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.filter-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.export-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+.filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
 }
 
-/* KPI Grid */
+.filtro-select {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  color: #1f2937;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+  font-size: 0.875rem;
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.export-btn {
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.export-btn:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* KPI Section */
+.kpi-section {
+  margin-bottom: 2.5rem;
+}
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .kpi-card {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -591,115 +775,134 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
 }
 
 .kpi-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb;
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .kpi-icon {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  color: white;
 }
 
 .kpi-icon.total {
-  background: #ebf8ff;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
 }
-.kpi-icon.conformidade {
-  background: #f0fff4;
+
+.kpi-icon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
-.kpi-icon.pendentes {
-  background: #fef5e7;
+
+.kpi-icon.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
 }
-.kpi-icon.tempo {
-  background: #faf5ff;
+
+.kpi-icon.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.kpi-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #374151;
 }
 
 .kpi-content {
-  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1rem;
 }
 
-.kpi-valor {
-  display: block;
-  font-size: 2rem;
+.kpi-value {
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #1f2937;
   line-height: 1;
-  margin-bottom: 0.25rem;
 }
 
-.kpi-label {
-  font-size: 0.9rem;
-  color: #718096;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.kpi-variacao {
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  display: inline-block;
-}
-
-.kpi-variacao.positiva {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.kpi-variacao.negativa {
-  background: #fed7d7;
-  color: #c53030;
-}
-
-/* Trend Chart */
 .kpi-trend {
-  width: 60px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.kpi-trend.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.kpi-trend.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+/* Mini Chart */
+.kpi-chart {
   height: 40px;
 }
 
-.trend-chart {
+.mini-chart {
   display: flex;
   align-items: end;
-  gap: 2px;
+  gap: 3px;
   height: 100%;
 }
 
-.trend-bar {
-  width: 4px;
-  background: linear-gradient(to top, #667eea, #764ba2);
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(to top, #6366f1, #8b5cf6);
   border-radius: 2px;
+  min-height: 4px;
   transition: height 0.3s ease;
 }
 
-/* Progress Circle */
+/* Circular Progress */
 .kpi-progress {
-  width: 60px;
-  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
 }
 
-.progress-circle {
-  width: 60px;
-  height: 60px;
+.circular-progress {
+  width: 80px;
+  height: 80px;
   position: relative;
 }
 
-.circle-background {
+.progress-background {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: #f3f4f6;
 }
 
-.circle-progress {
+.progress-fill {
   position: absolute;
   top: 0;
   left: 0;
@@ -707,8 +910,8 @@ onMounted(() => {
   height: 100%;
   border-radius: 50%;
   background: conic-gradient(
-    #48bb78 0deg,
-    #48bb78 var(--rotation),
+    #10b981 0deg,
+    #10b981 var(--rotation),
     transparent var(--rotation)
   );
   clip-path: polygon(
@@ -722,71 +925,90 @@ onMounted(() => {
   );
 }
 
-.circle-text {
+.progress-text {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #1f2937;
 }
 
-/* Alertas */
-.kpi-alertas {
+/* Alerts */
+.kpi-alerts {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.alert-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 12px;
+  flex: 1;
 }
 
-.alerta-item {
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: center;
+.alert-item.critical {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.alerta-item.critico {
-  background: #fed7d7;
-  color: #c53030;
+.alert-item.medium {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-.alerta-item.medio {
-  background: #fef5e7;
-  color: #dd6b20;
+.alert-count {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
 }
 
-/* Meta Progress */
-.meta-progress {
+.alert-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* Goal Progress */
+.kpi-goal {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  justify-content: center;
 }
 
-.meta-bar {
-  width: 80px;
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
+.goal-progress {
+  width: 100%;
+  max-width: 200px;
+}
+
+.goal-bar {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
   overflow: hidden;
+  margin-bottom: 0.5rem;
 }
 
-.meta-fill {
+.goal-fill {
   height: 100%;
-  background: linear-gradient(90deg, #48bb78, #68d391);
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
+  transition: width 0.5s ease;
 }
 
-.meta-text {
-  font-size: 0.8rem;
-  color: #718096;
+.goal-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
 }
 
 /* Charts Section */
 .charts-section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .charts-grid {
@@ -800,8 +1022,8 @@ onMounted(() => {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .chart-card.large {
@@ -813,81 +1035,92 @@ onMounted(() => {
 }
 
 .chart-header h3 {
-  margin: 0 0 0.25rem 0;
-  color: #2d3748;
-  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
 .chart-subtitle {
-  font-size: 0.9rem;
-  color: #718096;
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
-/* Horizontal Bars */
-.horizontal-bars {
+/* Compliance Bars */
+.compliance-bars {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.bar-item {
+.compliance-item {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.bar-info {
+.sector-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
 }
 
-.bar-label {
+.sector-name {
   font-weight: 500;
-  color: #2d3748;
+  color: #374151;
 }
 
-.bar-value {
+.sector-value {
   font-weight: 600;
-  color: #2d3748;
+  color: #1f2937;
 }
 
-.bar-track {
+.compliance-bar {
   width: 100%;
   height: 8px;
-  background: #e2e8f0;
-  border-radius: 10px;
+  background: #f3f4f6;
+  border-radius: 4px;
   overflow: hidden;
 }
 
-.bar-fill {
+.compliance-fill {
   height: 100%;
-  border-radius: 10px;
+  border-radius: 4px;
   transition: width 0.5s ease;
 }
 
-.bar-fill.excelente {
-  background: linear-gradient(90deg, #48bb78, #68d391);
-}
-.bar-fill.bom {
-  background: linear-gradient(90deg, #4299e1, #63b3ed);
-}
-.bar-fill.medio {
-  background: linear-gradient(90deg, #ed8936, #f6ad55);
+.compliance-fill.excelente {
+  background: linear-gradient(90deg, #10b981, #34d399);
 }
 
-/* Pie Chart */
+.compliance-fill.bom {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.compliance-fill.medio {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+/* Distribution Chart */
+.distribution-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .pie-chart {
   width: 160px;
   height: 160px;
   border-radius: 50%;
   position: relative;
-  margin: 0 auto 1.5rem;
   background: conic-gradient(
-    var(--color) 0% calc(var(--percentage) * 1%),
-    transparent calc(var(--percentage) * 1%) 100%
+    #10b981 0% 70%,
+    #f59e0b 70% 85%,
+    #ef4444 85% 95%,
+    #6b7280 95% 100%
   );
 }
 
@@ -903,41 +1136,67 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .pie-total {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #1f2937;
 }
 
 .chart-legend {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  color: #374151;
 }
 
 .legend-color {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
-/* Line Chart */
-.line-chart {
+.legend-color.completed {
+  background: #10b981;
+}
+
+.legend-color.in-progress {
+  background: #f59e0b;
+}
+
+.legend-color.pending {
+  background: #ef4444;
+}
+
+.legend-color.overdue {
+  background: #6b7280;
+}
+
+/* Trend Chart */
+.trend-chart {
   height: 200px;
   position: relative;
-  padding: 20px 0 40px 0;
+  padding: 20px 0 40px;
 }
 
-.chart-grid {
+.chart-area {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.grid-lines {
   position: absolute;
   top: 0;
   left: 0;
@@ -950,7 +1209,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 1px;
-  background: #e2e8f0;
+  background: #f3f4f6;
 }
 
 .data-line {
@@ -964,17 +1223,20 @@ onMounted(() => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #667eea;
+  background: #6366f1;
   transform: translate(-50%, 50%);
   cursor: pointer;
   transition: all 0.3s ease;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.data-point.positiva {
-  background: #48bb78;
+.data-point.positive {
+  background: #10b981;
 }
-.data-point.negativa {
-  background: #f56565;
+
+.data-point.negative {
+  background: #ef4444;
 }
 
 .data-point:hover {
@@ -987,11 +1249,11 @@ onMounted(() => {
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  background: #2d3748;
+  background: #1f2937;
   color: white;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -1012,8 +1274,8 @@ onMounted(() => {
 }
 
 .label {
-  font-size: 0.8rem;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #6b7280;
   transform: translateX(-50%);
 }
 
@@ -1021,7 +1283,7 @@ onMounted(() => {
 .nc-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .nc-item {
@@ -1029,25 +1291,42 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  background: #f7fafc;
-  border-radius: 8px;
-  border-left: 4px solid #e53e3e;
+  background: #f9fafb;
+  border-radius: 12px;
+  border-left: 4px solid;
+  transition: all 0.2s ease;
 }
 
-.nc-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.nc-item:hover {
+  background: #f3f4f6;
 }
 
-.nc-descricao {
+.nc-item:nth-child(1) {
+  border-left-color: #ef4444;
+}
+.nc-item:nth-child(2) {
+  border-left-color: #f59e0b;
+}
+.nc-item:nth-child(3) {
+  border-left-color: #10b981;
+}
+.nc-item:nth-child(4) {
+  border-left-color: #ef4444;
+}
+
+.nc-content {
+  flex: 1;
+}
+
+.nc-description {
   font-weight: 500;
-  color: #2d3748;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
 }
 
-.nc-setor {
-  font-size: 0.8rem;
-  color: #718096;
+.nc-sector {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .nc-stats {
@@ -1058,56 +1337,65 @@ onMounted(() => {
 
 .nc-count {
   font-weight: 700;
-  color: #2d3748;
+  color: #1f2937;
+  font-size: 1.1rem;
 }
 
-.nc-badge {
+.nc-severity {
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
-.nc-badge.alta {
-  background: #fed7d7;
-  color: #c53030;
-}
-.nc-badge.media {
-  background: #fef5e7;
-  color: #dd6b20;
-}
-.nc-badge.baixa {
-  background: #e6fffa;
-  color: #234e52;
+.nc-severity.alta {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
 }
 
-/* Tabela Section */
-.tabela-section {
+.nc-severity.media {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.nc-severity.baixa {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+/* Table Section */
+.table-section {
   margin-bottom: 1rem;
 }
 
-.tabela-card {
+.table-card {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.tabela-header {
+.table-header {
   margin-bottom: 1.5rem;
 }
 
-.tabela-header h3 {
-  margin: 0 0 0.25rem 0;
-  color: #2d3748;
-  font-size: 1.2rem;
+.table-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
-.tabela-subtitle {
-  font-size: 0.9rem;
-  color: #718096;
+.table-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.table-responsive {
+  overflow-x: auto;
 }
 
 .performance-table {
@@ -1116,17 +1404,24 @@ onMounted(() => {
 }
 
 .performance-table th {
-  background: #f7fafc;
+  background: #f9fafb;
   padding: 1rem;
   text-align: left;
   font-weight: 600;
-  color: #4a5568;
-  border-bottom: 2px solid #e2e8f0;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .performance-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.auditor-cell {
+  white-space: nowrap;
 }
 
 .auditor-info {
@@ -1139,12 +1434,14 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #667eea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
+  overflow: hidden;
+  border: 2px solid #f3f4f6;
+}
+
+.auditor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .auditor-details {
@@ -1152,77 +1449,92 @@ onMounted(() => {
   flex-direction: column;
 }
 
-.auditor-nome {
+.auditor-name {
   font-weight: 600;
-  color: #2d3748;
+  color: #1f2937;
 }
 
-.auditor-setor {
-  font-size: 0.8rem;
-  color: #718096;
+.auditor-sector {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
-.conformidade-cell {
+.audits-count,
+.nc-count,
+.avg-time {
+  text-align: center;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.compliance-cell {
+  min-width: 120px;
+}
+
+.compliance-display {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.conformidade-value {
+.compliance-value {
   font-weight: 600;
+  color: #1f2937;
   min-width: 40px;
 }
 
-.progress-mini {
+.compliance-bar-mini {
   width: 80px;
   height: 6px;
-  background: #e2e8f0;
+  background: #f3f4f6;
   border-radius: 3px;
   overflow: hidden;
 }
 
-.progress-mini-fill {
+.compliance-fill-mini {
   height: 100%;
   border-radius: 3px;
   transition: width 0.3s ease;
 }
 
-.progress-mini-fill.excelente {
-  background: #48bb78;
-}
-.progress-mini-fill.bom {
-  background: #4299e1;
-}
-.progress-mini-fill.medio {
-  background: #ed8936;
+.compliance-fill-mini.excelente {
+  background: #10b981;
 }
 
-.auditorias-count,
-.nc-count,
-.tempo-medio {
+.compliance-fill-mini.bom {
+  background: #3b82f6;
+}
+
+.compliance-fill-mini.medio {
+  background: #f59e0b;
+}
+
+.status-cell {
   text-align: center;
-  font-weight: 600;
 }
 
 .status-badge {
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
+  display: inline-block;
 }
 
 .status-badge.excelente {
-  background: #c6f6d5;
-  color: #22543d;
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
 }
+
 .status-badge.bom {
-  background: #bee3f8;
-  color: #1a365d;
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
 }
+
 .status-badge.medio {
-  background: #fef5e7;
-  color: #744210;
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
 }
 
 /* Loading State */
@@ -1239,13 +1551,15 @@ onMounted(() => {
   justify-content: center;
   gap: 1rem;
   border-radius: 20px;
+  z-index: 10;
+  backdrop-filter: blur(4px);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -1260,32 +1574,44 @@ onMounted(() => {
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-  .metricas-container {
-    padding: 1rem;
-    margin: 1rem;
-  }
-
-  .metricas-header {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .header-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 1200px) {
   .charts-grid {
     grid-template-columns: 1fr;
   }
 
   .chart-card.large {
     grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .metricas-container {
+    padding: 1.5rem;
+    margin: 1rem;
+    border-radius: 16px;
+  }
+
+  .metricas-header {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filtro-select {
+    width: 100%;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
   }
 
   .performance-table {
@@ -1294,13 +1620,49 @@ onMounted(() => {
 
   .performance-table th,
   .performance-table td {
-    padding: 0.5rem;
+    padding: 0.75rem 0.5rem;
   }
 
   .auditor-info {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .compliance-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .compliance-bar-mini {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .kpi-trend {
+    align-self: flex-start;
+  }
+
+  .kpi-alerts {
+    flex-direction: column;
+  }
+
+  .nc-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .nc-stats {
+    align-self: flex-end;
   }
 }
 </style>

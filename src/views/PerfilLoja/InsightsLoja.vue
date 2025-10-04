@@ -2,16 +2,147 @@
   <div class="insights-container">
     <!-- Header -->
     <div class="header">
-      <div class="icon-title">
-        <div class="icon-area">📊</div>
-        <h1 class="titulo">Insights da Loja</h1>
+      <div class="header-left">
+        <div class="icon-title">
+          <div class="icon-area">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 8C19.55 8 18.74 9.44 19.07 10.51L15.52 14.07C15.22 13.98 14.78 13.98 14.48 14.07L11.93 11.52C12.27 10.45 11.46 9 10 9C8.55 9 7.73 10.44 8.07 11.52L3.51 16.07C2.44 15.74 1 16.55 1 18C1 19.65 2.35 21 4 21C5.45 21 6.26 19.56 5.93 18.49L10.49 13.93C10.79 14.02 11.21 14.02 11.51 13.93L14.07 16.49C13.73 17.55 14.54 19 16 19C17.65 19 19 17.65 19 16C19 14.35 17.65 13 16 13C14.55 13 13.73 14.44 14.07 15.52L11.52 18.07C11.22 17.98 10.78 17.98 10.48 18.07L5.93 13.51C6.26 12.44 5.45 11 4 11C2.35 11 1 12.35 1 14C1 15.55 2.45 16 4 16C4.78 16 5.91 15.73 6.48 15.07L11.04 10.51C11.36 10.81 11.79 11 12.25 11C12.71 11 13.14 10.81 13.46 10.51L18.02 15.07C18.59 15.73 19.72 16 20.5 16C21.33 16 22 15.33 22 14.5C22 13.67 21.33 13 20.5 13C19.67 13 19 13.67 19 14.5C19 14.78 19.09 15.05 19.26 15.26L16.74 12.74C16.95 12.91 17.22 13 17.5 13C18.33 13 19 12.33 19 11.5C19 10.67 18.33 10 17.5 10C16.67 10 16 10.67 16 11.5C16 11.78 16.09 12.05 16.26 12.26L12.74 8.74C12.95 8.91 13.22 9 13.5 9C14.33 9 15 8.33 15 7.5C15 6.67 14.33 6 13.5 6C12.67 6 12 6.67 12 7.5C12 7.78 12.09 8.05 12.26 8.26L8.74 4.74C8.95 4.91 9.22 5 9.5 5C10.33 5 11 4.33 11 3.5C11 2.67 10.33 2 9.5 2C8.67 2 8 2.67 8 3.5C8 3.78 8.09 4.05 8.26 4.26L4.74 7.78C4.95 7.61 5.22 7.5 5.5 7.5C6.33 7.5 7 6.83 7 6C7 5.17 6.33 4.5 5.5 4.5C4.67 4.5 4 5.17 4 6C4 6.28 4.09 6.55 4.26 6.76L1.74 9.28C1.55 9.09 1.28 9 1 9C0.45 9 0 9.45 0 10C0 10.55 0.45 11 1 11C1.28 11 1.55 10.91 1.74 10.72L4.26 13.24C4.09 13.45 4 13.72 4 14C4 14.55 4.45 15 5 15C5.55 15 6 14.55 6 14C6 13.72 5.91 13.45 5.72 13.28L9.24 9.76C9.45 9.91 9.72 10 10 10C10.55 10 11 9.55 11 9C11 8.45 10.55 8 10 8C9.72 8 9.45 8.09 9.24 8.28L12.76 11.8C12.59 12.01 12.5 12.28 12.5 12.5C12.5 13.05 12.95 13.5 13.5 13.5C14.05 13.5 14.5 13.05 14.5 12.5C14.5 11.95 14.05 11.5 13.5 11.5C13.28 11.5 13.01 11.59 12.8 11.76L16.32 15.28C16.13 15.09 15.86 15 15.5 15C14.95 15 14.5 15.45 14.5 16C14.5 16.55 14.95 17 15.5 17C16.05 17 16.5 16.55 16.5 16C16.5 15.72 16.41 15.45 16.22 15.28L19.74 11.76C19.55 11.91 19.28 12 19 12C18.45 12 18 11.55 18 11C18 10.45 18.45 10 19 10C19.28 10 19.55 10.09 19.74 10.28L21.72 12.26C21.91 12.45 22 12.72 22 13C22 13.55 22.45 14 23 14C23.55 14 24 13.55 24 13C24 12.45 23.55 12 23 12C22.72 12 22.45 12.09 22.26 12.28L20.28 14.26C20.09 14.45 20 14.72 20 15C20 15.55 20.45 16 21 16C21.55 16 22 15.55 22 15C22 14.45 21.55 14 21 14C20.72 14 20.45 14.09 20.26 14.28L18.28 16.26C18.09 16.45 18 16.72 18 17C18 17.55 18.45 18 19 18C19.55 18 20 17.55 20 17C20 16.72 19.91 16.45 19.72 16.28L21.72 14.28C21.91 14.45 22 14.72 22 15C22 15.55 22.45 16 23 16C23.55 16 24 15.55 24 15C24 14.45 23.55 14 23 14Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="text-content">
+            <div class="titulo">Insights da Loja</div>
+            <div class="descricao">
+              Análises inteligentes e recomendações para melhorar o desempenho
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="periodo-filtro">
-        <select v-model="periodoSelecionado" class="filtro-select">
-          <option value="semana">Esta Semana</option>
-          <option value="mes">Este Mês</option>
-          <option value="trimestre">Este Trimestre</option>
-        </select>
+      <div class="header-controls">
+        <div class="filter-group">
+          <label for="periodo">Período</label>
+          <select
+            v-model="periodoSelecionado"
+            id="periodo"
+            class="filtro-select"
+          >
+            <option value="semana">Esta Semana</option>
+            <option value="mes">Este Mês</option>
+            <option value="trimestre">Este Trimestre</option>
+          </select>
+        </div>
+        <button class="refresh-btn" @click="atualizarInsights">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"
+              fill="currentColor"
+            />
+          </svg>
+          Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon primary">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">+15%</span>
+            <span class="stat-label">Crescimento</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">3</span>
+            <span class="stat-label">Alertas</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">8</span>
+            <span class="stat-label">Concluídos</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11 7H13V9H11V7ZM11 11H13V17H11V11ZM12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <span class="stat-value">94%</span>
+            <span class="stat-label">Performance</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -20,29 +151,72 @@
       <!-- Performance -->
       <div class="insight-card performance">
         <div class="card-header">
-          <span class="card-icon">🚀</span>
-          <h3>Performance</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Performance</h3>
+            <p class="card-subtitle">Desempenho por setor</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="metric-item">
-            <div class="metric-info">
-              <span class="metric-label">Setor Top</span>
-              <span class="metric-value">Eletrônicos</span>
+          <div class="metric-list">
+            <div class="metric-item">
+              <div class="metric-info">
+                <span class="metric-label">Setor Top</span>
+                <span class="metric-value">Eletrônicos</span>
+              </div>
+              <div class="metric-badge positive">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                </svg>
+                +15%
+              </div>
             </div>
-            <div class="metric-badge positive">+15%</div>
-          </div>
-          <div class="metric-item">
-            <div class="metric-info">
-              <span class="metric-label">Maior Evolução</span>
-              <span class="metric-value">Moda</span>
+            <div class="metric-item">
+              <div class="metric-info">
+                <span class="metric-label">Maior Evolução</span>
+                <span class="metric-value">Moda</span>
+              </div>
+              <div class="metric-badge positive">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                </svg>
+                +12%
+              </div>
             </div>
-            <div class="metric-badge positive">+12%</div>
           </div>
-          <div class="progress-chart">
+          <div class="progress-section">
+            <div class="progress-header">
+              <span class="progress-label">Meta Geral</span>
+              <span class="progress-value">85%</span>
+            </div>
             <div class="progress-bar">
               <div class="progress-fill" style="width: 85%"></div>
             </div>
-            <span>Meta: 85% atingida</span>
           </div>
         </div>
       </div>
@@ -50,18 +224,52 @@
       <!-- Alertas -->
       <div class="insight-card alertas">
         <div class="card-header">
-          <span class="card-icon">⚠️</span>
-          <h3>Alertas Críticos</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Alertas Críticos</h3>
+            <p class="card-subtitle">Atenção necessária</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="alerta-item urgente">
-            <span class="alerta-text">Setor Alimentos -5% abaixo da meta</span>
-          </div>
-          <div class="alerta-item medio">
-            <span class="alerta-text">Alta ruptura em Limpeza</span>
-          </div>
-          <div class="alerta-item baixo">
-            <span class="alerta-text">Estoque baixo em Eletrodomésticos</span>
+          <div class="alert-list">
+            <div class="alert-item critical">
+              <div class="alert-indicator"></div>
+              <div class="alert-content">
+                <span class="alert-title">Setor Alimentos</span>
+                <span class="alert-description">-5% abaixo da meta</span>
+              </div>
+            </div>
+            <div class="alert-item medium">
+              <div class="alert-indicator"></div>
+              <div class="alert-content">
+                <span class="alert-title">Alta Ruptura</span>
+                <span class="alert-description"
+                  >Produtos em falta no setor Limpeza</span
+                >
+              </div>
+            </div>
+            <div class="alert-item low">
+              <div class="alert-indicator"></div>
+              <div class="alert-content">
+                <span class="alert-title">Estoque Baixo</span>
+                <span class="alert-description"
+                  >Eletrodomésticos com poucas unidades</span
+                >
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -69,21 +277,78 @@
       <!-- Tendências -->
       <div class="insight-card tendencias">
         <div class="card-header">
-          <span class="card-icon">📈</span>
-          <h3>Tendências</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Tendências</h3>
+            <p class="card-subtitle">Direção do negócio</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="tendencia-item">
-            <div class="trend-indicator positive">↑</div>
-            <span>Vendas online +18%</span>
-          </div>
-          <div class="tendencia-item">
-            <div class="trend-indicator positive">↑</div>
-            <span>Clientes fiéis +8%</span>
-          </div>
-          <div class="tendencia-item">
-            <div class="trend-indicator negative">↓</div>
-            <span>Setor Livros -3%</span>
+          <div class="trend-list">
+            <div class="trend-item">
+              <div class="trend-indicator positive">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                </svg>
+              </div>
+              <div class="trend-content">
+                <span class="trend-title">Vendas Online</span>
+                <span class="trend-value">+18% crescimento</span>
+              </div>
+            </div>
+            <div class="trend-item">
+              <div class="trend-indicator positive">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                </svg>
+              </div>
+              <div class="trend-content">
+                <span class="trend-title">Clientes Fiéis</span>
+                <span class="trend-value">+8% retenção</span>
+              </div>
+            </div>
+            <div class="trend-item">
+              <div class="trend-indicator negative">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
+                </svg>
+              </div>
+              <div class="trend-content">
+                <span class="trend-title">Setor Livros</span>
+                <span class="trend-value">-3% desempenho</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -91,21 +356,77 @@
       <!-- Recomendações -->
       <div class="insight-card recomendacoes">
         <div class="card-header">
-          <span class="card-icon">💡</span>
-          <h3>Recomendações</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Recomendações</h3>
+            <p class="card-subtitle">Ações sugeridas</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="recomendacao-item">
-            <span class="recomendacao-text"
-              >Reforçar equipe no caixa durante pico</span
-            >
-            <button class="action-btn">Aplicar</button>
-          </div>
-          <div class="recomendacao-item">
-            <span class="recomendacao-text"
-              >Treinamento para setor de vendas</span
-            >
-            <button class="action-btn">Agendar</button>
+          <div class="recommendation-list">
+            <div class="recommendation-item">
+              <div class="recommendation-content">
+                <span class="recommendation-text"
+                  >Reforçar equipe no caixa durante pico</span
+                >
+                <span class="recommendation-priority">Alta prioridade</span>
+              </div>
+              <button class="action-btn primary">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                Aplicar
+              </button>
+            </div>
+            <div class="recommendation-item">
+              <div class="recommendation-content">
+                <span class="recommendation-text"
+                  >Treinamento para setor de vendas</span
+                >
+                <span class="recommendation-priority">Média prioridade</span>
+              </div>
+              <button class="action-btn secondary">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.59 7.58 4 12 4C16.42 4 20 7.59 20 12C20 16.42 16.42 20 12 20Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M12.5 7H11V13L16.25 16.15L17 15.08L12.5 12.25V7Z"
+                    fill="currentColor"
+                  />
+                </svg>
+                Agendar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -113,22 +434,80 @@
       <!-- Reconhecimentos -->
       <div class="insight-card reconhecimentos">
         <div class="card-header">
-          <span class="card-icon">🏆</span>
-          <h3>Reconhecimentos</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Reconhecimentos</h3>
+            <p class="card-subtitle">Destaques da equipe</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="reconhecimento-item">
-            <div class="employee-avatar">👤</div>
-            <div class="employee-info">
-              <span class="employee-name">Maria Silva</span>
-              <span class="achievement">Meta superada em 25%</span>
+          <div class="recognition-list">
+            <div class="recognition-item">
+              <div class="employee-avatar">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80"
+                  alt="Maria Silva"
+                />
+              </div>
+              <div class="employee-info">
+                <span class="employee-name">Maria Silva</span>
+                <span class="employee-role">Supervisora de Vendas</span>
+                <span class="achievement">Meta superada em 25%</span>
+              </div>
+              <div class="achievement-badge">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
-          <div class="reconhecimento-item">
-            <div class="employee-avatar">👤</div>
-            <div class="employee-info">
-              <span class="employee-name">João Santos</span>
-              <span class="achievement">Melhor atendimento</span>
+            <div class="recognition-item">
+              <div class="employee-avatar">
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
+                  alt="João Santos"
+                />
+              </div>
+              <div class="employee-info">
+                <span class="employee-name">João Santos</span>
+                <span class="employee-role">Atendimento</span>
+                <span class="achievement">Melhor avaliação de clientes</span>
+              </div>
+              <div class="achievement-badge">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -137,28 +516,58 @@
       <!-- Auditorias -->
       <div class="insight-card auditorias">
         <div class="card-header">
-          <span class="card-icon">🔍</span>
-          <h3>Última Auditoria</h3>
+          <div class="card-icon">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM7 12H9V17H7V12ZM11 7H13V17H11V7ZM15 10H17V17H15V10Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>Última Auditoria</h3>
+            <p class="card-subtitle">Resultados recentes</p>
+          </div>
         </div>
         <div class="card-content">
-          <div class="auditoria-stats">
-            <div class="stat">
+          <div class="audit-stats">
+            <div class="stat-item">
               <span class="stat-value">94%</span>
               <span class="stat-label">Pontuação</span>
             </div>
-            <div class="stat">
+            <div class="stat-item">
               <span class="stat-value">12</span>
               <span class="stat-label">Itens OK</span>
             </div>
-            <div class="stat">
+            <div class="stat-item">
               <span class="stat-value">2</span>
               <span class="stat-label">Ajustes</span>
             </div>
           </div>
-          <div class="auditoria-melhorias">
-            <span class="melhoria-text"
-              >Organização de estoque melhorou 30%</span
-            >
+          <div class="improvement-section">
+            <div class="improvement-indicator positive">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="improvement-content">
+              <span class="improvement-title">Melhoria Significativa</span>
+              <span class="improvement-description"
+                >Organização de estoque melhorou 30%</span
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -178,8 +587,14 @@ import { ref, onMounted } from "vue";
 const periodoSelecionado = ref("semana");
 const carregando = ref(true);
 
+const atualizarInsights = () => {
+  carregando.value = true;
+  setTimeout(() => {
+    carregando.value = false;
+  }, 1000);
+};
+
 onMounted(() => {
-  // Simular carregamento de dados
   setTimeout(() => {
     carregando.value = false;
   }, 1500);
@@ -190,66 +605,202 @@ onMounted(() => {
 .insights-container {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(67, 97, 238, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 2rem;
   margin: 1.5rem auto;
-  max-width: 1200px;
+  width: 100%;
   position: relative;
   overflow: hidden;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
+  gap: 2rem;
+}
+
+.header-left {
+  flex: 1;
 }
 
 .icon-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
 }
 
 .icon-area {
-  font-size: 2.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 0.5rem;
   width: 60px;
   height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.text-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .titulo {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.descricao {
+  font-size: 1rem;
+  color: #6b7280;
   margin: 0;
+  line-height: 1.5;
+}
+
+.header-controls {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
 }
 
 .filtro-select {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
   background: white;
-  color: #4a5568;
+  color: #1f2937;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  min-width: 160px;
+  font-size: 0.875rem;
 }
 
-.filtro-select:hover {
-  border-color: #667eea;
+.filtro-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+.refresh-btn {
+  padding: 0.75rem 1.5rem;
+  background: #f3f4f6;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.refresh-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+/* Stats Overview */
+.stats-overview {
+  margin-bottom: 2.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 16px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.primary {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.stat-icon.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.stat-icon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.stat-icon.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Insights Grid */
 .insights-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 1.5rem;
 }
 
@@ -257,8 +808,8 @@ onMounted(() => {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -271,80 +822,92 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  transition: all 0.3s ease;
 }
 
 .insight-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb;
 }
 
+.insight-card:hover::before {
+  height: 6px;
+}
+
+/* Card Header */
 .card-header {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .card-icon {
-  font-size: 1.5rem;
-  background: #f7fafc;
-  border-radius: 10px;
-  padding: 0.5rem;
-  width: 45px;
-  height: 45px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: white;
+  flex-shrink: 0;
 }
 
-.card-header h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.2rem;
+.performance .card-icon {
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+.alertas .card-icon {
+  background: linear-gradient(135deg, #ef4444, #f87171);
+}
+
+.tendencias .card-icon {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+
+.recomendacoes .card-icon {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+}
+
+.reconhecimentos .card-icon {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.auditorias .card-icon {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+}
+
+.card-title h3 {
+  margin: 0 0 0.25rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 
+.card-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
 /* Performance Card */
-.performance .card-icon {
-  background: #ebf8ff;
-}
-
-/* Alertas Card */
-.alertas .card-icon {
-  background: #fed7d7;
-}
-
-/* Tendências Card */
-.tendencias .card-icon {
-  background: #e6fffa;
-}
-
-/* Recomendações Card */
-.recomendacoes .card-icon {
-  background: #faf5ff;
-}
-
-/* Reconhecimentos Card */
-.reconhecimentos .card-icon {
-  background: #fffaf0;
-}
-
-/* Auditorias Card */
-.auditorias .card-icon {
-  background: #f0fff4;
+.metric-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .metric-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.metric-item:last-child {
-  border-bottom: none;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
 }
 
 .metric-info {
@@ -353,227 +916,425 @@ onMounted(() => {
 }
 
 .metric-label {
-  font-size: 0.9rem;
-  color: #718096;
+  font-size: 0.875rem;
+  color: #6b7280;
   margin-bottom: 0.25rem;
 }
 
 .metric-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #2d3748;
+  color: #1f2937;
 }
 
 .metric-badge {
-  padding: 0.25rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .metric-badge.positive {
-  background: #c6f6d5;
-  color: #22543d;
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
 }
 
-.progress-chart {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
+.progress-section {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.progress-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: #e2e8f0;
-  border-radius: 10px;
+  background: #e5e7eb;
+  border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 0.5rem;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #48bb78, #68d391);
-  border-radius: 10px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
   transition: width 0.5s ease;
 }
 
-.alerta-item {
-  padding: 0.75rem;
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
+/* Alertas Card */
+.alert-list {
   display: flex;
-  align-items: center;
-}
-
-.alerta-item.urgente {
-  background: #fed7d7;
-  border-left: 4px solid #e53e3e;
-}
-
-.alerta-item.medio {
-  background: #fef5e7;
-  border-left: 4px solid #ed8936;
-}
-
-.alerta-item.baixo {
-  background: #ebf8ff;
-  border-left: 4px solid #3182ce;
-}
-
-.alerta-text {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #2d3748;
-}
-
-.tendencia-item {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f5f9;
 }
 
-.tendencia-item:last-child {
-  border-bottom: none;
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.alert-item:hover {
+  transform: translateX(4px);
+}
+
+.alert-item.critical {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.alert-item.medium {
+  background: rgba(245, 158, 11, 0.05);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.alert-item.low {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.alert-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.alert-item.critical .alert-indicator {
+  background: #ef4444;
+}
+
+.alert-item.medium .alert-indicator {
+  background: #f59e0b;
+}
+
+.alert-item.low .alert-indicator {
+  background: #3b82f6;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.alert-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Tendências Card */
+.trend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trend-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.trend-item:hover {
+  background: #f3f4f6;
 }
 
 .trend-indicator {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  flex-shrink: 0;
 }
 
 .trend-indicator.positive {
-  background: #c6f6d5;
-  color: #22543d;
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
 }
 
 .trend-indicator.negative {
-  background: #fed7d7;
-  color: #c53030;
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
 }
 
-.recomendacao-item {
+.trend-content {
+  flex: 1;
+}
+
+.trend-title {
+  display: block;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.trend-value {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Recomendações Card */
+.recommendation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recommendation-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
 }
 
-.recomendacao-item:last-child {
-  border-bottom: none;
-}
-
-.recomendacao-text {
-  font-size: 0.95rem;
-  color: #2d3748;
+.recommendation-content {
   flex: 1;
+}
+
+.recommendation-text {
+  display: block;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.recommendation-priority {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.recommendation-item:nth-child(1) .recommendation-priority {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+.recommendation-item:nth-child(2) .recommendation-priority {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
 }
 
 .action-btn {
   padding: 0.5rem 1rem;
-  background: #667eea;
-  color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.action-btn:hover {
-  background: #5a67d8;
-  transform: translateY(-1px);
+.action-btn.primary {
+  background: #6366f1;
+  color: white;
 }
 
-.reconhecimento-item {
+.action-btn.primary:hover {
+  background: #4f46e5;
+}
+
+.action-btn.secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.action-btn.secondary:hover {
+  background: #e5e7eb;
+}
+
+/* Reconhecimentos Card */
+.recognition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recognition-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
 }
 
-.reconhecimento-item:last-child {
-  border-bottom: none;
+.recognition-item:hover {
+  background: #f3f4f6;
 }
 
 .employee-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #667eea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.employee-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .employee-info {
-  display: flex;
-  flex-direction: column;
+  flex: 1;
 }
 
 .employee-name {
+  display: block;
   font-weight: 600;
-  color: #2d3748;
+  color: #1f2937;
   margin-bottom: 0.25rem;
 }
 
-.achievement {
-  font-size: 0.85rem;
-  color: #718096;
+.employee-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  display: block;
 }
 
-.auditoria-stats {
+.achievement {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.achievement-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Auditorias Card */
+.audit-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.stat {
+.stat-item {
   text-align: center;
   padding: 1rem;
-  background: #f7fafc;
+  background: #f9fafb;
   border-radius: 12px;
+  border: 1px solid #f3f4f6;
 }
 
 .stat-value {
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: #6366f1;
   margin-bottom: 0.25rem;
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #718096;
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
-.auditoria-melhorias {
+.improvement-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   padding: 1rem;
-  background: #f0fff4;
-  border-radius: 10px;
-  border-left: 4px solid #48bb78;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.melhoria-text {
-  font-size: 0.95rem;
-  color: #22543d;
-  font-weight: 500;
+.improvement-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
+.improvement-content {
+  flex: 1;
+}
+
+.improvement-title {
+  display: block;
+  font-weight: 600;
+  color: #065f46;
+  margin-bottom: 0.25rem;
+}
+
+.improvement-description {
+  font-size: 0.875rem;
+  color: #065f46;
+}
+
+/* Loading State */
 .loading-state {
   position: absolute;
   top: 0;
@@ -586,13 +1347,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  border-radius: 20px;
+  z-index: 10;
+  backdrop-filter: blur(4px);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -607,24 +1371,94 @@ onMounted(() => {
 }
 
 /* Responsividade */
+@media (max-width: 1200px) {
+  .insights-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .insights-container {
-    padding: 1rem;
+    padding: 1.5rem;
     margin: 1rem;
+    border-radius: 16px;
   }
 
   .header {
     flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-direction: column;
     gap: 1rem;
-    align-items: flex-start;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filtro-select {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .insights-grid {
     grid-template-columns: 1fr;
   }
 
-  .auditoria-stats {
+  .audit-stats {
     grid-template-columns: 1fr;
+  }
+
+  .recommendation-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .action-btn {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .icon-title {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .icon-area {
+    align-self: center;
+  }
+
+  .text-content {
+    text-align: center;
+  }
+
+  .card-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .metric-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .metric-badge {
+    align-self: flex-start;
   }
 }
 </style>

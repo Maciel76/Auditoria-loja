@@ -89,7 +89,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .analise-setor {
   background: #ffffff;
   border-radius: 16px;
