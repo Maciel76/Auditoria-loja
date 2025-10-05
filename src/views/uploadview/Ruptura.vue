@@ -145,7 +145,7 @@ const enviarArquivo = async () => {
     console.log(`🏪 Enviando ruptura para loja: ${lojaStore.codigoLojaAtual}`);
 
     const { data } = await axios.post(
-      "http://localhost:3000/upload-ruptura",
+      "http://localhost:3000/upload",
       formData,
       {
         headers: {

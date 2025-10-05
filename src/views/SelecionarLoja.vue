@@ -98,12 +98,12 @@ const imagemPadrao = "/images/lojas/default.jpg";
 
 const lojas = ref([
   {
-    codigo: "56",
+    codigo: "056",
     nome: "Buritis",
     cidade: "Goiânia",
   },
   {
-    codigo: "84",
+    codigo: "084",
     nome: "Independência",
     cidade: "Goiânia",
   },
