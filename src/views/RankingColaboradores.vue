@@ -8,6 +8,61 @@
       :tipoAuditoria="filtroTipoAuditoria"
     />
 
+    <!-- Informações em Tempo Real - UserDailyMetrics - REMOVIDO A PEDIDO DO USUÁRIO -->
+    <!--
+    <div v-if="!carregando && !erro && usuarios.length > 0" class="realtime-info">
+      <div class="realtime-header">
+        <h3>
+          <i class="fas fa-chart-line"></i>
+          Dados em Tempo Real - UserDailyMetrics
+        </h3>
+        <span class="data-source">Fonte: Última auditoria processada</span>
+      </div>
+
+      <div class="realtime-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ colaboradoresAtivos }}</div>
+            <div class="stat-label">Colaboradores Ativos</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-percentage"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ eficienciaMedia }}%</div>
+            <div class="stat-label">Eficiência Média</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ pontuacaoTotal.toLocaleString() }}</div>
+            <div class="stat-label">Pontuação Total</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ melhorEficiencia.nome }}</div>
+            <div class="stat-label">Maior Eficiência ({{ melhorEficiencia.eficiencia }}%)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    -->
+
     <!-- Controles e Filtros Unificados -->
     <div class="unified-controls">
       <!-- Filtros Principais -->
@@ -148,6 +203,10 @@
       :totalItensLidos="totalItensLidos"
       :percentualAboveAverage="percentualAboveAverage"
       :tipoAuditoria="filtroTipoAuditoria"
+      :eficienciaMedia="eficienciaMedia"
+      :pontuacaoTotal="pontuacaoTotal"
+      :melhorEficiencia="melhorEficiencia"
+      :colaboradoresAtivos="colaboradoresAtivos"
     />
 
     <!-- Botão de Exportar -->
@@ -250,6 +309,34 @@ export default {
       return Math.round((aboveAverage / usuarios.value.length) * 100);
     });
 
+    // Novas computadas para UserDailyMetrics
+    const eficienciaMedia = computed(() => {
+      if (usuarios.value.length === 0) return 0;
+      const somaEficiencia = usuarios.value.reduce(
+        (total, usuario) => total + (usuario.eficiencia || 0),
+        0
+      );
+      return Math.round(somaEficiencia / usuarios.value.length);
+    });
+
+    const pontuacaoTotal = computed(() => {
+      return usuarios.value.reduce(
+        (total, usuario) => total + (usuario.pontuacao || 0),
+        0
+      );
+    });
+
+    const melhorEficiencia = computed(() => {
+      if (usuarios.value.length === 0) return { nome: "N/A", eficiencia: 0 };
+      return usuarios.value.reduce((melhor, atual) =>
+        (atual.eficiencia || 0) > (melhor.eficiencia || 0) ? atual : melhor
+      );
+    });
+
+    const colaboradoresAtivos = computed(() => {
+      return usuarios.value.filter(u => u.contador > 0).length;
+    });
+
     // Métodos
     const getTipoAuditoriaName = (tipo) => {
       const tipos = {
@@ -263,14 +350,16 @@ export default {
 
     const carregarDatasAuditoria = async () => {
       try {
-        const { data } = await axios.get("http://localhost:3000/datas-auditoria", {
+        const { data } = await axios.get("http://localhost:3000/datas-auditoria-colaboradores", {
           headers: {
             'x-loja': lojaStore.codigoLojaAtual
           }
         });
         datasAuditoria.value = data;
+        console.log(`📅 ${data.length} datas de auditoria carregadas do UserDailyMetrics`);
       } catch (error) {
         console.error("Erro ao carregar datas:", error);
+        datasAuditoria.value = [];
       }
     };
 
@@ -284,7 +373,8 @@ export default {
         carregando.value = true;
         erro.value = "";
 
-        let url = "http://localhost:3000/api/ranking";
+        // NOVA URL para UserDailyMetrics
+        let url = "http://localhost:3000/ranking-colaboradores";
         const params = new URLSearchParams();
 
         // Filtro por tipo de auditoria
@@ -305,7 +395,7 @@ export default {
           url += `?${params.toString()}`;
         }
 
-        console.log("Buscando dados de:", url);
+        console.log("🔄 Buscando dados do UserDailyMetrics:", url);
 
         const response = await axios.get(url, {
           headers: {
@@ -313,20 +403,38 @@ export default {
           }
         });
 
+        // Processar dados do UserDailyMetrics
         usuarios.value = response.data.map((usuario) => ({
           ...usuario,
           iniciais: obterIniciais(usuario.nome),
           contador: usuario.contador || 0,
+          // Dados extras do UserDailyMetrics para análises avançadas
+          metricas: usuario.metricas || {},
+          // Cálculos adicionais baseados nas métricas
+          eficiencia: usuario.metricas?.totais?.percentualConclusaoGeral || 0,
+          pontuacao: usuario.metricas?.totais?.pontuacaoTotal || 0,
+          posicaoLoja: usuario.metricas?.ranking?.posicaoLoja || 0,
         }));
 
-        console.log(`✅ ${usuarios.value.length} colaboradores carregados`);
+        console.log(`✅ ${usuarios.value.length} colaboradores carregados do UserDailyMetrics`);
+
+        // Log dos dados para debug
+        if (usuarios.value.length > 0) {
+          console.log("📊 Exemplo de dados carregados:", {
+            usuario: usuarios.value[0].nome,
+            contador: usuarios.value[0].contador,
+            eficiencia: usuarios.value[0].eficiencia,
+            pontuacao: usuarios.value[0].pontuacao,
+            tipo: filtroTipoAuditoria.value,
+            periodo: filtroPeriodo.value
+          });
+        }
       } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-        erro.value = error.response?.data?.mensagem ||
-                    error.response?.data?.erro ||
+        console.error("❌ Erro ao buscar dados do UserDailyMetrics:", error);
+        erro.value = error.response?.data?.erro ||
+                    error.response?.data?.detalhes ||
                     "Erro ao conectar com o servidor";
 
-        // Fallback para dados de exemplo em caso de erro
         usuarios.value = [];
       } finally {
         carregando.value = false;
@@ -352,20 +460,27 @@ export default {
 
     const exportarRanking = () => {
       const tipoTexto = getTipoAuditoriaName(filtroTipoAuditoria.value);
+      const dataExport = filtroPeriodo.value === "personalizado" ? dataEspecifica.value : filtroPeriodo.value;
+
       const rankingData = usuariosOrdenados.value.map((user, index) => ({
         Posição: `${index + 1}º`,
         Nome: user.nome,
         Matrícula: user.id,
-        "Itens Verificados": user.contador,
+        "Itens Lidos": user.contador,
+        "Eficiência (%)": user.eficiencia,
+        "Pontuação": user.pontuacao,
+        "Posição na Loja": user.posicaoLoja || "N/A",
         "Tipo de Auditoria": tipoTexto,
-        "Período": filtroPeriodo.value === "personalizado" ? dataEspecifica.value : filtroPeriodo.value,
+        "Período": dataExport,
+        "Data da Métrica": user.metricas?.data ? new Date(user.metricas.data).toLocaleDateString('pt-BR') : "N/A",
+        "Loja": user.loja,
       }));
 
       const csvContent = [
-        "Posição,Nome,Matrícula,Itens Verificados,Tipo de Auditoria,Período",
+        "Posição,Nome,Matrícula,Itens Lidos,Eficiência (%),Pontuação,Posição na Loja,Tipo de Auditoria,Período,Data da Métrica,Loja",
         ...rankingData.map(
           (item) =>
-            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Verificados"]},"${item["Tipo de Auditoria"]}","${item.Período}"`
+            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Lidos"]},${item["Eficiência (%)"]},${item.Pontuação},"${item["Posição na Loja"]}","${item["Tipo de Auditoria"]}","${item.Período}","${item["Data da Métrica"]}","${item.Loja}"`
         ),
       ].join("\n");
 
@@ -374,12 +489,14 @@ export default {
       const url = URL.createObjectURL(blob);
 
       link.setAttribute("href", url);
-      link.setAttribute("download", `ranking_colaboradores_${tipoTexto.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `ranking_colaboradores_userdailymetrics_${tipoTexto.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = "hidden";
 
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      console.log(`📊 Exportado ranking de ${rankingData.length} colaboradores (${tipoTexto})`);
     };
 
     // Lifecycle e Watchers
@@ -420,6 +537,11 @@ export default {
       mediaItensPorUsuario,
       topPerformer,
       percentualAboveAverage,
+      // Novas computadas UserDailyMetrics
+      eficienciaMedia,
+      pontuacaoTotal,
+      melhorEficiencia,
+      colaboradoresAtivos,
 
       // Métodos
       getTipoAuditoriaName,
@@ -441,6 +563,102 @@ export default {
   font-family: "Inter", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
+}
+
+/* ===== INFORMAÇÕES EM TEMPO REAL ===== */
+.realtime-info {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 5px solid #10b981;
+}
+
+.realtime-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.realtime-header h3 {
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.realtime-header h3 i {
+  color: #10b981;
+}
+
+.data-source {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.realtime-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.stat-icon i {
+  color: white;
+  font-size: 1.5rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 /* ===== CONTROLES UNIFICADOS ===== */
