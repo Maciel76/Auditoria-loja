@@ -35,21 +35,7 @@
               {{ lojaStore.codigoLojaAtual }}
             </h1>
 
-            <!-- Botão para trocar loja - apenas quando expandida -->
-            <button
-              v-if="!sidebarCollapsed"
-              @click="mostrarTrocaLoja = !mostrarTrocaLoja"
-              class="btn-trocar-loja"
-              title="Trocar loja"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M3 12h18m-9-9l9 9-9 9"
-                  stroke="currentColor"
-                  stroke-width="2"
-                />
-              </svg>
-            </button>
+            
           </div>
 
           <!-- Botão de Toggle da Sidebar -->
@@ -284,7 +270,12 @@
             @click="closeSubmenus"
             :title="sidebarCollapsed ? 'Ranking das Lojas' : ''"
           >
-            <i class="fas fa-store nav-icon-fa"></i>
+          <img
+              src="../assets/svg/ranking.png"
+              alt="Ranking"
+              class="nav-icon"
+            />
+            
             <span class="nav-text" v-if="!sidebarCollapsed"
               >Ranking das Lojas</span
             >
@@ -596,7 +587,7 @@ onMounted(() => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; */
   background-color: #f8fafc;
 }
 
@@ -812,8 +803,7 @@ body {
   margin-right: 1rem;
   opacity: 0.8;
   transition: opacity 0.3s ease;
-  filter: brightness(0) saturate(100%) invert(42%) sepia(15%) saturate(1179%)
-    hue-rotate(169deg) brightness(94%) contrast(89%);
+  
   flex-shrink: 0;
 }
 

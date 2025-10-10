@@ -166,12 +166,10 @@ const routes = [
     meta: { requiresLoja: true },
   },
   {
-    path: "/perfil/:id",
-    name: "PerfilUsuario",
-    component: PerfilUsuario,
-    props: true,
-    meta: { requiresLoja: true },
-  },
+  path: '/perfil/:matricula',
+  name: 'Perfil',
+  component: () => import('../views/PerfilUsuario.vue') // Ajuste o caminho conforme sua estrutura
+},
   {
     path: "/dashboard/views",
     name: "DashboardViews",

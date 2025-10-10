@@ -3,13 +3,7 @@
     <!-- Cabeçalho da Seção -->
     <div class="section-header">
       <div class="header-main">
-        <div class="title-section">
-          <div class="title-icon">📊</div>
-          <div class="title-content">
-            <h2>Análise de Auditorias</h2>
-            <p>Distribuição por categoria e desempenho por setor</p>
-          </div>
-        </div>
+        
         <div class="header-controls">
           <div class="filter-group">
             <div class="filter-item">
