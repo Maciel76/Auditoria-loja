@@ -8,61 +8,6 @@
       :tipoAuditoria="filtroTipoAuditoria"
     />
 
-    <!-- Informações em Tempo Real - UserDailyMetrics - REMOVIDO A PEDIDO DO USUÁRIO -->
-    <!--
-    <div v-if="!carregando && !erro && usuarios.length > 0" class="realtime-info">
-      <div class="realtime-header">
-        <h3>
-          <i class="fas fa-chart-line"></i>
-          Dados em Tempo Real - UserDailyMetrics
-        </h3>
-        <span class="data-source">Fonte: Última auditoria processada</span>
-      </div>
-
-      <div class="realtime-stats">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ colaboradoresAtivos }}</div>
-            <div class="stat-label">Colaboradores Ativos</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-percentage"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ eficienciaMedia }}%</div>
-            <div class="stat-label">Eficiência Média</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-star"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ pontuacaoTotal.toLocaleString() }}</div>
-            <div class="stat-label">Pontuação Total</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-trophy"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">{{ melhorEficiencia.nome }}</div>
-            <div class="stat-label">Maior Eficiência ({{ melhorEficiencia.eficiencia }}%)</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    -->
-
     <!-- Controles e Filtros Unificados -->
     <div class="unified-controls">
       <!-- Filtros Principais -->
@@ -85,74 +30,13 @@
           </select>
         </div>
 
-        <!-- Filtro de Período -->
-        <div class="filter-group">
-          <label class="filter-label">
-            <i class="fas fa-calendar-alt"></i>
-            Período:
-          </label>
-          <select
-            v-model="filtroPeriodo"
-            @change="handlePeriodoChange"
-            class="filter-select"
-          >
-            <option value="hoje">📅 Hoje</option>
-            <option value="semana">📊 Esta Semana</option>
-            <option value="mes">📆 Este Mês</option>
-            <option value="personalizado">🗓️ Data Específica</option>
-            <option value="todos">🔄 Todos os Períodos</option>
-          </select>
-        </div>
-
-        <!-- Filtro por Data Específica -->
-        <div v-if="filtroPeriodo === 'personalizado'" class="filter-group">
-          <label class="filter-label">
-            <i class="fas fa-calendar-day"></i>
-            Data Específica:
-          </label>
-          <select
-            v-model="dataEspecifica"
-            @change="buscarDados"
-            class="filter-select"
-          >
-            <option value="">Selecionar data...</option>
-            <option
-              v-for="data in datasAuditoria"
-              :key="data.timestamp"
-              :value="data.data"
-            >
-              {{ data.dataFormatada }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Modo de Visualização -->
-        <div class="filter-group">
-          <label class="filter-label">
-            <i class="fas fa-eye"></i>
-            Visualização:
-          </label>
-          <div class="view-options">
-            <button
-              @click="viewMode = 'podium'"
-              :class="['view-btn', { active: viewMode === 'podium' }]"
-            >
-              <i class="fas fa-trophy"></i>
-              Pódio
-            </button>
-            <button
-              @click="viewMode = 'all'"
-              :class="['view-btn', { active: viewMode === 'all' }]"
-            >
-              <i class="fas fa-list"></i>
-              Todos
-            </button>
-          </div>
-        </div>
-
         <!-- Botão Atualizar -->
         <div class="filter-group">
-          <button @click="buscarDados" class="refresh-btn" :disabled="carregando">
+          <button
+            @click="buscarDados"
+            class="refresh-btn"
+            :disabled="carregando"
+          >
             <i class="fas fa-sync-alt" :class="{ spinning: carregando }"></i>
             Atualizar
           </button>
@@ -187,7 +71,7 @@
     />
 
     <!-- Lista Completa de Ranking -->
-    <RankingList
+    <RankingListColaboradores
       v-if="!carregando && !erro && usuarios.length > 0"
       :usuariosFiltradosOrdenados="usuariosFiltradosOrdenados"
       :viewMode="viewMode"
@@ -203,10 +87,6 @@
       :totalItensLidos="totalItensLidos"
       :percentualAboveAverage="percentualAboveAverage"
       :tipoAuditoria="filtroTipoAuditoria"
-      :eficienciaMedia="eficienciaMedia"
-      :pontuacaoTotal="pontuacaoTotal"
-      :melhorEficiencia="melhorEficiencia"
-      :colaboradoresAtivos="colaboradoresAtivos"
     />
 
     <!-- Botão de Exportar -->
@@ -217,19 +97,22 @@
     />
 
     <!-- Estado Vazio -->
-    <div v-if="!carregando && !erro && usuarios.length === 0" class="empty-state">
+    <div
+      v-if="!carregando && !erro && usuarios.length === 0"
+      class="empty-state"
+    >
       <div class="empty-icon">
         <i class="fas fa-users-slash"></i>
       </div>
       <h3>Nenhum colaborador encontrado</h3>
       <p v-if="filtroTipoAuditoria !== 'todos'">
-        Não foram encontrados dados para auditorias do tipo "{{ getTipoAuditoriaName(filtroTipoAuditoria) }}" no período selecionado.
+        Não foram encontrados dados para auditorias do tipo "{{
+          getTipoAuditoriaName(filtroTipoAuditoria)
+        }}".
       </p>
-      <p v-else>
-        Não foram encontrados dados de ranking no período selecionado.
-      </p>
+      <p v-else>Não foram encontrados dados de ranking.</p>
       <p class="empty-suggestion">
-        Experimente alterar os filtros ou o período selecionado.
+        Verifique se há planilhas processadas para esta loja.
       </p>
     </div>
   </div>
@@ -240,10 +123,10 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useLojaStore } from "@/store/lojaStore";
 import axios from "axios";
 
-// Importar componentes unificados (vamos usar os da Etiqueta como base)
+// Importar componentes unificados
 import HeroSection from "./Ranking/Etiqueta/HeroSection.vue";
 import PodiumSection from "./Ranking/Etiqueta/PodiumSection.vue";
-import RankingList from "./Ranking/Etiqueta/RankingList.vue";
+import RankingListColaboradores from "./Ranking/Colaboradores/RankingListColaboradores.vue";
 import AdvancedStats from "./Ranking/Etiqueta/AdvancedStats.vue";
 import ExportSection from "./Ranking/Etiqueta/ExportSection.vue";
 
@@ -252,7 +135,7 @@ export default {
   components: {
     HeroSection,
     PodiumSection,
-    RankingList,
+    RankingListColaboradores,
     AdvancedStats,
     ExportSection,
   },
@@ -263,11 +146,8 @@ export default {
     const usuarios = ref([]);
     const viewMode = ref("podium");
     const filtroTipoAuditoria = ref("todos");
-    const filtroPeriodo = ref("hoje");
-    const dataEspecifica = ref("");
     const carregando = ref(false);
     const erro = ref("");
-    const datasAuditoria = ref([]);
 
     // Computadas
     const usuariosOrdenados = computed(() => {
@@ -309,34 +189,6 @@ export default {
       return Math.round((aboveAverage / usuarios.value.length) * 100);
     });
 
-    // Novas computadas para UserDailyMetrics
-    const eficienciaMedia = computed(() => {
-      if (usuarios.value.length === 0) return 0;
-      const somaEficiencia = usuarios.value.reduce(
-        (total, usuario) => total + (usuario.eficiencia || 0),
-        0
-      );
-      return Math.round(somaEficiencia / usuarios.value.length);
-    });
-
-    const pontuacaoTotal = computed(() => {
-      return usuarios.value.reduce(
-        (total, usuario) => total + (usuario.pontuacao || 0),
-        0
-      );
-    });
-
-    const melhorEficiencia = computed(() => {
-      if (usuarios.value.length === 0) return { nome: "N/A", eficiencia: 0 };
-      return usuarios.value.reduce((melhor, atual) =>
-        (atual.eficiencia || 0) > (melhor.eficiencia || 0) ? atual : melhor
-      );
-    });
-
-    const colaboradoresAtivos = computed(() => {
-      return usuarios.value.filter(u => u.contador > 0).length;
-    });
-
     // Métodos
     const getTipoAuditoriaName = (tipo) => {
       const tipos = {
@@ -346,21 +198,6 @@ export default {
         todos: "Todas",
       };
       return tipos[tipo] || tipo;
-    };
-
-    const carregarDatasAuditoria = async () => {
-      try {
-        const { data } = await axios.get("http://localhost:3000/datas-auditoria-colaboradores", {
-          headers: {
-            'x-loja': lojaStore.codigoLojaAtual
-          }
-        });
-        datasAuditoria.value = data;
-        console.log(`📅 ${data.length} datas de auditoria carregadas do UserDailyMetrics`);
-      } catch (error) {
-        console.error("Erro ao carregar datas:", error);
-        datasAuditoria.value = [];
-      }
     };
 
     const buscarDados = async () => {
@@ -373,22 +210,12 @@ export default {
         carregando.value = true;
         erro.value = "";
 
-        // NOVA URL para UserDailyMetrics
         let url = "http://localhost:3000/ranking-colaboradores";
         const params = new URLSearchParams();
 
         // Filtro por tipo de auditoria
         if (filtroTipoAuditoria.value !== "todos") {
           params.append("tipo", filtroTipoAuditoria.value);
-        }
-
-        // Filtro por período
-        if (filtroPeriodo.value !== "todos") {
-          if (filtroPeriodo.value === "personalizado" && dataEspecifica.value) {
-            params.append("dataAuditoria", dataEspecifica.value);
-          } else if (filtroPeriodo.value !== "personalizado") {
-            params.append("periodo", filtroPeriodo.value);
-          }
         }
 
         if (params.toString()) {
@@ -399,26 +226,21 @@ export default {
 
         const response = await axios.get(url, {
           headers: {
-            'x-loja': lojaStore.codigoLojaAtual
-          }
+            "x-loja": lojaStore.codigoLojaAtual,
+          },
         });
 
-        // Processar dados do UserDailyMetrics
+        // Os dados já vêm prontos do backend
         usuarios.value = response.data.map((usuario) => ({
           ...usuario,
           iniciais: obterIniciais(usuario.nome),
-          contador: usuario.contador || 0,
-          // Dados extras do UserDailyMetrics para análises avançadas
-          metricas: usuario.metricas || {},
-          // Cálculos adicionais baseados nas métricas
-          eficiencia: usuario.metricas?.totais?.percentualConclusaoGeral || 0,
-          pontuacao: usuario.metricas?.totais?.pontuacaoTotal || 0,
-          posicaoLoja: usuario.metricas?.ranking?.posicaoLoja || 0,
         }));
 
-        console.log(`✅ ${usuarios.value.length} colaboradores carregados do UserDailyMetrics`);
+        console.log(
+          `✅ ${usuarios.value.length} colaboradores carregados do UserDailyMetrics`
+        );
 
-        // Log dos dados para debug
+        // Log para debug
         if (usuarios.value.length > 0) {
           console.log("📊 Exemplo de dados carregados:", {
             usuario: usuarios.value[0].nome,
@@ -426,25 +248,19 @@ export default {
             eficiencia: usuarios.value[0].eficiencia,
             pontuacao: usuarios.value[0].pontuacao,
             tipo: filtroTipoAuditoria.value,
-            periodo: filtroPeriodo.value
+            metricas: usuarios.value[0].metricas,
           });
         }
       } catch (error) {
         console.error("❌ Erro ao buscar dados do UserDailyMetrics:", error);
-        erro.value = error.response?.data?.erro ||
-                    error.response?.data?.detalhes ||
-                    "Erro ao conectar com o servidor";
+        erro.value =
+          error.response?.data?.erro ||
+          error.response?.data?.detalhes ||
+          "Erro ao conectar com o servidor";
 
         usuarios.value = [];
       } finally {
         carregando.value = false;
-      }
-    };
-
-    const handlePeriodoChange = () => {
-      if (filtroPeriodo.value !== "personalizado") {
-        dataEspecifica.value = "";
-        buscarDados();
       }
     };
 
@@ -460,7 +276,6 @@ export default {
 
     const exportarRanking = () => {
       const tipoTexto = getTipoAuditoriaName(filtroTipoAuditoria.value);
-      const dataExport = filtroPeriodo.value === "personalizado" ? dataEspecifica.value : filtroPeriodo.value;
 
       const rankingData = usuariosOrdenados.value.map((user, index) => ({
         Posição: `${index + 1}º`,
@@ -468,19 +283,20 @@ export default {
         Matrícula: user.id,
         "Itens Lidos": user.contador,
         "Eficiência (%)": user.eficiencia,
-        "Pontuação": user.pontuacao,
+        Pontuação: user.pontuacao,
         "Posição na Loja": user.posicaoLoja || "N/A",
         "Tipo de Auditoria": tipoTexto,
-        "Período": dataExport,
-        "Data da Métrica": user.metricas?.data ? new Date(user.metricas.data).toLocaleDateString('pt-BR') : "N/A",
-        "Loja": user.loja,
+        "Data da Última Atualização": user.metricas?.data
+          ? new Date(user.metricas.data).toLocaleDateString("pt-BR")
+          : "N/A",
+        Loja: user.loja,
       }));
 
       const csvContent = [
-        "Posição,Nome,Matrícula,Itens Lidos,Eficiência (%),Pontuação,Posição na Loja,Tipo de Auditoria,Período,Data da Métrica,Loja",
+        "Posição,Nome,Matrícula,Itens Lidos,Eficiência (%),Pontuação,Posição na Loja,Tipo de Auditoria,Data da Última Atualização,Loja",
         ...rankingData.map(
           (item) =>
-            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Lidos"]},${item["Eficiência (%)"]},${item.Pontuação},"${item["Posição na Loja"]}","${item["Tipo de Auditoria"]}","${item.Período}","${item["Data da Métrica"]}","${item.Loja}"`
+            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Lidos"]},${item["Eficiência (%)"]},${item.Pontuação},"${item["Posição na Loja"]}","${item["Tipo de Auditoria"]}","${item["Data da Última Atualização"]}","${item.Loja}"`
         ),
       ].join("\n");
 
@@ -489,45 +305,49 @@ export default {
       const url = URL.createObjectURL(blob);
 
       link.setAttribute("href", url);
-      link.setAttribute("download", `ranking_colaboradores_userdailymetrics_${tipoTexto.toLowerCase()}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute(
+        "download",
+        `ranking_colaboradores_${tipoTexto.toLowerCase()}_${
+          new Date().toISOString().split("T")[0]
+        }.csv`
+      );
       link.style.visibility = "hidden";
 
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      console.log(`📊 Exportado ranking de ${rankingData.length} colaboradores (${tipoTexto})`);
+      console.log(
+        `📊 Exportado ranking de ${rankingData.length} colaboradores (${tipoTexto})`
+      );
     };
 
     // Lifecycle e Watchers
     onMounted(async () => {
       if (lojaStore.isLojaSelected) {
-        await carregarDatasAuditoria();
         await buscarDados();
       }
     });
 
     // Watch para mudanças na loja
-    watch(() => lojaStore.lojaSelecionada, async (novaLoja) => {
-      if (novaLoja) {
-        await carregarDatasAuditoria();
-        await buscarDados();
-      } else {
-        usuarios.value = [];
-        datasAuditoria.value = [];
+    watch(
+      () => lojaStore.lojaSelecionada,
+      async (novaLoja) => {
+        if (novaLoja) {
+          await buscarDados();
+        } else {
+          usuarios.value = [];
+        }
       }
-    });
+    );
 
     return {
       // Estados
       usuarios,
       viewMode,
       filtroTipoAuditoria,
-      filtroPeriodo,
-      dataEspecifica,
       carregando,
       erro,
-      datasAuditoria,
       lojaStore,
 
       // Computadas
@@ -537,16 +357,10 @@ export default {
       mediaItensPorUsuario,
       topPerformer,
       percentualAboveAverage,
-      // Novas computadas UserDailyMetrics
-      eficienciaMedia,
-      pontuacaoTotal,
-      melhorEficiencia,
-      colaboradoresAtivos,
 
       // Métodos
       getTipoAuditoriaName,
       buscarDados,
-      handlePeriodoChange,
       exportarRanking,
     };
   },
@@ -671,7 +485,6 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-
 .filters-main {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -785,8 +598,12 @@ export default {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== ESTADOS ===== */
@@ -918,7 +735,6 @@ export default {
   .view-options {
     flex-direction: column;
   }
-
 }
 
 @media (max-width: 480px) {
@@ -932,6 +748,5 @@ export default {
     padding: 0.75rem;
     font-size: 0.8rem;
   }
-
 }
 </style>
