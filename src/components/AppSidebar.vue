@@ -34,8 +34,6 @@
             <h1 v-else class="collapsed-title">
               {{ lojaStore.codigoLojaAtual }}
             </h1>
-
-            
           </div>
 
           <!-- Botão de Toggle da Sidebar -->
@@ -270,12 +268,12 @@
             @click="closeSubmenus"
             :title="sidebarCollapsed ? 'Ranking das Lojas' : ''"
           >
-          <img
+            <img
               src="../assets/svg/ranking.png"
               alt="Ranking"
               class="nav-icon"
             />
-            
+
             <span class="nav-text" v-if="!sidebarCollapsed"
               >Ranking das Lojas</span
             >
@@ -803,7 +801,7 @@ body {
   margin-right: 1rem;
   opacity: 0.8;
   transition: opacity 0.3s ease;
-  
+
   flex-shrink: 0;
 }
 

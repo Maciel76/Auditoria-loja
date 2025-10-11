@@ -3,6 +3,12 @@
   <div class="upload-container">
     <!-- Card de informações da loja -->
     <div class="loja-info-card">
+      <!-- Elementos decorativos de fundo -->
+      <div class="decoration-circle card-circle-1"></div>
+      <div class="decoration-circle card-circle-2"></div>
+      <div class="decoration-circle card-circle-3"></div>
+      <div class="decoration-circle card-circle-4"></div>
+
       <div class="loja-header">
         <h2>Upload de Ruptura</h2>
         <div class="loja-badge">
@@ -19,7 +25,11 @@
 
     <!-- Upload Box -->
     <div class="upload-box" @dragover.prevent @drop="handleDrop">
-      <div class="upload-icon">⚠️</div>
+      <div class="upload-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+          <path fill="#3da1f3" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12c5.16-1.26 9-6.45 9-12V5M11 7h2v6h-2m0 2h2v2h-2"/>
+        </svg>
+      </div>
       <p>Arraste sua planilha de ruptura aqui ou</p>
       <input
         type="file"
@@ -215,6 +225,57 @@ const novoUpload = () => {
   border-radius: 12px;
   margin-bottom: 2rem;
   box-shadow: 0 8px 32px rgba(130, 129, 131, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Elementos decorativos de fundo no card */
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+.card-circle-1 {
+  width: 80px;
+  height: 80px;
+  top: -20px;
+  right: -20px;
+  animation-delay: 0s;
+}
+
+.card-circle-2 {
+  width: 60px;
+  height: 60px;
+  bottom: -15px;
+  left: -15px;
+  animation-delay: 1.5s;
+}
+
+.card-circle-3 {
+  width: 40px;
+  height: 40px;
+  top: 30%;
+  right: 15%;
+  animation-delay: 3s;
+}
+
+.card-circle-4 {
+  width: 50px;
+  height: 50px;
+  bottom: 25%;
+  left: 20%;
+  animation-delay: 4.5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(8deg);
+  }
 }
 
 .loja-header {
@@ -222,6 +283,8 @@ const novoUpload = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .loja-header h2 {
@@ -254,6 +317,8 @@ const novoUpload = () => {
   margin: 0;
   opacity: 0.9;
   font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
 }
 
 .upload-box {
@@ -491,6 +556,11 @@ input[type="file"] {
 
   .success-actions {
     flex-direction: column;
+  }
+
+  /* Esconde algumas bolinhas em mobile para não poluir */
+  .card-circle-3, .card-circle-4 {
+    display: none;
   }
 }
 </style>

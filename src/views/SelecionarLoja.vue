@@ -6,18 +6,18 @@
     </div>
 
     <div class="explicacao">
-      <h2>Bem-vindo ao Sistema de Auditorias</h2>
+      <h2>Bem-vindo ao Sistema de Análise de Auditorias</h2>
       <p>
-        Este sistema permite realizar auditorias de etiquetas, presença e
-        ruptura de produtos em suas lojas. Selecione sua loja abaixo para
-        iniciar o processo de auditoria.
+        Este sistema permite realizar análises das Auditorias de Etiquetas,
+        Presença e Ruptura de produtos em suas lojas. Selecione sua loja abaixo
+        para iniciar o processo de análise.
       </p>
     </div>
 
     <div class="etapa-info">
       <div class="etapa ativa">
         <span class="numero">1</span>
-        <span class="texto">Selecionar Loja</span>
+        <span class="texto">Selecionar Loja </span>
       </div>
       <div class="etapa">
         <span class="numero">2</span>
@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <h3>Selecione sua loja</h3>
+    <h3>Selecione A loja que vc Pertence</h3>
 
     <div class="lojas-grid">
       <div
@@ -59,7 +59,7 @@
       :disabled="!lojaSelecionada"
       @click="continuar"
     >
-      Continuar para Etapa 2
+      Continuar
     </button>
 
     <div class="info-rodape">

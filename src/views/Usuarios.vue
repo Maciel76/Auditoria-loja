@@ -7,7 +7,10 @@
           <i class="fas fa-store"></i>
         </div>
         <h2>Selecione uma Loja</h2>
-        <p>Para visualizar os colaboradores, você precisa selecionar uma loja primeiro.</p>
+        <p>
+          Para visualizar os colaboradores, você precisa selecionar uma loja
+          primeiro.
+        </p>
 
         <div class="lojas-grid">
           <div
@@ -39,13 +42,33 @@
     <div v-else>
       <!-- Header com Loja Selecionada -->
       <div class="page-header">
+        <!-- Elementos decorativos de fundo -->
+        <div class="decoration-circle header-circle-1"></div>
+        <div class="decoration-circle header-circle-2"></div>
+        <div class="decoration-circle header-circle-3"></div>
+        <div class="decoration-circle header-circle-4"></div>
+        <div class="decoration-circle header-circle-5"></div>
+        <div class="decoration-circle header-circle-6"></div>
+
         <div class="header-content">
-          <div class="header-text">
-            <h1>
-              <i class="fas fa-users-cog"></i>
-              Colaboradores - {{ lojaStore.nomeLojaAtual }}
-            </h1>
-            <p>Gestão de colaboradores da loja {{ lojaStore.codigoLojaAtual }}</p>
+          <div class="header-left">
+            <div class="loja-image-header">
+              <img
+                :src="lojaStore.imagemLojaAtual"
+                :alt="'Imagem da ' + lojaStore.nomeLojaAtual"
+                @error="handleImageError"
+              />
+            </div>
+            <div class="header-text">
+              <h1>
+                <i class="fas fa-users-cog"></i>
+                Colaboradores -
+                {{ extrairNomeSimples(lojaStore.nomeLojaAtual) }}
+              </h1>
+              <p>
+                Gestão de colaboradores da loja {{ lojaStore.codigoLojaAtual }}
+              </p>
+            </div>
           </div>
           <div class="header-actions">
             <button
@@ -54,7 +77,18 @@
               title="Atualizar dados"
               :disabled="carregando"
             >
-              <i class="fas fa-sync-alt" :class="{ spinning: carregando }"></i>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                :class="{ spinning: carregando }"
+              >
+                <path
+                  fill="white"
+                  d="M10.2 3.28c3.53 0 6.43 2.61 6.92 6h2.08l-3.5 4l-3.5-4h2.32a4.44 4.44 0 0 0-4.32-3.45c-1.45 0-2.73.71-3.54 1.78L4.95 5.66a6.97 6.97 0 0 1 5.25-2.38m-.4 13.44c-3.52 0-6.43-2.61-6.92-6H.8l3.5-4c1.17 1.33 2.33 2.67 3.5 4H5.48a4.44 4.44 0 0 0 4.32 3.45c1.45 0 2.73-.71 3.54-1.78l1.71 1.95a6.95 6.95 0 0 1-5.25 2.38"
+                />
+              </svg>
             </button>
             <button
               @click="trocarLoja"
@@ -109,7 +143,11 @@
             class="filter-select"
           >
             <option value="">Todas as datas</option>
-            <option v-for="data in datasAuditoria" :key="data.timestamp" :value="data.data">
+            <option
+              v-for="data in datasAuditoria"
+              :key="data.timestamp"
+              :value="data.data"
+            >
               {{ data.dataFormatada }}
             </option>
           </select>
@@ -118,39 +156,242 @@
 
       <!-- Cards de Estatísticas -->
       <div class="metrics-grid">
+        <div class="metric-card warning">
+          <div class="metric-icon trophy-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="40"
+              height="40"
+              viewBox="0 0 600 600"
+            >
+              <g>
+                <ellipse
+                  style="fill: #d8dfea"
+                  cx="300.616"
+                  cy="554.031"
+                  rx="175.988"
+                  ry="4.969"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M530,92.139v48.298c0,78.441-63.577,142.052-141.975,142.052h-19.877l22.063-22.757
+                  c64.769-1.165,117.073-54.235,117.073-119.295v-36.933h-85.185l2.84-22.728h93.704C524.917,80.774,530,85.86,530,92.139z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M373.827,419.34v25.086H226.173V419.34c0-2.045,1.107-3.949,2.896-4.943l11.188-6.307
+                  c19.365-10.909,31.348-31.393,31.348-53.639v-26.507h56.79v26.507c0,22.245,11.983,42.729,31.348,53.639l11.188,6.307
+                  C372.72,415.391,373.827,417.295,373.827,419.34z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M373.827,419.34v25.086H359.63V419.34c0-2.045-1.107-3.949-2.896-4.943l-11.188-6.307
+                  c-19.365-10.909-31.348-31.393-31.348-53.639v-26.507h14.198v26.507c0,22.245,11.983,42.729,31.348,53.639l11.188,6.307
+                  C372.72,415.391,373.827,417.295,373.827,419.34z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M345.432,305.784v16.478c0,7.841-6.36,14.205-14.198,14.205h-62.469
+                  c-7.837,0-14.198-6.364-14.198-14.205v-16.478H345.432z"
+                />
+                <rect
+                  x="271.605"
+                  y="336.468"
+                  style="fill: #b7791d"
+                  width="56.79"
+                  height="8.353"
+                />
+                <path
+                  style="fill: #343b49"
+                  d="M396.543,438.745v99.436H203.457v-99.436c0-3.125,2.556-5.682,5.679-5.682h181.728
+                  C393.988,433.063,396.543,435.62,396.543,438.745z"
+                />
+                <path
+                  style="fill: #262d38"
+                  d="M396.543,438.745v99.436h-11.358v-99.436c0-3.125-2.556-5.682-5.679-5.682h11.358
+                  C393.988,433.063,396.543,435.62,396.543,438.745z"
+                />
+                <path
+                  style="fill: #262d38"
+                  d="M413.58,535.34v11.364c0,3.125-2.556,5.682-5.679,5.682H192.099c-3.123,0-5.679-2.557-5.679-5.682
+                  V535.34c0-3.125,2.556-5.682,5.679-5.682h215.802C411.025,529.658,413.58,532.215,413.58,535.34z"
+                />
+                <path
+                  style="fill: #171c23"
+                  d="M413.58,535.34v11.364c0,3.125-2.556,5.682-5.679,5.682h-11.358c3.123,0,5.679-2.557,5.679-5.682
+                  V535.34c0-3.125-2.556-5.682-5.679-5.682h11.358C411.025,529.658,413.58,532.215,413.58,535.34z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M368.148,461.473v39.774c0,3.125-2.556,5.682-5.679,5.682H237.531
+                  c-3.123,0-5.679-2.557-5.679-5.682v-39.774c0-3.125,2.556-5.682,5.679-5.682h124.938
+                  C365.593,455.791,368.148,458.348,368.148,461.473z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M345.432,305.784v16.478c0,7.841-6.36,14.205-14.198,14.205h-11.358
+                  c7.837,0,14.198-6.364,14.198-14.205v-16.478H345.432z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M240.37,282.488h-28.395C133.577,282.488,70,218.877,70,140.436V92.139
+                  c0-6.279,5.083-11.364,11.358-11.364h93.704v22.728H92.716v36.933c0,65.06,52.304,118.13,117.073,119.295L240.37,282.488z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M439.136,58.046V69.41c0,138.074-62.299,250.011-139.136,250.011S160.864,207.485,160.864,69.41
+                  V58.046H439.136z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M162.142,103.503h-11.358c-0.568-7.472-0.937-15.057-1.136-22.728h11.358
+                  C161.205,88.445,161.574,96.031,162.142,103.503z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M227.195,282.488h-11.358c-6.332-6.989-12.352-14.887-17.946-23.581
+                  c3.919,0.483,7.865,0.739,11.898,0.824C215.241,268.112,221.062,275.726,227.195,282.488z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M345.432,305.784v5.682c-14.254,8.836-29.531,13.637-45.432,13.637s-31.178-4.801-45.432-13.637
+                  v-5.682c14.254,8.836,29.531,13.637,45.432,13.637S331.178,314.62,345.432,305.784z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M439.136,58.046V69.41c0,133.756-58.466,242.994-131.98,249.699
+                  c71.442-6.79,97.906-115.999,97.906-249.699V58.046H439.136z"
+                />
+                <path
+                  style="fill: #e8a615"
+                  d="M453.333,55.205c0,3.921-1.59,7.472-4.146,10.057c-2.584,2.557-6.133,4.148-10.052,4.148H160.864
+                  c-7.837,0-14.198-6.364-14.198-14.205c0-3.921,1.59-7.472,4.146-10.057c2.584-2.557,6.133-4.148,10.052-4.148h278.272
+                  C446.973,41,453.333,47.364,453.333,55.205z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M439.136,69.41c0,3.807-0.057,7.586-0.142,11.364H161.006c-0.085-3.779-0.142-7.557-0.142-11.364
+                  H439.136z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M453.333,55.205c0,3.921-1.59,7.472-4.146,10.057c-2.584,2.557-6.133,4.148-10.052,4.148h-31.235
+                  c3.919,0,7.468-1.591,10.052-4.148c2.556-2.585,4.146-6.137,4.146-10.057c0-7.841-6.36-14.205-14.198-14.205h31.235
+                  C446.973,41,453.333,47.364,453.333,55.205z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M368.148,461.473v39.774c0,3.125-2.556,5.682-5.679,5.682H249.741
+                  c22.943-0.455,98.531-5.341,98.531-51.139h14.198C365.593,455.791,368.148,458.348,368.148,461.473z"
+                />
+                <path
+                  style="fill: #ffcc66"
+                  d="M237.531,487.042v-23.245c0-1.284,1.04-2.324,2.323-2.324h50.918
+                  C290.772,461.473,250.309,465.735,237.531,487.042z"
+                />
+                <path
+                  style="fill: #4e5868"
+                  d="M209.846,464.314v-23.245c0-1.284,1.04-2.324,2.323-2.324h50.918
+                  C263.086,438.745,222.623,443.006,209.846,464.314z"
+                />
+                <path
+                  style="fill: #ffcc66"
+                  d="M300,310.898c-30.837,0-116.363-65.088-126.727-218.76h33.733
+                  C215.496,280.158,300,310.898,300,310.898z"
+                />
+                <path
+                  style="fill: #ffcc66"
+                  d="M240.37,421.699c0,0,39.753-25.569,39.753-62.503v62.503H240.37z"
+                />
+                <path
+                  style="fill: #ffcc66"
+                  d="M166.543,46.682v8.523h-14.198c0-4.688,3.805-8.523,8.519-8.523H166.543z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M447.512,80.774c-0.199,7.671-0.568,15.256-1.164,22.728h-24.249l2.84-22.728H447.512z"
+                />
+                <path
+                  style="fill: #b7791d"
+                  d="M399.07,259.248c-5.565,8.551-11.5,16.336-17.747,23.24h-13.175l10.052-10.341l12.011-12.415
+                  C393.193,259.674,396.146,259.504,399.07,259.248z"
+                />
+              </g>
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value">{{
+              limitarNomeTop(melhorColaborador?.nome) || "N/A"
+            }}</span>
+            <span class="metric-label">Top Colaborador</span>
+          </div>
+        </div>
+
         <div class="metric-card primary">
-          <div class="metric-icon">
-            <i class="fas fa-users"></i>
+          <div class="metric-icon user-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="6" r="4" fill="white" />
+              <path
+                fill="white"
+                d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5"
+              />
+            </svg>
           </div>
           <div class="metric-data">
             <span class="metric-value">{{ usuarios.length }}</span>
-            <span class="metric-label">Colaboradores Ativos</span>
+            <span class="metric-label">Colaboradores da Loja</span>
+          </div>
+        </div>
+
+        <div class="metric-card info">
+          <div class="metric-icon user-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="white"
+                d="M16 17v2H2v-2s0-4 7-4s7 4 7 4m-3.5-9.5A3.5 3.5 0 1 0 9 11a3.5 3.5 0 0 0 3.5-3.5m3.44 5.5A5.32 5.32 0 0 1 18 17v2h4v-2s0-3.63-6.06-4M15 4a3.4 3.4 0 0 0-1.93.59a5 5 0 0 1 0 5.82A3.4 3.4 0 0 0 15 11a3.5 3.5 0 0 0 0-7"
+              />
+            </svg>
+          </div>
+          <div class="metric-data">
+            <span class="metric-value">{{ totalColaboradoresGeral }}</span>
+            <span class="metric-label">Total de Colaboradores</span>
           </div>
         </div>
 
         <div class="metric-card success">
           <div class="metric-icon">
-            <i class="fas fa-store-alt"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ lojaStore.codigoLojaAtual }}</span>
-            <span class="metric-label">Loja Selecionada</span>
-          </div>
-        </div>
-
-        <div class="metric-card info">
-          <div class="metric-icon">
-            <i class="fas fa-clipboard-check"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ totalItensLidos }}</span>
-            <span class="metric-label">Itens Lidos Total</span>
-          </div>
-        </div>
-
-        <div class="metric-card warning">
-          <div class="metric-icon">
-            <i class="fas fa-chart-bar"></i>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+            >
+              <g
+                fill="none"
+                stroke="white"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              >
+                <path
+                  d="M20.5 10.5v9c0 .466 0 .699-.076.883a1 1 0 0 1-.541.54C19.699 21 19.466 21 19 21s-.699 0-.883-.076a1 1 0 0 1-.54-.541c-.077-.184-.077-.417-.077-.883v-9c0-.466 0-.699.076-.883a1 1 0 0 1 .541-.54C18.301 9 18.534 9 19 9s.699 0 .883.076a1 1 0 0 1 .54.541c.077.184.077.417.077.883Z"
+                />
+                <path stroke-linecap="round" d="M16.5 3h3v3" />
+                <path stroke-linecap="round" d="M19 3.5s-4 5-14.5 8.5" />
+                <path
+                  d="M13.5 14v5.5c0 .466 0 .699-.076.883a1 1 0 0 1-.541.54C12.699 21 12.466 21 12 21s-.699 0-.883-.076a1 1 0 0 1-.54-.541c-.077-.184-.077-.417-.077-.883V14c0-.466 0-.699.076-.883a1 1 0 0 1 .541-.54c.184-.077.417-.077.883-.077s.699 0 .883.076a1 1 0 0 1 .54.541c.077.184.077.417.077.883Zm-7 2.5v3c0 .466 0 .699-.076.883a1 1 0 0 1-.541.54C5.699 21 5.466 21 5 21s-.699 0-.883-.076a1 1 0 0 1-.54-.541c-.077-.184-.077-.417-.077-.883v-3c0-.466 0-.699.076-.883a1 1 0 0 1 .541-.54C4.301 15 4.534 15 5 15s.699 0 .883.076a1 1 0 0 1 .54.541c.077.184.077.417.077.883Z"
+                />
+              </g>
+            </svg>
           </div>
           <div class="metric-data">
             <span class="metric-value">{{ mediaItensPorUsuario }}</span>
@@ -162,7 +403,9 @@
       <!-- Loading State -->
       <div v-if="carregando" class="loading-state">
         <div class="loader"></div>
-        <p>Carregando colaboradores da loja {{ lojaStore.codigoLojaAtual }}...</p>
+        <p>
+          Carregando colaboradores da loja {{ lojaStore.codigoLojaAtual }}...
+        </p>
       </div>
 
       <!-- Error State -->
@@ -185,14 +428,10 @@
         <h3>Nenhum colaborador encontrado</h3>
         <p v-if="filtro">Tente ajustar os filtros de busca</p>
         <p v-else>Faça o upload de uma planilha para esta loja para começar</p>
-        <button
-          v-if="filtro"
-          @click="limparFiltros"
-          class="btn-clear-filter"
-        >
+        <button v-if="filtro" @click="limparFiltros" class="btn-clear-filter">
           <i class="fas fa-times"></i> Limpar Filtros
         </button>
-        <router-link v-else to="/upload" class="btn-upload">
+        <router-link v-else to="/selecionar-auditoria" class="btn-upload">
           <i class="fas fa-cloud-upload-alt"></i> Fazer Upload
         </router-link>
       </div>
@@ -215,18 +454,25 @@
               />
               <span v-else class="avatar-initials">{{ usuario.iniciais }}</span>
             </div>
-            <div class="user-status online"></div>
+            <div
+              class="loja-badge-mini"
+              :style="{
+                background: gerarCorLoja(usuario.loja).gradient,
+                boxShadow: `0 4px 15px ${gerarCorLoja(usuario.loja).shadow}`,
+              }"
+            >
+              {{ usuario.loja }}
+            </div>
           </div>
 
           <div class="user-details">
-            <h3 class="user-name">{{ usuario.nome }}</h3>
+            <h3 class="user-name">{{ limitarNome(usuario.nome) }}</h3>
             <p class="user-matricula">
               <i class="fas fa-id-badge"></i> {{ usuario.id }}
             </p>
-            <p class="user-loja">
+            <p class="user-loja" v-if="filtroLoja === 'todos'">
               <i class="fas fa-store"></i>
-              <span v-if="filtroLoja === 'todos'">{{ usuario.lojaCompleta }} ({{ usuario.loja }})</span>
-              <span v-else>{{ usuario.loja }}</span>
+              <span>{{ usuario.lojaCompleta }}</span>
             </p>
           </div>
 
@@ -234,25 +480,19 @@
             <div class="metric-item">
               <i class="fas fa-clipboard-list"></i>
               <div class="metric-content">
-                <span class="metric-number">{{ usuario.contador }}</span>
+                <span class="metric-number green">{{ usuario.contador }}</span>
                 <span class="metric-text">Itens Lidos</span>
               </div>
             </div>
             <div class="metric-item">
               <i class="fas fa-calendar-check"></i>
               <div class="metric-content">
-                <span class="metric-number">{{ usuario.totalAuditorias }}</span>
+                <span class="metric-number purple">{{
+                  usuario.totalAuditorias
+                }}</span>
                 <span class="metric-text">Auditorias</span>
               </div>
             </div>
-          </div>
-
-          <div class="user-last-activity" v-if="usuario.ultimaAuditoria">
-            <p class="activity-label">
-              <i class="fas fa-clock"></i>
-              Última atividade:
-            </p>
-            <p class="activity-date">{{ formatarData(usuario.ultimaAuditoria) }}</p>
           </div>
 
           <div class="card-footer">
@@ -262,7 +502,7 @@
               @click.stop
             >
               <i class="fas fa-eye"></i>
-              Ver Perfil Completo
+              Ver Perfil Colaborador
             </router-link>
           </div>
         </div>
@@ -300,15 +540,18 @@ onMounted(async () => {
 });
 
 // Watch para recarregar dados quando loja mudar
-watch(() => lojaStore.lojaSelecionada, async (novaLoja) => {
-  if (novaLoja) {
-    await carregarDatasAuditoria();
-    await carregarUsuarios();
-  } else {
-    usuarios.value = [];
-    datasAuditoria.value = [];
+watch(
+  () => lojaStore.lojaSelecionada,
+  async (novaLoja) => {
+    if (novaLoja) {
+      await carregarDatasAuditoria();
+      await carregarUsuarios();
+    } else {
+      usuarios.value = [];
+      datasAuditoria.value = [];
+    }
   }
-});
+);
 
 // Selecionar loja
 const selecionarLoja = async (loja) => {
@@ -326,13 +569,119 @@ const trocarLoja = () => {
   datasAuditoria.value = [];
 };
 
+// Voltar para seleção de loja
+const voltarSelecaoLoja = () => {
+  lojaStore.limparLoja();
+  usuarios.value = [];
+  datasAuditoria.value = [];
+};
+
+// Limitar nome do usuário
+const limitarNome = (nome) => {
+  if (!nome) return "";
+  return nome.length > 18 ? nome.substring(0, 18) + "..." : nome;
+};
+
+// Limitar nome do top colaborador
+const limitarNomeTop = (nome) => {
+  if (!nome) return "";
+  return nome.length > 15 ? nome.substring(0, 15) + "..." : nome;
+};
+
+// Gerar cor baseada no código da loja
+const gerarCorLoja = (codigoLoja) => {
+  const cores = {
+    // Cores específicas para lojas conhecidas
+    "056": {
+      gradient: "linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)",
+      shadow: "rgba(238, 90, 36, 0.4)",
+    }, // Vermelho
+    "002": {
+      gradient: "linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%)",
+      shadow: "rgba(68, 160, 141, 0.4)",
+    }, // Verde-azulado
+    "003": {
+      gradient: "linear-gradient(135deg, #45b7d1 0%, #96c93d 100%)",
+      shadow: "rgba(69, 183, 209, 0.4)",
+    }, // Azul-verde
+    "004": {
+      gradient: "linear-gradient(135deg, #f39c12 0%, #d35400 100%)",
+      shadow: "rgba(211, 84, 0, 0.4)",
+    }, // Laranja
+    "005": {
+      gradient: "linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)",
+      shadow: "rgba(142, 68, 173, 0.4)",
+    }, // Roxo
+    "006": {
+      gradient: "linear-gradient(135deg, #1abc9c 0%, #16a085 100%)",
+      shadow: "rgba(22, 160, 133, 0.4)",
+    }, // Verde
+    "0526": {
+      gradient: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+      shadow: "rgba(249, 115, 22, 0.4)",
+    }, // Laranja (sua preferência)
+    "084": {
+      gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+      shadow: "rgba(16, 185, 129, 0.4)",
+    }, // Verde (sua preferência)
+    105: {
+      gradient: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+      shadow: "rgba(249, 115, 22, 0.4)",
+    }, // Laranja
+  };
+
+  // Se a loja tem uma cor específica, usa ela
+  if (cores[codigoLoja]) {
+    return cores[codigoLoja];
+  }
+
+  // Caso contrário, gera uma cor baseada no código da loja
+  const numero = parseInt(codigoLoja) || 0;
+  const coresAutomaticas = [
+    {
+      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      shadow: "rgba(102, 126, 234, 0.4)",
+    }, // Azul-roxo
+    {
+      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+      shadow: "rgba(245, 87, 108, 0.4)",
+    }, // Rosa
+    {
+      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+      shadow: "rgba(79, 172, 254, 0.4)",
+    }, // Azul claro
+    {
+      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      shadow: "rgba(67, 233, 123, 0.4)",
+    }, // Verde claro
+    {
+      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+      shadow: "rgba(250, 112, 154, 0.4)",
+    }, // Rosa-amarelo
+    {
+      gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+      shadow: "rgba(168, 237, 234, 0.4)",
+    }, // Azul-rosa claro
+    {
+      gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+      shadow: "rgba(255, 154, 158, 0.4)",
+    }, // Rosa suave
+    {
+      gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+      shadow: "rgba(252, 182, 159, 0.4)",
+    }, // Pêssego
+  ];
+
+  return coresAutomaticas[numero % coresAutomaticas.length];
+};
+
 // Carregar datas de auditoria disponíveis
 const carregarDatasAuditoria = async () => {
   try {
     const { data } = await axios.get("http://localhost:3000/datas-auditoria", {
       headers: {
-        'x-loja': lojaStore.codigoLojaAtual
-      }
+        "x-loja": lojaStore.codigoLojaAtual,
+      },
     });
     datasAuditoria.value = data;
   } catch (error) {
@@ -352,15 +701,15 @@ const carregarUsuarios = async () => {
     if (dataFiltro.value) {
       params.dataAuditoria = dataFiltro.value;
     }
-    if (filtroLoja.value === 'todos') {
-      params.todos = 'true';
+    if (filtroLoja.value === "todos") {
+      params.todos = "true";
     }
 
     const { data } = await axios.get("http://localhost:3000/usuarios", {
       params,
       headers: {
-        'x-loja': lojaStore.codigoLojaAtual
-      }
+        "x-loja": lojaStore.codigoLojaAtual,
+      },
     });
 
     usuarios.value = data.map((user) => ({
@@ -375,10 +724,13 @@ const carregarUsuarios = async () => {
       totalAuditorias: user.totalAuditorias || 0,
     }));
 
-    console.log(`✅ ${usuarios.value.length} usuários carregados da loja ${lojaStore.codigoLojaAtual}`);
+    console.log(
+      `✅ ${usuarios.value.length} usuários carregados da loja ${lojaStore.codigoLojaAtual}`
+    );
   } catch (error) {
     console.error("Erro ao carregar usuários:", error);
-    erro.value = error.response?.data?.erro || "Erro ao carregar dados do servidor";
+    erro.value =
+      error.response?.data?.erro || "Erro ao carregar dados do servidor";
   } finally {
     carregando.value = false;
   }
@@ -397,6 +749,18 @@ const obterIniciais = (nome) => {
       .substring(0, 2) || "??"
   );
 };
+
+// Extrair nome simples da loja
+function extrairNomeSimples(nomeCompleto) {
+  if (!nomeCompleto) return "Carregando...";
+  const partes = nomeCompleto.split(" - ");
+  return partes.length > 1 ? partes[1] : nomeCompleto;
+}
+
+// Tratar erro de imagem
+function handleImageError(event) {
+  event.target.src = "/images/lojas/default.jpg";
+}
 
 // Formatar data para exibição
 const formatarData = (dataString) => {
@@ -443,6 +807,23 @@ const mediaItensPorUsuario = computed(() =>
     ? Math.round(totalItensLidos.value / usuarios.value.length)
     : 0
 );
+
+// Computed: Total de colaboradores em todas as lojas (simulado como um número maior)
+const totalColaboradoresGeral = computed(() => {
+  // Para este exemplo, vamos simular que há mais colaboradores em todas as lojas
+  // Em uma implementação real, isso viria de uma API que retorna dados gerais
+  return usuarios.value.length * 3; // Simulando que há 3x mais colaboradores no total
+});
+
+// Computed: Melhor colaborador da loja
+const melhorColaborador = computed(() => {
+  if (usuarios.value.length === 0) return null;
+
+  // Encontra o colaborador com maior número de itens lidos
+  return usuarios.value.reduce((melhor, atual) => {
+    return atual.contador > melhor.contador ? atual : melhor;
+  });
+});
 </script>
 
 <style scoped>
@@ -563,6 +944,29 @@ const mediaItensPorUsuario = computed(() =>
   font-weight: 600;
 }
 
+/* Estilo para o ícone da loja nos cards */
+.metric-icon.loja-icon {
+  background: transparent !important;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.metric-icon.loja-icon img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Estilo para o ícone de usuário nos cards */
+.metric-icon.user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .error-message {
   background: #fef2f2;
   color: #dc2626;
@@ -585,6 +989,72 @@ const mediaItensPorUsuario = computed(() =>
   overflow: hidden;
 }
 
+/* Elementos decorativos de fundo no header */
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+.header-circle-1 {
+  width: 200px;
+  height: 200px;
+  top: -100px;
+  right: -50px;
+  animation-delay: 0s;
+}
+
+.header-circle-2 {
+  width: 150px;
+  height: 150px;
+  bottom: -75px;
+  left: -40px;
+  animation-delay: 1s;
+}
+
+.header-circle-3 {
+  width: 100px;
+  height: 100px;
+  top: 20%;
+  right: 15%;
+  animation-delay: 2s;
+}
+
+.header-circle-4 {
+  width: 80px;
+  height: 80px;
+  bottom: 20%;
+  left: 10%;
+  animation-delay: 3s;
+}
+
+.header-circle-5 {
+  width: 60px;
+  height: 60px;
+  top: 60%;
+  left: 5%;
+  animation-delay: 4s;
+}
+
+.header-circle-6 {
+  width: 90px;
+  height: 90px;
+  top: 10%;
+  left: 20%;
+  animation-delay: 5s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+  }
+}
+
 .page-header::before {
   content: "";
   position: absolute;
@@ -601,8 +1071,13 @@ const mediaItensPorUsuario = computed(() =>
 }
 
 @keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .header-content {
@@ -613,9 +1088,31 @@ const mediaItensPorUsuario = computed(() =>
   z-index: 1;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.loja-image-header {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.loja-image-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .header-text h1 {
   color: white;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
   display: flex;
@@ -635,7 +1132,9 @@ const mediaItensPorUsuario = computed(() =>
   align-items: center;
 }
 
-.btn-icon-refresh, .btn-trocar-loja {
+.btn-icon-refresh,
+.btn-icon-return,
+.btn-trocar-loja {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -649,7 +1148,8 @@ const mediaItensPorUsuario = computed(() =>
   font-weight: 500;
 }
 
-.btn-icon-refresh {
+.btn-icon-refresh,
+.btn-icon-return {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -661,11 +1161,14 @@ const mediaItensPorUsuario = computed(() =>
   gap: 0.5rem;
 }
 
-.btn-icon-refresh:hover, .btn-trocar-loja:hover {
+.btn-icon-refresh:hover,
+.btn-icon-return:hover,
+.btn-trocar-loja:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.btn-icon-refresh:disabled {
+.btn-icon-refresh:disabled,
+.btn-icon-return:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -675,8 +1178,12 @@ const mediaItensPorUsuario = computed(() =>
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== FILTROS ===== */
@@ -781,7 +1288,7 @@ const mediaItensPorUsuario = computed(() =>
 .metric-card {
   background: white;
   border-radius: 15px;
-  padding: 1.75rem;
+  padding: 8px 15px;
   display: flex;
   align-items: center;
   gap: 1.25rem;
@@ -789,6 +1296,7 @@ const mediaItensPorUsuario = computed(() =>
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
+  min-height: 100px;
 }
 
 .metric-card::before {
@@ -864,6 +1372,10 @@ const mediaItensPorUsuario = computed(() =>
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.metric-icon.trophy-icon {
+  background: white !important;
+}
+
 .metric-data {
   display: flex;
   flex-direction: column;
@@ -871,7 +1383,7 @@ const mediaItensPorUsuario = computed(() =>
 }
 
 .metric-value {
-  font-size: 2rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1e293b;
 }
@@ -1004,14 +1516,14 @@ const mediaItensPorUsuario = computed(() =>
 /* ===== GRID DE USUÁRIOS ===== */
 .users-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
 }
 
 .user-card {
   background: white;
-  border-radius: 20px;
-  padding: 2rem;
+  border-radius: 16px;
+  padding: 1.5rem;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
@@ -1072,24 +1584,27 @@ const mediaItensPorUsuario = computed(() =>
   font-weight: 700;
 }
 
-.user-status {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 3px solid white;
-}
-
-.user-status.online {
-  background: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
 .user-details {
   text-align: center;
   margin-bottom: 1.5rem;
+}
+
+.loja-badge-mini {
+  position: absolute;
+  bottom: -1px;
+  right: 35%;
+  color: white;
+  width: 35px;
+  height: 25px;
+  border-radius: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  font-weight: 900;
+  font-size: 0.9rem;
+  z-index: 10;
+  /* Background e box-shadow são aplicados dinamicamente via :style */
 }
 
 .user-name {
@@ -1099,7 +1614,18 @@ const mediaItensPorUsuario = computed(() =>
   margin-bottom: 0.5rem;
 }
 
-.user-matricula, .user-loja {
+.user-matricula {
+  color: #3b82f6;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.user-loja {
   color: #64748b;
   font-size: 0.95rem;
   display: flex;
@@ -1139,6 +1665,14 @@ const mediaItensPorUsuario = computed(() =>
   font-size: 1.5rem;
   font-weight: 700;
   color: #1e293b;
+}
+
+.metric-number.green {
+  color: #10b981;
+}
+
+.metric-number.purple {
+  color: #8b5cf6;
 }
 
 .metric-text {
@@ -1199,6 +1733,12 @@ const mediaItensPorUsuario = computed(() =>
 }
 
 /* ===== RESPONSIVO ===== */
+@media (max-width: 1200px) {
+  .users-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .usuarios-container {
     padding: 1rem;
@@ -1212,8 +1752,19 @@ const mediaItensPorUsuario = computed(() =>
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
+  .header-left {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .loja-image-header {
+    width: 60px;
+    height: 60px;
+  }
+
   .header-text h1 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .header-text p {
@@ -1244,15 +1795,23 @@ const mediaItensPorUsuario = computed(() =>
   }
 
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 
   .users-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 
   .user-metrics {
     grid-template-columns: 1fr;
+  }
+
+  /* Esconde algumas bolinhas em mobile para não poluir */
+  .header-circle-3,
+  .header-circle-4,
+  .header-circle-5,
+  .header-circle-6 {
+    display: none;
   }
 }
 
@@ -1260,6 +1819,11 @@ const mediaItensPorUsuario = computed(() =>
   .header-content {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .header-left {
+    align-items: center;
+    text-align: center;
   }
 
   .btn-icon-refresh {
@@ -1278,6 +1842,10 @@ const mediaItensPorUsuario = computed(() =>
 
   .user-name {
     font-size: 1.2rem;
+  }
+
+  .users-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

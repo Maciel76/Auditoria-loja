@@ -3,6 +3,12 @@
   <div class="upload-container">
     <!-- Card de informações da loja -->
     <div class="loja-info-card">
+      <!-- Elementos decorativos de fundo -->
+      <div class="decoration-circle card-circle-1"></div>
+      <div class="decoration-circle card-circle-2"></div>
+      <div class="decoration-circle card-circle-3"></div>
+      <div class="decoration-circle card-circle-4"></div>
+
       <div class="loja-header">
         <h2>Upload de Etiquetas</h2>
         <div class="loja-badge">
@@ -13,14 +19,18 @@
         </div>
       </div>
       <p class="loja-descricao">
-        Envie sua planilha de auditoria de etiquetas para a loja selecionada
+        Envie sua planilha da auditoria de etiquetas para a loja selecionada
       </p>
     </div>
 
     <!-- Upload Box -->
     <div class="upload-box" @dragover.prevent @drop="handleDrop">
-      <div class="upload-icon">📄</div>
-      <p>Arraste sua planilha de etiquetas aqui ou</p>
+      <div class="upload-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+          <path fill="#667eea" d="m21.41 11.58l-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5"/>
+        </svg>
+      </div>
+      <p>Arraste sua planilha de etiquetas aqui ou selecione arquivo</p>
       <input
         type="file"
         @change="handleFile"
@@ -215,6 +225,58 @@ const novoUpload = () => {
   border-radius: 12px;
   margin-bottom: 2rem;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Elementos decorativos de fundo no card */
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: float 6s ease-in-out infinite;
+}
+
+.card-circle-1 {
+  width: 80px;
+  height: 80px;
+  top: -20px;
+  right: -20px;
+  animation-delay: 0s;
+}
+
+.card-circle-2 {
+  width: 60px;
+  height: 60px;
+  bottom: -15px;
+  left: -15px;
+  animation-delay: 1.5s;
+}
+
+.card-circle-3 {
+  width: 40px;
+  height: 40px;
+  top: 30%;
+  right: 15%;
+  animation-delay: 3s;
+}
+
+.card-circle-4 {
+  width: 50px;
+  height: 50px;
+  bottom: 25%;
+  left: 20%;
+  animation-delay: 4.5s;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(8deg);
+  }
 }
 
 .loja-header {
@@ -222,6 +284,8 @@ const novoUpload = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .loja-header h2 {
@@ -254,6 +318,8 @@ const novoUpload = () => {
   margin: 0;
   opacity: 0.9;
   font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
 }
 
 .upload-box {
@@ -491,6 +557,12 @@ input[type="file"] {
 
   .success-actions {
     flex-direction: column;
+  }
+
+  /* Esconde algumas bolinhas em mobile para não poluir */
+  .card-circle-3,
+  .card-circle-4 {
+    display: none;
   }
 }
 </style>
