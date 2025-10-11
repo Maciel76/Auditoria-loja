@@ -30,16 +30,28 @@
           </select>
         </div>
 
-        <!-- Botão Atualizar -->
+        <!-- Controles de Visualização -->
         <div class="filter-group">
-          <button
-            @click="buscarDados"
-            class="refresh-btn"
-            :disabled="carregando"
-          >
-            <i class="fas fa-sync-alt" :class="{ spinning: carregando }"></i>
-            Atualizar
-          </button>
+          <label class="filter-label">
+            <i class="fas fa-eye"></i>
+            Visualização:
+          </label>
+          <div class="view-options">
+            <button
+              @click="viewMode = 'podium'"
+              :class="['view-btn', { active: viewMode === 'podium' }]"
+            >
+              <i class="fas fa-trophy"></i>
+              Pódio
+            </button>
+            <button
+              @click="viewMode = 'all'"
+              :class="['view-btn', { active: viewMode === 'all' }]"
+            >
+              <i class="fas fa-list"></i>
+              Lista
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -65,7 +77,7 @@
 
     <!-- Pódio - Top 3 -->
     <PodiumSection
-      v-else-if="viewMode === 'podium' && usuariosOrdenados.length >= 3"
+      v-if="!carregando && !erro && viewMode === 'podium' && usuariosOrdenados.length >= 3"
       :usuariosOrdenados="usuariosOrdenados"
       :tipoAuditoria="filtroTipoAuditoria"
     />
@@ -157,10 +169,12 @@ export default {
     const usuariosFiltradosOrdenados = computed(() => {
       let filtered = usuariosOrdenados.value;
 
+      // Se estiver no modo pódio, mostra apenas do 4º lugar em diante na lista
       if (viewMode.value === "podium") {
         return filtered.slice(3);
       }
 
+      // Se estiver no modo lista, mostra todos os usuários
       return filtered;
     });
 

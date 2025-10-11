@@ -33,7 +33,7 @@
             Upload de planilhas para verificação de preços e informações de
             etiquetas dos produtos
           </p>
-          <span class="card-action">Clique para continuar →</span>
+          <span class="card-action">Enviar Planilha de Etiquetas →</span>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
             Upload de planilhas para controle de presença e disponibilidade de
             produtos em estoque
           </p>
-          <span class="card-action">Clique para continuar →</span>
+          <span class="card-action">Enviar Planilha de Presença →</span>
         </div>
       </div>
 
@@ -92,7 +92,7 @@
             Upload de planilhas para identificação e controle de produtos em
             falta no estoque
           </p>
-          <span class="card-action">Clique para continuar →</span>
+          <span class="card-action">Enviar Planilha de Ruptura →</span>
         </div>
       </div>
     </div>
@@ -103,6 +103,7 @@
         <h4>💡 Como funciona?</h4>
         <ul>
           <li>Selecione o tipo de auditoria desejada</li>
+          <li>Baixe o relatório da auditoria no RUB no formato planilha</li>
           <li>Faça upload da planilha correspondente (.xlsx, .xls, .csv)</li>
           <li>O sistema processará os dados automaticamente</li>
           <li>
