@@ -221,7 +221,7 @@
           </div>
 
           <router-link
-            to="/dashboard/views"
+            to="/dashboard"
             class="nav-item"
             @click="closeSubmenus"
             :title="sidebarCollapsed ? 'Dashboard' : ''"
@@ -279,7 +279,7 @@
             >
           </router-link>
 
-          <router-link
+          <!-- <router-link
             to="/setores"
             class="nav-item"
             @click="closeSubmenus"
@@ -291,7 +291,7 @@
               class="nav-icon"
             />
             <span class="nav-text" v-if="!sidebarCollapsed">Setores</span>
-          </router-link>
+          </router-link> -->
 
           <router-link
             to="/lista"
@@ -309,7 +309,7 @@
             >
           </router-link>
 
-          <router-link
+          <!-- <router-link
             to="/relatorios"
             class="nav-item"
             @click="closeSubmenus"
@@ -321,7 +321,7 @@
               class="nav-icon"
             />
             <span class="nav-text" v-if="!sidebarCollapsed">Relatórios</span>
-          </router-link>
+          </router-link> -->
 
           <router-link
             :to="`/perfil-loja/${lojaStore.codigoLojaAtual}`"

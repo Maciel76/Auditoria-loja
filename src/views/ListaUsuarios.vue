@@ -317,10 +317,7 @@ export default {
     ]);
 
     const irParaPerfil = (usuario) => {
-      router.push({
-        name: "PerfilUsuario",
-        params: { id: usuario.id },
-      });
+      router.push(`/perfil/${usuario.id}`);
     };
 
     const selecionarLoja = async (loja) => {

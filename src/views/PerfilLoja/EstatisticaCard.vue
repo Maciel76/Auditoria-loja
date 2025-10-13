@@ -1,9 +1,15 @@
 <template>
-  <div class="auditoria-tipos-desempenho-container">
-    <!-- Cabeçalho da Seção -->
+  <div class="evolucao-auditorias-container">
+    <!-- Cabeçalho com Filtros -->
     <div class="section-header">
       <div class="header-main">
-        
+        <div class="title-section">
+          <div class="title-icon">📈</div>
+          <div class="title-content">
+            <h2>Evolução nas Auditorias</h2>
+            <p>Análise detalhada do desempenho e tendências das auditorias</p>
+          </div>
+        </div>
         <div class="header-controls">
           <div class="filter-group">
             <div class="filter-item">
@@ -19,422 +25,349 @@
               </select>
             </div>
             <div class="filter-item">
-              <label class="filter-label">Visualização:</label>
-              <select v-model="visualizacaoSelecionada" class="filter-select">
+              <label class="filter-label">Setor:</label>
+              <select v-model="setorSelecionado" class="filter-select">
+                <option value="todos">Todos os Setores</option>
                 <option
-                  v-for="vis in visualizacoes"
-                  :key="vis.value"
-                  :value="vis.value"
+                  v-for="setor in setores"
+                  :key="setor.id"
+                  :value="setor.id"
                 >
-                  {{ vis.label }}
+                  {{ setor.nome }}
+                </option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label class="filter-label">Tipo:</label>
+              <select v-model="tipoSelecionado" class="filter-select">
+                <option value="todos">Todos os Tipos</option>
+                <option
+                  v-for="tipo in tiposAuditoria"
+                  :key="tipo.id"
+                  :value="tipo.id"
+                >
+                  {{ tipo.nome }}
                 </option>
               </select>
             </div>
           </div>
           <div class="header-actions">
-            <button class="action-btn secondary" @click="exportarDados">
-              📥 Exportar Dados
+            <button class="action-btn secondary" @click="exportarRelatorio">
+              📊 Exportar
             </button>
-            <button class="action-btn primary" @click="alternarVista">
-              {{ vistaDetalhada ? "Vista Simplificada" : "Vista Detalhada" }}
+            <button class="action-btn primary" @click="gerarInsights">
+              💡 Gerar Insights
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Cards de Resumo -->
-      <div class="summary-cards">
-        <div class="summary-card">
-          <div class="summary-icon distribuição">📋</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ totalAuditorias }}</div>
-            <div class="summary-label">Total de Auditorias</div>
-            <div class="summary-trend positive">+12% vs anterior</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon desempenho">🎯</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ desempenhoMedio }}%</div>
-            <div class="summary-label">Desempenho Médio</div>
-            <div class="summary-trend positive">+5.2%</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon setor-destaque">🏆</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ setorDestaque.nome }}</div>
-            <div class="summary-label">Setor em Destaque</div>
-            <div class="summary-trend positive">
-              {{ setorDestaque.desempenho }}%
-            </div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon tipo-predominante">📈</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ tipoPredominante.nome }}</div>
-            <div class="summary-label">Tipo Predominante</div>
-            <div class="summary-trend">{{ tipoPredominante.percentual }}%</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Grid Principal de Gráficos -->
-    <div class="graficos-main-section">
-      <div class="graficos-grid">
-        <!-- Tipos de Auditoria -->
-        <div
-          class="grafico-card tipos-auditoria"
-          :class="{ expanded: vistaDetalhada }"
-        >
-          <div class="grafico-header">
-            <div class="grafico-title">
-              <h3>📋 Tipos de Auditoria</h3>
-              <p>Distribuição por categoria</p>
-            </div>
-            <div class="grafico-actions">
-              <button
-                class="action-icon"
-                @click="alternarVistaTipos"
-                title="Alternar vista"
-              >
-                🔄
-              </button>
-            </div>
-          </div>
-
-          <div class="grafico-content">
-            <div class="chart-container">
-              <canvas ref="graficoRosca"></canvas>
-            </div>
-
-            <div class="detalhes-distribuicao" v-if="vistaDetalhada">
-              <div class="distribuicao-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Total de Itens:</span>
-                  <span class="stat-value">{{ totalItensAuditorados }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Conformidade:</span>
-                  <span class="stat-value">{{ conformidadeGeral }}%</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Taxa de Ruptura:</span>
-                  <span class="stat-value">{{ taxaRuptura }}%</span>
-                </div>
-              </div>
-
-              <div class="evolucao-tipos">
-                <h4>Evolução por Tipo</h4>
-                <div class="evolucao-list">
-                  <div
-                    v-for="tipo in evolucaoTipos"
-                    :key="tipo.nome"
-                    class="evolucao-item"
-                  >
-                    <div class="tipo-info">
-                      <div
-                        class="tipo-color"
-                        :style="{ background: tipo.cor }"
-                      ></div>
-                      <span class="tipo-name">{{ tipo.nome }}</span>
-                    </div>
-                    <div class="tipo-evolucao">
-                      <span
-                        class="evolucao-value"
-                        :class="tipo.variacao >= 0 ? 'positive' : 'negative'"
-                      >
-                        {{ tipo.variacao >= 0 ? "+" : "" }}{{ tipo.variacao }}%
-                      </span>
-                      <span class="evolucao-periodo">vs anterior</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="legenda-tipos" v-else>
-              <div
-                v-for="tipo in distribuicaoTipos"
-                :key="tipo.nome"
-                class="legenda-item"
-              >
-                <div
-                  class="legenda-color"
-                  :style="{ background: tipo.cor }"
-                ></div>
-                <span class="legenda-name">{{ tipo.nome }}</span>
-                <span class="legenda-value"
-                  >{{ tipo.quantidade }} ({{ tipo.percentual }}%)</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Desempenho por Setor -->
-        <div
-          class="grafico-card desempenho-setor"
-          :class="{ expanded: vistaDetalhada }"
-        >
-          <div class="grafico-header">
-            <div class="grafico-title">
-              <h3>🎯 Desempenho por Setor</h3>
-              <p>Análise comparativa entre áreas</p>
-            </div>
-            <div class="grafico-actions">
-              <button
-                class="action-icon"
-                @click="alternarVistaSetores"
-                title="Alternar vista"
-              >
-                🔄
-              </button>
-            </div>
-          </div>
-
-          <div class="grafico-content">
-            <div class="chart-container">
-              <canvas ref="graficoRadar"></canvas>
-            </div>
-
-            <div class="detalhes-setores" v-if="vistaDetalhada">
-              <div class="setores-ranking">
-                <h4>Ranking de Setores</h4>
-                <div class="ranking-list">
-                  <div
-                    v-for="(setor, index) in rankingSetores"
-                    :key="setor.nome"
-                    class="ranking-item"
-                  >
-                    <div class="ranking-position">
-                      <span class="position-number">{{ index + 1 }}</span>
-                      <div class="position-medal" v-if="index < 3">
-                        {{ ["🥇", "🥈", "🥉"][index] }}
-                      </div>
-                    </div>
-                    <div class="ranking-info">
-                      <span class="setor-name">{{ setor.nome }}</span>
-                      <span class="setor-desempenho"
-                        >{{ setor.desempenho }}%</span
-                      >
-                    </div>
-                    <div
-                      class="ranking-variacao"
-                      :class="setor.variacao >= 0 ? 'positive' : 'negative'"
-                    >
-                      {{ setor.variacao >= 0 ? "+" : "" }}{{ setor.variacao }}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="setores-metrics">
-                <div class="metric-card">
-                  <div class="metric-icon">📊</div>
-                  <div class="metric-content">
-                    <div class="metric-value">
-                      {{ setorMaiorVariacao.nome }}
-                    </div>
-                    <div class="metric-label">Maior Crescimento</div>
-                    <div class="metric-detail">
-                      +{{ setorMaiorVariacao.variacao }}%
-                    </div>
-                  </div>
-                </div>
-                <div class="metric-card">
-                  <div class="metric-icon">⚠️</div>
-                  <div class="metric-content">
-                    <div class="metric-value">
-                      {{ setorMenorDesempenho.nome }}
-                    </div>
-                    <div class="metric-label">Necessita Atenção</div>
-                    <div class="metric-detail">
-                      {{ setorMenorDesempenho.desempenho }}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="legenda-desempenho" v-else>
-              <div class="legenda-categories">
-                <div class="category-item">
-                  <div class="category-color excelente"></div>
-                  <span>Excelente (90-100%)</span>
-                </div>
-                <div class="category-item">
-                  <div class="category-color bom"></div>
-                  <span>Bom (80-89%)</span>
-                </div>
-                <div class="category-item">
-                  <div class="category-color atencao"></div>
-                  <span>Atenção (70-79%)</span>
-                </div>
-                <div class="category-item">
-                  <div class="category-color critico"></div>
-                  <span>Crítico (&lt;70%)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Análise Comparativa Detalhada -->
-    <div class="analise-comparativa-section" v-if="vistaDetalhada">
-      <div class="analise-header">
-        <h3>📈 Análise Comparativa Detalhada</h3>
-        <div class="analise-periodo">Período: {{ periodoAtual.label }}</div>
-      </div>
-
-      <div class="comparativa-grid">
-        <!-- Matriz de Performance -->
-        <div class="analise-card matriz-performance">
-          <h4>🎯 Matriz de Performance</h4>
-          <div class="matriz-container">
-            <div class="matriz-axes">
-              <div class="axis-y">Alto Desempenho</div>
-              <div class="axis-x">Baixa Frequência → Alta Frequência</div>
-            </div>
-            <div class="matriz-points">
-              <div
-                v-for="setor in matrizPerformance"
-                :key="setor.nome"
-                class="matriz-point"
-                :style="{
-                  left: setor.posicaoX + '%',
-                  bottom: setor.posicaoY + '%',
-                }"
-                :class="setor.quadrante"
-              >
-                <div class="point-tooltip">
-                  <strong>{{ setor.nome }}</strong
-                  ><br />
-                  Desempenho: {{ setor.desempenho }}%<br />
-                  Frequência: {{ setor.frequencia }}
-                </div>
-              </div>
-            </div>
-            <div class="matriz-quadrantes">
-              <div class="quadrante q1">Estrelas</div>
-              <div class="quadrante q2">Priorizar</div>
-              <div class="quadrante q3">Oportunidades</div>
-              <div class="quadrante q4">Manter</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Insights e Recomendações -->
-        <div class="analise-card insights-recomendacoes">
-          <h4>💡 Insights e Recomendações</h4>
-          <div class="insights-list">
+      <!-- Cards de Métricas Rápidas -->
+      <div class="metricas-rapidas">
+        <div class="metrica-card">
+          <div class="metrica-icon desempenho">📊</div>
+          <div class="metrica-content">
+            <div class="metrica-valor">{{ desempenhoAtual }}%</div>
+            <div class="metrica-label">Desempenho Atual</div>
             <div
-              v-for="insight in insightsRecomendacoes"
+              class="metrica-variacao"
+              :class="variacaoDesempenho >= 0 ? 'positiva' : 'negativa'"
+            >
+              {{ variacaoDesempenho >= 0 ? "↗" : "↘" }}
+              {{ Math.abs(variacaoDesempenho) }}%
+            </div>
+          </div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-icon tendencia">📈</div>
+          <div class="metrica-content">
+            <div class="metrica-valor">{{ tendenciaGeral }}</div>
+            <div class="metrica-label">Tendência</div>
+            <div class="metrica-detalhe">Últimas 7 auditorias</div>
+          </div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-icon consistencia">🎯</div>
+          <div class="metrica-content">
+            <div class="metrica-valor">{{ consistencia }}%</div>
+            <div class="metrica-label">Consistência</div>
+            <div class="metrica-detalhe">
+              Desvio padrão: {{ desvioPadrao }}%
+            </div>
+          </div>
+        </div>
+        <div class="metrica-card">
+          <div class="metrica-icon meta">🏆</div>
+          <div class="metrica-content">
+            <div class="metrica-valor">{{ atingimentoMeta }}%</div>
+            <div class="metrica-label">Meta Atingida</div>
+            <div class="metrica-detalhe">Meta: {{ meta }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="graficos-section">
+      <div class="graficos-grid">
+        <!-- Gráfico de Linha Principal -->
+        <div class="grafico-card principal">
+          <div class="grafico-header">
+            <h3>Evolução do Desempenho</h3>
+            <div class="grafico-legenda">
+              <div class="legenda-item">
+                <div class="legenda-cor desempenho"></div>
+                <span>Desempenho Real</span>
+              </div>
+              <div class="legenda-item">
+                <div class="legenda-cor meta"></div>
+                <span>Meta</span>
+              </div>
+              <div class="legenda-item">
+                <div class="legenda-cor media"></div>
+                <span>Média Móvel (7 dias)</span>
+              </div>
+            </div>
+          </div>
+          <div class="grafico-container">
+            <canvas ref="graficoLinha"></canvas>
+          </div>
+          <div class="grafico-stats">
+            <div class="stat-item">
+              <span class="stat-label">Melhor Desempenho:</span>
+              <span class="stat-value"
+                >{{ melhorDesempenho.valor }}% em
+                {{ melhorDesempenho.data }}</span
+              >
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Pior Desempenho:</span>
+              <span class="stat-value"
+                >{{ piorDesempenho.valor }}% em {{ piorDesempenho.data }}</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico de Comparação por Setor -->
+        <div class="grafico-card comparacao">
+          <div class="grafico-header">
+            <h3>Comparativo por Setor</h3>
+            <div class="periodo-comparacao">
+              <span>Variação vs período anterior</span>
+            </div>
+          </div>
+          <div class="grafico-container">
+            <canvas ref="graficoComparacao"></canvas>
+          </div>
+        </div>
+
+        <!-- Indicadores de Performance -->
+        <div class="indicadores-grid">
+          <div class="indicador-card">
+            <div class="indicador-header">
+              <div class="indicador-icon velocidade">⚡</div>
+              <span class="indicador-title">Velocidade de Melhoria</span>
+            </div>
+            <div class="indicador-value">{{ velocidadeMelhoria }}%</div>
+            <div class="indicador-progress">
+              <div
+                class="progress-bar"
+                :style="{ width: Math.min(velocidadeMelhoria, 100) + '%' }"
+              ></div>
+            </div>
+            <div class="indicador-desc">Taxa de crescimento semanal</div>
+          </div>
+
+          <div class="indicador-card">
+            <div class="indicador-header">
+              <div class="indicador-icon estabilidade">🛡️</div>
+              <span class="indicador-title">Estabilidade</span>
+            </div>
+            <div class="indicador-value">{{ estabilidade }}%</div>
+            <div class="indicador-progress">
+              <div
+                class="progress-bar"
+                :style="{ width: estabilidade + '%' }"
+              ></div>
+            </div>
+            <div class="indicador-desc">Menos variações bruscas</div>
+          </div>
+
+          <div class="indicador-card">
+            <div class="indicador-header">
+              <div class="indicador-icon previsao">🔮</div>
+              <span class="indicador-title">Previsão 30 dias</span>
+            </div>
+            <div class="indicador-value">{{ previsao30dias }}%</div>
+            <div class="indicador-progress">
+              <div
+                class="progress-bar"
+                :style="{ width: Math.min(previsao30dias, 100) + '%' }"
+              ></div>
+            </div>
+            <div class="indicador-desc">Baseado na tendência atual</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Análise Detalhada -->
+    <div class="analise-section">
+      <div class="analise-header">
+        <h3>📋 Análise Detalhada das Últimas Auditorias</h3>
+        <button class="toggle-btn" @click="toggleDetalhes">
+          {{ mostrarDetalhes ? "Ocultar" : "Mostrar" }} Detalhes
+        </button>
+      </div>
+
+      <div v-if="mostrarDetalhes" class="detalhes-content">
+        <!-- Tabela de Auditorias -->
+        <div class="tabela-auditorias">
+          <table class="auditorias-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Setor</th>
+                <th>Tipo</th>
+                <th>Auditor</th>
+                <th>Desempenho</th>
+                <th>Pontuação</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="auditoria in auditoriasDetalhadas"
+                :key="auditoria.id"
+                :class="getLinhaClasse(auditoria)"
+              >
+                <td class="data-cell">{{ formatarData(auditoria.data) }}</td>
+                <td class="setor-cell">
+                  <div class="setor-info">
+                    <div class="setor-icone">{{ auditoria.setor.icone }}</div>
+                    <span>{{ auditoria.setor.nome }}</span>
+                  </div>
+                </td>
+                <td class="tipo-cell">
+                  <span
+                    class="tipo-badge"
+                    :style="{ background: auditoria.tipo.cor }"
+                  >
+                    {{ auditoria.tipo.nome }}
+                  </span>
+                </td>
+                <td class="auditor-cell">{{ auditoria.auditor }}</td>
+                <td class="desempenho-cell">
+                  <div class="desempenho-bar">
+                    <div
+                      class="bar-fill"
+                      :style="{
+                        width: auditoria.desempenho + '%',
+                        background: getCorDesempenho(auditoria.desempenho),
+                      }"
+                    ></div>
+                    <span class="desempenho-value"
+                      >{{ auditoria.desempenho }}%</span
+                    >
+                  </div>
+                </td>
+                <td class="pontuacao-cell">
+                  <div class="pontuacao">
+                    {{ auditoria.pontos }}/{{ auditoria.totalPontos }}
+                  </div>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge" :class="auditoria.status">
+                    {{ auditoria.status }}
+                  </span>
+                </td>
+                <td class="acoes-cell">
+                  <button
+                    class="acao-btn"
+                    @click="verDetalhesAuditoria(auditoria)"
+                  >
+                    👁️
+                  </button>
+                  <button
+                    class="acao-btn"
+                    @click="exportarAuditoria(auditoria)"
+                  >
+                    📥
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Insights Automáticos -->
+        <div class="insights-section">
+          <h4>💡 Insights Automáticos</h4>
+          <div class="insights-grid">
+            <div
+              v-for="insight in insights"
               :key="insight.id"
-              class="insight-item"
+              class="insight-card"
               :class="insight.tipo"
             >
-              <div class="insight-icon">{{ insight.icone }}</div>
-              <div class="insight-content">
-                <div class="insight-title">{{ insight.titulo }}</div>
-                <div class="insight-desc">{{ insight.descricao }}</div>
-                <div class="insight-actions">
-                  <button
-                    v-for="acao in insight.acoes"
-                    :key="acao"
-                    class="insight-action-btn"
-                    @click="executarAcao(insight, acao)"
-                  >
-                    {{ acao }}
-                  </button>
+              <div class="insight-header">
+                <div class="insight-icone">{{ insight.icone }}</div>
+                <div class="insight-titulo">{{ insight.titulo }}</div>
+                <div class="insight-badge" :class="insight.tipo">
+                  {{ insight.prioridade }}
                 </div>
               </div>
-              <div class="insight-priority" :class="insight.prioridade">
-                {{ insight.prioridade }}
+              <div class="insight-descricao">{{ insight.descricao }}</div>
+              <div class="insight-acoes">
+                <button class="insight-btn" @click="aplicarInsight(insight)">
+                  Aplicar
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Tabela de Métricas por Setor -->
-        <div class="analise-card metricas-setor">
-          <h4>📊 Métricas Detalhadas por Setor</h4>
-          <div class="metricas-table-container">
-            <table class="metricas-table">
-              <thead>
-                <tr>
-                  <th>Setor</th>
-                  <th>Desempenho</th>
-                  <th>Meta</th>
-                  <th>Conformidade</th>
-                  <th>Ruptura</th>
-                  <th>Tendência</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="setor in metricasSetores"
-                  :key="setor.nome"
-                  :class="getStatusLinha(setor)"
-                >
-                  <td class="setor-cell">
-                    <div class="setor-info">
-                      <div class="setor-icon">{{ setor.icone }}</div>
-                      <span>{{ setor.nome }}</span>
-                    </div>
-                  </td>
-                  <td class="desempenho-cell">
-                    <div class="progress-bar">
-                      <div
-                        class="progress-fill"
-                        :style="{ width: setor.desempenho + '%' }"
-                        :class="getClasseDesempenho(setor.desempenho)"
-                      ></div>
-                      <span class="progress-text">{{ setor.desempenho }}%</span>
-                    </div>
-                  </td>
-                  <td class="meta-cell">{{ setor.meta }}%</td>
-                  <td class="conformidade-cell">{{ setor.conformidade }}%</td>
-                  <td class="ruptura-cell">{{ setor.ruptura }}%</td>
-                  <td
-                    class="tendencia-cell"
-                    :class="setor.tendencia >= 0 ? 'positive' : 'negative'"
-                  >
-                    {{ setor.tendencia >= 0 ? "+" : "" }}{{ setor.tendencia }}%
-                  </td>
-                  <td class="status-cell">
-                    <span class="status-badge" :class="getStatusSetor(setor)">
-                      {{ getStatusSetor(setor) }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Footer com Ações Rápidas -->
-    <div class="footer-actions">
-      <div class="actions-grid">
-        <button class="footer-btn" @click="gerarRelatorioCompleto">
-          📄 Gerar Relatório Completo
-        </button>
-        <button class="footer-btn" @click="agendarAuditoria">
-          🗓️ Agendar Nova Auditoria
-        </button>
-        <button class="footer-btn" @click="configurarMetas">
-          🎯 Configurar Metas
-        </button>
-        <button class="footer-btn" @click="compartilharResultados">
-          📤 Compartilhar Resultados
-        </button>
+    <!-- Modal de Detalhes da Auditoria -->
+    <div v-if="auditoriaSelecionada" class="modal-overlay" @click="fecharModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Detalhes da Auditoria</h3>
+          <button class="modal-close" @click="fecharModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="auditoria-detalhes">
+            <div class="detalhe-item">
+              <label>Data:</label>
+              <span>{{ formatarData(auditoriaSelecionada.data) }}</span>
+            </div>
+            <div class="detalhe-item">
+              <label>Setor:</label>
+              <span>{{ auditoriaSelecionada.setor.nome }}</span>
+            </div>
+            <div class="detalhe-item">
+              <label>Auditor:</label>
+              <span>{{ auditoriaSelecionada.auditor }}</span>
+            </div>
+            <div class="detalhe-item">
+              <label>Desempenho:</label>
+              <span class="detalhe-valor"
+                >{{ auditoriaSelecionada.desempenho }}%</span
+              >
+            </div>
+            <div class="detalhe-item">
+              <label>Pontuação:</label>
+              <span
+                >{{ auditoriaSelecionada.pontos }}/{{
+                  auditoriaSelecionada.totalPontos
+                }}</span
+              >
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -444,372 +377,413 @@
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import {
   Chart,
-  DoughnutController,
-  ArcElement,
-  RadarController,
-  RadialLinearScale,
-  PointElement,
+  LineController,
   LineElement,
-  Filler,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Title,
   Tooltip,
   Legend,
-  Title,
+  Filler,
+  BarController,
+  BarElement,
 } from "chart.js";
 
 // Registrar componentes do Chart.js
 Chart.register(
-  DoughnutController,
-  ArcElement,
-  RadarController,
-  RadialLinearScale,
-  PointElement,
+  LineController,
   LineElement,
-  Filler,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  Title,
   Tooltip,
   Legend,
-  Title
+  Filler,
+  BarController,
+  BarElement
 );
 
 // Refs para os gráficos
-const graficoRosca = ref(null);
-const graficoRadar = ref(null);
+const graficoLinha = ref(null);
+const graficoComparacao = ref(null);
 
 // Instâncias dos gráficos
-const graficoRoscaInstance = ref(null);
-const graficoRadarInstance = ref(null);
+const graficoLinhaInstance = ref(null);
+const graficoComparacaoInstance = ref(null);
 
 // Estado do componente
-const periodoSelecionado = ref("month");
-const visualizacaoSelecionada = ref("comparativo");
-const vistaDetalhada = ref(false);
+const periodoSelecionado = ref("7d");
+const setorSelecionado = ref("todos");
+const tipoSelecionado = ref("todos");
+const mostrarDetalhes = ref(false);
+const auditoriaSelecionada = ref(null);
 
 // Dados de configuração
 const periodos = [
-  { label: "Última Semana", value: "week" },
-  { label: "Último Mês", value: "month" },
-  { label: "Último Trimestre", value: "quarter" },
-  { label: "Último Ano", value: "year" },
+  { label: "Últimos 7 Dias", value: "7d" },
+  { label: "Últimas 2 Semanas", value: "14d" },
+  { label: "Último Mês", value: "30d" },
+  { label: "Último Trimestre", value: "90d" },
 ];
 
-const visualizacoes = [
-  { label: "Visão Comparativa", value: "comparativo" },
-  { label: "Visão por Desempenho", value: "desempenho" },
-  { label: "Visão por Frequência", value: "frequencia" },
+const setores = [
+  { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
+  { id: "acougue", nome: "Açougue", icone: "🥩" },
+  { id: "padaria", nome: "Padaria", icone: "🍞" },
+  { id: "laticinios", nome: "Laticínios", icone: "🥛" },
+  { id: "mercearia", nome: "Mercearia", icone: "🛒" },
+  { id: "bebidas", nome: "Bebidas", icone: "🥤" },
 ];
 
-// Dados dos gráficos
-const dadosGraficos = {
-  week: {
-    tipos: [
-      { nome: "Etiquetas", quantidade: 25, cor: "#667eea", variacao: 5.2 },
-      { nome: "Presença", quantidade: 10, cor: "#4CAF50", variacao: 2.1 },
-      { nome: "Ruptura", quantidade: 5, cor: "#FF9800", variacao: -1.5 },
-      { nome: "Qualidade", quantidade: 8, cor: "#9C27B0", variacao: 3.8 },
-    ],
-    setores: [
-      {
-        nome: "Hortifruti",
-        desempenho: 95,
-        variacao: 3.2,
-        icone: "🥦",
-        meta: 90,
-        conformidade: 96,
-        ruptura: 2,
-        tendencia: 2.1,
-      },
-      {
-        nome: "Açougue",
-        desempenho: 88,
-        variacao: 1.8,
-        icone: "🥩",
-        meta: 85,
-        conformidade: 89,
-        ruptura: 5,
-        tendencia: 0.8,
-      },
-      {
-        nome: "Padaria",
-        desempenho: 91,
-        variacao: 4.2,
-        icone: "🍞",
-        meta: 88,
-        conformidade: 92,
-        ruptura: 3,
-        tendencia: 3.5,
-      },
-      {
-        nome: "Laticínios",
-        desempenho: 94,
-        variacao: 2.5,
-        icone: "🥛",
-        meta: 90,
-        conformidade: 95,
-        ruptura: 1,
-        tendencia: 1.9,
-      },
-      {
-        nome: "Mercearia",
-        desempenho: 89,
-        variacao: 0.9,
-        icone: "🛒",
-        meta: 87,
-        conformidade: 90,
-        ruptura: 4,
-        tendencia: 0.5,
-      },
-      {
-        nome: "Bebidas",
-        desempenho: 76,
-        variacao: -2.1,
-        icone: "🥤",
-        meta: 80,
-        conformidade: 78,
-        ruptura: 8,
-        tendencia: -1.2,
-      },
+const tiposAuditoria = [
+  { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
+  { id: "presenca", nome: "Presença", cor: "#4CAF50" },
+  { id: "ruptura", nome: "Ruptura", cor: "#FF9800" },
+  { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
+];
+
+// Dados das auditorias
+const dadosAuditorias = {
+  "7d": {
+    labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
+    desempenhos: [85, 88, 90, 87, 92, 94, 91],
+    mediaMovel: [85, 86.5, 87.7, 87.5, 88.4, 89.3, 89.6],
+    meta: 90,
+    comparacaoSetores: [
+      { setor: "Hortifruti", atual: 95, anterior: 92, variacao: 3.3 },
+      { setor: "Açougue", atual: 88, anterior: 85, variacao: 3.5 },
+      { setor: "Padaria", atual: 91, anterior: 89, variacao: 2.2 },
+      { setor: "Laticínios", atual: 94, anterior: 91, variacao: 3.3 },
+      { setor: "Mercearia", atual: 89, anterior: 87, variacao: 2.3 },
+      { setor: "Bebidas", atual: 76, anterior: 78, variacao: -2.6 },
     ],
   },
-  month: {
-    tipos: [
-      { nome: "Etiquetas", quantidade: 150, cor: "#667eea", variacao: 8.5 },
-      { nome: "Presença", quantidade: 75, cor: "#4CAF50", variacao: 4.2 },
-      { nome: "Ruptura", quantidade: 25, cor: "#FF9800", variacao: -3.2 },
-      { nome: "Qualidade", quantidade: 50, cor: "#9C27B0", variacao: 6.8 },
+  "14d": {
+    labels: [
+      "Dia 1",
+      "Dia 2",
+      "Dia 3",
+      "Dia 4",
+      "Dia 5",
+      "Dia 6",
+      "Dia 7",
+      "Dia 8",
+      "Dia 9",
+      "Dia 10",
+      "Dia 11",
+      "Dia 12",
+      "Dia 13",
+      "Dia 14",
     ],
-    setores: [
-      {
-        nome: "Hortifruti",
-        desempenho: 92,
-        variacao: 5.1,
-        icone: "🥦",
-        meta: 90,
-        conformidade: 94,
-        ruptura: 3,
-        tendencia: 4.2,
-      },
-      {
-        nome: "Açougue",
-        desempenho: 85,
-        variacao: 3.2,
-        icone: "🥩",
-        meta: 85,
-        conformidade: 87,
-        ruptura: 6,
-        tendencia: 2.8,
-      },
-      {
-        nome: "Padaria",
-        desempenho: 89,
-        variacao: 6.5,
-        icone: "🍞",
-        meta: 88,
-        conformidade: 91,
-        ruptura: 4,
-        tendencia: 5.1,
-      },
-      {
-        nome: "Laticínios",
-        desempenho: 91,
-        variacao: 4.8,
-        icone: "🥛",
-        meta: 90,
-        conformidade: 93,
-        ruptura: 2,
-        tendencia: 3.9,
-      },
-      {
-        nome: "Mercearia",
-        desempenpenho: 87,
-        variacao: 2.1,
-        icone: "🛒",
-        meta: 87,
-        conformidade: 89,
-        ruptura: 5,
-        tendencia: 1.5,
-      },
-      {
-        nome: "Bebidas",
-        desempenho: 78,
-        variacao: -1.5,
-        icone: "🥤",
-        meta: 80,
-        conformidade: 80,
-        ruptura: 7,
-        tendencia: -2.3,
-      },
+    desempenhos: [82, 85, 87, 84, 89, 91, 88, 90, 92, 89, 93, 91, 94, 92],
+    mediaMovel: [
+      82, 83.5, 84.7, 84.5, 85.4, 86.3, 86.6, 87.1, 87.8, 88.1, 88.7, 89.1,
+      89.6, 90.0,
+    ],
+    meta: 90,
+    comparacaoSetores: [
+      { setor: "Hortifruti", atual: 94, anterior: 90, variacao: 4.4 },
+      { setor: "Açougue", atual: 87, anterior: 83, variacao: 4.8 },
+      { setor: "Padaria", atual: 90, anterior: 87, variacao: 3.4 },
+      { setor: "Laticínios", atual: 93, anterior: 89, variacao: 4.5 },
+      { setor: "Mercearia", atual: 88, anterior: 85, variacao: 3.5 },
+      { setor: "Bebidas", atual: 78, anterior: 75, variacao: 4.0 },
     ],
   },
 };
 
-// Computed properties
-const dadosAtuais = computed(() => {
-  return dadosGraficos[periodoSelecionado.value] || dadosGraficos.month;
-});
-
-const periodoAtual = computed(() => {
-  return (
-    periodos.find((p) => p.value === periodoSelecionado.value) || periodos[0]
-  );
-});
-
-const distribuicaoTipos = computed(() => {
-  const tipos = dadosAtuais.value.tipos;
-  const total = tipos.reduce((sum, tipo) => sum + tipo.quantidade, 0);
-
-  return tipos.map((tipo) => ({
-    ...tipo,
-    percentual: Math.round((tipo.quantidade / total) * 100),
-  }));
-});
-
-const desempenhoSetores = computed(() => {
-  return dadosAtuais.value.setores;
-});
-
-const totalAuditorias = computed(() => {
-  return distribuicaoTipos.value.reduce(
-    (sum, tipo) => sum + tipo.quantidade,
-    0
-  );
-});
-
-const desempenhoMedio = computed(() => {
-  const setores = dadosAtuais.value.setores;
-  return Math.round(
-    setores.reduce((sum, setor) => sum + setor.desempenho, 0) / setores.length
-  );
-});
-
-const setorDestaque = computed(() => {
-  return dadosAtuais.value.setores.reduce((prev, current) =>
-    prev.desempenho > current.desempenho ? prev : current
-  );
-});
-
-const tipoPredominante = computed(() => {
-  return distribuicaoTipos.value.reduce((prev, current) =>
-    prev.quantidade > current.quantidade ? prev : current
-  );
-});
-
-const totalItensAuditorados = computed(() => {
-  return totalAuditorias.value * 40; // Assumindo 40 itens por auditoria
-});
-
-const conformidadeGeral = computed(() => {
-  const setores = dadosAtuais.value.setores;
-  return Math.round(
-    setores.reduce((sum, setor) => sum + setor.conformidade, 0) / setores.length
-  );
-});
-
-const taxaRuptura = computed(() => {
-  const setores = dadosAtuais.value.setores;
-  return Math.round(
-    setores.reduce((sum, setor) => sum + setor.ruptura, 0) / setores.length
-  );
-});
-
-const evolucaoTipos = computed(() => {
-  return distribuicaoTipos.value;
-});
-
-const rankingSetores = computed(() => {
-  return [...dadosAtuais.value.setores].sort(
-    (a, b) => b.desempenho - a.desempenho
-  );
-});
-
-const setorMaiorVariacao = computed(() => {
-  return dadosAtuais.value.setores.reduce((prev, current) =>
-    prev.variacao > current.variacao ? prev : current
-  );
-});
-
-const setorMenorDesempenho = computed(() => {
-  return dadosAtuais.value.setores.reduce((prev, current) =>
-    prev.desempenho < current.desempenho ? prev : current
-  );
-});
-
-const matrizPerformance = computed(() => {
-  const setores = dadosAtuais.value.setores;
-  const maxFrequencia = Math.max(...setores.map((s) => s.desempenho));
-
-  return setores.map((setor) => {
-    const posicaoX = (setor.desempenho / maxFrequencia) * 80 + 10;
-    const posicaoY = (setor.desempenho / 100) * 80 + 10;
-
-    let quadrante = "q2"; // Priorizar
-    if (setor.desempenho >= 85 && setor.variacao >= 2)
-      quadrante = "q1"; // Estrelas
-    else if (setor.desempenho >= 80) quadrante = "q4"; // Manter
-    else if (setor.variacao < 0) quadrante = "q3"; // Oportunidades
-
-    return {
-      ...setor,
-      posicaoX,
-      posicaoY,
-      quadrante,
-      frequencia: setor.desempenho, // Usando desempenho como proxy de frequência
-    };
-  });
-});
-
-const insightsRecomendacoes = computed(() => [
+// Dados detalhados das auditorias
+const auditoriasDetalhadas = ref([
   {
     id: 1,
-    tipo: "destaque",
+    data: "2024-01-15",
+    setor: { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
+    tipo: { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
+    auditor: "João Silva",
+    desempenho: 95,
+    pontos: 38,
+    totalPontos: 40,
+    status: "excelente",
+  },
+  {
+    id: 2,
+    data: "2024-01-14",
+    setor: { id: "acougue", nome: "Açougue", icone: "🥩" },
+    tipo: { id: "presenca", nome: "Presença", cor: "#4CAF50" },
+    auditor: "Maria Santos",
+    desempenho: 88,
+    pontos: 35,
+    totalPontos: 40,
+    status: "bom",
+  },
+  {
+    id: 3,
+    data: "2024-01-13",
+    setor: { id: "padaria", nome: "Padaria", icone: "🍞" },
+    tipo: { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
+    auditor: "Pedro Costa",
+    desempenho: 91,
+    pontos: 36,
+    totalPontos: 40,
+    status: "excelente",
+  },
+  {
+    id: 4,
+    data: "2024-01-12",
+    setor: { id: "laticinios", nome: "Laticínios", icone: "🥛" },
+    tipo: { id: "ruptura", nome: "Ruptura", cor: "#FF9800" },
+    auditor: "Ana Oliveira",
+    desempenho: 94,
+    pontos: 37,
+    totalPontos: 40,
+    status: "excelente",
+  },
+  {
+    id: 5,
+    data: "2024-01-11",
+    setor: { id: "mercearia", nome: "Mercearia", icone: "🛒" },
+    tipo: { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
+    auditor: "Carlos Lima",
+    desempenho: 89,
+    pontos: 35,
+    totalPontos: 40,
+    status: "bom",
+  },
+  {
+    id: 6,
+    data: "2024-01-10",
+    setor: { id: "bebidas", nome: "Bebidas", icone: "🥤" },
+    tipo: { id: "presenca", nome: "Presença", cor: "#4CAF50" },
+    auditor: "Fernanda Rocha",
+    desempenho: 76,
+    pontos: 30,
+    totalPontos: 40,
+    status: "atencao",
+  },
+  {
+    id: 7,
+    data: "2024-01-09",
+    setor: { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
+    tipo: { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
+    auditor: "João Silva",
+    desempenho: 92,
+    pontos: 36,
+    totalPontos: 40,
+    status: "excelente",
+  },
+]);
+
+// Insights automáticos
+const insights = ref([
+  {
+    id: 1,
+    tipo: "positivo",
     icone: "🚀",
-    titulo: "Setor em Excelente Performance",
-    descricao:
-      "Hortifruti apresenta desempenho consistente acima de 90%. Considere replicar as boas práticas.",
-    acoes: ["Documentar Práticas", "Compartilhar Resultados"],
+    titulo: "Performance em Alta",
+    descricao: "Crescimento consistente de 5.2% nas últimas 7 auditorias",
     prioridade: "Alta",
   },
   {
     id: 2,
     tipo: "alerta",
     icone: "⚠️",
-    titulo: "Atenção Necessária em Bebidas",
-    descricao:
-      "Desempenho abaixo da meta com tendência negativa. Necessidade de intervenção imediata.",
-    acoes: ["Plano de Ação", "Auditoria Extra"],
+    titulo: "Setor Crítico",
+    descricao: "Bebidas apresenta desempenho 15% abaixo da média",
     prioridade: "Urgente",
   },
   {
     id: 3,
-    tipo: "oportunidade",
+    tipo: "sugestao",
     icone: "💡",
-    titulo: "Oportunidade em Auditorias de Qualidade",
+    titulo: "Oportunidade de Melhoria",
     descricao:
-      "Crescimento de 6.8% neste tipo de auditoria. Expandir para outros setores.",
-    acoes: ["Expandir Escopo", "Capacitar Equipe"],
+      "Auditorias de etiqueta têm melhor desempenho - replicar boas práticas",
     prioridade: "Média",
   },
 ]);
 
-const metricasSetores = computed(() => {
-  return dadosAtuais.value.setores;
+// Computed properties
+const dadosAtuais = computed(() => {
+  return dadosAuditorias[periodoSelecionado.value] || dadosAuditorias["7d"];
+});
+
+const desempenhoAtual = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  return desempenhos[desempenhos.length - 1];
+});
+
+const variacaoDesempenho = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  if (desempenhos.length < 2) return 0;
+  const primeiro = desempenhos[0];
+  const ultimo = desempenhos[desempenhos.length - 1];
+  return (((ultimo - primeiro) / primeiro) * 100).toFixed(1);
+});
+
+const tendenciaGeral = computed(() => {
+  return variacaoDesempenho.value >= 0 ? "Positiva ↗" : "Negativa ↘";
+});
+
+const consistencia = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  const media = desempenhos.reduce((a, b) => a + b, 0) / desempenhos.length;
+  return Math.round(100 - (desvioPadrao.value / media) * 100);
+});
+
+const desvioPadrao = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  const media = desempenhos.reduce((a, b) => a + b, 0) / desempenhos.length;
+  const squaredDiffs = desempenhos.map((val) => Math.pow(val - media, 2));
+  const avgSquaredDiff =
+    squaredDiffs.reduce((a, b) => a + b, 0) / desempenhos.length;
+  return Math.sqrt(avgSquaredDiff).toFixed(1);
+});
+
+const meta = computed(() => dadosAtuais.value.meta);
+
+const atingimentoMeta = computed(() => {
+  return Math.round((desempenhoAtual.value / meta.value) * 100);
+});
+
+const melhorDesempenho = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  const maxIndex = desempenhos.indexOf(Math.max(...desempenhos));
+  return {
+    valor: Math.max(...desempenhos),
+    data: dadosAtuais.value.labels[maxIndex],
+  };
+});
+
+const piorDesempenho = computed(() => {
+  const desempenhos = dadosAtuais.value.desempenhos;
+  const minIndex = desempenhos.indexOf(Math.min(...desempenhos));
+  return {
+    valor: Math.min(...desempenhos),
+    data: dadosAtuais.value.labels[minIndex],
+  };
+});
+
+const velocidadeMelhoria = computed(() => {
+  return Math.max(0, variacaoDesempenho.value);
+});
+
+const estabilidade = computed(() => {
+  return Math.max(0, 100 - desvioPadrao.value * 2);
+});
+
+const previsao30dias = computed(() => {
+  const crescimentoDiario =
+    variacaoDesempenho.value / dadosAtuais.value.desempenhos.length;
+  return Math.min(
+    100,
+    Math.round(desempenhoAtual.value + crescimentoDiario * 30)
+  );
 });
 
 // Métodos
 const initializeCharts = () => {
-  if (!graficoRosca.value || !graficoRadar.value) return;
+  if (!graficoLinha.value || !graficoComparacao.value) return;
 
-  // Gráfico de Rosca - Tipos de Auditoria
-  graficoRoscaInstance.value = new Chart(graficoRosca.value, {
-    type: "doughnut",
+  // Gráfico de Linha Principal
+  graficoLinhaInstance.value = new Chart(graficoLinha.value, {
+    type: "line",
     data: {
-      labels: distribuicaoTipos.value.map((t) => t.nome),
+      labels: dadosAtuais.value.labels,
       datasets: [
         {
-          data: distribuicaoTipos.value.map((t) => t.quantidade),
-          backgroundColor: distribuicaoTipos.value.map((t) => t.cor),
+          label: "Desempenho Real",
+          data: dadosAtuais.value.desempenhos,
+          borderColor: "#667eea",
+          backgroundColor: "rgba(102, 126, 234, 0.05)",
+          borderWidth: 3,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: "#667eea",
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+        },
+        {
+          label: "Meta",
+          data: Array(dadosAtuais.value.labels.length).fill(
+            dadosAtuais.value.meta
+          ),
+          borderColor: "#4CAF50",
           borderWidth: 2,
-          borderColor: "#ffffff",
-          cutout: "65%",
-          spacing: 2,
+          borderDash: [5, 5],
+          fill: false,
+          pointStyle: false,
+        },
+        {
+          label: "Média Móvel",
+          data: dadosAtuais.value.mediaMovel,
+          borderColor: "#FF9800",
+          borderWidth: 2,
+          fill: false,
+          pointStyle: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          backgroundColor: "rgba(0,0,0,0.8)",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          callbacks: {
+            label: function (context) {
+              return `${context.dataset.label}: ${context.parsed.y}%`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+            drawBorder: false,
+          },
+        },
+        y: {
+          min: 70,
+          max: 100,
+          grid: {
+            color: "rgba(0,0,0,0.05)",
+            drawBorder: false,
+          },
+          ticks: {
+            callback: function (value) {
+              return value + "%";
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Gráfico de Comparação por Setor
+  graficoComparacaoInstance.value = new Chart(graficoComparacao.value, {
+    type: "bar",
+    data: {
+      labels: dadosAtuais.value.comparacaoSetores.map((s) => s.setor),
+      datasets: [
+        {
+          label: "Variação %",
+          data: dadosAtuais.value.comparacaoSetores.map((s) => s.variacao),
+          backgroundColor: dadosAtuais.value.comparacaoSetores.map((s) =>
+            s.variacao >= 0
+              ? "rgba(76, 175, 80, 0.8)"
+              : "rgba(244, 67, 54, 0.8)"
+          ),
+          borderRadius: 8,
         },
       ],
     },
@@ -823,84 +797,27 @@ const initializeCharts = () => {
         tooltip: {
           callbacks: {
             label: function (context) {
-              const tipo = distribuicaoTipos.value[context.dataIndex];
+              const setor =
+                dadosAtuais.value.comparacaoSetores[context.dataIndex];
               return [
-                `${tipo.nome}: ${tipo.quantidade} auditorias`,
-                `${tipo.percentual}% do total`,
-                `Variação: ${tipo.variacao >= 0 ? "+" : ""}${tipo.variacao}%`,
+                `Atual: ${setor.atual}%`,
+                `Anterior: ${setor.anterior}%`,
+                `Variação: ${setor.variacao >= 0 ? "+" : ""}${setor.variacao}%`,
               ];
             },
           },
         },
       },
-      cutout: "65%",
-    },
-  });
-
-  // Gráfico de Radar - Desempenho por Setor
-  graficoRadarInstance.value = new Chart(graficoRadar.value, {
-    type: "radar",
-    data: {
-      labels: desempenhoSetores.value.map((s) => s.nome),
-      datasets: [
-        {
-          label: "Desempenho Atual",
-          data: desempenhoSetores.value.map((s) => s.desempenho),
-          backgroundColor: "rgba(102, 126, 234, 0.1)",
-          borderColor: "#667eea",
-          borderWidth: 2,
-          pointBackgroundColor: "#667eea",
-          pointBorderColor: "#fff",
-          pointHoverBackgroundColor: "#fff",
-          pointHoverBorderColor: "#667eea",
-          pointRadius: 4,
-        },
-        {
-          label: "Meta",
-          data: desempenhoSetores.value.map((s) => s.meta),
-          borderColor: "#4CAF50",
-          borderWidth: 2,
-          borderDash: [5, 5],
-          pointBackgroundColor: "#4CAF50",
-          pointBorderColor: "#fff",
-          pointRadius: 3,
-          fill: false,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
-        r: {
-          angleLines: {
-            display: true,
-            color: "rgba(0,0,0,0.05)",
-          },
-          suggestedMin: 50,
-          suggestedMax: 100,
-          ticks: {
-            display: false,
-            stepSize: 10,
-          },
+        x: {
           grid: {
-            color: "rgba(0,0,0,0.05)",
+            display: false,
           },
         },
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const setor = desempenhoSetores.value[context.dataIndex];
-              return [
-                `Desempenho: ${setor.desempenho}%`,
-                `Meta: ${setor.meta}%`,
-                `Variação: ${setor.variacao >= 0 ? "+" : ""}${setor.variacao}%`,
-              ];
+        y: {
+          ticks: {
+            callback: function (value) {
+              return value + "%";
             },
           },
         },
@@ -910,110 +827,94 @@ const initializeCharts = () => {
 };
 
 const updateCharts = () => {
-  if (graficoRoscaInstance.value) {
-    graficoRoscaInstance.value.data.labels = distribuicaoTipos.value.map(
-      (t) => t.nome
-    );
-    graficoRoscaInstance.value.data.datasets[0].data =
-      distribuicaoTipos.value.map((t) => t.quantidade);
-    graficoRoscaInstance.value.data.datasets[0].backgroundColor =
-      distribuicaoTipos.value.map((t) => t.cor);
-    graficoRoscaInstance.value.update();
+  if (graficoLinhaInstance.value) {
+    graficoLinhaInstance.value.data.labels = dadosAtuais.value.labels;
+    graficoLinhaInstance.value.data.datasets[0].data =
+      dadosAtuais.value.desempenhos;
+    graficoLinhaInstance.value.data.datasets[1].data = Array(
+      dadosAtuais.value.labels.length
+    ).fill(dadosAtuais.value.meta);
+    graficoLinhaInstance.value.data.datasets[2].data =
+      dadosAtuais.value.mediaMovel;
+    graficoLinhaInstance.value.update();
   }
 
-  if (graficoRadarInstance.value) {
-    graficoRadarInstance.value.data.labels = desempenhoSetores.value.map(
-      (s) => s.nome
-    );
-    graficoRadarInstance.value.data.datasets[0].data =
-      desempenhoSetores.value.map((s) => s.desempenho);
-    graficoRadarInstance.value.data.datasets[1].data =
-      desempenhoSetores.value.map((s) => s.meta);
-    graficoRadarInstance.value.update();
+  if (graficoComparacaoInstance.value) {
+    graficoComparacaoInstance.value.data.labels =
+      dadosAtuais.value.comparacaoSetores.map((s) => s.setor);
+    graficoComparacaoInstance.value.data.datasets[0].data =
+      dadosAtuais.value.comparacaoSetores.map((s) => s.variacao);
+    graficoComparacaoInstance.value.data.datasets[0].backgroundColor =
+      dadosAtuais.value.comparacaoSetores.map((s) =>
+        s.variacao >= 0 ? "rgba(76, 175, 80, 0.8)" : "rgba(244, 67, 54, 0.8)"
+      );
+    graficoComparacaoInstance.value.update();
   }
 };
 
-const alternarVista = () => {
-  vistaDetalhada.value = !vistaDetalhada.value;
-};
-
-const alternarVistaTipos = () => {
-  // Implementar alternância de vista específica para tipos
-  console.log("Alternando vista de tipos");
-};
-
-const alternarVistaSetores = () => {
-  // Implementar alternância de vista específica para setores
-  console.log("Alternando vista de setores");
-};
-
-const getClasseDesempenho = (desempenho) => {
-  if (desempenho >= 90) return "excelente";
-  if (desempenho >= 80) return "bom";
-  if (desempenho >= 70) return "atencao";
-  return "critico";
-};
-
-const getStatusSetor = (setor) => {
-  if (setor.desempenho >= 90) return "excelente";
-  if (setor.desempenho >= 80) return "bom";
-  if (setor.desempenho >= 70) return "atencao";
-  return "critico";
-};
-
-const getStatusLinha = (setor) => {
+const getLinhaClasse = (auditoria) => {
   return {
-    "linha-destaque": setor.desempenho >= 90,
-    "linha-atencao": setor.desempenho < 70,
+    "linha-destaque": auditoria.desempenho >= 90,
+    "linha-atencao": auditoria.desempenho < 80,
   };
 };
 
-const exportarDados = () => {
-  console.log("Exportando dados...", {
-    periodo: periodoSelecionado.value,
-    tipos: distribuicaoTipos.value,
-    setores: desempenhoSetores.value,
-  });
-  alert("Dados exportados com sucesso!");
+const getCorDesempenho = (desempenho) => {
+  if (desempenho >= 90) return "#4CAF50";
+  if (desempenho >= 80) return "#FF9800";
+  return "#f44336";
 };
 
-const executarAcao = (insight, acao) => {
-  console.log(`Executando ação: ${acao} para insight: ${insight.titulo}`);
-  alert(`Ação "${acao}" executada para: ${insight.titulo}`);
+const formatarData = (data) => {
+  return new Date(data).toLocaleDateString("pt-BR");
 };
 
-const gerarRelatorioCompleto = () => {
-  console.log("Gerando relatório completo...");
-  alert("Relatório completo gerado com sucesso!");
+const toggleDetalhes = () => {
+  mostrarDetalhes.value = !mostrarDetalhes.value;
 };
 
-const agendarAuditoria = () => {
-  console.log("Abrindo agendamento de auditoria...");
-  alert("Módulo de agendamento aberto!");
+const verDetalhesAuditoria = (auditoria) => {
+  auditoriaSelecionada.value = auditoria;
 };
 
-const configurarMetas = () => {
-  console.log("Abrindo configuração de metas...");
-  alert("Módulo de metas aberto!");
+const fecharModal = () => {
+  auditoriaSelecionada.value = null;
 };
 
-const compartilharResultados = () => {
-  console.log("Compartilhando resultados...");
-  alert("Resultados compartilhados com sucesso!");
+const exportarAuditoria = (auditoria) => {
+  console.log("Exportando auditoria:", auditoria);
+  alert(`Auditoria ${auditoria.id} exportada com sucesso!`);
+};
+
+const exportarRelatorio = () => {
+  console.log("Exportando relatório completo...");
+  alert("Relatório de evolução exportado com sucesso!");
+};
+
+const gerarInsights = () => {
+  console.log("Gerando insights...");
+  alert("Novos insights gerados com sucesso!");
+};
+
+const aplicarInsight = (insight) => {
+  console.log("Aplicando insight:", insight);
+  alert(`Insight "${insight.titulo}" aplicado com sucesso!`);
 };
 
 // Lifecycle
 onMounted(() => {
   initializeCharts();
   window.addEventListener("resize", () => {
-    if (graficoRoscaInstance.value) graficoRoscaInstance.value.resize();
-    if (graficoRadarInstance.value) graficoRadarInstance.value.resize();
+    if (graficoLinhaInstance.value) graficoLinhaInstance.value.resize();
+    if (graficoComparacaoInstance.value)
+      graficoComparacaoInstance.value.resize();
   });
 });
 
 onUnmounted(() => {
-  if (graficoRoscaInstance.value) graficoRoscaInstance.value.destroy();
-  if (graficoRadarInstance.value) graficoRadarInstance.value.destroy();
+  if (graficoLinhaInstance.value) graficoLinhaInstance.value.destroy();
+  if (graficoComparacaoInstance.value)
+    graficoComparacaoInstance.value.destroy();
 });
 
 // Watchers
@@ -1023,7 +924,7 @@ watch(periodoSelecionado, () => {
 </script>
 
 <style scoped>
-.auditoria-tipos-desempenho-container {
+.evolucao-auditorias-container {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -1103,7 +1004,7 @@ watch(periodoSelecionado, () => {
   font-size: 0.9rem;
   color: #4a5568;
   cursor: pointer;
-  min-width: 160px;
+  min-width: 140px;
 }
 
 .filter-select:focus {
@@ -1150,14 +1051,14 @@ watch(periodoSelecionado, () => {
   background: #f8fafc;
 }
 
-/* Summary Cards */
-.summary-cards {
+/* Métricas Rápidas */
+.metricas-rapidas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-.summary-card {
+.metrica-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -1168,12 +1069,12 @@ watch(periodoSelecionado, () => {
   transition: all 0.3s ease;
 }
 
-.summary-card:hover {
+.metrica-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.summary-icon {
+.metrica-icon {
   width: 50px;
   height: 50px;
   border-radius: 10px;
@@ -1183,56 +1084,66 @@ watch(periodoSelecionado, () => {
   font-size: 1.5rem;
 }
 
-.summary-icon.distribuição {
+.metrica-icon.desempenho {
   background: rgba(102, 126, 234, 0.1);
 }
 
-.summary-icon.desempenho {
+.metrica-icon.tendencia {
   background: rgba(76, 175, 80, 0.1);
 }
 
-.summary-icon.setor-destaque {
-  background: rgba(255, 193, 7, 0.1);
+.metrica-icon.consistencia {
+  background: rgba(255, 152, 0, 0.1);
 }
 
-.summary-icon.tipo-predominante {
+.metrica-icon.meta {
   background: rgba(156, 39, 176, 0.1);
 }
 
-.summary-value {
-  font-size: 1.5rem;
+.metrica-valor {
+  font-size: 1.8rem;
   font-weight: 800;
   color: #2c3e50;
   line-height: 1;
   margin-bottom: 0.25rem;
 }
 
-.summary-label {
+.metrica-label {
   font-size: 0.9rem;
   color: #718096;
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
 
-.summary-trend {
+.metrica-variacao {
   font-size: 0.8rem;
   font-weight: 600;
 }
 
-.summary-trend.positive {
+.metrica-variacao.positiva {
   color: #4caf50;
 }
 
-/* Gráficos Main Section */
-.graficos-main-section {
+.metrica-variacao.negativa {
+  color: #f44336;
+}
+
+.metrica-detalhe {
+  font-size: 0.8rem;
+  color: #a0aec0;
+}
+
+/* Gráficos Section */
+.graficos-section {
   padding: 2rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .graficos-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .grafico-card {
@@ -1240,351 +1151,171 @@ watch(periodoSelecionado, () => {
   border-radius: 12px;
   padding: 1.5rem;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
 }
 
-.grafico-card.expanded {
-  grid-column: 1 / -1;
+.grafico-card.principal {
+  grid-column: 1;
+}
+
+.grafico-card.comparacao {
+  grid-column: 2;
 }
 
 .grafico-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.grafico-title h3 {
-  font-size: 1.3rem;
+.grafico-header h3 {
+  font-size: 1.2rem;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0 0 0.25rem 0;
-}
-
-.grafico-title p {
   margin: 0;
-  color: #718096;
-  font-size: 0.9rem;
 }
 
-.grafico-actions {
+.grafico-legenda {
   display: flex;
-  gap: 0.5rem;
-}
-
-.action-icon {
-  padding: 0.5rem;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.action-icon:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.grafico-content {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.chart-container {
-  flex: 1;
-  height: 300px;
-  position: relative;
-}
-
-.legenda-tipos {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-width: 200px;
+  gap: 1rem;
 }
 
 .legenda-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  background: white;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #718096;
 }
 
-.legenda-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.legenda-name {
-  flex: 1;
-  font-size: 0.9rem;
-  color: #4a5568;
-}
-
-.legenda-value {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.legenda-desempenho {
-  min-width: 200px;
-}
-
-.legenda-categories {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.category-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  color: #4a5568;
-}
-
-.category-color {
+.legenda-cor {
   width: 12px;
   height: 12px;
   border-radius: 2px;
 }
 
-.category-color.excelente {
+.legenda-cor.desempenho {
+  background: #667eea;
+}
+
+.legenda-cor.meta {
   background: #4caf50;
 }
 
-.category-color.bom {
+.legenda-cor.media {
   background: #ff9800;
 }
 
-.category-color.atencao {
-  background: #ffeb3b;
+.periodo-comparacao {
+  font-size: 0.8rem;
+  color: #718096;
 }
 
-.category-color.critico {
-  background: #f44336;
+.grafico-container {
+  height: 300px;
+  position: relative;
 }
 
-/* Detalhes Expandidos */
-.detalhes-distribuicao,
-.detalhes-setores {
+.grafico-stats {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  min-width: 300px;
-}
-
-.distribuicao-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .stat-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-}
-
-.stat-label {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.stat-value {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.evolucao-tipos h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 1rem 0;
-}
-
-.evolucao-list {
-  display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.evolucao-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 8px;
-}
-
-.tipo-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.tipo-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.tipo-name {
-  font-weight: 500;
-  color: #4a5568;
-}
-
-.tipo-evolucao {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
   gap: 0.25rem;
 }
 
-.evolucao-value {
-  font-weight: 600;
+.stat-label {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.stat-value {
   font-size: 0.9rem;
-}
-
-.evolucao-value.positive {
-  color: #4caf50;
-}
-
-.evolucao-value.negative {
-  color: #f44336;
-}
-
-.evolucao-periodo {
-  font-size: 0.7rem;
-  color: #a0aec0;
-}
-
-.setores-ranking h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 1rem 0;
-}
-
-.ranking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.ranking-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 8px;
-}
-
-.ranking-position {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.position-number {
-  font-weight: 700;
-  color: #667eea;
-  font-size: 1.1rem;
-  min-width: 20px;
-}
-
-.position-medal {
-  font-size: 1.2rem;
-}
-
-.ranking-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.setor-name {
-  font-weight: 500;
-  color: #4a5568;
-}
-
-.setor-desempenho {
   font-weight: 600;
   color: #2c3e50;
 }
 
-.ranking-variacao {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.ranking-variacao.positive {
-  color: #4caf50;
-}
-
-.ranking-variacao.negative {
-  color: #f44336;
-}
-
-.setores-metrics {
+/* Indicadores */
+.indicadores-grid {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-.metric-card {
+.indicador-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #667eea;
+}
+
+.indicador-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
-.metric-icon {
+.indicador-icon {
   font-size: 1.5rem;
 }
 
-.metric-value {
+.indicador-icon.velocidade {
+  color: #4caf50;
+}
+
+.indicador-icon.estabilidade {
+  color: #ff9800;
+}
+
+.indicador-icon.previsao {
+  color: #9c27b0;
+}
+
+.indicador-title {
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
 }
 
-.metric-label {
+.indicador-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.indicador-progress {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.indicador-progress .progress-bar {
+  height: 100%;
+  background: #667eea;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.indicador-desc {
   font-size: 0.8rem;
   color: #718096;
-  margin-bottom: 0.25rem;
 }
 
-.metric-detail {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* Análise Comparativa */
-.analise-comparativa-section {
+/* Análise Section */
+.analise-section {
   padding: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .analise-header {
@@ -1601,290 +1332,36 @@ watch(periodoSelecionado, () => {
   margin: 0;
 }
 
-.analise-periodo {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.comparativa-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.analise-card {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.analise-card h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 1rem 0;
-}
-
-.matriz-performance {
-  grid-column: 1;
-}
-
-.insights-recomendacoes {
-  grid-column: 2;
-}
-
-.metricas-setor {
-  grid-column: 1 / -1;
-}
-
-/* Matriz de Performance */
-.matriz-container {
-  position: relative;
-  height: 300px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.matriz-axes {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.axis-y {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 0.8rem;
-  color: #718096;
-  transform: rotate(-90deg);
-  transform-origin: 0 0;
-}
-
-.axis-x {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-.matriz-points {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.matriz-point {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  transform: translate(-50%, 50%);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.matriz-point:hover {
-  transform: translate(-50%, 50%) scale(1.5);
-  z-index: 10;
-}
-
-.matriz-point.q1 {
-  background: #4caf50;
-}
-.matriz-point.q2 {
-  background: #2196f3;
-}
-.matriz-point.q3 {
-  background: #ff9800;
-}
-.matriz-point.q4 {
-  background: #9c27b0;
-}
-
-.point-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.5rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.matriz-point:hover .point-tooltip {
-  opacity: 1;
-}
-
-.matriz-quadrantes {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.quadrante {
-  position: absolute;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.3);
-}
-
-.quadrante.q1 {
-  top: 10px;
-  right: 10px;
-  color: #4caf50;
-}
-
-.quadrante.q2 {
-  top: 10px;
-  left: 10px;
-  color: #2196f3;
-}
-
-.quadrante.q3 {
-  bottom: 10px;
-  left: 10px;
-  color: #ff9800;
-}
-
-.quadrante.q4 {
-  bottom: 10px;
-  right: 10px;
-  color: #9c27b0;
-}
-
-/* Insights e Recomendações */
-.insights-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.insight-item {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  border-left: 4px solid;
-  transition: all 0.3s ease;
-}
-
-.insight-item:hover {
-  transform: translateX(4px);
-}
-
-.insight-item.destaque {
-  border-left-color: #4caf50;
-}
-
-.insight-item.alerta {
-  border-left-color: #f44336;
-}
-
-.insight-item.oportunidade {
-  border-left-color: #ff9800;
-}
-
-.insight-icon {
-  font-size: 1.5rem;
-}
-
-.insight-content {
-  flex: 1;
-}
-
-.insight-title {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.insight-desc {
-  color: #718096;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-.insight-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.insight-action-btn {
-  padding: 0.4rem 0.8rem;
+.toggle-btn {
+  padding: 0.5rem 1rem;
   background: #667eea;
   border: none;
   border-radius: 6px;
   color: white;
-  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.insight-action-btn:hover {
+.toggle-btn:hover {
   background: #5a6fd8;
 }
 
-.insight-priority {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  height: fit-content;
+/* Tabela de Auditorias */
+.tabela-auditorias {
+  margin-bottom: 2rem;
 }
 
-.insight-priority.Alta {
-  background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
-}
-
-.insight-priority.Urgente {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid #f44336;
-}
-
-.insight-priority.Media {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-/* Tabela de Métricas */
-.metricas-table-container {
-  overflow-x: auto;
-}
-
-.metricas-table {
+.auditorias-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.metricas-table th {
+.auditorias-table th {
   background: #f8fafc;
   padding: 1rem;
   text-align: left;
@@ -1894,35 +1371,43 @@ watch(periodoSelecionado, () => {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.metricas-table td {
+.auditorias-table td {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   font-size: 0.9rem;
 }
 
-.metricas-table tr:last-child td {
+.auditorias-table tr:last-child td {
   border-bottom: none;
 }
 
-.metricas-table tr.linha-destaque {
+.auditorias-table tr.linha-destaque {
   background: rgba(76, 175, 80, 0.05);
 }
 
-.metricas-table tr.linha-atencao {
+.auditorias-table tr.linha-atencao {
   background: rgba(244, 67, 54, 0.05);
 }
 
-.setor-cell .setor-info {
+.setor-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.setor-icon {
+.setor-icone {
   font-size: 1.2rem;
 }
 
-.progress-bar {
+.tipo-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: white;
+}
+
+.desempenho-bar {
   position: relative;
   height: 24px;
   background: #e2e8f0;
@@ -1930,27 +1415,14 @@ watch(periodoSelecionado, () => {
   overflow: hidden;
 }
 
-.progress-fill {
+.bar-fill {
   height: 100%;
   border-radius: 12px;
   transition: width 0.3s ease;
   position: relative;
 }
 
-.progress-fill.excelente {
-  background: #4caf50;
-}
-.progress-fill.bom {
-  background: #ff9800;
-}
-.progress-fill.atencao {
-  background: #ffeb3b;
-}
-.progress-fill.critico {
-  background: #f44336;
-}
-
-.progress-text {
+.desempenho-value {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1961,23 +1433,9 @@ watch(periodoSelecionado, () => {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.meta-cell,
-.conformidade-cell,
-.ruptura-cell {
+.pontuacao {
   font-weight: 600;
   color: #2c3e50;
-}
-
-.tendencia-cell {
-  font-weight: 600;
-}
-
-.tendencia-cell.positive {
-  color: #4caf50;
-}
-
-.tendencia-cell.negative {
-  color: #f44336;
 }
 
 .status-badge {
@@ -1994,71 +1452,251 @@ watch(periodoSelecionado, () => {
 }
 
 .status-badge.bom {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}
+
+.status-badge.atencao {
   background: rgba(255, 152, 0, 0.1);
   color: #ff9800;
 }
 
-.status-badge.atencao {
-  background: rgba(255, 235, 59, 0.1);
-  color: #fbc02d;
-}
-
-.status-badge.critico {
-  background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
-}
-
-/* Footer Actions */
-.footer-actions {
-  padding: 1.5rem 2rem;
-  background: #f8fafc;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.footer-btn {
-  padding: 1rem 1.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #4a5568;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.acoes-cell {
   display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 0.5rem;
 }
 
-.footer-btn:hover {
+.acao-btn {
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.acao-btn:hover {
+  background: #f8fafc;
+}
+
+/* Insights Section */
+.insights-section {
+  margin-top: 2rem;
+}
+
+.insights-section h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.insight-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid;
+}
+
+.insight-card.positivo {
+  border-left-color: #4caf50;
+}
+
+.insight-card.alerta {
+  border-left-color: #ff9800;
+}
+
+.insight-card.sugestao {
+  border-left-color: #2196f3;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.insight-icone {
+  font-size: 1.5rem;
+}
+
+.insight-titulo {
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+}
+
+.insight-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.insight-badge.positivo {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.insight-badge.alerta {
+  background: rgba(255, 152, 0, 0.1);
+  color: #ff9800;
+}
+
+.insight-badge.sugestao {
+  background: rgba(33, 150, 243, 0.1);
+  color: #2196f3;
+}
+
+.insight-descricao {
+  color: #718096;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.insight-acoes {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.insight-btn {
+  padding: 0.5rem 1rem;
   background: #667eea;
+  border: none;
+  border-radius: 6px;
   color: white;
-  border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.insight-btn:hover {
+  background: #5a6fd8;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #718096;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modal-close:hover {
+  background: #f8fafc;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.auditoria-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detalhe-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detalhe-item:last-child {
+  border-bottom: none;
+}
+
+.detalhe-item label {
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.detalhe-item span {
+  color: #2c3e50;
+}
+
+.detalhe-valor {
+  font-weight: 600;
+  color: #667eea;
 }
 
 /* Responsividade */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .graficos-grid {
     grid-template-columns: 1fr;
   }
 
-  .comparativa-grid {
-    grid-template-columns: 1fr;
+  .grafico-card.principal,
+  .grafico-card.comparacao {
+    grid-column: 1;
   }
 }
 
 @media (max-width: 768px) {
   .section-header,
-  .graficos-main-section,
-  .analise-comparativa-section {
+  .graficos-section,
+  .analise-section {
     padding: 1.5rem;
   }
 
@@ -2081,25 +1719,32 @@ watch(periodoSelecionado, () => {
     justify-content: space-between;
   }
 
-  .summary-cards {
+  .metricas-rapidas {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .grafico-content {
+  .analise-header {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  .chart-container {
-    height: 250px;
-  }
-
-  .actions-grid {
-    grid-template-columns: 1fr 1fr;
+  .auditorias-table {
+    display: block;
+    overflow-x: auto;
   }
 }
 
 @media (max-width: 480px) {
-  .summary-cards {
+  .metricas-rapidas {
+    grid-template-columns: 1fr;
+  }
+
+  .indicadores-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .insights-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2109,22 +1754,6 @@ watch(periodoSelecionado, () => {
 
   .action-btn {
     justify-content: center;
-  }
-
-  .setores-metrics {
-    grid-template-columns: 1fr;
-  }
-
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .insight-item {
-    flex-direction: column;
-  }
-
-  .insight-priority {
-    align-self: flex-start;
   }
 }
 </style>

@@ -25,10 +25,10 @@
         <div class="user-info">
           <div class="user-avatar">
             <div
-              class="avatar-icon"
+              class="avatar-initials"
               :class="getAvatarClass(viewMode === 'podium' ? index + 3 : index)"
             >
-              {{ getUserIcon(index) }}
+              {{ getUserInitials(usuario.nome) }}
             </div>
           </div>
           <div class="user-details">
@@ -46,7 +46,9 @@
                 :style="{ width: calcularProgresso(usuario.contador) + '%' }"
               ></div>
             </div>
-            <div class="score-value">{{ usuario.contador }} {{ getUnidadeMedida() }}</div>
+            <div class="score-value">
+              {{ usuario.contador }} {{ getUnidadeMedida() }}
+            </div>
           </div>
 
           <!-- Informações específicas por tipo -->
@@ -54,41 +56,104 @@
             <template v-if="tipoAuditoria === 'etiqueta'">
               <div class="metric-item">
                 <i class="fas fa-tags"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'etiquetas', 'totalItens') }} totais</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(usuario, "etiquetas", "totalItens")
+                  }}
+                  totais</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-percentage"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'etiquetas', 'percentualConclusao') }}% concluído</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(
+                      usuario,
+                      "etiquetas",
+                      "percentualConclusao"
+                    )
+                  }}% concluído</span
+                >
               </div>
             </template>
 
             <template v-if="tipoAuditoria === 'presenca'">
               <div class="metric-item">
                 <i class="fas fa-users"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'presencas', 'totalItens') }} verificações</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(usuario, "presencas", "totalItens")
+                  }}
+                  verificações</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-check-circle"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'presencas', 'presencasConfirmadas') }} confirmadas</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(
+                      usuario,
+                      "presencas",
+                      "presencasConfirmadas"
+                    )
+                  }}
+                  confirmadas</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-chart-line"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'presencas', 'percentualPresenca') }}% presença</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(
+                      usuario,
+                      "presencas",
+                      "percentualPresenca"
+                    )
+                  }}% presença</span
+                >
               </div>
             </template>
 
             <template v-if="tipoAuditoria === 'ruptura'">
               <div class="metric-item">
                 <i class="fas fa-box-open"></i>
-                <span>{{ getMetricaEspecifica(usuario, 'rupturas', 'totalItens') }} itens</span>
+                <span
+                  >{{
+                    getMetricaEspecifica(usuario, "rupturas", "totalItens")
+                  }}
+                  itens</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-dollar-sign"></i>
-                <span>R$ {{ formatarMoeda(getMetricaEspecifica(usuario, 'rupturas', 'custoTotalRuptura')) }}</span>
+                <span
+                  >R$
+                  {{
+                    formatarMoeda(
+                      getMetricaEspecifica(
+                        usuario,
+                        "rupturas",
+                        "custoTotalRuptura"
+                      )
+                    )
+                  }}</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-chart-bar"></i>
-                <span>R$ {{ formatarMoeda(getMetricaEspecifica(usuario, 'rupturas', 'custoMedioRuptura')) }} médio</span>
+                <span
+                  >R$
+                  {{
+                    formatarMoeda(
+                      getMetricaEspecifica(
+                        usuario,
+                        "rupturas",
+                        "custoMedioRuptura"
+                      )
+                    )
+                  }}
+                  médio</span
+                >
               </div>
             </template>
 
@@ -99,7 +164,7 @@
               </div>
               <div class="metric-item">
                 <i class="fas fa-star"></i>
-                <span>{{ usuario.pontuacao }} pontos</span>
+                <span>{{ usuario.pontuacao }} itens tota</span>
               </div>
             </template>
           </div>
@@ -170,10 +235,45 @@ export default {
       return "standard";
     };
 
+    const getUserInitials = (nome) => {
+      if (!nome || !nome.trim()) return "??";
+
+      const palavras = nome.trim().split(' ');
+
+      if (palavras.length === 1) {
+        // Se só tem uma palavra, pega as duas primeiras letras
+        return palavras[0].slice(0, 2).toUpperCase();
+      }
+
+      // Se tem múltiplas palavras, pega a primeira letra de cada uma (máximo 2)
+      return palavras
+        .slice(0, 2)
+        .map(palavra => palavra.charAt(0).toUpperCase())
+        .join('');
+    };
+
     const getUserIcon = (index) => {
       const icons = [
-        "👑", "🥇", "🥈", "🥉", "⭐", "🌟", "✨", "💫", "🔥", "💎",
-        "🚀", "⚡", "🎯", "🏆", "🎖️", "🏅", "🌠", "💪", "🎨", "🔮"
+        "👑",
+        "🥇",
+        "🥈",
+        "🥉",
+        "⭐",
+        "🌟",
+        "✨",
+        "💫",
+        "🔥",
+        "💎",
+        "🚀",
+        "⚡",
+        "🎯",
+        "🏆",
+        "🎖️",
+        "🏅",
+        "🌠",
+        "💪",
+        "🎨",
+        "🔮",
       ];
       return icons[index % icons.length];
     };
@@ -234,6 +334,7 @@ export default {
       getRankingClass,
       getAvatarClass,
       getBadgeClass,
+      getUserInitials,
       getUserIcon,
       getRankingIcon,
       getTipoAuditoriaDisplay,
@@ -374,7 +475,8 @@ export default {
   position: relative;
 }
 
-.avatar-icon {
+.avatar-icon,
+.avatar-initials {
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -384,21 +486,34 @@ export default {
   font-size: 1.5rem;
   color: white;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.avatar-icon.gold {
+.avatar-initials {
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
+}
+
+.avatar-icon.gold,
+.avatar-initials.gold {
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
   color: #92400e;
+  text-shadow: 0 1px 2px rgba(146, 64, 14, 0.3);
 }
 
-.avatar-icon.silver {
+.avatar-icon.silver,
+.avatar-initials.silver {
   background: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);
   color: #374151;
+  text-shadow: 0 1px 2px rgba(55, 65, 81, 0.3);
 }
 
-.avatar-icon.bronze {
+.avatar-icon.bronze,
+.avatar-initials.bronze {
   background: linear-gradient(135deg, #cd7f32 0%, #f97316 100%);
   color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .user-details {

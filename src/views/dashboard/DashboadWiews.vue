@@ -1,21 +1,21 @@
 <template>
   <div class="dashboard-container">
-    <DashboardHeader
-      @tab-changed="handleTabChange"
-      @refresh-data="refreshAllData"
-    />
-
-    <div class="conteudor-principal">
-      <div class="content-header">
-        <h1>{{ currentTitle }}</h1>
+    <div class="dashboard-header">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>Dashboard - Auditoria de Etiquetas</h1>
+          <p>Visão geral das auditorias e estatísticas</p>
+        </div>
         <div class="header-actions">
-          <!-- <button class="export-btn" @click="exportData">
-            <span class="btn-icon">📊</span>
-            Exportar Dados
-          </button> -->
+          <button class="refresh-btn" @click="refreshAllData">
+            <span class="refresh-icon">🔄</span>
+            <span class="refresh-text">Atualizar</span>
+          </button>
         </div>
       </div>
+    </div>
 
+    <div class="conteudor-principal">
       <div class="dashboard-grid">
         <!-- Primeira linha: Resumo e Status -->
         <div class="grid-row">
@@ -35,40 +35,11 @@
             />
           </div>
         </div>
+
+        <!-- Segunda linha: Colaboradores -->
         <div class="grid-row">
-          <div class="grid-col span-6">
+          <div class="grid-col span-12">
             <ConteudoTeste2 />
-          </div>
-        </div>
-        <div class="grid-row">
-          <div class="grid-col span-6">
-            <EmployeeChart :employees="employeeData" />
-          </div>
-        </div>
-
-        <!-- Segunda linha: Leituras por Categoria e Colaborador -->
-        <div class="grid-row">
-          <div class="grid-col span-6">
-            <CategoryChart
-              :categories="categoryData"
-              @refresh="refreshCategories"
-            />
-          </div>
-        </div>
-
-        <div class="grid-row">
-          <div class="grid-col span-6">
-            <ReadingDetails
-              :last-reading="lastReadingTime"
-              @refresh="refreshReadingDetails"
-            />
-          </div>
-        </div>
-        <!-- Terceira linha: Detalhes de Leitura e Custo -->
-
-        <div class="grid-row">
-          <div class="grid-col span-6">
-            <CostPanel cost="25,16 Mi" />
           </div>
         </div>
       </div>
@@ -77,34 +48,19 @@
 </template>
 
 <script>
-import DashboardHeader from "./contente/DashboadHeader.vue";
-import SummaryPanel from "./contente/SummaryPanel.vue";
-import StatusChart from "./contente/StatusChart.vue";
-import CategoryChart from "./contente/CategoryChart.vue";
-import EmployeeChart from "./contente/EmployeeChart.vue";
-import ReadingDetails from "./contente/ReadingDetails.vue";
-import CostPanel from "./contente/CostPanel.vue";
 import ConteudoTeste1 from "../Conteudo/ConteudoTeste1.vue";
 import ConteudoTeste from "../Conteudo/ConteudoTeste.vue";
 import ConteudoTeste2 from "../Conteudo/ConteudoTeste2.vue";
 
 export default {
-  name: "ConsolidatedDashboard",
+  name: "DashboardViews",
   components: {
-    DashboardHeader,
-    SummaryPanel,
-    StatusChart,
-    CategoryChart,
-    EmployeeChart,
-    ReadingDetails,
-    CostPanel,
     ConteudoTeste,
     ConteudoTeste1,
     ConteudoTeste2,
   },
   data() {
     return {
-      activeTab: "etiqueta",
       summaryData: {
         total: 10000,
         read: 9299,
@@ -115,84 +71,22 @@ export default {
         outdated: 2500,
         unread: 1000,
       },
-      categoryData: [
-        { name: "Liquida", value: 2450, color: "#4361ee" },
-        { name: "Alto Giro", value: 1890, color: "#3a0ca3" },
-        { name: "Bazar", value: 1560, color: "#f72585" },
-        { name: "Seca Doce", value: 1320, color: "#4cc9f0" },
-        { name: "Perecível", value: 980, color: "#fca311" },
-        { name: "Seca Salgado", value: 760, color: "#e63946" },
-        { name: "Dhp", value: 620, color: "#7209b7" },
-        { name: "FLV", value: 450, color: "#4895ef" },
-        { name: "Laticínios", value: 350, color: "#f0a500" },
-        { name: "Diversos", value: 280, color: "#218f13" },
-      ],
-      employeeData: [
-        { name: "João Silva", value: 1250 },
-        { name: "Maria Santos", value: 1120 },
-        { name: "Pedro Costa", value: 980 },
-        { name: "Ana Oliveira", value: 875 },
-        { name: "Carlos Pereira", value: 760 },
-        { name: "Juliana Almeida", value: 680 },
-        { name: "Fernando Lima", value: 620 },
-        { name: "Patrícia Rodrigues", value: 580 },
-        { name: "Ricardo Nunes", value: 520 },
-        { name: "Amanda Ferreira", value: 480 },
-        { name: "Maciel", value: 450 },
-        { name: "Carlos Pereira", value: 760 },
-        { name: "Juliana Almeida", value: 680 },
-        { name: "Fernando Lima", value: 620 },
-        { name: "Livia Santos", value: 600 },
-        { name: "Ricardo Nunes", value: 520 },
-        { name: "Amanda Ferreira", value: 480 },
-      ],
-      lastReadingTime: "14:30",
+      lastReadingTime: new Date().toLocaleTimeString("pt-BR"),
     };
   },
-  computed: {
-    currentTitle() {
-      const titles = {
-        etiqueta: "Auditoria de Etiqueta",
-        presenca: "Auditoria de Presença",
-        ruptura: "Auditoria de Ruptura",
-      };
-      return titles[this.activeTab];
-    },
-  },
   methods: {
-    handleTabChange(tab) {
-      this.activeTab = tab;
-      // Aqui você pode carregar dados específicos para cada aba
-      this.refreshAllData();
-    },
     refreshAllData() {
       this.refreshSummary();
-      this.refreshCategories();
-      this.refreshReadingDetails();
-
-      // Simular atualização de dados
       this.lastReadingTime = new Date().toLocaleTimeString("pt-BR");
     },
     refreshSummary() {
       console.log("Atualizando dados do resumo...");
-      // Simular uma pequena variação nos dados
-      this.summaryData.read += Math.floor(Math.random() * 50);
+      // Simular uma pequena variação nos dados sem crescimento infinito
+      const baseRead = 9299;
+      const variation = Math.floor(Math.random() * 100) - 50; // -50 a +50
+      this.summaryData.read = Math.max(0, baseRead + variation);
       this.summaryData.unread = this.summaryData.total - this.summaryData.read;
     },
-    refreshCategories() {
-      console.log("Atualizando categorias...");
-      // Simular atualização de dados de categoria
-      this.categoryData.forEach((item) => {
-        item.value += Math.floor(Math.random() * 20);
-      });
-    },
-    refreshReadingDetails() {
-      console.log("Atualizando detalhes de leitura...");
-    },
-    // exportData() {
-    //   console.log("Exportando dados do dashboard...");
-    //   // Lógica para exportar dados
-    // },
   },
 };
 </script>
@@ -204,40 +98,67 @@ export default {
   background-color: #efeff0;
 }
 
-.conteudor-principal {
-  padding: 24px;
-}
-
-.content-header {
-  display: flex;
-
-  align-items: center;
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 24px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   margin-bottom: 24px;
 }
 
-.content-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #2c3e50;
-  font-weight: 600;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.export-btn {
+.header-title h1 {
+  margin: 0 0 8px 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.header-title p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
+.refresh-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background-color: #4361ee;
+  padding: 10px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.15);
   color: white;
-  border: none;
-  border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
 }
 
-.export-btn:hover {
-  background-color: #3a0ca3;
+.refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-icon {
+  transition: transform 0.3s ease;
+}
+
+.refresh-btn:hover .refresh-icon {
+  transform: rotate(180deg);
+}
+
+.conteudor-principal {
+  padding: 0 24px 24px;
 }
 
 .dashboard-grid {
@@ -256,6 +177,11 @@ export default {
 }
 
 .grid-col.span-6 {
+  flex: 1;
+}
+
+.grid-col.span-12 {
+  flex: 1;
 }
 
 /* Responsividade */
@@ -263,21 +189,21 @@ export default {
   .grid-row {
     flex-direction: column;
   }
-
-  .grid-col.span-6 {
-    flex: 1;
-  }
 }
 
 @media (max-width: 768px) {
   .conteudor-principal {
-    padding: 16px;
+    padding: 0 16px 16px;
   }
 
-  .content-header {
+  .header-content {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+
+  .dashboard-header {
+    padding: 20px;
   }
 }
 </style>

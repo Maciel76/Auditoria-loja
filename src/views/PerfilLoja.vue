@@ -25,8 +25,16 @@
         :metricas="metricas"
         :percentualDesempenho="percentualDesempenho"
       />
+      <SummaryCards
+        :auditorias="25"
+        :posicao="2"
+        colaborador="Maria Silva"
+        :total-colaboradores="30"
+        :variacao="8"
+      />
       <!-- Cards de Estatísticas -->
       <EstatisticaCard />
+      <MetricasSetor />
 
       <!-- Mapa de Performance -->
       <PerformanceMap
@@ -80,7 +88,9 @@ import { computed, ref, onMounted } from "vue";
 
 // Componentes
 import PerfilHeader from "./PerfilLoja/PerfilHeader.vue";
+import SummaryCards from "./PerfilLoja/SumaryCards.vue";
 import EstatisticaCard from "./PerfilLoja/EstatisticaCard.vue";
+import MetricasSetor from "./PerfilLoja/MetricasSetor.vue";
 import PerformanceMap from "./PerfilLoja/PerformanceMap.vue";
 import RankingColaboradores from "./PerfilLoja/RankingColaboradores.vue";
 import TimelineAtividades from "./PerfilLoja/TimelineAtividades.vue";
@@ -101,6 +111,8 @@ export default {
     InsightsLoja,
     GraficosPerformance,
     BotoesAcao,
+    SummaryCards,
+    MetricasSetor,
   },
   props: {
     codigo: {

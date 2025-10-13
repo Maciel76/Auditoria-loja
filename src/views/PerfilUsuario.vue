@@ -428,7 +428,7 @@ export default {
     voltarParaLista() {
       // Garante navegação para rota correta
       if (this.$router) {
-        this.$router.push({ name: "Usuarios" });
+        this.$router.push("/usuarios");
       } else {
         window.location.href = "/usuarios";
       }

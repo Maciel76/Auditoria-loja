@@ -177,7 +177,8 @@ export default {
 
 .medal-icon,
 .crown-icon {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  margin-left: -15px;
   height: 60px;
   display: flex;
   justify-content: center;

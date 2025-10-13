@@ -77,7 +77,12 @@
 
     <!-- Pódio - Top 3 -->
     <PodiumSection
-      v-if="!carregando && !erro && viewMode === 'podium' && usuariosOrdenados.length >= 3"
+      v-if="
+        !carregando &&
+        !erro &&
+        viewMode === 'podium' &&
+        usuariosOrdenados.length >= 3
+      "
       :usuariosOrdenados="usuariosOrdenados"
       :tipoAuditoria="filtroTipoAuditoria"
     />
@@ -136,11 +141,11 @@ import { useLojaStore } from "@/store/lojaStore";
 import axios from "axios";
 
 // Importar componentes unificados
-import HeroSection from "./Ranking/Etiqueta/HeroSection.vue";
-import PodiumSection from "./Ranking/Etiqueta/PodiumSection.vue";
+import HeroSection from "./Ranking/RankingColaboradores/HeroSection.vue";
+import PodiumSection from "./Ranking/RankingColaboradores/PodiumSection.vue";
 import RankingListColaboradores from "./Ranking/Colaboradores/RankingListColaboradores.vue";
-import AdvancedStats from "./Ranking/Etiqueta/AdvancedStats.vue";
-import ExportSection from "./Ranking/Etiqueta/ExportSection.vue";
+import AdvancedStats from "./Ranking/RankingColaboradores/AdvancedStats.vue";
+import ExportSection from "./Ranking/RankingColaboradores/ExportSection.vue";
 
 export default {
   name: "RankingColaboradores",

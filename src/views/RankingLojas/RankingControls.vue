@@ -31,36 +31,6 @@
         </select>
       </div>
 
-      <!-- Filtro por Região -->
-      <div class="filter-group">
-        <select
-          :value="filtroRegiao"
-          @change="$emit('update:filtroRegiao', $event.target.value)"
-          class="filter-select"
-        >
-          <option value="todas">🌍 Todas as Regiões</option>
-          <option value="norte">🌍 Norte</option>
-          <option value="sul">🏔️ Sul</option>
-          <option value="leste">🌅 Leste</option>
-          <option value="oeste">🌇 Oeste</option>
-          <option value="centro">🎯 Centro</option>
-        </select>
-      </div>
-
-      <!-- Filtro por Liga -->
-      <div class="filter-group">
-        <select
-          :value="filtroLiga"
-          @change="$emit('update:filtroLiga', $event.target.value)"
-          class="filter-select"
-        >
-          <option value="todas">🏆 Todas as Ligas</option>
-          <option value="diamante">💎 Diamante</option>
-          <option value="ouro">🥇 Ouro</option>
-          <option value="prata">🥈 Prata</option>
-          <option value="bronze">🥉 Bronze</option>
-        </select>
-      </div>
 
       <!-- Botão para buscar dados -->
       <button @click="$emit('buscarDados')" class="filter-btn">
@@ -124,21 +94,11 @@ export default {
       type: String,
       default: "mes",
     },
-    filtroRegiao: {
-      type: String,
-      default: "todas",
-    },
-    filtroLiga: {
-      type: String,
-      default: "todas",
-    },
   },
   emits: [
     "update:viewMode",
     "update:filtroTipoAuditoria",
     "update:filtroPeriodo",
-    "update:filtroRegiao",
-    "update:filtroLiga",
     "buscarDados",
   ],
 };

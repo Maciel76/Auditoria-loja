@@ -233,32 +233,14 @@ export default {
         this.carregando = true;
         this.erro = null;
 
-        const params = {};
-        if (this.periodoSelecionado !== "todos") {
-          params.periodo = this.periodoSelecionado;
-        }
+        // Simular delay de carregamento
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-        const response = await axios.get("http://localhost:3000/api/ranking", {
-          params,
-        });
-
-        if (response.data && Array.isArray(response.data)) {
-          this.employees = response.data.map((emp) => ({
-            ...emp,
-            // Garantir que contador seja um número
-            contador:
-              typeof emp.contador === "number"
-                ? emp.contador
-                : parseInt(emp.contador || 0),
-          }));
-        } else {
-          throw new Error("Formato de dados inválido");
-        }
+        // Usar dados de exemplo diretamente
+        this.employees = this.getDadosExemplo();
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         this.erro = "Falha ao carregar dados dos colaboradores";
-        // Fallback para dados de exemplo
-        this.employees = this.getDadosExemplo();
       } finally {
         this.carregando = false;
       }

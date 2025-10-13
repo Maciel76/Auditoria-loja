@@ -41,14 +41,18 @@
               :style="{ width: calcularProgresso(usuario.contador) + '%' }"
             ></div>
           </div>
-          <div class="score-value">{{ usuario.contador }} itens</div>
+          <div class="score-value">
+            {{ usuario.contador }} Produtos Atualizados
+          </div>
         </div>
 
         <div
           class="ranking-badge"
           :class="getBadgeClass(viewMode === 'podium' ? index + 3 : index)"
         >
-          <span>{{ getBadgeIcon(viewMode === 'podium' ? index + 3 : index) }}</span>
+          <span>{{
+            getBadgeIcon(viewMode === "podium" ? index + 3 : index)
+          }}</span>
         </div>
       </div>
     </div>
@@ -79,50 +83,148 @@ export default {
     },
     detectarGenero(nome) {
       const nomeCompleto = nome.toLowerCase().trim();
-      const primeiroNome = nomeCompleto.split(' ')[0];
+      const primeiroNome = nomeCompleto.split(" ")[0];
 
       // Lista de nomes femininos comuns no Brasil
       const nomesFemininos = [
-        'maria', 'ana', 'francisca', 'antonia', 'adriana', 'juliana', 'marcia', 'fernanda',
-        'patricia', 'aline', 'sandra', 'monica', 'andrea', 'rosangela', 'tatiane', 'luciana',
-        'simone', 'claudia', 'vanessa', 'cristiane', 'elisangela', 'vera', 'fatima', 'rita',
-        'roseli', 'aparecida', 'edna', 'solange', 'terezinha', 'carla', 'kelly', 'debora',
-        'amanda', 'bruna', 'jessica', 'sabrina', 'priscila', 'eliane', 'rosana', 'marlene',
-        'silvia', 'regina', 'sonia', 'denise', 'celia', 'valdira', 'iara', 'luana', 'karen',
-        'renata', 'viviane', 'valeria', 'roberta', 'sueli', 'gisele', 'karine', 'larissa'
+        "maria",
+        "ana",
+        "francisca",
+        "antonia",
+        "adriana",
+        "juliana",
+        "marcia",
+        "fernanda",
+        "patricia",
+        "aline",
+        "sandra",
+        "monica",
+        "andrea",
+        "rosangela",
+        "tatiane",
+        "luciana",
+        "simone",
+        "claudia",
+        "vanessa",
+        "cristiane",
+        "elisangela",
+        "vera",
+        "fatima",
+        "rita",
+        "roseli",
+        "aparecida",
+        "edna",
+        "solange",
+        "terezinha",
+        "carla",
+        "kelly",
+        "debora",
+        "amanda",
+        "bruna",
+        "jessica",
+        "sabrina",
+        "priscila",
+        "eliane",
+        "rosana",
+        "marlene",
+        "silvia",
+        "regina",
+        "sonia",
+        "denise",
+        "celia",
+        "valdira",
+        "iara",
+        "luana",
+        "karen",
+        "renata",
+        "viviane",
+        "valeria",
+        "roberta",
+        "sueli",
+        "gisele",
+        "karine",
+        "larissa",
       ];
 
       // Lista de nomes masculinos comuns no Brasil
       const nomesMasculinos = [
-        'jose', 'joao', 'antonio', 'francisco', 'carlos', 'paulo', 'pedro', 'lucas', 'luiz',
-        'marcos', 'luis', 'gabriel', 'rafael', 'daniel', 'marcelo', 'bruno', 'eduardo', 'felipe',
-        'raimundo', 'rodrigo', 'manoel', 'nelson', 'roberto', 'fabio', 'alexandre', 'sergio',
-        'giovanni', 'antonio', 'fernando', 'gustavo', 'andre', 'vicente', 'sebastiao', 'joao',
-        'geraldo', 'adriano', 'angelino', 'benedito', 'benedito', 'eder', 'edson', 'valdir',
-        'wagner', 'waldemar', 'wesley', 'william', 'ronaldo', 'richard', 'reginaldo', 'renato'
+        "jose",
+        "joao",
+        "antonio",
+        "francisco",
+        "carlos",
+        "paulo",
+        "pedro",
+        "lucas",
+        "luiz",
+        "marcos",
+        "luis",
+        "gabriel",
+        "rafael",
+        "daniel",
+        "marcelo",
+        "bruno",
+        "eduardo",
+        "felipe",
+        "raimundo",
+        "rodrigo",
+        "manoel",
+        "nelson",
+        "roberto",
+        "fabio",
+        "alexandre",
+        "sergio",
+        "giovanni",
+        "antonio",
+        "fernando",
+        "gustavo",
+        "andre",
+        "vicente",
+        "sebastiao",
+        "joao",
+        "geraldo",
+        "adriano",
+        "angelino",
+        "benedito",
+        "benedito",
+        "eder",
+        "edson",
+        "valdir",
+        "wagner",
+        "waldemar",
+        "wesley",
+        "william",
+        "ronaldo",
+        "richard",
+        "reginaldo",
+        "renato",
       ];
 
       if (nomesFemininos.includes(primeiroNome)) {
-        return 'feminino';
+        return "feminino";
       } else if (nomesMasculinos.includes(primeiroNome)) {
-        return 'masculino';
+        return "masculino";
       }
 
       // Heurísticas baseadas em terminações comuns
-      if (primeiroNome.endsWith('a') && !primeiroNome.endsWith('ista')) {
-        return 'feminino';
-      } else if (primeiroNome.endsWith('o') || primeiroNome.endsWith('r') || primeiroNome.endsWith('l')) {
-        return 'masculino';
+      if (primeiroNome.endsWith("a") && !primeiroNome.endsWith("ista")) {
+        return "feminino";
+      } else if (
+        primeiroNome.endsWith("o") ||
+        primeiroNome.endsWith("r") ||
+        primeiroNome.endsWith("l")
+      ) {
+        return "masculino";
       }
 
-      return 'neutro';
+      return "neutro";
     },
     gerarHashNome(nome) {
       // Gera um hash simples baseado no nome para garantir consistência
       let hash = 0;
       for (let i = 0; i < nome.length; i++) {
         const char = nome.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash;
       }
       return Math.abs(hash);
@@ -142,38 +244,38 @@ export default {
       return "normal-badge";
     },
     getBadgeIcon(index) {
-      if (index === 0) return '👑';
-      if (index === 1) return '🥈';
-      if (index === 2) return '🥉';
-      if (index < 10) return '⭐';
-      return '📊';
+      if (index === 0) return "👑";
+      if (index === 1) return "🥈";
+      if (index === 2) return "🥉";
+      if (index < 10) return "⭐";
+      return "📊";
     },
     getUserIcon(index) {
-      const realIndex = this.viewMode === 'podium' ? index + 3 : index;
+      const realIndex = this.viewMode === "podium" ? index + 3 : index;
       const usuario = this.usuariosFiltradosOrdenados[index];
 
-      if (!usuario) return '👤';
+      if (!usuario) return "👤";
 
       const genero = this.detectarGenero(usuario.nome);
       const hash = this.gerarHashNome(usuario.nome);
 
       // Ícones especiais para os primeiros 3 lugares
       if (realIndex === 0) {
-        return genero === 'feminino' ? '👸' : '🤴'; // Rainha ou Rei
+        return genero === "feminino" ? "👸" : "🤴"; // Rainha ou Rei
       }
       if (realIndex === 1) {
-        return genero === 'feminino' ? '👩‍💼' : '👨‍💼'; // Executiva ou Executivo
+        return genero === "feminino" ? "👩‍💼" : "👨‍💼"; // Executiva ou Executivo
       }
       if (realIndex === 2) {
-        return genero === 'feminino' ? '👩‍🎓' : '👨‍🎓'; // Graduada ou Graduado
+        return genero === "feminino" ? "👩‍🎓" : "👨‍🎓"; // Graduada ou Graduado
       }
 
       // Ícones variados para top 10
       if (realIndex < 10) {
-        const iconesFemininos = ['👩‍💻', '👩‍🔬', '👩‍🏫', '👩‍⚕️', '👩‍🎨', '👩‍💼', '👩‍🔧'];
-        const iconesMasculinos = ['👨‍💻', '👨‍🔬', '👨‍🏫', '👨‍⚕️', '👨‍🎨', '👨‍💼', '👨‍🔧'];
+        const iconesFemininos = ["👩‍💻", "👩‍🔬", "👩‍🏫", "👩‍⚕️", "👩‍🎨", "👩‍💼", "👩‍🔧"];
+        const iconesMasculinos = ["👨‍💻", "👨‍🔬", "👨‍🏫", "👨‍⚕️", "👨‍🎨", "👨‍💼", "👨‍🔧"];
 
-        if (genero === 'feminino') {
+        if (genero === "feminino") {
           return iconesFemininos[hash % iconesFemininos.length];
         } else {
           return iconesMasculinos[hash % iconesMasculinos.length];
@@ -181,21 +283,21 @@ export default {
       }
 
       // Ícones para posições normais
-      const iconesFemininosNormais = ['👩', '👵', '🙎‍♀️', '🙍‍♀️', '💁‍♀️', '🙋‍♀️'];
-      const iconesMasculinosNormais = ['👨', '👴', '🙎‍♂️', '🙍‍♂️', '💁‍♂️', '🙋‍♂️'];
+      const iconesFemininosNormais = ["👩", "👵", "🙎‍♀️", "🙍‍♀️", "💁‍♀️", "🙋‍♀️"];
+      const iconesMasculinosNormais = ["👨", "👴", "🙎‍♂️", "🙍‍♂️", "💁‍♂️", "🙋‍♂️"];
 
-      if (genero === 'feminino') {
+      if (genero === "feminino") {
         return iconesFemininosNormais[hash % iconesFemininosNormais.length];
       } else {
         return iconesMasculinosNormais[hash % iconesMasculinosNormais.length];
       }
     },
     getAvatarClass(index) {
-      if (index === 0) return 'avatar-gold';
-      if (index === 1) return 'avatar-silver';
-      if (index === 2) return 'avatar-bronze';
-      if (index < 10) return 'avatar-top-ten';
-      return 'avatar-normal';
+      if (index === 0) return "avatar-gold";
+      if (index === 1) return "avatar-silver";
+      if (index === 2) return "avatar-bronze";
+      if (index < 10) return "avatar-top-ten";
+      return "avatar-normal";
     },
   },
 };

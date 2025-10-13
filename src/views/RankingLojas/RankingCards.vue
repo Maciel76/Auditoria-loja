@@ -45,8 +45,24 @@
         <!-- Posição -->
         <div class="position">
           <span class="position-number">{{ index + 1 }}</span>
-          <div class="position-medal" v-if="index < 3">
-            {{ index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉" }}
+        </div>
+
+        <!-- Avatar/Imagem da Loja -->
+        <div class="loja-avatar">
+          <div
+            class="avatar-container"
+            :class="getAvatarClass(index)"
+          >
+            <img
+              v-if="getLojaImagePath(loja.codigo)"
+              :src="getLojaImagePath(loja.codigo)"
+              :alt="`Loja ${loja.codigo}`"
+              class="loja-image"
+              @error="handleImageError"
+            />
+            <div v-else class="loja-initials">
+              {{ getLojaInitials(loja) }}
+            </div>
           </div>
         </div>
 
@@ -54,20 +70,8 @@
         <div class="loja-main-info">
           <div class="loja-header">
             <h3 class="loja-codigo">{{ loja.codigo }}</h3>
-            <div
-              class="loja-badge"
-              :class="getLojaCategory(loja.itensAuditados)"
-            >
-              {{ getLojaCategory(loja.itensAuditados) }}
-            </div>
-            <div v-if="loja.liga" class="liga-badge" :class="loja.liga">
-              {{ getLigaIcon(loja.liga) }} {{ loja.liga }}
-            </div>
           </div>
           <p class="loja-nome">{{ loja.nome || `Loja ${loja.codigo}` }}</p>
-          <p v-if="loja.regiao" class="loja-regiao">
-            {{ getRegiaoIcon(loja.regiao) }} {{ loja.regiao }}
-          </p>
         </div>
 
         <!-- Estatísticas -->
@@ -114,18 +118,10 @@
           <button
             @click="$emit('view-details', loja)"
             class="action-button primary"
-            title="Ver detalhes da loja"
+            title="Ver dados da loja"
           >
-            <i class="fas fa-chart-line"></i>
-            Detalhes
-          </button>
-          <button
-            @click="$emit('compare', loja)"
-            class="action-button secondary"
-            title="Comparar com outras lojas"
-          >
-            <i class="fas fa-balance-scale"></i>
-            Comparar
+            <i class="fas fa-eye"></i>
+            Ver Loja
           </button>
         </div>
 
@@ -142,6 +138,8 @@
 </template>
 
 <script setup>
+import { useLojaStore } from '@/store/lojaStore.js';
+
 const props = defineProps({
   lojas: {
     type: Array,
@@ -161,7 +159,9 @@ const props = defineProps({
   },
 });
 
-defineEmits(["retry", "view-details", "compare"]);
+defineEmits(["retry", "view-details"]);
+
+const lojaStore = useLojaStore();
 
 // Helper methods
 const calcularEficiencia = (loja) => {
@@ -190,12 +190,6 @@ const calcularMediaPorUsuario = (loja) => {
   return Math.round(loja.itensAuditados / loja.usuariosAtivos);
 };
 
-const getLojaCategory = (itens) => {
-  if (itens >= 8000) return "elite";
-  if (itens >= 5000) return "alta";
-  if (itens >= 2000) return "media";
-  return "iniciante";
-};
 
 const getProgressPercentage = (loja) => {
   return props.maxItens > 0
@@ -203,30 +197,63 @@ const getProgressPercentage = (loja) => {
     : 0;
 };
 
-const getLigaIcon = (liga) => {
-  const icons = {
-    diamante: "💎",
-    ouro: "🥇",
-    prata: "🥈",
-    bronze: "🥉",
-  };
-  return icons[liga] || "🏆";
+
+
+// Métodos para avatar das lojas
+const getLojaImagePath = (codigo) => {
+  // Buscar a loja no store
+  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === codigo);
+
+  if (lojaDoStore && lojaDoStore.imagem) {
+    return lojaDoStore.imagem;
+  }
+
+  // Fallback: tentar o padrão do store
+  const codigoPadronizado = codigo.toString().padStart(3, "0");
+  return `/images/lojas/${codigoPadronizado}.jpg`;
 };
 
-const getRegiaoIcon = (regiao) => {
-  const icons = {
-    Norte: "🌍",
-    Sul: "🏔️",
-    Leste: "🌅",
-    Oeste: "🌇",
-    "Centro-Oeste": "🎯",
-    centro: "🎯",
-    norte: "🌍",
-    sul: "🏔️",
-    leste: "🌅",
-    oeste: "🌇",
-  };
-  return icons[regiao] || "📍";
+const getLojaInitials = (loja) => {
+  // Primeiro tentar pegar o nome do store
+  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === loja.codigo);
+  const nomeCompleto = lojaDoStore?.nome || loja.nome;
+
+  if (nomeCompleto && nomeCompleto.trim()) {
+    // Pegar iniciais do nome da loja
+    const palavras = nomeCompleto.trim().split(' ');
+
+    // Se tem "Loja" no início, pular ela
+    const palavrasLimpas = palavras.filter(palavra =>
+      palavra.toLowerCase() !== 'loja' &&
+      !palavra.match(/^\d+$/) // Também pular números puros
+    );
+
+    if (palavrasLimpas.length > 0) {
+      return palavrasLimpas
+        .slice(0, 2)
+        .map(word => word.charAt(0).toUpperCase())
+        .join('');
+    }
+  }
+
+  // Fallback para código da loja
+  return loja.codigo.slice(0, 2).toUpperCase();
+};
+
+const getAvatarClass = (index) => {
+  if (index === 0) return 'gold';
+  if (index === 1) return 'silver';
+  if (index === 2) return 'bronze';
+  return '';
+};
+
+const handleImageError = (event) => {
+  // Se a imagem falhar ao carregar, esconder ela para mostrar as iniciais
+  event.target.style.display = 'none';
+  const nextElement = event.target.nextElementSibling;
+  if (nextElement) {
+    nextElement.style.display = 'flex';
+  }
 };
 </script>
 
@@ -239,6 +266,7 @@ const getRegiaoIcon = (regiao) => {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
+  font-family: "Inter", sans-serif;
 }
 
 .section-header {
@@ -326,7 +354,7 @@ const getRegiaoIcon = (regiao) => {
   border: 1px solid #f1f5f9;
   transition: all 0.3s ease;
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto auto 1fr auto auto;
   gap: 1.5rem;
   align-items: center;
   position: relative;
@@ -373,8 +401,85 @@ const getRegiaoIcon = (regiao) => {
   color: #1f2937;
 }
 
-.position-medal {
+
+/* Avatar da Loja */
+.loja-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border: 3px solid #e5e7eb;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.avatar-container:hover {
+  transform: scale(1.05);
+  border-color: #6366f1;
+}
+
+.avatar-container.gold {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.avatar-container.silver {
+  border-color: #9ca3af;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+}
+
+.avatar-container.bronze {
+  border-color: #d97706;
+  background: linear-gradient(135deg, #fed7aa, #fdba74);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+}
+
+.loja-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.loja-initials {
   font-size: 1.2rem;
+  font-weight: 700;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-container.gold .loja-initials {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #92400e;
+}
+
+.avatar-container.silver .loja-initials {
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  color: white;
+}
+
+.avatar-container.bronze .loja-initials {
+  background: linear-gradient(135deg, #d97706, #c2410c);
+  color: white;
 }
 
 .loja-main-info {
@@ -395,77 +500,13 @@ const getRegiaoIcon = (regiao) => {
   margin: 0;
 }
 
-.loja-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.loja-badge.elite {
-  background: linear-gradient(45deg, #fbbf24, #f59e0b);
-  color: #7c2d12;
-}
-
-.loja-badge.alta {
-  background: linear-gradient(45deg, #6366f1, #8b5cf6);
-  color: white;
-}
-
-.loja-badge.media {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-}
-
-.loja-badge.iniciante {
-  background: #f1f5f9;
-  color: #6b7280;
-}
 
 .loja-nome {
   color: #6b7280;
   margin: 0;
 }
 
-.loja-regiao {
-  color: #9ca3af;
-  margin: 0.25rem 0 0 0;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
 
-.liga-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.liga-badge.diamante {
-  background: linear-gradient(45deg, #ede9fe, #ddd6fe);
-  color: #5b21b6;
-}
-
-.liga-badge.ouro {
-  background: linear-gradient(45deg, #fef3c7, #fde68a);
-  color: #92400e;
-}
-
-.liga-badge.prata {
-  background: linear-gradient(45deg, #f1f5f9, #e2e8f0);
-  color: #475569;
-}
-
-.liga-badge.bronze {
-  background: linear-gradient(45deg, #fed7aa, #fdba74);
-  color: #c2410c;
-}
 
 .loja-stats {
   display: grid;
@@ -528,14 +569,6 @@ const getRegiaoIcon = (regiao) => {
   background: #5b21b6;
 }
 
-.action-button.secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.action-button.secondary:hover {
-  background: #e5e7eb;
-}
 
 .progress-bar {
   position: absolute;
@@ -562,12 +595,35 @@ const getRegiaoIcon = (regiao) => {
     text-align: center;
   }
 
+  .position {
+    order: 1;
+  }
+
+  .loja-avatar {
+    order: 2;
+  }
+
+  .loja-main-info {
+    order: 3;
+  }
+
   .loja-stats {
+    order: 4;
     grid-template-columns: repeat(2, 1fr);
   }
 
   .loja-actions {
+    order: 5;
     justify-content: center;
+  }
+
+  .avatar-container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .loja-initials {
+    font-size: 1rem;
   }
 }
 </style>

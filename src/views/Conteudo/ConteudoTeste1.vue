@@ -233,23 +233,13 @@ export default {
   },
   methods: {
     async carregarDatasAuditoria() {
-      try {
-        const response = await axios.get(
-          "http://localhost:3000/datas-auditoria"
-        );
-        this.datasAuditoria = response.data;
-        if (this.datasAuditoria.length > 0) {
-          this.dataSelecionada = this.datasAuditoria[0];
-        }
-      } catch (error) {
-        console.error("Erro ao carregar datas:", error);
-        // Fallback para datas de exemplo
-        this.datasAuditoria = [
-          new Date().toISOString().split("T")[0],
-          new Date(Date.now() - 86400000).toISOString().split("T")[0],
-        ];
-        this.dataSelecionada = this.datasAuditoria[0];
-      }
+      // Usando dados mockados para evitar dependência de API
+      this.datasAuditoria = [
+        new Date().toISOString().split("T")[0],
+        new Date(Date.now() - 86400000).toISOString().split("T")[0],
+        new Date(Date.now() - 172800000).toISOString().split("T")[0],
+      ];
+      this.dataSelecionada = this.datasAuditoria[0];
     },
 
     formatarDataParaExibicao(data) {
@@ -266,26 +256,16 @@ export default {
         this.carregando = true;
         this.erro = null;
         this.erroDetectado = false;
-        const params = this.dataSelecionada
-          ? { data: this.dataSelecionada }
-          : {};
-        const response = await axios.get(
-          "http://localhost:3000/dados-setores",
-          { params }
-        );
 
-        if (response.data && Array.isArray(response.data)) {
-          this.dadosPlanilha = response.data;
-          this.calcularEstatisticas();
-        } else {
-          throw new Error("Formato de dados inválido");
-        }
+        // Simular delay de carregamento
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Usar dados de exemplo diretamente
+        this.dadosPlanilha = this.getDadosExemplo();
+        this.calcularEstatisticas();
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         this.erro = "Falha ao carregar dados da auditoria";
-        // Dados de exemplo para fallback
-        this.dadosPlanilha = this.getDadosExemplo();
-        this.calcularEstatisticas();
       } finally {
         this.carregando = false;
       }
@@ -485,33 +465,36 @@ export default {
 
     getDadosExemplo() {
       return [
-        {
-          Código: "1197824",
-          Produto: "CHALEIRA ELET BRITANIA 1,8L BCH02PI 220V",
-          Local: "G04A - G04A",
-          Usuario: "2692473 (NEILTON PEREIRA LIMA)",
-          Situacao: "Desatualizado",
-          "Estoque atual": "21",
-          "Última compra": "19/07/2025",
-        },
-        {
-          Código: "1062218",
-          Produto: "CTGARRO CHESTERFIELD BLUE BOX C/10 KS RGB",
-          Local: "C01 - C01",
-          Usuario: "3642445 (ADILSON CESAR SILVA DOS REIS)",
-          Situacao: "Atualizado",
-          "Estoque atual": "24",
-          "Última compra": "45744",
-        },
-        {
-          Código: "1062220",
-          Produto: "PRODUTO EXEMPLO 3",
-          Local: "C03 - C03",
-          Usuario: "3642447 (OUTRO FUNCIONARIO)",
-          Situacao: "Lido não pertence",
-          "Estoque atual": "30",
-          "Última compra": "45746",
-        },
+        // Dados Atualizados
+        { Código: "1197824", Produto: "CHALEIRA ELET BRITANIA 1,8L BCH02PI 220V", Local: "G04A", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Atualizado", "Estoque atual": "21" },
+        { Código: "1062218", Produto: "CTGARRO CHESTERFIELD BLUE BOX C/10 KS RGB", Local: "C01", Usuario: "3642445 (ADILSON CESAR)", Situacao: "Atualizado", "Estoque atual": "24" },
+        { Código: "1256732", Produto: "SABONETE DOVE ORIGINAL 90G", Local: "B15", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Atualizado", "Estoque atual": "45" },
+        { Código: "1398472", Produto: "SHAMPOO SEDA 325ML", Local: "B20", Usuario: "3642445 (ADILSON CESAR)", Situacao: "Atualizado", "Estoque atual": "32" },
+        { Código: "1472836", Produto: "DETERGENTE YPE 500ML", Local: "D10", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Atualizado", "Estoque atual": "67" },
+
+        // Dados Desatualizados
+        { Código: "1847293", Produto: "ARROZ UNCLE BENS 1KG", Local: "A05", Usuario: "3642445 (ADILSON CESAR)", Situacao: "Desatualizado", "Estoque atual": "18" },
+        { Código: "1937465", Produto: "FEIJÃO KICALDO 1KG", Local: "A07", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Desatualizado", "Estoque atual": "25" },
+        { Código: "1746382", Produto: "AÇÚCAR CRISTAL UNIÃO 1KG", Local: "A12", Usuario: "3642445 (ADILSON CESAR)", Situacao: "Desatualizado", "Estoque atual": "41" },
+
+        // Lido não pertence
+        { Código: "1062220", Produto: "PRODUTO LIDO NÃO PERTENCE", Local: "C03", Usuario: "3642447 (OUTRO FUNCIONARIO)", Situacao: "Lido não pertence", "Estoque atual": "30" },
+        { Código: "1573829", Produto: "ITEM TESTE LIDO NÃO PERTENCE", Local: "F08", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Lido não pertence", "Estoque atual": "15" },
+
+        // Lido sem estoque
+        { Código: "1847364", Produto: "PRODUTO LIDO SEM ESTOQUE", Local: "E22", Usuario: "3642445 (ADILSON CESAR)", Situacao: "Lido sem estoque", "Estoque atual": "0" },
+        { Código: "1938475", Produto: "ITEM LIDO SEM ESTOQUE", Local: "F12", Usuario: "2692473 (NEILTON PEREIRA)", Situacao: "Lido sem estoque", "Estoque atual": "0" },
+
+        // Não lidos com estoque
+        { Código: "1746592", Produto: "PRODUTO NÃO LIDO COM ESTOQUE", Local: "G18", Usuario: "", Situacao: "Não lidos com estoque", "Estoque atual": "22" },
+        { Código: "1847395", Produto: "ITEM NÃO LIDO COM ESTOQUE", Local: "H05", Usuario: "", Situacao: "Não lidos com estoque", "Estoque atual": "35" },
+        { Código: "1573948", Produto: "OUTRO NÃO LIDO COM ESTOQUE", Local: "I15", Usuario: "", Situacao: "Não lidos com estoque", "Estoque atual": "18" },
+        { Código: "1847562", Produto: "MAIS UM NÃO LIDO COM ESTOQUE", Local: "J22", Usuario: "", Situacao: "Não lidos com estoque", "Estoque atual": "42" },
+
+        // Sem estoque
+        { Código: "1938572", Produto: "PRODUTO SEM ESTOQUE", Local: "K08", Usuario: "", Situacao: "Sem Estoque", "Estoque atual": "0" },
+        { Código: "1746283", Produto: "ITEM SEM ESTOQUE", Local: "L15", Usuario: "", Situacao: "Sem Estoque", "Estoque atual": "0" },
+        { Código: "1573847", Produto: "OUTRO SEM ESTOQUE", Local: "M22", Usuario: "", Situacao: "Sem Estoque", "Estoque atual": "0" },
       ];
     },
   },
