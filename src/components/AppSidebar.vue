@@ -102,6 +102,17 @@
         </div>
 
         <nav class="sidebar-nav">
+          <!-- Home -->
+          <router-link
+            to="/home"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Início' : ''"
+          >
+            <img src="../assets/svg/home.svg" alt="Início" class="nav-icon" />
+            <span class="nav-text" v-if="!sidebarCollapsed">Início</span>
+          </router-link>
+
           <!-- Upload Menu com Dropdown -->
           <div class="nav-item-container">
             <div

@@ -7,6 +7,7 @@ import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
 import Dashboard from "../views/Dashboard.vue";
+import Home from "../views/Home.vue";
 // Arquivos removidos - não existem mais
 // import EtiquetaContent from "../views/dashboard/EtiquetaContent.vue";
 // import PresencaContent from "../views/dashboard/PresencaContent.vue";
@@ -51,6 +52,12 @@ const routes = [
   },
 
   // Rotas que requerem loja selecionada (com layout normal)
+  {
+    path: "/home",
+    name: "Home",
+    component: Home,
+    meta: { requiresLoja: true },
+  },
   {
     path: "/selecionar-auditoria",
     name: "SelecionarAuditoria",
