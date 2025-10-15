@@ -2,8 +2,8 @@
   <header class="main-header">
     <div class="header-content">
       <div class="logo-section">
-        <h1>AuditPro</h1>
-        <span class="slogan">Audite. Colabore. Melhore.</span>
+        <h1>🏬Auditorias Lojas</h1>
+        <span class="slogan">Auditorias. Colaboradores. Hanking.</span>
       </div>
       <nav class="main-nav">
         <a href="#" class="nav-item active">🏠 Início</a>
@@ -27,7 +27,7 @@
   border-bottom: 1px solid #e2e8f0;
   padding: 1rem 0;
   position: sticky;
-  top: 0;
+  margin-top: 10px;
   z-index: 100;
   backdrop-filter: blur(10px);
 }

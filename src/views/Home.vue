@@ -19,6 +19,7 @@
         />
         <UserAchievements :achievements="achievements" />
         <SystemSummary :stats="systemStats" />
+        <OnlineUsersList />
       </div>
     </div>
 
@@ -30,6 +31,7 @@
 import { ref, reactive, onMounted } from "vue";
 import HeaderComponent from "@/components/HomeComponents/HeaderComponent.vue";
 import HeroSection from "@/components/HomeComponents/HeroSection.vue";
+import OnlineUsersList from "@/components/HomeComponents/OnlineUsersList.vue";
 import CommunityFeed from "@/components/HomeComponents/CommunityFeed.vue";
 import ImprovementsVoting from "@/components/HomeComponents/ImprovementsVoting.vue";
 import UserAchievements from "@/components/HomeComponents/UserAchievements.vue";
@@ -216,7 +218,7 @@ onMounted(() => {
 }
 
 .main-grid {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem;
   display: grid;
