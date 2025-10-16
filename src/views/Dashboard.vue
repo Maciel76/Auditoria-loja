@@ -33,84 +33,209 @@
         <!-- Navigation Cards -->
         <div class="navigation-section">
           <div class="section-header">
-            <h2>📂 Tipos de Postagem</h2>
-            <p>Filtre por categoria</p>
+            <h2>📂 Gerenciamento</h2>
+            <p>Selecione o que deseja gerenciar</p>
           </div>
           <div class="nav-cards-grid">
             <div
-              v-for="type in postTypes"
-              :key="type.key"
               class="nav-card"
-              :class="{ active: typeFilter === type.key }"
-              @click="setTypeFilter(type.key)"
+              :class="{ active: currentView === 'postagens' }"
+              @click="setCurrentView('postagens')"
             >
-              <div class="nav-card-icon">{{ type.icon }}</div>
+              <div class="nav-card-icon">📰</div>
               <div class="nav-card-content">
-                <h3>{{ type.title }}</h3>
-                <p>{{ type.description }}</p>
-                <span class="nav-card-count"
-                  >{{ getPostCountByType(type.key) }} postagens</span
-                >
+                <h3>Postagens</h3>
+                <p>Publicações Gerais</p>
+                <span class="nav-card-count">{{ getPostCountByType('postagem') }} items</span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Voting System -->
-        <div class="voting-section">
-          <div class="section-header">
-            <h2>🗳️ Sistema de Votação</h2>
-            <p>Vote nas melhorias preferidas</p>
-          </div>
-
-          <div class="voting-cards-grid">
             <div
-              v-for="item in votingItems"
-              :key="item.id"
-              class="voting-card"
-              :class="`status-${item.status}`"
+              class="nav-card"
+              :class="{ active: currentView === 'sugestoes' }"
+              @click="setCurrentView('sugestoes')"
             >
-              <div class="voting-card-header">
-                <h4>{{ item.title }}</h4>
-                <span class="voting-status" :class="item.status">{{
-                  getVotingStatusText(item.status)
-                }}</span>
+              <div class="nav-card-icon">💡</div>
+              <div class="nav-card-content">
+                <h3>Sugestões</h3>
+                <p>Sugestões e melhorias</p>
+                <span class="nav-card-count">{{ getSugestoesCount() }} items</span>
               </div>
+            </div>
 
-              <p class="voting-description">{{ item.description }}</p>
+            <div
+              class="nav-card"
+              :class="{ active: currentView === 'votacoes' }"
+              @click="setCurrentView('votacoes')"
+            >
+              <div class="nav-card-icon">🚀</div>
+              <div class="nav-card-content">
+                <h3>Votações</h3>
+                <p>Votações de melhorias</p>
+                <span class="nav-card-count">{{ votacoesPendentes.length }} items</span>
+              </div>
+            </div>
 
-              <div class="voting-actions">
-                <button
-                  class="vote-btn"
-                  :class="{ voted: item.userVoted }"
-                  @click="voteOnItem(item.id)"
-                  :disabled="item.userVoted"
-                >
-                  {{ item.userVoted ? "✓ Votado" : "👍 Votar" }}
-                </button>
-                <span class="vote-count">{{ item.votes }} votos</span>
+            <div
+              class="nav-card"
+              :class="{ active: currentView === 'avisos' }"
+              @click="setCurrentView('avisos')"
+            >
+              <div class="nav-card-icon">📢</div>
+              <div class="nav-card-content">
+                <h3>Implementação</h3>
+                <p>Avisos importantes</p>
+                <span class="nav-card-count">{{ avisosPendentes.length }} items</span>
               </div>
             </div>
           </div>
         </div>
+
       </div>
 
       <!-- Area #3 - Right -->
       <div class="area-right">
-        <!-- Posts Management -->
-        <div class="posts-management">
+        <!-- Dynamic Content Management -->
+        <div class="content-management">
           <div class="management-header">
-            <h2>📝 Gerenciamento de Postagens</h2>
-            <p>Gerencie todas as sugestões da comunidade</p>
+            <h2>{{ getCurrentViewTitle() }}</h2>
+            <p>{{ getCurrentViewDescription() }}</p>
           </div>
 
           <!-- Loading State -->
           <div v-if="loading" class="loading-state">
             <div class="loading-spinner"></div>
-            <p>Carregando postagens...</p>
+            <p>Carregando dados...</p>
           </div>
 
-          <!-- Posts List -->
+          <!-- Postagens Card -->
+          <div v-else-if="currentView === 'postagens'" class="content-list">
+            <div
+              v-for="post in getPostsByType('postagem')"
+              :key="post._id"
+              class="content-card postagem-card"
+            >
+              <div class="post-header">
+                <div class="post-meta">
+                  <span class="post-type">📰 POSTAGEM</span>
+                  <span class="post-date">{{ formatDate(post.createdAt) }}</span>
+                  <span class="post-status" :class="post.status">{{ getStatusText(post.status) }}</span>
+                </div>
+                <div class="post-actions">
+                  <button @click="updatePostStatus(post._id, 'implementado')" class="btn-approve">✅ Aprovar</button>
+                  <button @click="updatePostStatus(post._id, 'rejeitado')" class="btn-reject">❌ Rejeitar</button>
+                </div>
+              </div>
+              <div class="post-content">
+                <h3>{{ getPostTitle(post.sugestao) }}</h3>
+                <p>{{ getPostDescription(post.sugestao) }}</p>
+                <div v-if="post.nome" class="post-author">
+                  <small>📝 Por: {{ post.nome }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sugestões Card -->
+          <div v-else-if="currentView === 'sugestoes'" class="content-list">
+            <div
+              v-for="post in getSugestoesList()"
+              :key="post._id"
+              class="content-card sugestao-card"
+            >
+              <div class="post-header">
+                <div class="post-meta">
+                  <span class="post-type">💡 SUGESTÃO</span>
+                  <span class="post-date">{{ formatDate(post.createdAt) }}</span>
+                  <span class="post-status" :class="post.status">{{ getStatusText(post.status) }}</span>
+                </div>
+                <div class="post-actions">
+                  <button @click="publicarSugestao(post._id)" class="btn-approve">📢 Publicar como Aviso</button>
+                  <button @click="deletarSugestao(post._id)" class="btn-delete">🗑️ Deletar</button>
+                </div>
+              </div>
+              <div class="post-content">
+                <h3>{{ getPostTitle(post.sugestao) }}</h3>
+                <p>{{ getPostDescription(post.sugestao) }}</p>
+                <div v-if="post.nome" class="post-author">
+                  <small>💡 Por: {{ post.nome }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Votações Card -->
+          <div v-else-if="currentView === 'votacoes'" class="content-list">
+            <div
+              v-for="votacao in votacoesPendentes"
+              :key="votacao._id"
+              class="content-card votacao-card"
+            >
+              <div class="post-header">
+                <div class="post-meta">
+                  <span class="post-type">🚀 VOTAÇÃO</span>
+                  <span v-if="votacao.autor" class="post-author">📝 {{ votacao.autor }}</span>
+                  <span class="post-date">{{ formatDate(votacao.createdAt) }}</span>
+                  <span class="post-status" :class="votacao.status">{{ getStatusText(votacao.status) }}</span>
+                </div>
+                <div class="post-actions">
+                  <select @change="alterarStatusVotacao(votacao._id, $event.target.value)"
+                          :value="votacao.status"
+                          class="status-selector">
+                    <option value="pendente">🟡 Pendente</option>
+                    <option value="aprovado">🟢 Aprovado</option>
+                    <option value="ativo">🔴 Ativo</option>
+                    <option value="finalizado">✅ Finalizado</option>
+                    <option value="rejeitado">❌ Rejeitado</option>
+                  </select>
+                  <button @click="deletarVotacao(votacao._id)"
+                          class="btn-delete"
+                          title="Deletar votação">
+                    🗑️ Deletar
+                  </button>
+                </div>
+              </div>
+              <div class="post-content">
+                <h3>{{ votacao.titulo }}</h3>
+                <p>{{ votacao.descricao }}</p>
+                <div v-if="votacao.beneficios" class="votacao-beneficios">
+                  <strong>Benefícios:</strong> {{ votacao.beneficios }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Avisos/Implementação Card -->
+          <div v-else-if="currentView === 'avisos'" class="content-list">
+            <div
+              v-for="aviso in avisosPendentes"
+              :key="aviso._id"
+              class="content-card aviso-card"
+              :class="`prioridade-${aviso.prioridade}`"
+            >
+              <div class="post-header">
+                <div class="post-meta">
+                  <span class="post-type">📢 AVISO</span>
+                  <span class="post-date">{{ formatDate(aviso.createdAt) }}</span>
+                  <span class="post-status" :class="aviso.status">{{ getStatusText(aviso.status) }}</span>
+                  <span class="aviso-prioridade" :class="aviso.prioridade">{{ getPrioridadeText(aviso.prioridade) }}</span>
+                </div>
+                <div class="post-actions">
+                  <button @click="aprovarAviso(aviso._id)" class="btn-approve">✅ Publicar</button>
+                  <button @click="rejeitarAviso(aviso._id)" class="btn-reject">❌ Rejeitar</button>
+                </div>
+              </div>
+              <div class="post-content">
+                <h3>{{ aviso.titulo }}</h3>
+                <p>{{ aviso.conteudo }}</p>
+                <div v-if="aviso.autor" class="post-author">
+                  <small>📝 Por: {{ aviso.autor }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Default Posts List (legacy) -->
           <div v-else class="posts-list">
             <div
               v-for="post in filteredPosts"
@@ -349,6 +474,13 @@ export default {
       },
     ]);
 
+    // Estados para avisos e votações
+    const avisosPendentes = ref([]);
+    const votacoesPendentes = ref([]);
+
+    // Estado para view atual
+    const currentView = ref('postagens');
+
     const filteredPosts = computed(() => {
       let filtered = posts.value;
 
@@ -384,6 +516,201 @@ export default {
       }
     };
 
+    // Carregar avisos pendentes
+    const loadAvisos = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/avisos?status=pendente", {
+          headers: { 'x-loja': '001' }
+        });
+        avisosPendentes.value = response.data.avisos || [];
+        console.log(`✅ ${avisosPendentes.value.length} avisos pendentes carregados`);
+      } catch (error) {
+        console.error("Erro ao carregar avisos:", error);
+      }
+    };
+
+    // Carregar votações pendentes
+    const loadVotacoes = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/votacoes", {
+          headers: { 'x-loja': '001' }
+        });
+        votacoesPendentes.value = response.data.votacoes || [];
+        console.log(`✅ ${votacoesPendentes.value.length} votações carregadas`);
+      } catch (error) {
+        console.error("Erro ao carregar votações:", error);
+      }
+    };
+
+    // Aprovar aviso
+    const aprovarAviso = async (avisoId) => {
+      try {
+        await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
+          status: 'aprovado',
+          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 dias
+        });
+        showMessage("Aviso aprovado com sucesso!", "success");
+        loadAvisos(); // Recarregar lista
+      } catch (error) {
+        console.error("Erro ao aprovar aviso:", error);
+        showMessage("Erro ao aprovar aviso", "error");
+      }
+    };
+
+    // Rejeitar aviso
+    const rejeitarAviso = async (avisoId) => {
+      try {
+        await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
+          status: 'rejeitado'
+        });
+        showMessage("Aviso rejeitado", "success");
+        loadAvisos(); // Recarregar lista
+      } catch (error) {
+        console.error("Erro ao rejeitar aviso:", error);
+        showMessage("Erro ao rejeitar aviso", "error");
+      }
+    };
+
+    // Aprovar votação
+    const aprovarVotacao = async (votacaoId) => {
+      try {
+        const dataInicio = new Date();
+        const dataFim = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+
+        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
+          status: 'ativo',
+          dataInicio: dataInicio.toISOString(),
+          dataFim: dataFim.toISOString()
+        });
+        showMessage("Votação aprovada e iniciada!", "success");
+        loadVotacoes(); // Recarregar lista
+      } catch (error) {
+        console.error("Erro ao aprovar votação:", error);
+        showMessage("Erro ao aprovar votação", "error");
+      }
+    };
+
+    // Alterar status da votação
+    const alterarStatusVotacao = async (votacaoId, novoStatus) => {
+      try {
+        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
+          status: novoStatus
+        });
+
+        // Atualizar localmente
+        const votacao = votacoesPendentes.value.find(v => v._id === votacaoId);
+        if (votacao) {
+          votacao.status = novoStatus;
+        }
+
+        console.log(`✅ Status da votação ${votacaoId} alterado para ${novoStatus}`);
+      } catch (error) {
+        console.error("Erro ao alterar status da votação:", error);
+        alert("Erro ao alterar status da votação");
+      }
+    };
+
+    // Deletar votação
+    const deletarVotacao = async (votacaoId) => {
+      if (!confirm("Tem certeza que deseja deletar esta votação? Esta ação não pode ser desfeita.")) {
+        return;
+      }
+
+      try {
+        await axios.delete(`http://localhost:3000/api/votacoes/${votacaoId}`);
+
+        // Remover da lista local
+        votacoesPendentes.value = votacoesPendentes.value.filter(v => v._id !== votacaoId);
+
+        console.log(`✅ Votação ${votacaoId} deletada com sucesso`);
+        alert("Votação deletada com sucesso!");
+      } catch (error) {
+        console.error("Erro ao deletar votação:", error);
+        alert("Erro ao deletar votação");
+      }
+    };
+
+    // Publicar sugestão como aviso
+    const publicarSugestao = async (sugestaoId) => {
+      if (!confirm("Tem certeza que deseja publicar esta sugestão como aviso importante?")) {
+        return;
+      }
+
+      try {
+        // Encontrar a sugestão
+        const sugestao = posts.value.find(p => p._id === sugestaoId);
+        if (!sugestao) {
+          alert("Sugestão não encontrada");
+          return;
+        }
+
+        // Criar aviso baseado na sugestão
+        const avisoResponse = await axios.post("http://localhost:3000/api/avisos", {
+          titulo: `Sugestão Implementada: ${getPostTitle(sugestao.sugestao)}`,
+          conteudo: `Baseado na sugestão de ${sugestao.nome || 'usuário'}: ${sugestao.sugestao}`,
+          prioridade: "media",
+          autor: sugestao.nome || "Sistema",
+          status: "pendente"
+        });
+
+        if (avisoResponse.data) {
+          // Aprovar o aviso automaticamente
+          await axios.put(`http://localhost:3000/api/avisos/${avisoResponse.data.id}/status`, {
+            status: 'aprovado'
+          });
+
+          // Deletar a sugestão após publicar
+          await axios.delete(`http://localhost:3000/api/sugestoes/${sugestaoId}`);
+
+          // Remover da lista local
+          posts.value = posts.value.filter(p => p._id !== sugestaoId);
+
+          // Recarregar avisos
+          loadAvisos();
+
+          alert("Sugestão publicada como aviso com sucesso!");
+          console.log(`✅ Sugestão ${sugestaoId} publicada como aviso aprovado`);
+        }
+      } catch (error) {
+        console.error("Erro ao publicar sugestão:", error);
+        alert("Erro ao publicar sugestão como aviso");
+      }
+    };
+
+    // Deletar sugestão
+    const deletarSugestao = async (sugestaoId) => {
+      if (!confirm("Tem certeza que deseja deletar esta sugestão? Esta ação não pode ser desfeita.")) {
+        return;
+      }
+
+      try {
+        await axios.delete(`http://localhost:3000/api/sugestoes/${sugestaoId}`);
+
+        // Remover da lista local
+        posts.value = posts.value.filter(p => p._id !== sugestaoId);
+
+        console.log(`✅ Sugestão ${sugestaoId} deletada com sucesso`);
+        alert("Sugestão deletada com sucesso!");
+      } catch (error) {
+        console.error("Erro ao deletar sugestão:", error);
+        alert("Erro ao deletar sugestão");
+      }
+    };
+
+    // Rejeitar votação
+    const rejeitarVotacao = async (votacaoId) => {
+      try {
+        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
+          status: 'rejeitado'
+        });
+        showMessage("Votação rejeitada", "success");
+        loadVotacoes(); // Recarregar lista
+      } catch (error) {
+        console.error("Erro ao rejeitar votação:", error);
+        showMessage("Erro ao rejeitar votação", "error");
+      }
+    };
+
     // Utilitários
     const getTypeIcon = (type) => {
       const icons = {
@@ -404,6 +731,16 @@ export default {
         rejeitado: "Rejeitado",
       };
       return statusTexts[status] || status;
+    };
+
+    const getPrioridadeText = (prioridade) => {
+      const prioridadeTexts = {
+        baixa: "Baixa",
+        media: "Média",
+        alta: "Alta",
+        critica: "Crítica",
+      };
+      return prioridadeTexts[prioridade] || prioridade;
     };
 
     const formatDate = (dateString) => {
@@ -616,9 +953,79 @@ export default {
       return posts.value.filter((post) => post.status === status);
     };
 
+    // Funções para navegação entre views
+    const setCurrentView = (view) => {
+      currentView.value = view;
+    };
+
+    const getCurrentViewTitle = () => {
+      const titles = {
+        postagens: "📰 Gerenciamento de Postagens",
+        sugestoes: "💡 Gerenciamento de Sugestões",
+        votacoes: "🚀 Gerenciamento de Votações",
+        avisos: "📢 Gerenciamento de Avisos"
+      };
+      return titles[currentView.value] || "📋 Gerenciamento";
+    };
+
+    const getCurrentViewDescription = () => {
+      const descriptions = {
+        postagens: "Gerencie todas as postagens criadas pela comunidade",
+        sugestoes: "Analise e aprove sugestões de melhorias",
+        votacoes: "Aprove e inicie votações de melhorias",
+        avisos: "Publique avisos importantes para implementação"
+      };
+      return descriptions[currentView.value] || "Selecione uma categoria";
+    };
+
+    // Funções para filtrar conteúdo por tipo
+    const getPostsByType = (type) => {
+      if (type === 'postagem') {
+        return posts.value.filter(post =>
+          post.sugestao && post.sugestao.includes('POSTAGEM:') &&
+          post.sugestao.includes('AUTOR:')
+        );
+      }
+      return posts.value.filter(post => post.tipo === type);
+    };
+
+    const getSugestoesList = () => {
+      return posts.value.filter(post =>
+        post.tipo === 'geral' &&
+        (!post.sugestao.includes('POSTAGEM:') || !post.sugestao.includes('AUTOR:'))
+      );
+    };
+
+    const getSugestoesCount = () => {
+      return getSugestoesList().length;
+    };
+
+    // Função para atualizar status rapidamente
+    const updatePostStatus = async (postId, newStatus) => {
+      try {
+        const response = await axios.put(`http://localhost:3000/api/sugestoes/${postId}/status`, {
+          status: newStatus
+        });
+
+        if (response.data.message) {
+          // Atualizar localmente
+          const post = posts.value.find(p => p._id === postId);
+          if (post) {
+            post.status = newStatus;
+          }
+          showMessage(`Status atualizado para ${getStatusText(newStatus)}`, "success");
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+        showMessage("Erro ao atualizar status", "error");
+      }
+    };
+
     // Carregar dados quando componente for montado
     onMounted(() => {
       loadPosts();
+      loadAvisos();
+      loadVotacoes();
     });
 
     return {
@@ -627,9 +1034,23 @@ export default {
       statusFilter,
       successMessage,
       filteredPosts,
+      avisosPendentes,
+      votacoesPendentes,
+      currentView,
       loadPosts,
+      loadAvisos,
+      loadVotacoes,
+      aprovarAviso,
+      rejeitarAviso,
+      aprovarVotacao,
+      rejeitarVotacao,
+      alterarStatusVotacao,
+      deletarVotacao,
+      publicarSugestao,
+      deletarSugestao,
       getTypeIcon,
       getStatusText,
+      getPrioridadeText,
       formatDate,
       getPostTitle,
       getPostDescription,
@@ -638,13 +1059,20 @@ export default {
       hasUserReacted,
       toggleReaction,
       updatePost,
+      updatePostStatus,
       deletePost,
       editPost,
       typeFilter,
       postTypes,
       votingItems,
       setTypeFilter,
+      setCurrentView,
+      getCurrentViewTitle,
+      getCurrentViewDescription,
       getPostCountByType,
+      getPostsByType,
+      getSugestoesList,
+      getSugestoesCount,
       getVotingStatusText,
       voteOnItem,
       getPostsByStatus,
@@ -923,6 +1351,379 @@ export default {
 .voting-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Avisos Section */
+.avisos-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.avisos-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aviso-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.aviso-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.aviso-card.prioridade-baixa {
+  border-left: 4px solid #22c55e;
+}
+
+.aviso-card.prioridade-media {
+  border-left: 4px solid #eab308;
+}
+
+.aviso-card.prioridade-alta {
+  border-left: 4px solid #f97316;
+}
+
+.aviso-card.prioridade-critica {
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+}
+
+.aviso-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.aviso-card-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a202c;
+  flex: 1;
+}
+
+.aviso-prioridade {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.aviso-prioridade.baixa {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.aviso-prioridade.media {
+  background: #fef3c7;
+  color: #ca8a04;
+}
+
+.aviso-prioridade.alta {
+  background: #fed7aa;
+  color: #ea580c;
+}
+
+.aviso-prioridade.critica {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.aviso-description {
+  margin: 0 0 1rem 0;
+  color: #4b5563;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+.aviso-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.approve-btn,
+.reject-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.approve-btn {
+  background: #22c55e;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.reject-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.reject-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* Content Management Styles */
+.content-management {
+  padding: 2rem;
+}
+
+.content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.content-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.postagem-card {
+  border-left: 4px solid #3b82f6;
+}
+
+.sugestao-card {
+  border-left: 4px solid #f59e0b;
+}
+
+.votacao-card {
+  border-left: 4px solid #8b5cf6;
+}
+
+.aviso-card {
+  border-left: 4px solid #ef4444;
+}
+
+.aviso-card.prioridade-baixa {
+  border-left-color: #22c55e;
+}
+
+.aviso-card.prioridade-media {
+  border-left-color: #eab308;
+}
+
+.aviso-card.prioridade-alta {
+  border-left-color: #f97316;
+}
+
+.aviso-card.prioridade-critica {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.post-type {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.post-date {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.post-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.post-status.pendente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.post-status.analisando {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.post-status.implementado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.post-status.rejeitado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.post-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-approve,
+.btn-implement,
+.btn-reject,
+.btn-delete {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-approve {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-approve:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.btn-implement {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-implement:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* Seletor de Status */
+.status-selector {
+  padding: 0.5rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.status-selector:hover {
+  border-color: #6366f1;
+  background: #f8fafc;
+}
+
+.status-selector:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Autor da postagem */
+.post-author {
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.post-content h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.post-content p {
+  margin: 0 0 1rem 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.post-author,
+.votacao-beneficios {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.post-author small {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.votacao-beneficios {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.votacao-beneficios strong {
+  color: #1a202c;
 }
 
 .voting-card-header {

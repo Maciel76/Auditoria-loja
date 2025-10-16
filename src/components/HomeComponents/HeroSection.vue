@@ -38,7 +38,7 @@
         </div>
 
         <div class="hero-actions">
-          <button class="btn-primary" @click="$emit('start-audit')">
+          <button class="btn-primary" @click="openPostModal">
             <i class="fas fa-search"></i>
             📝Criar Nova Postagem
           </button>
@@ -46,8 +46,8 @@
             <i class="fas fa-lightbulb"></i>
             💡 Enviar Sugestão
           </button>
-          <button class="btn-secondary">💬 Novo Aviso</button>
-          <button class="btn-secondary">🚀 Nova votação</button>
+          <button class="btn-secondary" @click="openNoticeModal">💬 Novo Aviso</button>
+          <button class="btn-secondary" @click="openVotingModal">🚀 Nova votação</button>
         </div>
       </div>
 
@@ -87,12 +87,12 @@
           </p>
 
           <div class="form-group">
-            <label for="email">Email (opcional)</label>
+            <label for="nome">Nome (opcional)</label>
             <input
-              id="email"
-              v-model="email"
-              type="email"
-              placeholder="seu@email.com"
+              id="nome"
+              v-model="nome"
+              type="text"
+              placeholder="Seu nome"
               class="form-input"
             />
           </div>
@@ -124,21 +124,310 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Nova Postagem -->
+    <div
+      v-if="showPostModal"
+      class="modal-overlay"
+      @click="closePostModal"
+    >
+      <div class="suggestion-modal" @click.stop>
+        <div class="modal-header">
+          <h2>📝 Criar Nova Postagem</h2>
+          <button class="close-btn" @click="closePostModal">×</button>
+        </div>
+
+        <div class="modal-content">
+          <p class="modal-description">
+            Compartilhe suas ideias e sugestões com a comunidade!
+          </p>
+
+          <div class="form-group">
+            <label for="author-name">Nome para exibição *</label>
+            <input
+              id="author-name"
+              v-model="postForm.author"
+              type="text"
+              placeholder="Seu nome ou como deseja aparecer"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="post-title">Título da Postagem *</label>
+            <input
+              id="post-title"
+              v-model="postForm.title"
+              type="text"
+              placeholder="Digite o título da sua postagem..."
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="post-content">Conteúdo *</label>
+            <textarea
+              id="post-content"
+              v-model="postForm.content"
+              placeholder="Descreva sua ideia, sugestão ou pensamento..."
+              class="form-textarea"
+              rows="5"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="post-type">Categoria da Postagem</label>
+            <select id="post-type" v-model="postForm.type" class="form-input">
+              <option value="geral">💡 Geral</option>
+              <option value="dashboard">📊 Dashboard</option>
+              <option value="ranking">🏆 Ranking</option>
+              <option value="auditoria">🔍 Auditoria</option>
+              <option value="relatorios">📋 Relatórios</option>
+              <option value="voting">🗳️ Melhoria para Votação</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closePostModal">
+            Cancelar
+          </button>
+          <button
+            class="btn-submit"
+            @click="submitPost"
+            :disabled="isSubmittingPost || !isPostFormValid"
+          >
+            <span class="btn-icon">📤</span>
+            {{ isSubmittingPost ? "Criando..." : "Criar Postagem" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Novo Aviso -->
+    <div
+      v-if="showNoticeModal"
+      class="modal-overlay"
+      @click="closeNoticeModal"
+    >
+      <div class="suggestion-modal" @click.stop>
+        <div class="modal-header">
+          <h2>💬 Criar Novo Aviso</h2>
+          <button class="close-btn" @click="closeNoticeModal">×</button>
+        </div>
+
+        <div class="modal-content">
+          <p class="modal-description">
+            Crie um aviso importante para a comunidade.
+          </p>
+
+          <div class="form-group">
+            <label for="notice-author">Nome do Autor *</label>
+            <input
+              id="notice-author"
+              v-model="noticeForm.author"
+              type="text"
+              placeholder="Seu nome"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="notice-title">Título do Aviso *</label>
+            <input
+              id="notice-title"
+              v-model="noticeForm.title"
+              type="text"
+              placeholder="Digite o título do aviso..."
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="notice-content">Conteúdo do Aviso *</label>
+            <textarea
+              id="notice-content"
+              v-model="noticeForm.content"
+              placeholder="Descreva o aviso importante..."
+              class="form-textarea"
+              rows="5"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="notice-priority">Prioridade</label>
+            <select id="notice-priority" v-model="noticeForm.priority" class="form-input">
+              <option value="baixa">🟢 Baixa</option>
+              <option value="media">🟡 Média</option>
+              <option value="alta">🟠 Alta</option>
+              <option value="critica">🔴 Crítica</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeNoticeModal">
+            Cancelar
+          </button>
+          <button
+            class="btn-submit"
+            @click="submitNotice"
+            :disabled="isSubmittingNotice || !isNoticeFormValid"
+          >
+            <span class="btn-icon">📤</span>
+            {{ isSubmittingNotice ? "Criando..." : "Criar Aviso" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Nova Votação -->
+    <div
+      v-if="showVotingModal"
+      class="modal-overlay"
+      @click="closeVotingModal"
+    >
+      <div class="suggestion-modal" @click.stop>
+        <div class="modal-header">
+          <h2>🚀 Nova Votação de Melhorias</h2>
+          <button class="close-btn" @click="closeVotingModal">×</button>
+        </div>
+
+        <div class="modal-content">
+          <p class="modal-description">
+            Inicie uma votação para uma nova melhoria no sistema.
+          </p>
+
+          <div class="form-group">
+            <label for="voting-author">Nome do Autor *</label>
+            <input
+              id="voting-author"
+              v-model="votingForm.author"
+              type="text"
+              placeholder="Seu nome"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="voting-title">Título da Melhoria *</label>
+            <input
+              id="voting-title"
+              v-model="votingForm.title"
+              type="text"
+              placeholder="Digite o título da melhoria..."
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="voting-description">Descrição da Melhoria *</label>
+            <textarea
+              id="voting-description"
+              v-model="votingForm.description"
+              placeholder="Descreva detalhadamente a melhoria proposta..."
+              class="form-textarea"
+              rows="5"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="voting-benefits">Benefícios Esperados</label>
+            <textarea
+              id="voting-benefits"
+              v-model="votingForm.benefits"
+              placeholder="Quais benefícios esta melhoria trará?"
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeVotingModal">
+            Cancelar
+          </button>
+          <button
+            class="btn-submit"
+            @click="submitVoting"
+            :disabled="isSubmittingVoting || !isVotingFormValid"
+          >
+            <span class="btn-icon">📤</span>
+            {{ isSubmittingVoting ? "Criando..." : "Iniciar Votação" }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
-defineEmits(["start-audit"]);
+defineEmits(["start-audit", "post-created", "notice-created", "voting-created"]);
 
-// Estados reativos
+// Estados reativos para modal de sugestões
 const showSuggestionModal = ref(false);
 const suggestion = ref("");
-const email = ref("");
+const nome = ref("");
 const isSubmitting = ref(false);
 
-// Métodos
+// Estados reativos para modal de postagem
+const showPostModal = ref(false);
+const postForm = ref({
+  author: "",
+  title: "",
+  content: "",
+  type: "geral"
+});
+const isSubmittingPost = ref(false);
+
+// Estados reativos para modal de aviso
+const showNoticeModal = ref(false);
+const noticeForm = ref({
+  author: "",
+  title: "",
+  content: "",
+  priority: "media"
+});
+const isSubmittingNotice = ref(false);
+
+// Estados reativos para modal de votação
+const showVotingModal = ref(false);
+const votingForm = ref({
+  author: "",
+  title: "",
+  description: "",
+  benefits: ""
+});
+const isSubmittingVoting = ref(false);
+
+// Computed para validações dos formulários
+const isPostFormValid = computed(() => {
+  return postForm.value.author.trim() &&
+         postForm.value.title.trim() &&
+         postForm.value.content.trim() &&
+         postForm.value.title.length >= 5 &&
+         postForm.value.content.length >= 10;
+});
+
+const isNoticeFormValid = computed(() => {
+  return noticeForm.value.author.trim() &&
+         noticeForm.value.title.trim() &&
+         noticeForm.value.content.trim() &&
+         noticeForm.value.title.length >= 5 &&
+         noticeForm.value.content.length >= 10;
+});
+
+const isVotingFormValid = computed(() => {
+  return votingForm.value.author.trim() &&
+         votingForm.value.title.trim() &&
+         votingForm.value.description.trim() &&
+         votingForm.value.title.length >= 5 &&
+         votingForm.value.description.length >= 20;
+});
+
+// Métodos para modal de sugestões
 const openSuggestionModal = () => {
   showSuggestionModal.value = true;
 };
@@ -146,8 +435,56 @@ const openSuggestionModal = () => {
 const closeSuggestionModal = () => {
   showSuggestionModal.value = false;
   suggestion.value = "";
-  email.value = "";
+  nome.value = "";
   isSubmitting.value = false;
+};
+
+// Métodos para modal de postagem
+const openPostModal = () => {
+  showPostModal.value = true;
+};
+
+const closePostModal = () => {
+  showPostModal.value = false;
+  postForm.value = {
+    author: "",
+    title: "",
+    content: "",
+    type: "geral"
+  };
+  isSubmittingPost.value = false;
+};
+
+// Métodos para modal de aviso
+const openNoticeModal = () => {
+  showNoticeModal.value = true;
+};
+
+const closeNoticeModal = () => {
+  showNoticeModal.value = false;
+  noticeForm.value = {
+    author: "",
+    title: "",
+    content: "",
+    priority: "media"
+  };
+  isSubmittingNotice.value = false;
+};
+
+// Métodos para modal de votação
+const openVotingModal = () => {
+  showVotingModal.value = true;
+};
+
+const closeVotingModal = () => {
+  showVotingModal.value = false;
+  votingForm.value = {
+    author: "",
+    title: "",
+    description: "",
+    benefits: ""
+  };
+  isSubmittingVoting.value = false;
 };
 
 const submitSuggestion = async () => {
@@ -166,9 +503,8 @@ const submitSuggestion = async () => {
       },
       body: JSON.stringify({
         sugestao: suggestion.value,
-        email: email.value || null,
-        tipo: "hero-section",
-        data_criacao: new Date().toISOString(),
+        nome: nome.value || null,
+        tipo: "geral",
       }),
     });
 
@@ -183,6 +519,120 @@ const submitSuggestion = async () => {
     alert("Erro ao enviar sugestão. Tente novamente.");
   } finally {
     isSubmitting.value = false;
+  }
+};
+
+// Submit para nova postagem
+const submitPost = async () => {
+  if (!isPostFormValid.value) {
+    alert("Por favor, preencha todos os campos obrigatórios");
+    return;
+  }
+
+  isSubmittingPost.value = true;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/sugestoes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-loja": "001",
+      },
+      body: JSON.stringify({
+        sugestao: `POSTAGEM: ${postForm.value.title}\n\nAUTOR: ${postForm.value.author}\n\nCONTEÚDO: ${postForm.value.content}`,
+        email: null,
+        tipo: postForm.value.type,
+      }),
+    });
+
+    if (response.ok) {
+      alert("Postagem criada com sucesso! Será enviada para aprovação no dashboard.");
+      closePostModal();
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.erro || "Erro ao criar postagem");
+    }
+  } catch (error) {
+    console.error("Erro:", error);
+    alert("Erro ao criar postagem: " + error.message);
+  } finally {
+    isSubmittingPost.value = false;
+  }
+};
+
+// Submit para novo aviso
+const submitNotice = async () => {
+  if (!isNoticeFormValid.value) {
+    alert("Por favor, preencha todos os campos obrigatórios");
+    return;
+  }
+
+  isSubmittingNotice.value = true;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/avisos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        titulo: noticeForm.value.title,
+        conteudo: noticeForm.value.content,
+        prioridade: noticeForm.value.priority,
+        autor: noticeForm.value.author,
+      }),
+    });
+
+    if (response.ok) {
+      alert("Aviso criado com sucesso! Será enviado para aprovação no dashboard.");
+      closeNoticeModal();
+    } else {
+      throw new Error("Erro ao criar aviso");
+    }
+  } catch (error) {
+    console.error("Erro:", error);
+    alert("Erro ao criar aviso. Tente novamente.");
+  } finally {
+    isSubmittingNotice.value = false;
+  }
+};
+
+// Submit para nova votação
+const submitVoting = async () => {
+  if (!isVotingFormValid.value) {
+    alert("Por favor, preencha todos os campos obrigatórios");
+    return;
+  }
+
+  isSubmittingVoting.value = true;
+
+  try {
+    const response = await fetch("http://localhost:3000/api/votacoes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        titulo: votingForm.value.title,
+        descricao: votingForm.value.description,
+        beneficios: votingForm.value.benefits,
+        autor: votingForm.value.author,
+        status: "pendente",
+        data_criacao: new Date().toISOString(),
+      }),
+    });
+
+    if (response.ok) {
+      alert("Votação criada com sucesso! Será enviada para aprovação no dashboard.");
+      closeVotingModal();
+    } else {
+      throw new Error("Erro ao criar votação");
+    }
+  } catch (error) {
+    console.error("Erro:", error);
+    alert("Erro ao criar votação. Tente novamente.");
+  } finally {
+    isSubmittingVoting.value = false;
   }
 };
 </script>

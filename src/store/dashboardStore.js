@@ -229,18 +229,14 @@ export const useDashboardStore = defineStore("dashboard", {
           this.feedItems = response.data.sugestoes.map(sugestao => {
             // Funções auxiliares inline
             const getSuggestionTitle = (texto, tipo) => {
-              const typeIcons = {
-                geral: '💡',
-                dashboard: '📊',
-                ranking: '🏆',
-                auditoria: '🔍',
-                relatorios: '📋',
-                voting: '🗳️'
-              };
-              const icon = typeIcons[tipo] || '📝';
               const lines = texto.split('\n\n');
-              const title = lines[0] || texto.substring(0, 50);
-              return `${icon} ${title}`;
+              let title = lines[0] || texto.substring(0, 50);
+
+              // Remover "💡 POSTAGEM:" ou "POSTAGEM:" do início se existir
+              title = title.replace(/^💡\s*POSTAGEM:\s*/i, '');
+              title = title.replace(/^POSTAGEM:\s*/i, '');
+
+              return title.trim();
             };
 
             const getSuggestionDescription = (texto) => {
@@ -286,14 +282,20 @@ export const useDashboardStore = defineStore("dashboard", {
               comments: 0,
               time: sugestao.tempoDecorrido || formatTime(sugestao.createdAt),
               badge: getBadgeFromDate(sugestao.createdAt),
-              user: { name: "Usuário", avatar: "U" },
+              user: { name: sugestao.nome || "Usuário", avatar: (sugestao.nome || "U").charAt(0).toUpperCase() },
               adminResponse: sugestao.comentarioAdmin ? {
                 text: sugestao.comentarioAdmin,
                 badge: "📋 Admin respondeu:"
               } : null,
               userVoted: false,
               status: sugestao.status,
-              originalId: sugestao._id
+              originalId: sugestao._id,
+              reactions: sugestao.reactions || {
+                like: { count: 0, users: [] },
+                dislike: { count: 0, users: [] },
+                fire: { count: 0, users: [] },
+                heart: { count: 0, users: [] }
+              }
             };
           }).reverse(); // Mais recentes primeiro
 

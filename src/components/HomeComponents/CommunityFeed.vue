@@ -2,7 +2,7 @@
   <div class="community-feed">
     <div class="section-header">
       <h2>📰 Feed Postagem</h2>
-      <span class="see-all">Ver tudo</span>
+      <!-- <span class="see-all">Ver tudo</span> -->
     </div>
 
     <div class="feed-content">
@@ -17,14 +17,11 @@
         }"
       >
         <div class="card-header">
-          <span v-if="item.badge" class="card-badge" :class="item.badge">
-            {{ getBadgeText(item.badge) }}
-          </span>
-          <div v-else-if="item.user" class="user-info">
+          <div class="user-info">
             <div class="user-avatar">{{ item.user.avatar }}</div>
             <span class="user-name">{{ item.user.name }}</span>
           </div>
-          <span class="card-time">{{ item.time }}</span>
+          <!-- <span class="card-time">{{ item.time }}</span> -->
         </div>
 
         <div class="card-content">
@@ -32,17 +29,25 @@
           <p>{{ item.description }}</p>
 
           <!-- Sistema de Reações -->
-          <div class="card-reactions">
-            <button
-              v-for="(reaction, type) in getReactions(item)"
-              :key="type"
-              class="reaction-btn"
-              :class="{ 'user-reacted': hasUserReacted(item, type) }"
-              @click="handleReaction(item.id, type)"
-            >
-              <span class="reaction-emoji">{{ getReactionEmoji(type) }}</span>
-              <span class="reaction-count">{{ reaction.count }}</span>
-            </button>
+          <div class="reactions-section">
+            <div class="card-reactions">
+              <button
+                v-for="reactionType in ['like', 'dislike', 'fire', 'heart']"
+                :key="reactionType"
+                class="reaction-btn"
+                :class="{ 'user-reacted': hasUserReacted(item, reactionType) }"
+                @click="
+                  handleReaction(item.originalId || item.id, reactionType)
+                "
+              >
+                <span class="reaction-emoji">{{
+                  getReactionEmoji(reactionType)
+                }}</span>
+                <span class="reaction-count">{{
+                  getReactionCount(item, reactionType)
+                }}</span>
+              </button>
+            </div>
           </div>
 
           <!-- Ações adicionais -->
@@ -50,10 +55,6 @@
             <button class="action-btn">
               <i class="fas fa-comment"></i>
               <span>{{ item.comments || 0 }}</span>
-            </button>
-            <button class="action-btn">
-              <i class="fas fa-share"></i>
-              <span>Compartilhar</span>
             </button>
           </div>
 
@@ -108,6 +109,19 @@ const getReactionEmoji = (type) => {
     heart: "💚",
   };
   return emojis[type];
+};
+
+const getReactionCount = (item, reactionType) => {
+  const reactions = getReactions(item);
+  return reactions[reactionType]?.count || 0;
+};
+
+const getTotalReactions = (item) => {
+  const reactions = getReactions(item);
+  return Object.values(reactions).reduce(
+    (total, reaction) => total + (reaction.count || 0),
+    0
+  );
 };
 
 const hasUserReacted = (item, reactionType) => {
@@ -244,11 +258,18 @@ const handleVote = (itemId) => {
   margin-bottom: 1rem;
 }
 
-/* Sistema de Reações */
+/* Sistema de Reações - Igual ao ImprovementsVoting */
+.reactions-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
 .card-reactions {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 

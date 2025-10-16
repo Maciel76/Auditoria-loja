@@ -2,27 +2,37 @@
   <div class="improvements-voting">
     <div class="section-header">
       <h2>🚀 Melhorias em Votação</h2>
-      <span class="see-all">Ver ranking</span>
+      <span class="see-all">Ver Tudo</span>
     </div>
 
-    <div class="voting-list">
+    <div v-if="carregando" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Carregando votações...</p>
+    </div>
+
+    <div v-else class="voting-list">
       <div
-        v-for="item in votingItems"
+        v-for="item in votacoesAtivas"
         :key="item.id"
         class="voting-item"
-        @click="handleVote(item.id)"
+        @click="openVotingDetails(item)"
       >
         <div class="vote-content">
-          <span class="status-badge" :class="item.status">
-            {{ getStatusText(item.status) }}
-          </span>
+          <div class="voting-header">
+            <span v-if="item.autor" class="author-name"
+              >📝 {{ item.autor }}</span
+            >
+            <span class="status-badge" :class="item.status">
+              {{ getStatusText(item.status) }}
+            </span>
+          </div>
           <h4>{{ item.title }}</h4>
-          <p>{{ item.description }}</p>
+          <p>{{ getDescriptionPreview(item.description) }}</p>
         </div>
 
         <!-- Sistema de Reações -->
         <div class="reactions-section">
-          <div class="reactions-grid">
+          <div class="card-reactions">
             <button
               v-for="(reaction, type) in getReactions(item)"
               :key="type"
@@ -34,9 +44,89 @@
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
           </div>
-          <div class="total-votes">
-            <span>👍 {{ item.votes }} votos totais</span>
+          <!-- <div class="total-votes">
+            <span>💬 {{ getTotalReactions(item) }} reações totais</span>
+          </div> -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Detalhes da Votação -->
+    <div
+      v-if="showDetailsModal"
+      class="modal-overlay"
+      @click="closeDetailsModal"
+    >
+      <div class="details-modal" @click.stop>
+        <div class="modal-header">
+          <h2>📋 Detalhes da Votação</h2>
+          <button class="close-btn" @click="closeDetailsModal">×</button>
+        </div>
+
+        <div class="modal-content" v-if="selectedVoting">
+          <div class="voting-info">
+            <div class="voting-status">
+              <span class="status-badge" :class="selectedVoting.status">
+                {{ getStatusText(selectedVoting.status) }}
+              </span>
+            </div>
+
+            <h3>{{ selectedVoting.title }}</h3>
+
+            <div class="description-section">
+              <h4>📝 Descrição Completa</h4>
+              <p class="full-description">{{ selectedVoting.description }}</p>
+            </div>
+
+            <div v-if="selectedVoting.benefits" class="benefits-section">
+              <h4>✨ Benefícios Esperados</h4>
+              <p>{{ selectedVoting.benefits }}</p>
+            </div>
+
+            <div v-if="selectedVoting.autor" class="author-section">
+              <h4>👤 Autor</h4>
+              <p>{{ selectedVoting.autor }}</p>
+            </div>
+
+            <!-- Sistema de Reações no Modal -->
+            <div class="reactions-section-modal">
+              <h4>💬 Reações da Comunidade</h4>
+              <div class="card-reactions-modal">
+                <button
+                  v-for="(reaction, type) in getReactions(selectedVoting)"
+                  :key="type"
+                  class="reaction-btn-modal"
+                  :class="{
+                    'user-reacted': hasUserReacted(selectedVoting, type),
+                  }"
+                  @click.stop="
+                    handleReaction(
+                      selectedVoting.originalId || selectedVoting.id,
+                      type
+                    )
+                  "
+                >
+                  <span class="reaction-emoji">{{
+                    getReactionEmoji(type)
+                  }}</span>
+                  <span class="reaction-count">{{ reaction.count }}</span>
+                </button>
+              </div>
+
+              <div class="reaction-stats">
+                <div class="total-reactions">
+                  <strong
+                    >Total de reações:
+                    {{ getTotalReactions(selectedVoting) }}</strong
+                  >
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-close" @click="closeDetailsModal">Fechar</button>
         </div>
       </div>
     </div>
@@ -44,32 +134,49 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref } from "vue";
+import { defineProps, defineEmits, ref, onMounted, computed } from "vue";
+import { useVotingStore } from "../../stores/voting.js";
 
 const props = defineProps({
   votingItems: {
     type: Array,
-    required: true,
+    required: false,
     default: () => [],
   },
 });
 
 const emit = defineEmits(["vote-submitted", "reaction-submitted"]);
 
-const userIdentifier = ref(`user_${Date.now()}`);
+const votingStore = useVotingStore();
+
+// Modal de detalhes
+const showDetailsModal = ref(false);
+const selectedVoting = ref(null);
+
+// Computed properties para usar dados da store
+const votacoesAtivas = computed(() => votingStore.getVotacoesOrdenadas);
+const carregando = computed(() => votingStore.loading);
+
+// Usar a store para carregar votações
+const carregarVotacoes = () => {
+  votingStore.carregarVotacoes();
+};
 
 const getStatusText = (status) => {
   const statusMap = {
-    "in-progress": "🟢 Em andamento",
-    "under-review": "🟡 Em análise",
-    implemented: "✅ Implementada",
-    "new-idea": "💡 Nova ideia",
+    ativo: "🟢 Votação Ativa",
+    finalizado: "✅ Finalizada",
+    pendente: "🟡 Pendente",
+    rejeitado: "❌ Rejeitada",
   };
   return statusMap[status] || status;
 };
 
-const handleVote = (itemId) => {
-  emit("vote-submitted", itemId);
+const getDescriptionPreview = (description) => {
+  if (!description) return "";
+  return description.length > 200
+    ? description.substring(0, 200) + "..."
+    : description;
 };
 
 // Sistema de reações
@@ -78,7 +185,7 @@ const getReactions = (item) => {
     like: { count: 0, users: [] },
     dislike: { count: 0, users: [] },
     fire: { count: 0, users: [] },
-    heart: { count: 0, users: [] }
+    heart: { count: 0, users: [] },
   };
   return item.reactions || defaultReactions;
 };
@@ -88,18 +195,70 @@ const getReactionEmoji = (type) => {
     like: "👍",
     dislike: "👎",
     fire: "🔥",
-    heart: "💚"
+    heart: "💚",
   };
   return emojis[type];
 };
 
-const hasUserReacted = (item, reactionType) => {
-  const reactions = getReactions(item);
-  return reactions[reactionType]?.users?.includes(userIdentifier.value) || false;
+const getReactionText = (type) => {
+  const texts = {
+    like: "Curtir",
+    dislike: "Não curtir",
+    fire: "Incrível",
+    heart: "Amei",
+  };
+  return texts[type];
 };
 
-const handleReaction = (itemId, reactionType) => {
-  emit("reaction-submitted", { itemId, reactionType, userIdentifier: userIdentifier.value });
+const handleVote = (itemId) => {
+  emit("vote-submitted", itemId);
+};
+
+// Carregar votações ao montar componente
+onMounted(() => {
+  carregarVotacoes();
+});
+
+const hasUserReacted = (item, reactionType) => {
+  return votingStore.hasUserReacted(item.id || item.originalId, reactionType);
+};
+
+const handleReaction = async (itemId, reactionType) => {
+  await votingStore.reagirVotacao(itemId, reactionType);
+
+  // Atualizar votação selecionada se for a mesma
+  if (
+    selectedVoting.value &&
+    (selectedVoting.value.id === itemId ||
+      selectedVoting.value.originalId === itemId)
+  ) {
+    const votacaoAtualizada = votingStore.getVotacaoById(itemId);
+    if (votacaoAtualizada) {
+      selectedVoting.value = { ...votacaoAtualizada };
+    }
+  }
+
+  emit("reaction-submitted", {
+    itemId,
+    reactionType,
+    userIdentifier: votingStore.userIdentifier,
+  });
+};
+
+// Funções do modal de detalhes
+const openVotingDetails = (voting) => {
+  selectedVoting.value = { ...voting };
+  showDetailsModal.value = true;
+};
+
+const closeDetailsModal = () => {
+  showDetailsModal.value = false;
+  selectedVoting.value = null;
+};
+
+// Funções auxiliares para reações
+const getTotalReactions = (voting) => {
+  return votingStore.getTotalReactions(voting);
 };
 </script>
 
@@ -139,8 +298,6 @@ const handleReaction = (itemId, reactionType) => {
 }
 
 .voting-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 1rem;
   border: 1px solid #e2e8f0;
@@ -151,6 +308,25 @@ const handleReaction = (itemId, reactionType) => {
 
 .voting-item:hover {
   border-color: #3b82f6;
+}
+
+.voting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.author-name {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  background: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .vote-content h4 {
@@ -168,21 +344,34 @@ const handleReaction = (itemId, reactionType) => {
 .status-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
   display: inline-block;
 }
 
-.in-progress {
+.status-badge.ativo {
+  background: #dcfce7;
   color: #16a34a;
 }
-.under-review {
+
+.status-badge.pendente {
+  background: #fef3c7;
   color: #d97706;
 }
-.implemented {
-  color: #059669;
+
+.status-badge.finalizado {
+  background: #dbeafe;
+  color: #2563eb;
 }
-.new-idea {
-  color: #7c3aed;
+
+.status-badge.rejeitado {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.aprovado {
+  background: #ecfdf5;
+  color: #059669;
 }
 
 .vote-btn {
@@ -216,15 +405,16 @@ const handleReaction = (itemId, reactionType) => {
 .reactions-section {
   margin-top: 1rem;
   padding: 1rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-radius: 8px;
   border-top: 1px solid #e2e8f0;
 }
 
-.reactions-grid {
+/* Sistema de Reações - Estilo horizontal do CommunityFeed */
+.card-reactions {
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+
   flex-wrap: wrap;
 }
 
@@ -232,7 +422,7 @@ const handleReaction = (itemId, reactionType) => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: white;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   padding: 0.5rem 0.75rem;
   border-radius: 20px;
@@ -264,9 +454,311 @@ const handleReaction = (itemId, reactionType) => {
 }
 
 .total-votes {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.9rem;
   color: #6b7280;
   font-weight: 600;
+}
+
+.vote-btn {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vote-btn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Estilos do Modal de Detalhes */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.details-modal {
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: 30px 24px;
+}
+
+.voting-info h3 {
+  font-size: 1.5rem;
+  color: #1a202c;
+  margin: 1rem 0;
+}
+
+.voting-info h4 {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 1.5rem 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.description-section,
+.benefits-section,
+.author-section {
+  margin-bottom: 1.5rem;
+}
+
+.full-description {
+  line-height: 1.6;
+  color: #4a5568;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.reactions-section-modal {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Reações no Modal - Estilo horizontal */
+.card-reactions-modal {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.reaction-btn-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.reaction-btn-modal:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.reaction-btn-modal.user-reacted {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.reaction-btn-modal .reaction-emoji {
+  font-size: 1.5rem;
+}
+
+.reaction-btn-modal .reaction-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  min-width: 25px;
+  text-align: center;
+}
+
+.reaction-btn-modal:not(.user-reacted) .reaction-count {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.reaction-stats {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.total-reactions {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #4a5568;
+}
+
+.reaction-percentages {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.percentage-sim {
+  color: #22c55e;
+}
+
+.percentage-nao {
+  color: #ef4444;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0 0 20px 20px;
+}
+
+.btn-close {
+  padding: 12px 24px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.reaction-percentages {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .details-modal {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modal-header,
+  .modal-content,
+  .modal-footer {
+    padding: 20px;
+  }
+
+  .reaction-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .reaction-btn-modal {
+    padding: 0.8rem 1rem;
+    min-width: 70px;
+  }
+
+  .reaction-btn-modal .reaction-emoji {
+    font-size: 1.3rem;
+  }
 }
 </style>
