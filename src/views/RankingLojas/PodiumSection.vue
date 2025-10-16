@@ -2,7 +2,7 @@
   <div class="podium-section" v-if="topLojas.length >= 3">
     <h2 class="section-title">
       <i class="fas fa-trophy"></i>
-      Top 3 Lojas
+      {{ getTitlePodium() }}
     </h2>
     <div class="podium-container">
       <!-- 2º Lugar -->
@@ -30,11 +30,15 @@
         <div class="podium-stats">
           <div class="stat">
             <span class="stat-value">{{ topLojas[1]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">Itens</span>
+            <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ topLojas[1]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">Usuários</span>
+            <span class="stat-label">👥 Usuários</span>
+          </div>
+          <div class="stat" v-if="tipoAuditoria === 'presenca'">
+            <span class="stat-value">{{ topLojas[1]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
       </div>
@@ -64,11 +68,15 @@
         <div class="podium-stats">
           <div class="stat">
             <span class="stat-value">{{ topLojas[0]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">Itens</span>
+            <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ topLojas[0]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">Usuários</span>
+            <span class="stat-label">👥 Usuários</span>
+          </div>
+          <div class="stat" v-if="tipoAuditoria === 'presenca'">
+            <span class="stat-value">{{ topLojas[0]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
         <div class="crown">👑</div>
@@ -99,11 +107,15 @@
         <div class="podium-stats">
           <div class="stat">
             <span class="stat-value">{{ topLojas[2]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">Itens</span>
+            <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
             <span class="stat-value">{{ topLojas[2]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">Usuários</span>
+            <span class="stat-label">👥 Usuários</span>
+          </div>
+          <div class="stat" v-if="tipoAuditoria === 'presenca'">
+            <span class="stat-value">{{ topLojas[2]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
       </div>
@@ -114,14 +126,32 @@
 <script setup>
 import { useLojaStore } from '@/store/lojaStore.js';
 
-defineProps({
+const props = defineProps({
   topLojas: {
     type: Array,
     default: () => []
+  },
+  tipoAuditoria: {
+    type: String,
+    default: 'todos'
   }
 });
 
 const lojaStore = useLojaStore();
+
+const getTitlePodium = () => {
+  const today = new Date().toLocaleDateString('pt-BR')
+
+  if (props.tipoAuditoria === 'etiqueta') {
+    return `🏷️ Top 3 Etiquetas - ${today}`
+  } else if (props.tipoAuditoria === 'ruptura') {
+    return `🚫 Top 3 Rupturas - ${today}`
+  } else if (props.tipoAuditoria === 'presenca') {
+    return `✅ Top 3 Presenças - ${today}`
+  }
+
+  return `🏷️ Top 3 Etiquetas - ${today}` // padrão agora é etiquetas
+}
 
 // Métodos para avatar das lojas (iguais ao RankingCards)
 const getLojaImagePath = (codigo) => {

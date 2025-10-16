@@ -10,6 +10,17 @@
       </p>
     </div>
 
+    <div class="etapa-info">
+      <div class="etapa">
+        <span class="numero">1</span>
+        <span class="texto">Selecionar Loja </span>
+      </div>
+      <div class="etapa ativa">
+        <span class="numero">2</span>
+        <span class="texto">Tipo de Auditoria</span>
+      </div>
+    </div>
+
     <!-- Cards de tipos de auditoria -->
     <div class="audit-types-grid">
       <!-- Auditoria de Etiquetas -->
@@ -30,8 +41,9 @@
         <div class="card-content">
           <h3>Auditoria de Etiquetas</h3>
           <p>
-            Upload de planilhas para verificação de preços e informações de
-            etiquetas dos produtos
+            Apos Baixa A Planilha de relatório no Rub da Auditoria de
+            <span style="color: #1b66a367">Etiqueta</span>
+            Envie aqui para ver os resultados.
           </p>
           <span class="card-action">Enviar Planilha de Etiquetas →</span>
         </div>
@@ -64,8 +76,9 @@
         <div class="card-content">
           <h3>Auditoria de Presença</h3>
           <p>
-            Upload de planilhas para controle de presença e disponibilidade de
-            produtos em estoque
+            Apos Baixa A Planilha de relatório no Rub da Auditoria de
+            <span style="color: green">Presença</span>
+            Envie aqui para ver os resultados.
           </p>
           <span class="card-action">Enviar Planilha de Presença →</span>
         </div>
@@ -89,8 +102,9 @@
         <div class="card-content">
           <h3>Auditoria de Ruptura</h3>
           <p>
-            Upload de planilhas para identificação e controle de produtos em
-            falta no estoque
+            Apos Baixa A Planilha de relatório no Rub da Auditoria de
+            <span style="color: orange">Ruptura</span>
+            Envie aqui para ver os resultados.
           </p>
           <span class="card-action">Enviar Planilha de Ruptura →</span>
         </div>
@@ -242,6 +256,7 @@ const navegarPara = (tipo) => {
 
 /* Conteúdo do card */
 .card-content {
+  text-transform: capitalize;
   text-align: center;
 }
 
@@ -279,6 +294,42 @@ const navegarPara = (tipo) => {
 
 .audit-card:hover .card-action {
   transform: translateX(5px);
+}
+
+.etapa-info {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  gap: 50px;
+}
+
+.etapa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.5;
+}
+
+.etapa.ativa {
+  opacity: 1;
+}
+
+.etapa .numero {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3372d1;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.etapa .texto {
+  font-size: 14px;
+  color: #333;
 }
 
 /* Seção de informações */

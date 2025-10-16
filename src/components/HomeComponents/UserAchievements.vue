@@ -1,8 +1,8 @@
 <template>
   <div class="user-achievements">
     <div class="section-header">
-      <h2>🏆 Suas Conquistas</h2>
-      <span class="user-level">Nível 3</span>
+      <h2>⚠️Avisos importantes</h2>
+      <span class="user-level">4</span>
     </div>
 
     <div class="achievements-grid">
@@ -25,6 +25,7 @@
         </div>
       </div>
     </div>
+    <span>Ver tudo</span>
   </div>
 </template>
 

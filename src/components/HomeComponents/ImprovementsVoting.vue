@@ -19,17 +19,24 @@
           <h4>{{ item.title }}</h4>
           <p>{{ item.description }}</p>
         </div>
-        <div class="vote-actions">
-          <button
-            class="vote-btn"
-            :class="{
-              voted: item.userVoted,
-              disabled: item.status === 'implemented',
-            }"
-          >
-            <i class="fas fa-chevron-up"></i>
-            <span>{{ item.votes }}</span>
-          </button>
+
+        <!-- Sistema de Reações -->
+        <div class="reactions-section">
+          <div class="reactions-grid">
+            <button
+              v-for="(reaction, type) in getReactions(item)"
+              :key="type"
+              class="reaction-btn"
+              :class="{ 'user-reacted': hasUserReacted(item, type) }"
+              @click.stop="handleReaction(item.originalId || item.id, type)"
+            >
+              <span class="reaction-emoji">{{ getReactionEmoji(type) }}</span>
+              <span class="reaction-count">{{ reaction.count }}</span>
+            </button>
+          </div>
+          <div class="total-votes">
+            <span>👍 {{ item.votes }} votos totais</span>
+          </div>
         </div>
       </div>
     </div>
@@ -37,7 +44,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
+import { defineProps, defineEmits, ref } from "vue";
 
 const props = defineProps({
   votingItems: {
@@ -47,7 +54,9 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["vote-submitted"]);
+const emit = defineEmits(["vote-submitted", "reaction-submitted"]);
+
+const userIdentifier = ref(`user_${Date.now()}`);
 
 const getStatusText = (status) => {
   const statusMap = {
@@ -61,6 +70,36 @@ const getStatusText = (status) => {
 
 const handleVote = (itemId) => {
   emit("vote-submitted", itemId);
+};
+
+// Sistema de reações
+const getReactions = (item) => {
+  const defaultReactions = {
+    like: { count: 0, users: [] },
+    dislike: { count: 0, users: [] },
+    fire: { count: 0, users: [] },
+    heart: { count: 0, users: [] }
+  };
+  return item.reactions || defaultReactions;
+};
+
+const getReactionEmoji = (type) => {
+  const emojis = {
+    like: "👍",
+    dislike: "👎",
+    fire: "🔥",
+    heart: "💚"
+  };
+  return emojis[type];
+};
+
+const hasUserReacted = (item, reactionType) => {
+  const reactions = getReactions(item);
+  return reactions[reactionType]?.users?.includes(userIdentifier.value) || false;
+};
+
+const handleReaction = (itemId, reactionType) => {
+  emit("reaction-submitted", { itemId, reactionType, userIdentifier: userIdentifier.value });
 };
 </script>
 
@@ -171,5 +210,63 @@ const handleVote = (itemId) => {
   color: #16a34a;
   border-color: #bbf7d0;
   cursor: default;
+}
+
+/* Sistema de Reações */
+.reactions-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.reactions-grid {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.reaction-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.reaction-btn.user-reacted {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.reaction-emoji {
+  font-size: 1rem;
+}
+
+.reaction-count {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.total-votes {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 600;
 }
 </style>

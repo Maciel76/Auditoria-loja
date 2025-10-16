@@ -7,15 +7,19 @@
     <div class="decoration-circle hero-circle-4"></div>
     <div class="decoration-circle hero-circle-5"></div>
     <div class="decoration-circle hero-circle-6"></div>
+    <div class="decoration-circle hero-circle-7"></div>
+    <div class="decoration-circle hero-circle-8"></div>
 
     <div class="hero-content">
       <div class="hero-text">
         <h1>
-          Transforme auditorias em
-          <span class="highlight">Analise Visual inteligente</span>
+          Fique Por Dentro Das Ultimas
+          <span class="highlight">Novidades </span>
         </h1>
         <p class="hero-subtitle">
-          Sistema de auditoria colaborativa onde sua voz faz a diferença
+          Interaja Com a Comunidades, Crie Postagem, Envia Sugestões de
+          Melhorias <br />
+          Crie Avisos, Inicia Votação, e Muito Mais
         </p>
 
         <div class="hero-stats">
@@ -25,10 +29,10 @@
           </div>
           <div class="stat-item">
             <span class="stat-number">+45</span>
-            <span class="stat-label">usuários ativos esta semana</span>
+            <span class="stat-label">usuários ativos </span>
           </div>
           <div class="stat-item">
-            <span class="stat-number">10</span>
+            <span class="stat-number">+10</span>
             <span class="stat-label">Lojas Implementadas</span>
           </div>
         </div>
@@ -36,19 +40,21 @@
         <div class="hero-actions">
           <button class="btn-primary" @click="$emit('start-audit')">
             <i class="fas fa-search"></i>
-            🔍 Começar Auditoria
+            📝Criar Nova Postagem
           </button>
           <button class="btn-secondary" @click="openSuggestionModal">
             <i class="fas fa-lightbulb"></i>
             💡 Enviar Sugestão
           </button>
+          <button class="btn-secondary">💬 Novo Aviso</button>
+          <button class="btn-secondary">🚀 Nova votação</button>
         </div>
       </div>
 
       <div class="hero-visual">
         <div class="floating-card card-1">
           <i class="fas fa-chart-line"></i>
-          <span>Media Regional +16%</span>
+          <span>Media Entre Lojas +16%</span>
         </div>
         <div class="floating-card card-2">
           <i class="fas fa-users"></i>
@@ -189,10 +195,12 @@ const submitSuggestion = async () => {
   position: relative;
   overflow: hidden;
   border-radius: 20px;
+  max-width: auto;
+  height: 20%;
 }
 
 .hero-content {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -200,6 +208,7 @@ const submitSuggestion = async () => {
   align-items: center;
   position: relative;
   z-index: 1;
+  margin-top: -60px;
 }
 
 .hero-text h1 {
@@ -263,8 +272,8 @@ const submitSuggestion = async () => {
 }
 
 .btn-primary {
-  background: #fbbf24;
-  color: #1a202c;
+  background: rgb(218, 163, 92);
+  color: #000000;
 }
 
 .btn-primary:hover {
@@ -375,6 +384,20 @@ const submitSuggestion = async () => {
   top: 10%;
   left: 20%;
   animation-delay: 5s;
+}
+.hero-circle-7 {
+  width: 90px;
+  height: 90px;
+  top: 45%;
+  left: 35%;
+  animation-delay: 5s;
+}
+.hero-circle-8 {
+  width: 180px;
+  height: 180px;
+  top: 80%;
+  left: 60%;
+  animation-delay: 10s;
 }
 
 @keyframes floatBackground {

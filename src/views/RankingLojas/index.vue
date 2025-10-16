@@ -6,6 +6,11 @@
       :total-itens-auditados="totalItensAuditados"
       :media-itens-por-loja="mediaItensPorLoja"
       :eficiencia-media="eficienciaMedia"
+      :total-alertas-criticos="totalAlertasCriticos"
+      :total-alertas-altos="totalAlertasAltos"
+      :lojas-com-problemas="lojasComMaisProblemas.length"
+      :usuarios-ativos="totalUsuariosAtivos"
+      :percentual-presenca="percentualPresencaMedia"
       @focus-metric="focusMetric"
     />
 
@@ -25,7 +30,10 @@
     />
 
     <!-- Podium Section -->
-    <PodiumSection :top-lojas="lojasFiltradas" />
+    <PodiumSection
+      :top-lojas="lojasFiltradas.slice(0, 3)"
+      :tipo-auditoria="filtroTipoAuditoria"
+    />
 
     <!-- Chart Section -->
     <div class="chart-section" v-if="viewMode === 'chart'">
@@ -113,6 +121,7 @@ const router = useRouter()
 const lojas = ref([])
 const loading = ref(false)
 const error = ref(null)
+const alertasGerais = ref([])
 
 // View controls
 const viewMode = ref('cards')
@@ -124,8 +133,8 @@ const filtro = ref('')
 const suggestions = ref([])
 
 // Filtros básicos
-const filtroTipoAuditoria = ref('todos')
-const filtroPeriodo = ref('mes')
+const filtroTipoAuditoria = ref('etiqueta') // Padrão para etiquetas já que removemos "todos"
+const filtroPeriodo = ref('hoje')
 const filtroRegiao = ref('todas')
 const filtroLiga = ref('todas')
 const filtroOrdenacao = ref('itens')
@@ -182,6 +191,19 @@ const lojasFiltradas = computed(() => {
     )
   }
 
+  // Filtro por tipo de auditoria - mostrar apenas lojas com dados do tipo específico
+  resultado = resultado.filter(loja => {
+    const tipo = filtroTipoAuditoria.value
+    if (tipo === 'etiqueta') { // singular - como no RankingControls
+      return loja.etiquetas && loja.etiquetas.itensValidos > 0
+    } else if (tipo === 'ruptura') { // singular - como no RankingControls
+      return loja.rupturas && loja.rupturas.itensLidos > 0
+    } else if (tipo === 'presenca') { // sem s - como no RankingControls
+      return loja.presencas && loja.presencas.itensLidos > 0
+    }
+    return true // fallback para casos não previstos
+  })
+
   // Filtros por região e liga
   if (filtroRegiao.value !== 'todas') {
     resultado = resultado.filter(loja => loja.regiao === filtroRegiao.value)
@@ -207,7 +229,7 @@ const lojasFiltradas = computed(() => {
   })
 
   // Filtro por eficiência mínima
-  resultado = resultado.filter(loja => calcularEficiencia(loja) >= eficienciaMinima.value)
+  resultado = resultado.filter(loja => (loja.eficiencia || 0) >= eficienciaMinima.value)
 
   // Ordenação
   resultado.sort((a, b) => {
@@ -232,7 +254,7 @@ const lojasFiltradas = computed(() => {
         comparison = (b.tendencia || 0) - (a.tendencia || 0)
         break
       default:
-        comparison = (b.pontuacao || 0) - (a.pontuacao || 0) // Ordenar por pontuação por padrão
+        comparison = (b.pontuacao || 0) - (a.pontuacao || 0)
     }
     return sortDirection.value === 'desc' ? comparison : -comparison
   })
@@ -251,15 +273,27 @@ const mediaItensPorLoja = computed(() => {
 
 const eficienciaMedia = computed(() => {
   if (lojas.value.length === 0) return 0
-  const totalEficiencia = lojas.value.reduce((total, loja) => total + calcularEficiencia(loja), 0)
+  const totalEficiencia = lojas.value.reduce((total, loja) => total + (loja.eficiencia || 0), 0)
   return Math.round(totalEficiencia / lojas.value.length)
+})
+
+const totalUsuariosAtivos = computed(() => {
+  return lojas.value.reduce((total, loja) => total + (loja.usuariosAtivos || 0), 0)
+})
+
+const percentualPresencaMedia = computed(() => {
+  if (lojas.value.length === 0) return 0
+  const somaPresenca = lojas.value.reduce((total, loja) => {
+    return total + (loja.presencas?.percentualPresenca || 0)
+  }, 0)
+  return Math.round(somaPresenca / lojas.value.length)
 })
 
 const maxItens = computed(() => {
   return Math.max(...lojas.value.map(l => l.itensAuditados || 0))
 })
 
-// Insights inteligentes
+// Insights inteligentes baseados no LojaDailyMetrics
 const insights = computed(() => {
   if (lojas.value.length === 0) return []
 
@@ -273,37 +307,54 @@ const insights = computed(() => {
       type: 'success',
       icon: '🚀',
       title: 'Destaque do Período',
-      description: `Loja ${melhorLoja.codigo} lidera com ${melhorLoja.itensAuditados?.toLocaleString()} itens`,
-      value: `+${melhorLoja.tendencia || 0}%`
+      description: `Loja ${melhorLoja.codigo} lidera com ${melhorLoja.pontuacao} pontos`,
+      value: `${melhorLoja.notaQualidade}/10`
     })
   }
 
-  // Lojas com baixa performance
-  const lojasAbaixoMedia = lojasFiltradas.value.filter(loja =>
-    (loja.itensAuditados || 0) < mediaItensPorLoja.value
-  )
-
-  if (lojasAbaixoMedia.length > 0) {
+  // Alertas críticos
+  if (totalAlertasCriticos.value > 0) {
     insights.push({
-      id: 'atencao',
-      type: 'warning',
-      icon: '⚠️',
-      title: 'Atenção Necessária',
-      description: `${lojasAbaixoMedia.length} lojas abaixo da média`,
-      value: `${Math.round((lojasAbaixoMedia.length / lojasFiltradas.value.length) * 100)}%`
+      id: 'alertas-criticos',
+      type: 'danger',
+      icon: '🚨',
+      title: 'Alertas Críticos',
+      description: `${totalAlertasCriticos.value} alertas críticos ativos`,
+      value: `${lojasComMaisProblemas.value.length} lojas`
+    })
+  }
+
+  // Eficiência das auditorias por tipo
+  if (lojasFiltradas.value.length > 0) {
+    const mediaEtiquetas = Math.round(lojasFiltradas.value.reduce((acc, l) => acc + (l.etiquetas?.percentualConclusao || 0), 0) / lojasFiltradas.value.length)
+    const mediaRupturas = Math.round(lojasFiltradas.value.reduce((acc, l) => acc + (l.rupturas?.percentualConclusao || 0), 0) / lojasFiltradas.value.length)
+    const mediaPresencas = Math.round(lojasFiltradas.value.reduce((acc, l) => acc + (l.presencas?.percentualConclusao || 0), 0) / lojasFiltradas.value.length)
+
+    const melhorTipo = Math.max(mediaEtiquetas, mediaRupturas, mediaPresencas)
+    const tipoNome = melhorTipo === mediaEtiquetas ? 'Etiquetas' : melhorTipo === mediaRupturas ? 'Rupturas' : 'Presenças'
+
+    insights.push({
+      id: 'melhor-tipo',
+      type: 'info',
+      icon: '📊',
+      title: 'Melhor Performance por Tipo',
+      description: `${tipoNome} com melhor eficiência média`,
+      value: `${melhorTipo}%`
     })
   }
 
   // Tendência geral
-  const tendenciaGeral = lojasFiltradas.value.reduce((acc, loja) => acc + (loja.tendencia || 0), 0) / lojasFiltradas.value.length
-  insights.push({
-    id: 'tendencia',
-    type: tendenciaGeral > 0 ? 'success' : 'danger',
-    icon: tendenciaGeral > 0 ? '📈' : '📉',
-    title: 'Tendência Geral',
-    description: `${tendenciaGeral > 0 ? 'Crescimento' : 'Queda'} médio da rede`,
-    value: `${tendenciaGeral > 0 ? '+' : ''}${tendenciaGeral.toFixed(1)}%`
-  })
+  const tendencia = tendenciaGeral.value
+  if (tendencia !== 0) {
+    insights.push({
+      id: 'tendencia',
+      type: tendencia > 0 ? 'success' : 'warning',
+      icon: tendencia > 0 ? '📈' : '📉',
+      title: 'Tendência Geral',
+      description: `${tendencia > 0 ? 'Crescimento' : 'Queda'} médio da rede`,
+      value: `${tendencia > 0 ? '+' : ''}${tendencia}%`
+    })
+  }
 
   return insights
 })
@@ -335,42 +386,93 @@ const tendenciaGeral = computed(() => {
   return Math.round((soma / lojasFiltradas.value.length) * 10) / 10
 })
 
+// Computed properties para alertas
+const totalAlertasCriticos = computed(() => {
+  return alertasGerais.value.filter(a => a.alerta.severidade === 'critica').length
+})
+
+const totalAlertasAltos = computed(() => {
+  return alertasGerais.value.filter(a => a.alerta.severidade === 'alta').length
+})
+
+const lojasComMaisProblemas = computed(() => {
+  return lojasFiltradas.value
+    .filter(loja => loja.alertas > 0 || loja.locaisComProblemas > 0)
+    .sort((a, b) => (b.alertas + b.locaisComProblemas) - (a.alertas + a.locaisComProblemas))
+    .slice(0, 5)
+})
+
 // Métodos
 const buscarDados = async () => {
   loading.value = true
   error.value = null
 
   try {
-    const response = await axios.get('http://localhost:3000/api/metricas/lojas/ranking', {
+    const response = await axios.get('http://localhost:3000/api/debug/lojas-daily-ranking', {
       params: {
-        periodo: mapPeriodoToAPI(filtroPeriodo.value),
         regiao: filtroRegiao.value !== 'todas' ? filtroRegiao.value : undefined,
         limite: 50
       }
     })
 
-    // Mapear dados da API para o formato esperado pelo frontend
+    // Mapear dados da API LojaDailyMetrics - usar dados diretos sem cálculos
     const dadosAPI = response.data?.ranking || []
     lojas.value = dadosAPI.map(item => ({
-      codigo: item.loja.codigo,
-      nome: item.loja.nome,
-      regiao: item.loja.regiao,
-      itensAuditados: item.totalItens || 0,
-      usuariosAtivos: item.usuariosAtivos || 0,
-      eficiencia: Math.round(item.percentualConclusao || 0),
+      // Dados básicos da loja
+      codigo: item.loja?.codigo || 'N/A',
+      nome: item.loja?.nome || 'N/A',
+      regiao: item.loja?.regiao || 'N/A',
+      cidade: item.loja?.cidade || 'N/A',
+
+      // Métricas diretas do LojaDailyMetrics - usar campo correto por tipo
+      itensAuditados: getItensAuditadosPorTipo(item, filtroTipoAuditoria.value),
+      usuariosAtivos: getUsuariosAtivosPorTipo(item, filtroTipoAuditoria.value),
+      eficiencia: getEficienciaPorTipo(item, filtroTipoAuditoria.value),
       pontuacao: item.pontuacao || 0,
       notaQualidade: item.notaQualidade || 0,
-      melhorUsuario: item.melhorUsuario,
+      eficienciaOperacional: item.eficienciaOperacional || 0,
       alertas: item.alertas || 0,
+      locaisComProblemas: item.locaisComProblemas || 0,
       ultimaAtualizacao: item.ultimaAtualizacao,
-      // Adicionar campos simulados para compatibilidade
+
+      // Dados por tipo de auditoria - diretamente do modelo LojaDailyMetrics
+      etiquetas: {
+        totalItens: item.etiquetas?.totalItens || 0,
+        itensValidos: item.etiquetas?.itensValidos || 0,
+        itensAtualizados: item.etiquetas?.itensAtualizados || 0,
+        percentualConclusao: item.etiquetas?.percentualConclusao || 0,
+        usuariosAtivos: item.etiquetas?.usuariosAtivos || 0
+      },
+      rupturas: {
+        totalItens: item.rupturas?.totalItens || 0,
+        itensLidos: item.rupturas?.itensLidos || 0,
+        itensAtualizados: item.rupturas?.itensAtualizados || 0,
+        percentualConclusao: item.rupturas?.percentualConclusao || 0,
+        custoTotalRuptura: item.rupturas?.custoTotalRuptura || 0,
+        rupturasCriticas: item.rupturas?.rupturasCriticas || 0,
+        usuariosAtivos: item.rupturas?.usuariosAtivos || 0
+      },
+      presencas: {
+        totalItens: item.presencas?.totalItens || 0,
+        itensLidos: item.presencas?.itensLidos || 0,
+        itensAtualizados: item.presencas?.itensAtualizados || 0,
+        percentualConclusao: item.presencas?.percentualConclusao || 0,
+        percentualPresenca: item.presencas?.percentualPresenca || 0,
+        presencasConfirmadas: item.presencas?.presencasConfirmadas || 0,
+        usuariosAtivos: item.presencas?.usuariosAtivos || 0
+      },
+
+      // Campos para compatibilidade do frontend
       liga: getLiga(item.totalItens || 0),
-      tendencia: Math.floor(Math.random() * 20) - 10, // -10% a +10%
+      tendencia: calculateTendencia(item),
       historico: generateMockHistorico()
     }))
 
-    console.log('✅ Dados das lojas carregados:', lojas.value.length)
+    console.log('✅ Dados das lojas carregados do LojaDailyMetrics:', lojas.value.length)
     error.value = null
+
+    // Buscar alertas após carregar as lojas
+    await buscarAlertas()
   } catch (err) {
     console.error('❌ Erro ao buscar dados das lojas:', err)
 
@@ -390,33 +492,128 @@ const buscarDados = async () => {
   }
 }
 
-// Helper para mapear período do frontend para API
-const mapPeriodoToAPI = (periodo) => {
-  const map = {
-    'hoje': 'diario',
-    'semana': 'semanal',
-    'mes': 'mensal',
-    'trimestre': 'mensal', // API não tem trimestre, usar mensal
-    'todos': 'mensal'
+// Buscar alertas das lojas - simplificado para usar dados já carregados
+const buscarAlertas = async () => {
+  try {
+    // Usar dados de alertas que já vêm no LojaDailyMetrics
+    alertasGerais.value = []
+
+    // Criar alertas simulados baseados nos dados das lojas
+    lojas.value.forEach(loja => {
+      if (loja.alertas > 0) {
+        alertasGerais.value.push({
+          alerta: {
+            severidade: loja.alertas > 5 ? 'critica' : 'alta',
+            tipo: 'desempenho',
+            descricao: `Loja ${loja.codigo} tem ${loja.alertas} alertas ativos`
+          },
+          loja: {
+            codigo: loja.codigo,
+            nome: loja.nome
+          }
+        })
+      }
+
+      if (loja.locaisComProblemas > 0) {
+        alertasGerais.value.push({
+          alerta: {
+            severidade: 'alta',
+            tipo: 'local',
+            descricao: `Loja ${loja.codigo} tem ${loja.locaisComProblemas} locais com problemas`
+          },
+          loja: {
+            codigo: loja.codigo,
+            nome: loja.nome
+          }
+        })
+      }
+    })
+
+    console.log('✅ Alertas processados dos dados das lojas:', alertasGerais.value.length)
+  } catch (error) {
+    console.error('❌ Erro ao processar alertas:', error)
+    alertasGerais.value = []
   }
-  return map[periodo] || 'mensal'
 }
 
-// Helper methods
+// Helper para mapear período do frontend para data
+const mapPeriodoToData = (periodo) => {
+  const hoje = new Date()
+
+  switch (periodo) {
+    case 'hoje':
+      return hoje.toISOString().split('T')[0]
+
+    case 'semana':
+      // Buscar dados da semana passada (mais provável ter dados)
+      const semanaPassada = new Date(hoje)
+      semanaPassada.setDate(hoje.getDate() - 7)
+      return semanaPassada.toISOString().split('T')[0]
+
+    case 'mes':
+      // Buscar dados do mês passado
+      const mesPassado = new Date(hoje)
+      mesPassado.setMonth(hoje.getMonth() - 1)
+      return mesPassado.toISOString().split('T')[0]
+
+    case 'trimestre':
+      // Buscar dados de 3 meses atrás
+      const trimestre = new Date(hoje)
+      trimestre.setMonth(hoje.getMonth() - 3)
+      return trimestre.toISOString().split('T')[0]
+
+    case 'todos':
+      // Não especificar data (buscar mais recente)
+      return undefined
+
+    default:
+      return undefined
+  }
+}
+
+// Helper methods para extrair dados por tipo de auditoria
+const getItensAuditadosPorTipo = (item, tipo) => {
+  switch (tipo) {
+    case 'etiqueta': // singular - como no RankingControls
+      return item.etiquetas?.itensValidos || 0
+    case 'ruptura': // singular - como no RankingControls
+      return item.rupturas?.itensLidos || 0
+    case 'presenca': // sem s - como no RankingControls
+      return item.presencas?.itensLidos || 0
+    default: // padrão para etiquetas
+      return item.etiquetas?.itensValidos || 0
+  }
+}
+
+const getUsuariosAtivosPorTipo = (item, tipo) => {
+  switch (tipo) {
+    case 'etiqueta': // singular - como no RankingControls
+      return item.etiquetas?.usuariosAtivos || 0
+    case 'ruptura': // singular - como no RankingControls
+      return item.rupturas?.usuariosAtivos || 0
+    case 'presenca': // sem s - como no RankingControls
+      return item.presencas?.usuariosAtivos || 0
+    default: // padrão para etiquetas
+      return item.etiquetas?.usuariosAtivos || 0
+  }
+}
+
+const getEficienciaPorTipo = (item, tipo) => {
+  switch (tipo) {
+    case 'etiqueta': // singular - como no RankingControls
+      return item.etiquetas?.percentualConclusao || 0
+    case 'ruptura': // singular - como no RankingControls
+      return item.rupturas?.percentualConclusao || 0
+    case 'presenca': // sem s - como no RankingControls
+      return item.presencas?.percentualConclusao || 0
+    default: // padrão para etiquetas
+      return item.etiquetas?.percentualConclusao || 0
+  }
+}
+
+// Helper methods simplificados - só usar dados diretos da API
 const calcularEficiencia = (loja) => {
-  // Se a eficiência já vem calculada da API, usar ela
-  if (loja.eficiencia !== undefined) {
-    return Math.min(loja.eficiencia, 100)
-  }
-
-  // Fallback: calcular baseado na média por usuário se dados disponíveis
-  if (loja.usuariosAtivos && loja.usuariosAtivos > 0) {
-    const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos
-    const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100)
-    return Math.round(eficiencia)
-  }
-
-  return 0
+  return loja.eficiencia || 0
 }
 
 const getLiga = (itens) => {
@@ -432,6 +629,21 @@ const generateMockHistorico = () => {
     historico.push(Math.floor(Math.random() * 1000) + 500)
   }
   return historico
+}
+
+const calculateTendencia = (item) => {
+  // Calcular tendência baseada na eficiência operacional e pontuação
+  const pontuacao = item.pontuacao || 0
+  const eficiencia = item.eficienciaOperacional || 0
+
+  // Simular tendência baseada na performance atual
+  if (pontuacao > 80 && eficiencia > 80) {
+    return Math.floor(Math.random() * 15) + 5 // +5% a +20%
+  } else if (pontuacao > 60 && eficiencia > 60) {
+    return Math.floor(Math.random() * 10) - 5 // -5% a +5%
+  } else {
+    return Math.floor(Math.random() * 15) - 15 // -15% a 0%
+  }
 }
 
 // Event handlers
@@ -602,12 +814,53 @@ const nextPage = () => {
 
 // Navigation methods
 const verDetalhesLoja = (loja) => {
-  router.push(`/perfil-loja/${loja.codigo}`)
+  // Navegar para página de detalhes da loja com dados do LojaDailyMetrics
+  router.push({
+    name: 'perfilLoja',  // Nome correto da rota (com 'p' minúsculo)
+    params: { codigo: loja.codigo },
+    query: {
+      source: 'loja-daily-metrics',
+      data: mapPeriodoToData(filtroPeriodo.value)
+    }
+  })
 }
 
-const compararLoja = (loja) => {
+const compararLoja = async (loja) => {
   console.log('Comparar loja:', loja.codigo)
-  alert(`Funcionalidade de comparação da loja ${loja.codigo} em desenvolvimento`)
+
+  try {
+    // Comparação simples com as 3 primeiras lojas do ranking
+    const lojasParaComparar = [loja, ...lojasFiltradas.value.slice(0, 2)].slice(0, 3)
+
+    // Comparação local usando dados já carregados
+    const comparacao = lojasParaComparar.map(l => ({
+      codigo: l.codigo,
+      nome: l.nome,
+      pontuacao: l.pontuacao,
+      itensAuditados: l.itensAuditados,
+      usuariosAtivos: l.usuariosAtivos,
+      eficiencia: l.eficiencia
+    }))
+
+    const melhorLoja = comparacao.reduce((best, current) =>
+      current.pontuacao > best.pontuacao ? current : best
+    )
+
+    const maiorVolume = comparacao.reduce((max, current) =>
+      current.itensAuditados > max.itensAuditados ? current : max
+    )
+
+    // Mostrar resultado da comparação
+    alert(`Comparação realizada com dados locais!
+
+Lojas comparadas: ${comparacao.map(c => c.codigo).join(', ')}
+Melhor pontuação: ${melhorLoja.codigo} (${melhorLoja.pontuacao} pts)
+Maior volume: ${maiorVolume.codigo} (${maiorVolume.itensAuditados} itens)`)
+
+  } catch (error) {
+    console.error('Erro ao comparar lojas:', error)
+    alert('Erro ao realizar comparação de lojas. Tente novamente.')
+  }
 }
 
 // Chart methods

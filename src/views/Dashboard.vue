@@ -1,123 +1,257 @@
 <template>
-  <div class="dashboard-container">
-    <!-- Header -->
-    <div class="dashboard-header">
-      <div class="header-content">
-        <div class="header-title">
-          <div class="title-icon">⚡</div>
-          <div class="title-section">
-            <h1>Gerenciamento de Postagens</h1>
-            <p>Administre, edite e monitore todas as postagens da comunidade</p>
+  <div class="dashboard-layout">
+    <!-- Area #2 - Top -->
+    <div class="area-top">
+      <div class="dashboard-header">
+        <div class="header-content">
+          <div class="header-title">
+            <div class="title-icon">⚡</div>
+            <div class="title-section">
+              <h1>Gerenciamento de Postagens</h1>
+              <p>
+                Administre, edite e monitore todas as postagens da comunidade
+              </p>
+            </div>
           </div>
-        </div>
-        <div class="header-actions">
-          <button @click="loadPosts" class="btn-refresh">🔄 Atualizar</button>
-          <select v-model="statusFilter" class="status-filter">
-            <option value="">Todos os Status</option>
-            <option value="pendente">Pendente</option>
-            <option value="analisando">Analisando</option>
-            <option value="implementado">Implementado</option>
-            <option value="rejeitado">Rejeitado</option>
-          </select>
+          <div class="header-actions">
+            <button @click="loadPosts" class="btn-refresh">🔄 Atualizar</button>
+            <select v-model="statusFilter" class="status-filter">
+              <option value="">Todos os Status</option>
+              <option value="pendente">Pendente</option>
+              <option value="analisando">Analisando</option>
+              <option value="implementado">Implementado</option>
+              <option value="rejeitado">Rejeitado</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Gerenciamento de Postagens -->
-    <div class="posts-management">
-      <!-- Loading state -->
-      <div v-if="loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>Carregando postagens...</p>
-      </div>
-
-      <!-- Posts List -->
-      <div v-else class="posts-list">
-        <div
-          v-for="post in filteredPosts"
-          :key="post._id"
-          class="post-card"
-          :class="[`status-${post.status}`]"
-        >
-          <!-- Post Header -->
-          <div class="post-header">
-            <div class="post-meta">
-              <span class="post-type"
-                >{{ getTypeIcon(post.tipo) }}
-                {{ post.tipo.toUpperCase() }}</span
-              >
-              <span class="post-date">{{ formatDate(post.createdAt) }}</span>
-              <span class="post-status" :class="post.status">{{
-                getStatusText(post.status)
-              }}</span>
-            </div>
-            <div class="post-actions">
-              <button @click="editPost(post)" class="btn-edit">
-                ✏️ Editar
-              </button>
-              <button @click="deletePost(post._id)" class="btn-delete">
-                🗑️ Excluir
-              </button>
-            </div>
+    <div class="main-content-wrapper">
+      <!-- Area #1 - Left -->
+      <div class="area-left">
+        <!-- Navigation Cards -->
+        <div class="navigation-section">
+          <div class="section-header">
+            <h2>📂 Tipos de Postagem</h2>
+            <p>Filtre por categoria</p>
           </div>
-
-          <!-- Post Content -->
-          <div class="post-content">
-            <h3 class="post-title">{{ getPostTitle(post.sugestao) }}</h3>
-            <p class="post-description">
-              {{ getPostDescription(post.sugestao) }}
-            </p>
-          </div>
-
-          <!-- Reactions System -->
-          <div class="reactions-section">
-            <h4>Reações da Comunidade:</h4>
-            <div class="reactions-grid">
-              <div
-                v-for="(reaction, type) in getReactions(post)"
-                :key="type"
-                class="reaction-item"
-                @click="toggleReaction(post._id, type)"
-                :class="{ active: hasUserReacted(post, type) }"
-              >
-                <span class="reaction-emoji">{{ getReactionEmoji(type) }}</span>
-                <span class="reaction-count">{{ reaction.count }}</span>
+          <div class="nav-cards-grid">
+            <div
+              v-for="type in postTypes"
+              :key="type.key"
+              class="nav-card"
+              :class="{ active: typeFilter === type.key }"
+              @click="setTypeFilter(type.key)"
+            >
+              <div class="nav-card-icon">{{ type.icon }}</div>
+              <div class="nav-card-content">
+                <h3>{{ type.title }}</h3>
+                <p>{{ type.description }}</p>
+                <span class="nav-card-count"
+                  >{{ getPostCountByType(type.key) }} postagens</span
+                >
               </div>
-            </div>
-          </div>
-
-          <!-- Admin Response -->
-          <div v-if="post.comentarioAdmin" class="admin-response">
-            <h4>📋 Resposta do Admin:</h4>
-            <p>{{ post.comentarioAdmin }}</p>
-          </div>
-
-          <!-- Admin Actions -->
-          <div class="admin-actions">
-            <textarea
-              v-model="post.newResponse"
-              placeholder="Responder como administrador..."
-              class="admin-textarea"
-            ></textarea>
-            <div class="admin-controls">
-              <select v-model="post.newStatus" class="status-select">
-                <option value="pendente">Pendente</option>
-                <option value="analisando">Analisando</option>
-                <option value="implementado">Implementado</option>
-                <option value="rejeitado">Rejeitado</option>
-              </select>
-              <button @click="updatePost(post)" class="btn-update">
-                💾 Atualizar
-              </button>
             </div>
           </div>
         </div>
 
-        <!-- Empty state -->
-        <div v-if="filteredPosts.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <h3>Nenhuma postagem encontrada</h3>
-          <p>Não há postagens com os filtros selecionados.</p>
+        <!-- Voting System -->
+        <div class="voting-section">
+          <div class="section-header">
+            <h2>🗳️ Sistema de Votação</h2>
+            <p>Vote nas melhorias preferidas</p>
+          </div>
+
+          <div class="voting-cards-grid">
+            <div
+              v-for="item in votingItems"
+              :key="item.id"
+              class="voting-card"
+              :class="`status-${item.status}`"
+            >
+              <div class="voting-card-header">
+                <h4>{{ item.title }}</h4>
+                <span class="voting-status" :class="item.status">{{
+                  getVotingStatusText(item.status)
+                }}</span>
+              </div>
+
+              <p class="voting-description">{{ item.description }}</p>
+
+              <div class="voting-actions">
+                <button
+                  class="vote-btn"
+                  :class="{ voted: item.userVoted }"
+                  @click="voteOnItem(item.id)"
+                  :disabled="item.userVoted"
+                >
+                  {{ item.userVoted ? "✓ Votado" : "👍 Votar" }}
+                </button>
+                <span class="vote-count">{{ item.votes }} votos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area #3 - Right -->
+      <div class="area-right">
+        <!-- Posts Management -->
+        <div class="posts-management">
+          <div class="management-header">
+            <h2>📝 Gerenciamento de Postagens</h2>
+            <p>Gerencie todas as sugestões da comunidade</p>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Carregando postagens...</p>
+          </div>
+
+          <!-- Posts List -->
+          <div v-else class="posts-list">
+            <div
+              v-for="post in filteredPosts"
+              :key="post._id"
+              class="post-card"
+              :class="[`status-${post.status}`]"
+            >
+              <!-- Post Header -->
+              <div class="post-header">
+                <div class="post-meta">
+                  <span class="post-type"
+                    >{{ getTypeIcon(post.tipo) }}
+                    {{ post.tipo.toUpperCase() }}</span
+                  >
+                  <span class="post-date">{{
+                    formatDate(post.createdAt)
+                  }}</span>
+                  <span class="post-status" :class="post.status">{{
+                    getStatusText(post.status)
+                  }}</span>
+                </div>
+                <div class="post-actions">
+                  <button @click="editPost(post)" class="btn-edit">
+                    ✏️ Editar
+                  </button>
+                  <button @click="deletePost(post._id)" class="btn-delete">
+                    🗑️ Excluir
+                  </button>
+                </div>
+              </div>
+
+              <!-- Post Content -->
+              <div class="post-content">
+                <h3 class="post-title">{{ getPostTitle(post.sugestao) }}</h3>
+                <p class="post-description">
+                  {{ getPostDescription(post.sugestao) }}
+                </p>
+              </div>
+
+              <!-- Reactions System -->
+              <div class="reactions-section">
+                <h4>Reações da Comunidade:</h4>
+                <div class="reactions-grid">
+                  <div
+                    v-for="(reaction, type) in getReactions(post)"
+                    :key="type"
+                    class="reaction-item"
+                    @click="toggleReaction(post._id, type)"
+                    :class="{ active: hasUserReacted(post, type) }"
+                  >
+                    <span class="reaction-emoji">{{
+                      getReactionEmoji(type)
+                    }}</span>
+                    <span class="reaction-count">{{ reaction.count }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Admin Response -->
+              <div v-if="post.comentarioAdmin" class="admin-response">
+                <h4>📋 Resposta do Admin:</h4>
+                <p>{{ post.comentarioAdmin }}</p>
+              </div>
+
+              <!-- Admin Actions -->
+              <div class="admin-actions">
+                <textarea
+                  v-model="post.newResponse"
+                  placeholder="Responder como administrador..."
+                  class="admin-textarea"
+                ></textarea>
+                <div class="admin-controls">
+                  <select v-model="post.newStatus" class="status-select">
+                    <option value="pendente">Pendente</option>
+                    <option value="analisando">Analisando</option>
+                    <option value="implementado">Implementado</option>
+                    <option value="rejeitado">Rejeitado</option>
+                  </select>
+                  <button @click="updatePost(post)" class="btn-update">
+                    💾 Atualizar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="filteredPosts.length === 0" class="empty-state">
+              <div class="empty-icon">📭</div>
+              <h3>Nenhuma postagem encontrada</h3>
+              <p>Não há postagens com os filtros selecionados.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Area #4 - Bottom -->
+    <div class="area-bottom">
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <span class="stat-value">{{ posts.length }}</span>
+            <span class="stat-label">Total de Postagens</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-info">
+            <span class="stat-value">{{
+              getPostsByStatus("pendente").length
+            }}</span>
+            <span class="stat-label">Pendentes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔍</div>
+          <div class="stat-info">
+            <span class="stat-value">{{
+              getPostsByStatus("analisando").length
+            }}</span>
+            <span class="stat-label">Em Análise</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-value">{{
+              getPostsByStatus("implementado").length
+            }}</span>
+            <span class="stat-label">Implementadas</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❌</div>
+          <div class="stat-info">
+            <span class="stat-value">{{
+              getPostsByStatus("rejeitado").length
+            }}</span>
+            <span class="stat-label">Rejeitadas</span>
+          </div>
         </div>
       </div>
     </div>
@@ -142,11 +276,93 @@ export default {
     const loading = ref(false);
     const statusFilter = ref("");
     const successMessage = ref("");
-    const userIdentifier = ref(`user_${Date.now()}`); // Identificador único do usuário
+    const userIdentifier = ref(`user_${Date.now()}`);
+    const typeFilter = ref("");
+
+    // Tipos de postagem
+    const postTypes = ref([
+      {
+        key: "Postagem",
+        title: "Postagem",
+        icon: "📰",
+        description: "Publicação Geral ",
+      },
+      {
+        key: "Sugestões ",
+        title: "Sugestões ",
+        icon: "💡",
+        description: "Supetões e melhorias",
+      },
+      {
+        key: "Votação",
+        title: "Votação",
+        icon: "🚀",
+        description: "Avisos impotantes",
+      },
+      {
+        key: "implementação",
+        title: "Implementação",
+        icon: "✔ ",
+        description: "Processos de auditoria",
+      },
+      {
+        key: "relatorios",
+        title: "Relatórios",
+        icon: "📋",
+        description: "Geração de relatórios",
+      },
+    ]);
+
+    // Items de votação
+    const votingItems = ref([
+      {
+        id: 1,
+        title: "Integração com Power BI",
+        description: "Exportação de dados direto para dashboards do Power BI",
+        status: "in-progress",
+        votes: 127,
+        userVoted: false,
+      },
+      {
+        id: 2,
+        title: "App Mobile Nativo",
+        description: "Aplicativo dedicado para auditorias em campo",
+        status: "under-review",
+        votes: 89,
+        userVoted: false,
+      },
+      {
+        id: 3,
+        title: "Relatórios Automáticos",
+        description: "Geração automática de relatórios semanais",
+        status: "implemented",
+        votes: 56,
+        userVoted: true,
+      },
+      {
+        id: 4,
+        title: "Sistema de Gamificação",
+        description: "Badges e recompensas por participação ativa",
+        status: "new-idea",
+        votes: 34,
+        userVoted: false,
+      },
+    ]);
 
     const filteredPosts = computed(() => {
-      if (!statusFilter.value) return posts.value;
-      return posts.value.filter((post) => post.status === statusFilter.value);
+      let filtered = posts.value;
+
+      if (statusFilter.value) {
+        filtered = filtered.filter(
+          (post) => post.status === statusFilter.value
+        );
+      }
+
+      if (typeFilter.value) {
+        filtered = filtered.filter((post) => post.tipo === typeFilter.value);
+      }
+
+      return filtered;
     });
 
     // Carregar postagens
@@ -245,7 +461,6 @@ export default {
 
     const toggleReaction = async (postId, reactionType) => {
       try {
-        // Tenta usar a API primeiro
         const response = await axios.post(
           `http://localhost:3000/api/sugestoes/${postId}/react`,
           {
@@ -267,10 +482,8 @@ export default {
           error.message
         );
 
-        // Simulação local da funcionalidade
         const post = posts.value.find((p) => p._id === postId);
         if (post) {
-          // Inicializar reactions se não existir
           if (!post.reactions) {
             post.reactions = {
               like: { count: 0, users: [] },
@@ -280,13 +493,11 @@ export default {
             };
           }
 
-          // Verificar se usuário já reagiu
           const hasReacted = post.reactions[reactionType].users.includes(
             userIdentifier.value
           );
 
           if (hasReacted) {
-            // Remover reação
             post.reactions[reactionType].count = Math.max(
               0,
               post.reactions[reactionType].count - 1
@@ -299,7 +510,6 @@ export default {
               "success"
             );
           } else {
-            // Adicionar reação
             post.reactions[reactionType].count += 1;
             post.reactions[reactionType].users.push(userIdentifier.value);
             showMessage(
@@ -359,7 +569,6 @@ export default {
     };
 
     const editPost = (post) => {
-      // Por enquanto, apenas focar no textarea de resposta
       const textarea = document.querySelector(
         `textarea[data-post-id="${post._id}"]`
       );
@@ -371,6 +580,40 @@ export default {
       setTimeout(() => {
         successMessage.value = "";
       }, 3000);
+    };
+
+    // Funções para navegação por tipos
+    const setTypeFilter = (type) => {
+      typeFilter.value = typeFilter.value === type ? "" : type;
+    };
+
+    const getPostCountByType = (type) => {
+      return posts.value.filter((post) => post.tipo === type).length;
+    };
+
+    // Funções para votação
+    const getVotingStatusText = (status) => {
+      const statusTexts = {
+        "new-idea": "Nova Ideia",
+        "under-review": "Em Análise",
+        "in-progress": "Em Desenvolvimento",
+        implemented: "Implementado",
+      };
+      return statusTexts[status] || status;
+    };
+
+    const voteOnItem = (itemId) => {
+      const item = votingItems.value.find((item) => item.id === itemId);
+      if (item && !item.userVoted) {
+        item.votes++;
+        item.userVoted = true;
+        showMessage(`Voto registrado em "${item.title}"!`, "success");
+      }
+    };
+
+    // Função para estatísticas
+    const getPostsByStatus = (status) => {
+      return posts.value.filter((post) => post.status === status);
     };
 
     // Carregar dados quando componente for montado
@@ -397,67 +640,441 @@ export default {
       updatePost,
       deletePost,
       editPost,
+      typeFilter,
+      postTypes,
+      votingItems,
+      setTypeFilter,
+      getPostCountByType,
+      getVotingStatusText,
+      voteOnItem,
+      getPostsByStatus,
     };
   },
 };
 </script>
 
 <style scoped>
-.dashboard-container {
+/* Layout Principal */
+.dashboard-layout {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr;
+  gap: 0;
 }
 
-.posts-management {
-  max-width: 1200px;
+.area-top {
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+.main-content-wrapper {
+  grid-area: 2 / 1 / 3 / 2;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 140px);
+}
+
+.area-left {
+  background: white;
+  border-right: 1px solid #e9ecef;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.area-right {
+  background: #f8f9fa;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.area-bottom {
+  grid-area: 3 / 1 / 4 / 2;
+  background: white;
+  border-top: 1px solid #e9ecef;
+  padding: 0;
+}
+
+/* Header Styles */
+.dashboard-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 100%;
   margin: 0 auto;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.title-icon {
+  font-size: 2.2rem;
+}
+
+.title-section h1 {
+  margin: 0 0 4px 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.title-section p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-refresh {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.status-filter {
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.status-filter option {
+  background: #4361ee;
+  color: white;
+}
+
+/* Left Area Styles */
+.area-left {
   padding: 24px;
-}
-
-.loading-state {
-  text-align: center;
-  padding: 60px;
-  color: #6c757d;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f8f9fa;
-  border-top: 4px solid #4361ee;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.posts-list {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
+.navigation-section,
+.voting-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0 0 6px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.section-header p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Navigation Cards */
+.nav-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.8)
+  );
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+}
+
+.nav-card.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.nav-card-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.nav-card-content {
+  flex: 1;
+}
+
+.nav-card-content h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.nav-card-content p {
+  margin: 0 0 6px 0;
+  opacity: 0.8;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.nav-card-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.nav-card.active .nav-card-count {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Voting Cards */
+.voting-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.voting-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.voting-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.voting-card.status-new-idea::before {
+  background: linear-gradient(90deg, #3b82f6, #1e40af);
+}
+
+.voting-card.status-under-review::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.voting-card.status-in-progress::before {
+  background: linear-gradient(90deg, #06b6d4, #0891b2);
+}
+
+.voting-card.status-implemented::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.voting-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.voting-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.voting-card-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.voting-status {
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.voting-status.new-idea {
+  background: #e0f2fe;
+  color: #0277bd;
+}
+
+.voting-status.under-review {
+  background: #fff8e1;
+  color: #f57c00;
+}
+
+.voting-status.in-progress {
+  background: #e0f7fa;
+  color: #00838f;
+}
+
+.voting-status.implemented {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.voting-description {
+  margin: 0 0 14px 0;
+  color: #6c757d;
+  line-height: 1.4;
+  font-size: 0.85rem;
+}
+
+.voting-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vote-btn {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+}
+
+.vote-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.vote-btn.voted {
+  background: linear-gradient(135deg, #10b981, #059669);
+  cursor: default;
+}
+
+.vote-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.vote-count {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.8rem;
+}
+
+/* Right Area Styles */
+.area-right {
+  padding: 24px;
+}
+
+.posts-management {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.management-header {
+  padding: 24px 24px 0 24px;
+  margin-bottom: 0;
+}
+
+.management-header h2 {
+  margin: 0 0 6px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.management-header p {
+  margin: 0 0 20px 0;
+  color: #6c757d;
+  font-size: 0.95rem;
+}
+
+.posts-list {
+  padding: 0 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Post Card Styles */
 .post-card {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border-left: 4px solid #e9ecef;
   transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
 }
 
 .post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .post-card.status-pendente {
@@ -488,27 +1105,28 @@ export default {
 .post-meta {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .post-type {
   font-weight: 600;
   color: #4361ee;
   background: rgba(67, 97, 238, 0.1);
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
 }
 
 .post-date {
   color: #6c757d;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .post-status {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -540,10 +1158,10 @@ export default {
 
 .btn-edit,
 .btn-delete {
-  padding: 8px 16px;
+  padding: 6px 12px;
   border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -568,51 +1186,56 @@ export default {
 }
 
 .post-content {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .post-title {
   margin: 0 0 8px 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #2c3e50;
+  line-height: 1.3;
 }
 
 .post-description {
   margin: 0;
   color: #6c757d;
-  line-height: 1.6;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 
 .reactions-section {
-  margin: 20px 0;
-  padding: 16px;
+  margin: 16px 0;
+  padding: 14px;
   background: #f8f9fa;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .reactions-section h4 {
-  margin: 0 0 12px 0;
-  font-size: 1rem;
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
   color: #495057;
+  font-weight: 600;
 }
 
 .reactions-grid {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .reaction-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 5px;
+  padding: 6px 10px;
   background: white;
   border: 2px solid #e9ecef;
-  border-radius: 20px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .reaction-item:hover {
@@ -627,17 +1250,17 @@ export default {
 }
 
 .reaction-emoji {
-  font-size: 1.2rem;
+  font-size: 1rem;
 }
 
 .reaction-count {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .admin-response {
-  margin: 20px 0;
-  padding: 16px;
+  margin: 16px 0;
+  padding: 14px;
   background: linear-gradient(
     135deg,
     rgba(40, 167, 69, 0.1),
@@ -648,33 +1271,38 @@ export default {
 }
 
 .admin-response h4 {
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   color: #28a745;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .admin-response p {
   margin: 0;
   color: #495057;
   font-style: italic;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .admin-actions {
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 16px;
+  padding: 14px;
   background: #f8f9fa;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .admin-textarea {
   width: 100%;
-  min-height: 80px;
-  padding: 12px;
+  min-height: 70px;
+  padding: 10px;
   border: 1px solid #e9ecef;
   border-radius: 8px;
   font-family: inherit;
+  font-size: 0.9rem;
   resize: vertical;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
 }
 
 .admin-textarea:focus {
@@ -685,7 +1313,7 @@ export default {
 
 .admin-controls {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
@@ -695,6 +1323,8 @@ export default {
   border-radius: 8px;
   background: white;
   cursor: pointer;
+  font-size: 0.9rem;
+  flex: 1;
 }
 
 .btn-update {
@@ -706,6 +1336,8 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .btn-update:hover {
@@ -713,377 +1345,16 @@ export default {
   transform: translateY(-1px);
 }
 
-.empty-state {
+/* Loading State */
+.loading-state {
   text-align: center;
   padding: 60px 20px;
   color: #6c757d;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 16px;
-}
-
-.success-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
-  padding: 16px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
-  z-index: 1000;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.btn-refresh {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-refresh:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.status-filter {
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  cursor: pointer;
-}
-
-.status-filter option {
-  background: #4361ee;
-  color: white;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-@media (max-width: 768px) {
-  .posts-management {
-    padding: 16px;
-  }
-
-  .post-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .post-meta {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .reactions-grid {
-    flex-wrap: wrap;
-  }
-
-  .admin-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-.dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 24px 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.title-icon {
-  font-size: 2.5rem;
-}
-
-.title-section h1 {
-  margin: 0 0 4px 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.title-section p {
-  margin: 0;
-  opacity: 0.9;
-  font-size: 1rem;
-}
-
-.header-stats {
-  display: flex;
-  gap: 24px;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-number {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
-.dashboard-main {
-  display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  gap: 24px;
-  max-width: 1400px;
-  margin: 24px auto;
-  padding: 0 24px;
-}
-
-.dashboard-sidebar,
-.dashboard-right-sidebar {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.sidebar-section {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.sidebar-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.btn-create-post,
-.btn-action {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.btn-create-post {
-  background: linear-gradient(135deg, #4361ee, #764ba2);
-  color: white;
-  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-}
-
-.btn-create-post:hover,
-.btn-create-post.active {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
-}
-
-.btn-action {
-  background: #f8f9fa;
-  color: #495057;
-  border: 1px solid #e9ecef;
-}
-
-.btn-action:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
-}
-
-.stats-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(67, 97, 238, 0.1),
-    rgba(102, 126, 234, 0.05)
-  );
-  border-radius: 12px;
-  border: 1px solid rgba(67, 97, 238, 0.1);
-}
-
-.stat-icon {
-  font-size: 1.5rem;
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #4361ee;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: #6c757d;
-}
-
-.achievements-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.achievement-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.achievement-icon {
-  font-size: 1.2rem;
-}
-
-.dashboard-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.post-form-section {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.btn-close-form {
-  margin-top: 16px;
-  padding: 10px 16px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #6c757d;
-  transition: all 0.3s ease;
-}
-
-.btn-close-form:hover {
-  background: #e9ecef;
-}
-
-.feed-section {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.section-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.feed-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filter-select {
-  padding: 8px 12px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-}
-
-.btn-refresh {
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-refresh:hover {
-  background: #e9ecef;
-}
-
-.loading-state {
-  text-align: center;
-  padding: 40px;
-  color: #6c757d;
 }
 
 .loading-spinner {
@@ -1093,7 +1364,7 @@ export default {
   border-top: 4px solid #4361ee;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
+  margin-bottom: 16px;
 }
 
 @keyframes spin {
@@ -1105,319 +1376,103 @@ export default {
   }
 }
 
-.feed-items {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.feed-item {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  background: #fafbfc;
-}
-
-.feed-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: #4361ee;
-}
-
-.feed-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.item-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.9rem;
-}
-
-.item-type {
-  font-weight: 600;
-  color: #4361ee;
-}
-
-.item-time {
-  color: #6c757d;
-}
-
-.item-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.item-badge.new {
-  background: #d4edda;
-  color: #155724;
-}
-
-.item-badge.update {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.item-user {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  background: #4361ee;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.8rem;
-}
-
-.feed-item-title {
-  margin: 0 0 8px 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.feed-item-description {
-  margin: 0 0 16px 0;
-  color: #495057;
-  line-height: 1.5;
-}
-
-.admin-response {
-  background: linear-gradient(
-    135deg,
-    rgba(40, 167, 69, 0.1),
-    rgba(32, 201, 151, 0.05)
-  );
-  border-left: 4px solid #28a745;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.response-badge {
-  font-weight: 600;
-  color: #28a745;
-  font-size: 0.9rem;
-  margin-bottom: 4px;
-}
-
-.response-text {
-  margin: 0;
-  color: #495057;
-  font-style: italic;
-}
-
-.feed-item-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.action-btn {
-  padding: 8px 12px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.action-btn:hover {
-  background: #f8f9fa;
-  transform: translateY(-1px);
-}
-
-.vote-btn.voted {
-  background: #4361ee;
-  color: white;
-  border-color: #4361ee;
-}
-
+/* Empty State */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
   color: #6c757d;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .empty-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 16px;
 }
 
 .empty-state h3 {
   margin: 0 0 8px 0;
   color: #495057;
+  font-size: 1.3rem;
 }
 
-.btn-create-first {
-  margin-top: 16px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #4361ee, #764ba2);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.empty-state p {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
-.btn-create-first:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+/* Bottom Area Styles */
+.area-bottom {
+  padding: 20px 32px;
 }
 
-.voting-items {
-  display: flex;
-  flex-direction: column;
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
-.voting-item {
-  padding: 16px;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  background: #fafbfc;
-}
-
-.voting-item h4 {
-  margin: 0 0 8px 0;
-  font-size: 1rem;
-  color: #2c3e50;
-}
-
-.voting-item p {
-  margin: 0 0 12px 0;
-  color: #6c757d;
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-.voting-actions {
+.stat-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-}
-
-.vote-button {
-  padding: 6px 12px;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  background: white;
-  cursor: pointer;
-  font-size: 0.8rem;
+  gap: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   transition: all 0.3s ease;
 }
 
-.vote-button:hover:not(:disabled) {
-  background: #f8f9fa;
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
-.vote-button.voted {
-  background: #4361ee;
-  color: white;
-  border-color: #4361ee;
+.stat-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
 }
 
-.vote-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.vote-status {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.vote-status.new-idea {
-  background: #e7f3ff;
-  color: #0056b3;
-}
-
-.vote-status.under-review {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.vote-status.in-progress {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.vote-status.implemented {
-  background: #d4edda;
-  color: #155724;
-}
-
-.quick-links {
+.stat-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
-.quick-link {
-  padding: 10px 12px;
-  color: #4361ee;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  cursor: pointer;
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin-top: 4px;
   font-weight: 500;
 }
 
-.quick-link:hover {
-  background: rgba(67, 97, 238, 0.1);
-  transform: translateX(4px);
-}
-
+/* Success Notification */
 .success-notification {
   position: fixed;
   top: 20px;
   right: 20px;
   background: linear-gradient(135deg, #28a745, #20c997);
   color: white;
-  padding: 16px 24px;
-  border-radius: 12px;
+  padding: 14px 20px;
+  border-radius: 10px;
   font-weight: 600;
   box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
   z-index: 1000;
+  font-size: 0.9rem;
 }
 
-/* Animations */
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-down-enter-from {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
-.slide-down-leave-to {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-
+/* Transitions */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -1428,23 +1483,29 @@ export default {
   opacity: 0;
 }
 
-/* Responsividade */
+/* Responsive Design */
 @media (max-width: 1200px) {
-  .dashboard-main {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0 16px;
+  .main-content-wrapper {
+    grid-template-columns: 300px 1fr;
   }
 
-  .dashboard-sidebar,
-  .dashboard-right-sidebar {
-    display: none;
+  .stats-overview {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard-header {
-    padding: 16px;
+  .main-content-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .area-left {
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+    height: auto;
+    max-height: 50vh;
+    overflow-y: auto;
   }
 
   .header-content {
@@ -1453,18 +1514,64 @@ export default {
     text-align: center;
   }
 
-  .header-stats {
-    gap: 16px;
-  }
-
-  .feed-controls {
+  .header-actions {
     flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-refresh,
+  .status-filter {
+    width: 100%;
+  }
+
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .post-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .post-meta {
     gap: 8px;
   }
 
-  .feed-item-actions {
-    flex-wrap: wrap;
-    gap: 8px;
+  .admin-controls {
+    flex-direction: column;
+  }
+
+  .status-select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 16px 20px;
+  }
+
+  .area-left,
+  .area-right {
+    padding: 16px;
+  }
+
+  .stats-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .title-section h1 {
+    font-size: 1.4rem;
+  }
+
+  .title-icon {
+    font-size: 1.8rem;
   }
 }
 </style>

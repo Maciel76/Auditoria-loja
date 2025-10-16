@@ -56,6 +56,7 @@
               <option value="ranking">🏆 Ranking</option>
               <option value="auditoria">🔍 Auditoria</option>
               <option value="relatorios">📋 Relatórios</option>
+              <option value="voting">🗳️ Melhoria para Votação</option>
             </select>
           </div>
 
@@ -148,6 +149,7 @@ export default {
         ranking: "🏆",
         auditoria: "🔍",
         relatorios: "📋",
+        voting: "🗳️",
       };
       return icons[type] || "💡";
     };
@@ -159,6 +161,7 @@ export default {
         ranking: "Ranking",
         auditoria: "Auditoria",
         relatorios: "Relatórios",
+        voting: "Votação",
       };
       return labels[type] || "Geral";
     };
@@ -199,7 +202,10 @@ export default {
 
         // Usar o método do dashboardStore
         // Criar postagem com o tipo correto
-        const result = await dashboardStore.submitSuggestion(fullSuggestion, form.value.type);
+        const result = await dashboardStore.submitSuggestion(
+          fullSuggestion,
+          form.value.type
+        );
 
         if (result.success) {
           showMessage("✅ Postagem criada com sucesso!", "success");
@@ -447,7 +453,7 @@ export default {
 }
 
 .btn-primary:disabled {
-  background: rgba(255, 255, 255, 0.3);
+  background: #667eea;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -461,8 +467,9 @@ export default {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f7fafc;
-  border-color: #667eea;
+  background: #df694c;
+  color: #e2e8f0;
+
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
 }

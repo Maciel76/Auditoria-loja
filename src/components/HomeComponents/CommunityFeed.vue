@@ -1,7 +1,7 @@
 <template>
   <div class="community-feed">
     <div class="section-header">
-      <h2>📰 Mural da Comunidade</h2>
+      <h2>📰 Feed Postagem</h2>
       <span class="see-all">Ver tudo</span>
     </div>
 
@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
+import { defineProps, defineEmits, ref } from "vue";
 
 const props = defineProps({
   feedItems: {
@@ -78,7 +78,9 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["vote-submitted"]);
+const emit = defineEmits(["vote-submitted", "reaction-submitted"]);
+
+const userIdentifier = ref(`user_${Date.now()}`);
 
 const getBadgeText = (badge) => {
   const badges = {
@@ -86,6 +88,41 @@ const getBadgeText = (badge) => {
     update: "ATUALIZAÇÃO",
   };
   return badges[badge] || badge;
+};
+
+const getReactions = (item) => {
+  const defaultReactions = {
+    like: { count: 0, users: [] },
+    dislike: { count: 0, users: [] },
+    fire: { count: 0, users: [] },
+    heart: { count: 0, users: [] },
+  };
+  return item.reactions || defaultReactions;
+};
+
+const getReactionEmoji = (type) => {
+  const emojis = {
+    like: "👍",
+    dislike: "👎",
+    fire: "🔥",
+    heart: "💚",
+  };
+  return emojis[type];
+};
+
+const hasUserReacted = (item, reactionType) => {
+  const reactions = getReactions(item);
+  return (
+    reactions[reactionType]?.users?.includes(userIdentifier.value) || false
+  );
+};
+
+const handleReaction = (itemId, reactionType) => {
+  emit("reaction-submitted", {
+    itemId,
+    reactionType,
+    userIdentifier: userIdentifier.value,
+  });
 };
 
 const handleVote = (itemId) => {
@@ -207,29 +244,74 @@ const handleVote = (itemId) => {
   margin-bottom: 1rem;
 }
 
-.card-engagement {
+/* Sistema de Reações */
+.card-reactions {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-.engagement-btn {
+.reaction-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-.engagement-btn:hover,
-.engagement-btn.voted {
-  background: #3b82f6;
+.reaction-btn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+.reaction-btn.user-reacted {
+  background: #667eea;
   color: white;
-  border-color: #3b82f6;
+  border-color: #667eea;
+}
+
+.reaction-emoji {
+  font-size: 1rem;
+}
+
+.reaction-count {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+/* Ações do Card */
+.card-actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.action-btn:hover {
+  color: #667eea;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .admin-response {

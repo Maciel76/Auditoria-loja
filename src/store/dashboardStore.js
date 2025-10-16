@@ -19,6 +19,9 @@ export const useDashboardStore = defineStore("dashboard", {
     // Items em votação
     votingItems: [],
 
+    // Items de votação reais do banco (tipo 'voting')
+    realVotingItems: [],
+
     // Conquistas do usuário
     userAchievements: [],
 
@@ -73,6 +76,12 @@ export const useDashboardStore = defineStore("dashboard", {
       return state.votingItems.filter((item) => item.status === status);
     },
 
+    // Items de votação reais (tipo 'voting')
+    realVotingItemsByStatus: (state) => (status) => {
+      if (!status) return state.realVotingItems;
+      return state.realVotingItems.filter((item) => item.status === status);
+    },
+
     // Conquistas desbloqueadas
     unlockedAchievements: (state) => {
       return state.userAchievements.filter((achievement) => achievement.unlocked);
@@ -110,6 +119,100 @@ export const useDashboardStore = defineStore("dashboard", {
       }
     },
 
+    // Carregar items de votação reais do banco
+    async loadRealVotingItems() {
+      console.log("🔄 dashboardStore.loadRealVotingItems() iniciado");
+      try {
+        console.log("📡 Fazendo requisição para http://localhost:3000/api/sugestoes?tipo=voting");
+        const response = await axios.get("http://localhost:3000/api/sugestoes?tipo=voting");
+        console.log("📦 Resposta recebida:", response.data);
+
+        if (response.data.sugestoes) {
+          console.log(`✅ ${response.data.sugestoes.length} itens de votação encontrados`);
+
+          // Converter sugestões de votação em formato apropriado
+          this.realVotingItems = response.data.sugestoes.map(sugestao => {
+            const lines = sugestao.sugestao.split('\n\n');
+            const title = lines[0] || sugestao.sugestao.substring(0, 50);
+            const description = lines.length > 1 ? lines.slice(1).join('\n\n') : sugestao.sugestao;
+
+            return {
+              id: sugestao.id || sugestao._id,
+              title: title,
+              description: description.length > 100 ? description.substring(0, 100) + '...' : description,
+              status: this.mapStatusToVoting(sugestao.status),
+              votes: this.calculateTotalReactions(sugestao.reactions),
+              userVoted: false, // TODO: implementar tracking de voto por usuário
+              reactions: sugestao.reactions || {
+                like: { count: 0, users: [] },
+                dislike: { count: 0, users: [] },
+                fire: { count: 0, users: [] },
+                heart: { count: 0, users: [] }
+              },
+              originalId: sugestao._id
+            };
+          }).reverse(); // Mais recentes primeiro
+
+          console.log(`✅ Items de votação processados: ${this.realVotingItems.length}`);
+        } else {
+          console.log("⚠️ Nenhum item de votação encontrado");
+          this.realVotingItems = [];
+        }
+      } catch (error) {
+        console.error("❌ Erro ao carregar items de votação:", error);
+        this.realVotingItems = [];
+      }
+    },
+
+    // Mapear status para formato de votação
+    mapStatusToVoting(status) {
+      const statusMap = {
+        'pendente': 'new-idea',
+        'analisando': 'under-review',
+        'implementado': 'implemented',
+        'rejeitado': 'rejected'
+      };
+      return statusMap[status] || 'new-idea';
+    },
+
+    // Calcular total de reações como "votos"
+    calculateTotalReactions(reactions) {
+      if (!reactions) return 0;
+      return (reactions.like?.count || 0) +
+             (reactions.fire?.count || 0) +
+             (reactions.heart?.count || 0) -
+             (reactions.dislike?.count || 0);
+    },
+
+    // Reagir em item de votação
+    async reactToVotingItem(itemId, reactionType, userIdentifier) {
+      try {
+        console.log(`📞 Enviando reação ${reactionType} para item ${itemId}`);
+        const response = await axios.post(
+          `http://localhost:3000/api/sugestoes/${itemId}/react`,
+          {
+            reaction: reactionType,
+            userIdentifier: userIdentifier,
+          }
+        );
+
+        if (response.data.reactions) {
+          // Atualizar item local
+          const item = this.realVotingItems.find(item => item.originalId === itemId);
+          if (item) {
+            item.reactions = response.data.reactions;
+            item.votes = this.calculateTotalReactions(response.data.reactions);
+          }
+
+          console.log(`✅ Reação ${reactionType} salva com sucesso!`);
+          return { success: true, message: response.data.message };
+        }
+      } catch (error) {
+        console.error("❌ Erro ao reagir em item de votação:", error);
+        return { success: false, message: "Erro ao salvar reação" };
+      }
+    },
+
     // Carregar feed de atividades (do banco de dados)
     async loadFeedItems() {
       console.log("🔄 dashboardStore.loadFeedItems() iniciado");
@@ -131,7 +234,8 @@ export const useDashboardStore = defineStore("dashboard", {
                 dashboard: '📊',
                 ranking: '🏆',
                 auditoria: '🔍',
-                relatorios: '📋'
+                relatorios: '📋',
+                voting: '🗳️'
               };
               const icon = typeIcons[tipo] || '📝';
               const lines = texto.split('\n\n');
@@ -457,6 +561,7 @@ export const useDashboardStore = defineStore("dashboard", {
         this.loadFeedItems(),
         this.loadVotingItems(),
         this.loadUserAchievements(),
+        this.loadRealVotingItems(), // Carregar items de votação reais
       ]);
     },
 

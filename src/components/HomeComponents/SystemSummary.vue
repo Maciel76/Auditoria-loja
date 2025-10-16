@@ -1,14 +1,14 @@
 <template>
   <div class="system-summary">
-    <h3>📈 Resumo do Sistema</h3>
+    <h3>📈 Sugestões Para Implementa</h3>
     <div class="summary-grid">
       <div class="summary-item">
         <span class="summary-number">{{ stats.activeAudits }}</span>
-        <span class="summary-label">Auditorias Ativas</span>
+        <span class="summary-label">Qtd. sugestão</span>
       </div>
       <div class="summary-item">
         <span class="summary-number">{{ stats.onlineUsers }}</span>
-        <span class="summary-label">Usuários Online</span>
+        <span class="summary-label"> Sugestão Pedentes</span>
       </div>
       <div class="summary-item">
         <span class="summary-number">{{ stats.acceptedSuggestions }}</span>
@@ -16,8 +16,9 @@
       </div>
       <div class="summary-item">
         <span class="summary-number">{{ stats.inDevelopment }}</span>
-        <span class="summary-label">Em Desenvolvimento</span>
+        <span class="summary-label">Sugestões Aceitas</span>
       </div>
+      <span>Ver tudo</span>
     </div>
   </div>
 </template>

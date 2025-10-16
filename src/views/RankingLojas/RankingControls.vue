@@ -9,7 +9,7 @@
           @change="$emit('update:filtroTipoAuditoria', $event.target.value)"
           class="filter-select"
         >
-          <option value="todos">📋 Todas as Auditorias</option>
+          <!-- <option value="todos">📋 Todas as Auditorias</option> -->
           <option value="etiqueta">🏷️ Etiqueta</option>
           <option value="presenca">👥 Presença</option>
           <option value="ruptura">📦 Ruptura</option>
@@ -24,10 +24,12 @@
           class="filter-select"
         >
           <option value="hoje">📅 Hoje</option>
+          <!-- Outros filtros de período serão implementados mais tarde
           <option value="semana">📊 Esta Semana</option>
           <option value="mes">📆 Este Mês</option>
           <option value="trimestre">📈 Este Trimestre</option>
           <option value="todos">🔄 Todos os Períodos</option>
+          -->
         </select>
       </div>
 

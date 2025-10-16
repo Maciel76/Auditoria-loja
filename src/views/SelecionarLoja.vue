@@ -1,16 +1,17 @@
 <template>
   <div class="selecionar-loja-container">
-    <div class="header">
-      <h1>🏪 Sistema de Auditorias</h1>
-      <p class="subtitulo">Controle de Estoque e Presença de Produtos</p>
-    </div>
+    <!-- <div class="header">
+      <h1>🏪Selecione a Loja</h1>
+      <p class="subtitulo">Usuario / Ranking / Perfil</p>
+    </div> -->
 
     <div class="explicacao">
-      <h2>Bem-vindo ao Sistema de Análise de Auditorias</h2>
+      <h2>Selecione Uma loja Para Visualizar suas Metricas e resultados</h2>
       <p>
-        Este sistema permite realizar análises das Auditorias de Etiquetas,
-        Presença e Ruptura de produtos em suas lojas. Selecione sua loja abaixo
-        para iniciar o processo de análise.
+        Esta Seleção permite visualizar perfil da loja, gestao de usuarios,
+        Envia Planilha das auditoria, realizar análises das Auditorias de
+        Etiquetas, Presença e Ruptura de produtos em na lojas selecionada.
+        Selecione sua loja abaixo para iniciar o processo de análise.
       </p>
     </div>
 
@@ -25,7 +26,7 @@
       </div>
     </div>
 
-    <h3>Selecione A loja que vc Pertence</h3>
+    <h3>Selecione A loja Para Iniciar</h3>
 
     <div class="lojas-grid">
       <div
@@ -52,6 +53,7 @@
           ✓
         </div>
       </div>
+      <button class="AddLoja" alt="Adciona Nova loja">+</button>
     </div>
 
     <button
@@ -358,6 +360,20 @@ h3 {
   font-weight: 600;
   transition: all 0.3s ease;
   margin-bottom: 30px;
+}
+.AddLoja {
+  font-size: 50px;
+  border-radius: 20px;
+  border: #7f8c8d;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.AddLoja:hover {
+  background-color: #3372d1;
+  color: #ffffff;
+  border-color: #3372d1;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .btn-continuar:hover:not(:disabled) {
