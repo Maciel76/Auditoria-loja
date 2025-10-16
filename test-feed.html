@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Feed de Posts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .post {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .post-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .post-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .post-meta {
+            font-size: 0.9em;
+            color: #999;
+            display: flex;
+            gap: 15px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Feed de Posts</h1>
+    <div id="loading" class="loading">Carregando posts...</div>
+    <div id="feed"></div>
+
+    <script>
+        async function loadPosts() {
+            try {
+                const response = await fetch('http://localhost:3000/api/sugestoes');
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.sugestoes && data.sugestoes.length > 0) {
+                    const feedElement = document.getElementById('feed');
+
+                    data.sugestoes.reverse().forEach(post => {
+                        const postElement = document.createElement('div');
+                        postElement.className = 'post';
+
+                        // Processar título e descrição
+                        const lines = post.sugestao.split('\\n\\n');
+                        const title = lines[0];
+                        const description = lines.length > 1 ? lines.slice(1).join('\\n\\n') : post.sugestao;
+
+                        const typeIcons = {
+                            geral: '💡',
+                            dashboard: '📊',
+                            ranking: '🏆',
+                            auditoria: '🔍',
+                            relatorios: '📋'
+                        };
+
+                        const icon = typeIcons[post.tipo] || '📝';
+
+                        postElement.innerHTML = `
+                            <div class="post-title">${icon} ${title}</div>
+                            <div class="post-description">${description}</div>
+                            <div class="post-meta">
+                                <span>Tipo: ${post.tipo}</span>
+                                <span>Status: ${post.status}</span>
+                                <span>👍 ${post.votos || 0}</span>
+                                <span>${post.tempoDecorrido}</span>
+                            </div>
+                        `;
+
+                        feedElement.appendChild(postElement);
+                    });
+                } else {
+                    document.getElementById('feed').innerHTML = '<div class="loading">Nenhum post encontrado</div>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar posts:', error);
+                document.getElementById('loading').innerHTML = 'Erro ao carregar posts: ' + error.message;
+            }
+        }
+
+        // Carregar posts quando a página carregar
+        loadPosts();
+    </script>
+</body>
+</html>

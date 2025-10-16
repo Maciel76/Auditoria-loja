@@ -31,21 +31,29 @@
           <h3>{{ item.title }}</h3>
           <p>{{ item.description }}</p>
 
-          <div class="card-engagement">
+          <!-- Sistema de Reações -->
+          <div class="card-reactions">
             <button
-              class="engagement-btn"
-              :class="{ voted: item.userVoted }"
-              @click="handleVote(item.id)"
+              v-for="(reaction, type) in getReactions(item)"
+              :key="type"
+              class="reaction-btn"
+              :class="{ 'user-reacted': hasUserReacted(item, type) }"
+              @click="handleReaction(item.id, type)"
             >
-              <i class="fas fa-thumbs-up"></i>
-              <span>{{ item.votes }}</span>
+              <span class="reaction-emoji">{{ getReactionEmoji(type) }}</span>
+              <span class="reaction-count">{{ reaction.count }}</span>
             </button>
-            <button class="engagement-btn">
+          </div>
+
+          <!-- Ações adicionais -->
+          <div class="card-actions">
+            <button class="action-btn">
               <i class="fas fa-comment"></i>
-              <span>{{ item.comments }}</span>
+              <span>{{ item.comments || 0 }}</span>
             </button>
-            <button class="engagement-btn">
+            <button class="action-btn">
               <i class="fas fa-share"></i>
+              <span>Compartilhar</span>
             </button>
           </div>
 
