@@ -5,22 +5,12 @@
       <div class="header-left">
         <div class="icon-title">
           <div class="icon-area">
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M12 15L7 10H17L12 15Z" fill="currentColor" />
-              <path
-                d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H9C7.9 1 7 1.9 7 3V7H5C3.9 7 3 7.9 3 9V21C3 22.1 3.9 23 5 23H19C20.1 23 21 22.1 21 21V9ZM19 21H5V9H19V21Z"
-                fill="currentColor"
-              />
-            </svg>
+            <i class="fas fa-trophy" style="font-size: 28px"></i>
           </div>
           <div class="text-content">
-            <div class="titulo">Ranking de Colaboradores da Loja 001</div>
+            <div class="titulo">
+              Ranking de Colaboradores da {{ lojaStore.nomeLojaAtual }}
+            </div>
             <div class="descricao">
               Veja os colaboradores que mais se destacou nessa Loja
             </div>
@@ -32,6 +22,7 @@
           <label for="periodo">Período</label>
           <select
             v-model="periodoSelecionado"
+            @change="onFiltroChange"
             id="periodo"
             class="filtro-select"
           >
@@ -42,7 +33,12 @@
         </div>
         <div class="filter-group">
           <label for="setor">Setor</label>
-          <select v-model="setorSelecionado" id="setor" class="filtro-select">
+          <select
+            v-model="setorSelecionado"
+            @change="onFiltroChange"
+            id="setor"
+            class="filtro-select"
+          >
             <option value="todos">Todos os Setores</option>
             <option value="atendimento">Atendimento</option>
             <option value="estoque">Estoque</option>
@@ -72,7 +68,7 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">+8.5%</span>
+            <span class="stat-value">+{{ stats.crescimentoMedio }}%</span>
             <span class="stat-label">Crescimento Médio</span>
           </div>
         </div>
@@ -93,7 +89,7 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">12</span>
+            <span class="stat-value">{{ stats.metasAtingidas }}</span>
             <span class="stat-label">Metas Atingidas</span>
           </div>
         </div>
@@ -114,7 +110,7 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">5</span>
+            <span class="stat-value">{{ stats.melhoriaRapida }}</span>
             <span class="stat-label">Melhoria Rápida</span>
           </div>
         </div>
@@ -135,7 +131,7 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">94.2%</span>
+            <span class="stat-value">{{ stats.mediaGeral }}%</span>
             <span class="stat-label">Média Geral</span>
           </div>
         </div>
@@ -147,7 +143,7 @@
       <h3 class="section-title">Top Performers</h3>
       <div class="podium-container">
         <!-- Segundo Lugar -->
-        <div class="podium-item segundo">
+        <div class="podium-item segundo" v-if="colaboradores.length >= 2">
           <div class="medal-place">
             <div class="medal-icon">🥈</div>
             <div class="podium-base segundo"></div>
@@ -155,33 +151,35 @@
           <div class="colaborador-avatar">
             <div class="avatar-img">
               <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
-                alt="Carlos Silva"
+                :src="colaboradores[1]?.foto"
+                :alt="colaboradores[1]?.nome"
               />
             </div>
             <div class="ranking-badge">2º</div>
           </div>
           <div class="colaborador-info">
-            <span class="colaborador-nome">Carlos Silva</span>
-            <span class="colaborador-setor">Atendimento</span>
+            <span class="colaborador-nome">{{ colaboradores[1]?.nome }}</span>
+            <span class="colaborador-setor">{{ colaboradores[1]?.setor }}</span>
           </div>
           <div class="colaborador-stats">
             <div class="stat">
-              <span class="stat-value">96%</span>
+              <span class="stat-value"
+                >{{ colaboradores[1]?.conformidade }}%</span
+              >
               <span class="stat-label">Conformidade</span>
             </div>
             <div class="stat">
-              <span class="stat-value">18</span>
+              <span class="stat-value">{{ colaboradores[1]?.auditorias }}</span>
               <span class="stat-label">Auditorias</span>
             </div>
           </div>
           <div class="performance-badge excelente">
-            <span>+12%</span>
+            <span>+{{ colaboradores[1]?.variacao }}%</span>
           </div>
         </div>
 
         <!-- Primeiro Lugar -->
-        <div class="podium-item primeiro">
+        <div class="podium-item primeiro" v-if="colaboradores.length >= 1">
           <div class="medal-place">
             <div class="medal-icon">🥇</div>
             <div class="podium-base primeiro"></div>
@@ -189,34 +187,36 @@
           <div class="colaborador-avatar">
             <div class="avatar-img">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80"
-                alt="Maria Santos"
+                :src="colaboradores[0]?.foto"
+                :alt="colaboradores[0]?.nome"
               />
             </div>
             <div class="ranking-badge">1º</div>
           </div>
           <div class="colaborador-info">
-            <span class="colaborador-nome">Maria Santos</span>
-            <span class="colaborador-setor">Qualidade</span>
+            <span class="colaborador-nome">{{ colaboradores[0]?.nome }}</span>
+            <span class="colaborador-setor">{{ colaboradores[0]?.setor }}</span>
           </div>
           <div class="colaborador-stats">
             <div class="stat">
-              <span class="stat-value">98%</span>
+              <span class="stat-value"
+                >{{ colaboradores[0]?.conformidade }}%</span
+              >
               <span class="stat-label">Conformidade</span>
             </div>
             <div class="stat">
-              <span class="stat-value">24</span>
+              <span class="stat-value">{{ colaboradores[0]?.auditorias }}</span>
               <span class="stat-label">Auditorias</span>
             </div>
           </div>
           <div class="performance-badge destaque">
-            <span>+15%</span>
+            <span>+{{ colaboradores[0]?.variacao }}%</span>
           </div>
           <div class="crown">👑</div>
         </div>
 
         <!-- Terceiro Lugar -->
-        <div class="podium-item terceiro">
+        <div class="podium-item terceiro" v-if="colaboradores.length >= 3">
           <div class="medal-place">
             <div class="medal-icon">🥉</div>
             <div class="podium-base terceiro"></div>
@@ -224,28 +224,30 @@
           <div class="colaborador-avatar">
             <div class="avatar-img">
               <img
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
-                alt="Ana Oliveira"
+                :src="colaboradores[2]?.foto"
+                :alt="colaboradores[2]?.nome"
               />
             </div>
             <div class="ranking-badge">3º</div>
           </div>
           <div class="colaborador-info">
-            <span class="colaborador-nome">Ana Oliveira</span>
-            <span class="colaborador-setor">Estoque</span>
+            <span class="colaborador-nome">{{ colaboradores[2]?.nome }}</span>
+            <span class="colaborador-setor">{{ colaboradores[2]?.setor }}</span>
           </div>
           <div class="colaborador-stats">
             <div class="stat">
-              <span class="stat-value">94%</span>
+              <span class="stat-value"
+                >{{ colaboradores[2]?.conformidade }}%</span
+              >
               <span class="stat-label">Conformidade</span>
             </div>
             <div class="stat">
-              <span class="stat-value">15</span>
+              <span class="stat-value">{{ colaboradores[2]?.auditorias }}</span>
               <span class="stat-label">Auditorias</span>
             </div>
           </div>
           <div class="performance-badge excelente">
-            <span>+8%</span>
+            <span>+{{ colaboradores[2]?.variacao }}%</span>
           </div>
         </div>
       </div>
@@ -253,189 +255,194 @@
 
     <!-- Lista de Ranking -->
     <div class="ranking-list-section">
-      <div class="ranking-list-header">
-        <h3>Classificação Completa</h3>
-        <div class="header-actions">
-          <span class="total-colaboradores"
-            >{{ colaboradores.length }} colaboradores</span
-          >
-          <div class="view-options">
-            <button
-              class="view-btn"
-              :class="{ active: visualizacao === 'lista' }"
-              @click="visualizacao = 'lista'"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M3 13H11V11H3V13ZM3 6H21V8H3V6ZM3 18H11V16H3V18Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-            <button
-              class="view-btn"
-              :class="{ active: visualizacao === 'grade' }"
-              @click="visualizacao = 'grade'"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M3 3V11H11V3H3ZM9 9H5V5H9V9ZM3 13V21H11V13H3ZM9 19H5V15H9V19ZM13 3V11H21V3H13ZM19 9H15V5H19V9ZM13 13V21H21V13H13ZM19 19H15V15H19V19Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+      <!-- Exibir mensagem de erro se houver -->
+      <div v-if="erro" class="error-message">
+        <div class="error-icon">⚠️</div>
+        <h3>Erro ao carregar dados</h3>
+        <p>{{ erro }}</p>
+        <button @click="buscarDados" class="btn-retry">
+          <i class="fas fa-redo-alt"></i>
+          Tentar Novamente
+        </button>
       </div>
 
-      <div class="ranking-list" :class="visualizacao">
-        <div
-          v-for="(colaborador, index) in colaboradores"
-          :key="colaborador.id"
-          class="ranking-item"
-          :class="{
-            top3: index < 3,
-            destacado: colaborador.destaque,
-            'melhoria-rapida': colaborador.tendencia === 'alta',
-          }"
-          @click="abrirDetalhes(colaborador)"
-        >
-          <div class="ranking-posicao">
-            <span class="posicao-numero">{{ index + 1 }}º</span>
-            <div class="posicao-trend" :class="colaborador.tendencia">
-              {{
-                colaborador.tendencia === "alta"
-                  ? "↑"
-                  : colaborador.tendencia === "baixa"
-                  ? "↓"
-                  : "→"
-              }}
+      <div v-else class="ranking-list-content">
+        <div class="ranking-list-header">
+          <h3>Classificação Completa</h3>
+          <div class="header-actions">
+            <span class="total-colaboradores"
+              >{{ colaboradores.length }} colaboradores</span
+            >
+            <div class="view-options">
+              <button
+                class="view-btn"
+                :class="{ active: visualizacao === 'lista' }"
+                @click="visualizacao = 'lista'"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 13H11V11H3V13ZM3 6H21V8H3V6ZM3 18H11V16H3V18Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+              <button
+                class="view-btn"
+                :class="{ active: visualizacao === 'grade' }"
+                @click="visualizacao = 'grade'"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 3V11H11V3H3ZM9 9H5V5H9V9ZM3 13V21H11V13H3ZM9 19H5V15H9V19ZM13 3V11H21V3H13ZM19 9H15V5H19V9ZM13 13V21H21V13H13ZM19 19H15V15H19V19Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
+        </div>
 
-          <div class="colaborador-main">
-            <div class="colaborador-avatar-list">
-              <div class="avatar-img">
-                <img :src="colaborador.foto" :alt="colaborador.nome" />
+        <div v-if="carregando" class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Carregando ranking de colaboradores...</p>
+        </div>
+
+        <div v-else class="ranking-list" :class="visualizacao">
+          <div
+            v-for="(colaborador, index) in colaboradores.slice(3)"
+            :key="colaborador.id"
+            class="ranking-item"
+            :class="{
+              destacado: colaborador.destaque,
+              'melhoria-rapida': colaborador.tendencia === 'alta',
+            }"
+            @click="abrirDetalhes(colaborador)"
+          >
+            <div class="ranking-posicao">
+              <span class="posicao-numero">{{ index + 4 }}º</span>
+              <div class="posicao-trend" :class="colaborador.tendencia">
+                {{
+                  colaborador.tendencia === "alta"
+                    ? "↑"
+                    : colaborador.tendencia === "baixa"
+                    ? "↓"
+                    : "→"
+                }}
               </div>
-              <div
-                class="online-indicator"
-                :class="{ online: colaborador.online }"
-              ></div>
             </div>
 
-            <div class="colaborador-details">
-              <div class="colaborador-header">
-                <span class="colaborador-nome">{{ colaborador.nome }}</span>
-                <span class="colaborador-badges">
-                  <span v-if="colaborador.destaque" class="badge destaque">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    Destaque
-                  </span>
-                  <span v-if="colaborador.metaAtingida" class="badge meta">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    Meta
-                  </span>
-                  <span v-if="colaborador.novato" class="badge novato">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H9C7.9 1 7 1.9 7 3V7H5C3.9 7 3 7.9 3 9V21C3 22.1 3.9 23 5 23H19C20.1 23 21 22.1 21 21V9Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    Novato
-                  </span>
-                </span>
-              </div>
-              <span class="colaborador-setor">{{ colaborador.setor }}</span>
-            </div>
-          </div>
-
-          <div class="colaborador-metrics">
-            <div class="metric">
-              <span class="metric-value">{{ colaborador.conformidade }}%</span>
-              <span class="metric-label">Conformidade</span>
-            </div>
-            <div class="metric">
-              <span class="metric-value">{{ colaborador.auditorias }}</span>
-              <span class="metric-label">Auditorias</span>
-            </div>
-            <div class="metric">
-              <span class="metric-value">{{ colaborador.pontuacao }}</span>
-              <span class="metric-label">Pontuação</span>
-            </div>
-          </div>
-
-          <div class="colaborador-progress">
-            <div class="progress-container">
-              <div class="progress-bar">
+            <div class="colaborador-main">
+              <div class="colaborador-avatar-list">
+                <div class="avatar-img">
+                  <img :src="colaborador.foto" :alt="colaborador.nome" />
+                </div>
                 <div
-                  class="progress-fill"
-                  :class="colaborador.status"
-                  :style="{ width: colaborador.conformidade + '%' }"
+                  class="online-indicator"
+                  :class="{ online: colaborador.online }"
                 ></div>
               </div>
-              <span class="progress-text">{{ colaborador.conformidade }}%</span>
-            </div>
-          </div>
 
-          <div class="action-menu">
-            <button class="menu-btn" @click.stop="toggleMenu(colaborador.id)">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z"
-                  fill="currentColor"
-                />
-              </svg>
-            </button>
-            <div v-if="menuAberto === colaborador.id" class="dropdown-menu">
-              <button class="menu-item" @click="abrirDetalhes(colaborador)">
+              <div class="colaborador-details">
+                <div class="colaborador-header">
+                  <span class="colaborador-nome">{{ colaborador.nome }}</span>
+                  <span class="colaborador-badges">
+                    <span v-if="colaborador.destaque" class="badge destaque">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      Destaque
+                    </span>
+                    <span v-if="colaborador.metaAtingida" class="badge meta">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      Meta
+                    </span>
+                    <span v-if="colaborador.novato" class="badge novato">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H9C7.9 1 7 1.9 7 3V7H5C3.9 7 3 7.9 3 9V21C3 22.1 3.9 23 5 23H19C20.1 23 21 22.1 21 21V9Z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                      Novato
+                    </span>
+                  </span>
+                </div>
+                <span class="colaborador-setor">{{ colaborador.setor }}</span>
+              </div>
+            </div>
+
+            <div class="colaborador-metrics">
+              <div class="metric">
+                <span class="metric-value"
+                  >{{ colaborador.conformidade }}%</span
+                >
+                <span class="metric-label">Conformidade</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">{{ colaborador.auditorias }}</span>
+                <span class="metric-label">Auditorias</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">{{ colaborador.pontuacao }}</span>
+                <span class="metric-label">Pontuação</span>
+              </div>
+            </div>
+
+            <div class="colaborador-progress">
+              <div class="progress-container">
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    :class="colaborador.status"
+                    :style="{ width: colaborador.conformidade + '%' }"
+                  ></div>
+                </div>
+                <span class="progress-text"
+                  >{{ colaborador.conformidade }}%</span
+                >
+              </div>
+            </div>
+
+            <div class="action-menu">
+              <button class="menu-btn" @click.stop="toggleMenu(colaborador.id)">
                 <svg
                   width="16"
                   height="16"
@@ -444,42 +451,58 @@
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z"
+                    d="M12 8C13.1 8 14 7.1 14 6C14 4.9 13.1 4 12 4C10.9 4 10 4.9 10 6C10 7.1 10.9 8 12 8ZM12 10C10.9 10 10 10.9 10 12C10 13.1 10.9 14 12 14C13.1 14 14 13.1 14 12C14 10.9 13.1 10 12 10ZM12 16C10.9 16 10 16.9 10 18C10 19.1 10.9 20 12 20C13.1 20 14 19.1 14 18C14 16.9 13.1 16 12 16Z"
                     fill="currentColor"
                   />
                 </svg>
-                Ver Detalhes
               </button>
-              <button class="menu-item" @click="enviarFeedback(colaborador)">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                Enviar Feedback
-              </button>
-              <button class="menu-item" @click="reconhecer(colaborador)">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                Reconhecer
-              </button>
+              <div v-if="menuAberto === colaborador.id" class="dropdown-menu">
+                <button class="menu-item" @click="abrirDetalhes(colaborador)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Ver Detalhes
+                </button>
+                <button class="menu-item" @click="enviarFeedback(colaborador)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Enviar Feedback
+                </button>
+                <button class="menu-item" @click="reconhecer(colaborador)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Reconhecer
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -701,6 +724,10 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useLojaStore } from "@/store/lojaStore";
+import axios from "axios";
+
+const lojaStore = useLojaStore();
 
 const periodoSelecionado = ref("mes");
 const setorSelecionado = ref("todos");
@@ -708,138 +735,15 @@ const colaboradorSelecionado = ref(null);
 const carregando = ref(true);
 const menuAberto = ref(null);
 const visualizacao = ref("lista");
+const erro = ref("");
 
-const colaboradores = ref([
-  {
-    id: 1,
-    nome: "Maria Santos",
-    setor: "Qualidade",
-    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80",
-    conformidade: 98,
-    auditorias: 24,
-    pontuacao: 2450,
-    ranking: 1,
-    tendencia: "alta",
-    status: "excelente",
-    destaque: true,
-    metaAtingida: true,
-    online: true,
-    variacao: 15,
-  },
-  {
-    id: 2,
-    nome: "Carlos Silva",
-    setor: "Atendimento",
-    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 96,
-    auditorias: 18,
-    pontuacao: 2320,
-    ranking: 2,
-    tendencia: "alta",
-    status: "excelente",
-    destaque: true,
-    metaAtingida: true,
-    online: false,
-    variacao: 12,
-  },
-  {
-    id: 3,
-    nome: "Ana Oliveira",
-    setor: "Estoque",
-    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 94,
-    auditorias: 15,
-    pontuacao: 2280,
-    ranking: 3,
-    tendencia: "alta",
-    status: "excelente",
-    destaque: false,
-    metaAtingida: true,
-    online: true,
-    variacao: 8,
-  },
-  {
-    id: 4,
-    nome: "Pedro Costa",
-    setor: "Caixa",
-    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 92,
-    auditorias: 20,
-    pontuacao: 2210,
-    ranking: 4,
-    tendencia: "neutra",
-    status: "bom",
-    destaque: false,
-    metaAtingida: true,
-    online: true,
-    variacao: 5,
-  },
-  {
-    id: 5,
-    nome: "Juliana Lima",
-    setor: "Limpeza",
-    foto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 90,
-    auditorias: 12,
-    pontuacao: 2150,
-    ranking: 5,
-    tendencia: "alta",
-    status: "bom",
-    destaque: true,
-    metaAtingida: false,
-    online: false,
-    variacao: 10,
-  },
-  {
-    id: 6,
-    nome: "Ricardo Alves",
-    setor: "Segurança",
-    foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 88,
-    auditorias: 8,
-    pontuacao: 1980,
-    ranking: 6,
-    tendencia: "baixa",
-    status: "bom",
-    destaque: false,
-    metaAtingida: false,
-    online: true,
-    variacao: -2,
-  },
-  {
-    id: 7,
-    nome: "Fernanda Rocha",
-    setor: "Atendimento",
-    foto: "https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 85,
-    auditorias: 14,
-    pontuacao: 1850,
-    ranking: 7,
-    tendencia: "neutra",
-    status: "medio",
-    destaque: false,
-    metaAtingida: false,
-    online: true,
-    variacao: 3,
-  },
-  {
-    id: 8,
-    nome: "Bruno Mendes",
-    setor: "Estoque",
-    foto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    conformidade: 82,
-    auditorias: 10,
-    pontuacao: 1720,
-    ranking: 8,
-    tendencia: "alta",
-    status: "medio",
-    destaque: false,
-    metaAtingida: false,
-    online: false,
-    variacao: 7,
-    novato: true,
-  },
-]);
+const colaboradores = ref([]);
+const stats = ref({
+  crescimentoMedio: 0,
+  metasAtingidas: 0,
+  melhoriaRapida: 0,
+  mediaGeral: 0,
+});
 
 const abrirDetalhes = (colaborador) => {
   colaboradorSelecionado.value = colaborador;
@@ -872,10 +776,173 @@ const getRandomHeight = () => {
   return Math.floor(Math.random() * 40) + 60;
 };
 
-onMounted(() => {
-  setTimeout(() => {
+// Função para converter nome em iniciais
+const obterIniciais = (nome) => {
+  if (!nome) return "??";
+  return nome
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+// Função para obter a URL da foto do usuário
+const getFotoUrl = (usuario) => {
+  if (usuario.foto) {
+    return usuario.foto;
+  }
+  // Gerar uma foto genérica baseada nas iniciais
+  const initials = obterIniciais(usuario.nome);
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    usuario.nome
+  )}&length=2&background=random&color=fff`;
+};
+
+// Função para converter o período selecionado para o tipo apropriado
+const getTipoAuditoria = () => {
+  // Mapear o período para tipo de auditoria
+  // Esta lógica pode ser ajustada conforme a implementação real do backend
+  switch (periodoSelecionado.value) {
+    case "semana":
+      return "todos"; // Pode ser específico como 'etiqueta' ou 'ruptura' dependendo da implementação
+    case "mes":
+      return "todos";
+    case "trimestre":
+      return "todos";
+    default:
+      return "todos";
+  }
+};
+
+// Função para buscar dados do backend
+const buscarDados = async () => {
+  if (!lojaStore.isLojaSelected) {
+    erro.value = "Nenhuma loja selecionada";
     carregando.value = false;
-  }, 1500);
+    return;
+  }
+
+  try {
+    carregando.value = true;
+    erro.value = "";
+
+    const params = new URLSearchParams();
+    const endpoint = "http://localhost:3000/ranking-colaboradores";
+
+    // Adicionar tipo de auditoria
+    const tipoAuditoria = getTipoAuditoria();
+    params.append("tipo", tipoAuditoria);
+
+    const url = `${endpoint}?${params.toString()}`;
+
+    console.log(`🔄 Buscando dados do ranking: ${url}`);
+
+    const response = await axios.get(url, {
+      headers: {
+        "x-loja": lojaStore.codigoLojaAtual,
+      },
+    });
+
+    console.log("✅ Dados recebidos:", response.data);
+
+    // Mapear os dados recebidos para o formato esperado pela UI
+    // Formato do endpoint /ranking-colaboradores (único endpoint real implementado)
+    colaboradores.value = response.data.map((usuario, index) => ({
+      id: usuario.id || usuario.usuarioId,
+      nome: usuario.nome || usuario.usuarioNome,
+      setor: usuario.setor || "Geral", // Usar setor genérico se não especificado
+      foto: getFotoUrl(usuario),
+      conformidade:
+        (usuario.eficiencia || usuario.contador || 0) > 100
+          ? 100
+          : usuario.eficiencia || usuario.contador || 0,
+      auditorias: usuario.contador || usuario.itensAtualizados || 0,
+      pontuacao: usuario.pontuacao || usuario.contador || 0,
+      ranking: index + 1, // A posição será definida pela ordem do array já ordenado
+      tendencia: getTendencia(usuario, index), // Calcular tendência com base na posição anterior
+      status: getStatus(usuario.eficiencia || usuario.contador || 0),
+      destaque: index < 3, // Primeiros 3 são destaques
+      metaAtingida: (usuario.eficiencia || usuario.contador || 0) >= 90, // Considerar meta atingida se acima de 90%
+      online: Math.random() > 0.3, // Simular status online randomicamente
+      variacao: Math.floor(Math.random() * 20) - 5, // Simular variação
+      novato: usuario.novato || false,
+    }));
+
+    // Atualizar as estatísticas
+    atualizarStats();
+  } catch (error) {
+    console.error("❌ Erro ao buscar dados:", error);
+    erro.value =
+      error.response?.data?.erro ||
+      error.response?.data?.detalhes ||
+      "Erro ao conectar com o servidor";
+
+    // Em caso de erro, manter dados temporários para não quebrar a UI
+    colaboradores.value = [];
+  } finally {
+    carregando.value = false;
+  }
+};
+
+// Função para obter a tendência do usuário
+const getTendencia = (usuario, index) => {
+  // Simular tendência com base em mudanças de posição
+  // Isso seria melhor implementado com histórico real
+  const aleatorio = Math.random();
+  if (aleatorio > 0.6) return "alta";
+  if (aleatorio > 0.3) return "neutra";
+  return "baixa";
+};
+
+// Função para obter status com base na conformidade
+const getStatus = (conformidade) => {
+  if (conformidade >= 90) return "excelente";
+  if (conformidade >= 75) return "bom";
+  if (conformidade >= 60) return "medio";
+  return "baixo";
+};
+
+// Função para atualizar as estatísticas
+const atualizarStats = () => {
+  if (colaboradores.value.length === 0) {
+    stats.value = {
+      crescimentoMedio: 0,
+      metasAtingidas: 0,
+      melhoriaRapida: 0,
+      mediaGeral: 0,
+    };
+    return;
+  }
+
+  // Calcular crescimento médio (simulado)
+  stats.value.crescimentoMedio = Math.floor(Math.random() * 10) + 5;
+
+  // Contar metas atingidas
+  stats.value.metasAtingidas = colaboradores.value.filter(
+    (c) => c.metaAtingida
+  ).length;
+
+  // Contar melhoria rápida (simulado)
+  stats.value.melhoriaRapida = Math.floor(Math.random() * 10);
+
+  // Calcular média geral
+  const somaConformidade = colaboradores.value.reduce(
+    (sum, c) => sum + c.conformidade,
+    0
+  );
+  stats.value.mediaGeral = Math.round(
+    somaConformidade / colaboradores.value.length
+  );
+};
+
+// Atualizar dados quando o período ou setor mudar
+const onFiltroChange = async () => {
+  await buscarDados();
+};
+
+onMounted(async () => {
+  await buscarDados();
 });
 </script>
 
@@ -898,6 +965,81 @@ onMounted(() => {
   align-items: flex-start;
   margin-bottom: 2rem;
   gap: 2rem;
+}
+
+/* Error message styles */
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.error-message .error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-message h3 {
+  color: #dc2626;
+  margin: 0 0 1rem 0;
+}
+
+.error-message p {
+  color: #991b1b;
+  margin: 0 0 1.5rem 0;
+}
+
+.btn-retry {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-retry:hover {
+  background: #b91c1c;
+}
+
+/* Loading styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.ranking-list-content {
+  width: 100%;
 }
 
 .header-left {

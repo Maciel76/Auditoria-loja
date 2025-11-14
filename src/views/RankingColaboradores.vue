@@ -1,5 +1,15 @@
 <template>
   <div class="ranking-colaboradores-container">
+    <!-- Indicador de Período -->
+    <div v-if="usarPeriodoCompleto" class="periodo-indicator">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Exibindo <strong>TODAS as auditorias</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong> do período completo (Modelo: MetricasUsuario)</span>
+    </div>
+    <div v-else class="periodo-indicator periodo-diario">
+      <i class="fas fa-calendar-day"></i>
+      <span>Exibindo auditorias <strong>DIÁRIAS</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong> (Modelo: UserDailyMetrics)</span>
+    </div>
+
     <!-- Hero Section -->
     <HeroSection
       :usuarios="usuarios"
@@ -12,18 +22,58 @@
     <div class="unified-controls">
       <!-- Filtros Principais -->
       <div class="filters-main">
-        <!-- Filtro por Tipo de Auditoria -->
+        <!-- Modo: Diário ou Todas -->
         <div class="filter-group">
           <label class="filter-label">
+            <i class="fas fa-calendar-check"></i>
+            Período:
+          </label>
+          <div class="view-options">
+            <button
+              @click="setPeriodo('diario')"
+              :class="['view-btn', { active: !usarPeriodoCompleto }]"
+            >
+              <i class="fas fa-calendar-day"></i>
+              Diário
+            </button>
+            <button
+              @click="setPeriodo('completo')"
+              :class="['view-btn', { active: usarPeriodoCompleto }]"
+            >
+              <i class="fas fa-calendar-alt"></i>
+              Todas
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Tipo - DIÁRIO -->
+        <div v-if="!usarPeriodoCompleto" class="filter-group">
+          <label class="filter-label">
             <i class="fas fa-clipboard-check"></i>
-            Tipo de Auditoria:
+            Tipo de Auditoria (Diário):
           </label>
           <select
             v-model="filtroTipoAuditoria"
             @change="buscarDados"
             class="filter-select"
           >
-            <option value="todos">📋 Todas as Auditorias</option>
+            <option value="etiqueta">🏷️ Etiqueta</option>
+            <option value="presenca">👥 Presença</option>
+            <option value="ruptura">📦 Ruptura</option>
+          </select>
+        </div>
+
+        <!-- Filtro de Tipo - PERÍODO COMPLETO -->
+        <div v-if="usarPeriodoCompleto" class="filter-group">
+          <label class="filter-label">
+            <i class="fas fa-clipboard-check"></i>
+            Tipo de Auditoria (Todas):
+          </label>
+          <select
+            v-model="filtroTipoAuditoriaCompleto"
+            @change="buscarDados"
+            class="filter-select"
+          >
             <option value="etiqueta">🏷️ Etiqueta</option>
             <option value="presenca">👥 Presença</option>
             <option value="ruptura">📦 Ruptura</option>
@@ -162,7 +212,12 @@ export default {
     // Estados principais
     const usuarios = ref([]);
     const viewMode = ref("podium");
-    const filtroTipoAuditoria = ref("todos");
+
+    // Filtros separados por período
+    const filtroTipoAuditoria = ref("etiqueta"); // Para UserDailyMetrics
+    const filtroTipoAuditoriaCompleto = ref("etiqueta"); // Para MetricasUsuario
+    const usarPeriodoCompleto = ref(false);
+
     const carregando = ref(false);
     const erro = ref("");
 
@@ -219,6 +274,14 @@ export default {
       return tipos[tipo] || tipo;
     };
 
+    const setPeriodo = async (periodo) => {
+      const novoValor = periodo === 'completo';
+      if (usarPeriodoCompleto.value !== novoValor) {
+        usarPeriodoCompleto.value = novoValor;
+        await buscarDados();
+      }
+    };
+
     const buscarDados = async () => {
       if (!lojaStore.isLojaSelected) {
         erro.value = "Nenhuma loja selecionada";
@@ -229,19 +292,30 @@ export default {
         carregando.value = true;
         erro.value = "";
 
-        let url = "http://localhost:3000/ranking-colaboradores";
+        let url;
         const params = new URLSearchParams();
+        let modeloUsado;
+        let tipoSelecionado;
 
-        // Filtro por tipo de auditoria
-        if (filtroTipoAuditoria.value !== "todos") {
-          params.append("tipo", filtroTipoAuditoria.value);
+        if (usarPeriodoCompleto.value) {
+          // Modo PERÍODO COMPLETO - usa MetricasUsuario
+          url = "http://localhost:3000/ranking-colaboradores-completo";
+          tipoSelecionado = filtroTipoAuditoriaCompleto.value;
+          params.append("tipo", tipoSelecionado);
+          modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(tipoSelecionado)})`;
+        } else {
+          // Modo DIÁRIO - usa UserDailyMetrics
+          url = "http://localhost:3000/ranking-colaboradores";
+          tipoSelecionado = filtroTipoAuditoria.value;
+          params.append("tipo", tipoSelecionado);
+          modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(tipoSelecionado)})`;
         }
 
         if (params.toString()) {
           url += `?${params.toString()}`;
         }
 
-        console.log("🔄 Buscando dados do UserDailyMetrics:", url);
+        console.log(`🔄 Buscando dados do ${modeloUsado}:`, url);
 
         const response = await axios.get(url, {
           headers: {
@@ -256,7 +330,7 @@ export default {
         }));
 
         console.log(
-          `✅ ${usuarios.value.length} colaboradores carregados do UserDailyMetrics`
+          `✅ ${usuarios.value.length} colaboradores carregados do ${modeloUsado}`
         );
 
         // Log para debug
@@ -266,12 +340,13 @@ export default {
             contador: usuarios.value[0].contador,
             eficiencia: usuarios.value[0].eficiencia,
             pontuacao: usuarios.value[0].pontuacao,
-            tipo: filtroTipoAuditoria.value,
+            tipoFiltrado: tipoSelecionado,
+            periodoCompleto: usarPeriodoCompleto.value,
             metricas: usuarios.value[0].metricas,
           });
         }
       } catch (error) {
-        console.error("❌ Erro ao buscar dados do UserDailyMetrics:", error);
+        console.error("❌ Erro ao buscar dados:", error);
         erro.value =
           error.response?.data?.erro ||
           error.response?.data?.detalhes ||
@@ -365,6 +440,8 @@ export default {
       usuarios,
       viewMode,
       filtroTipoAuditoria,
+      filtroTipoAuditoriaCompleto,
+      usarPeriodoCompleto,
       carregando,
       erro,
       lojaStore,
@@ -380,6 +457,7 @@ export default {
       // Métodos
       getTipoAuditoriaName,
       buscarDados,
+      setPeriodo,
       exportarRanking,
     };
   },
@@ -396,6 +474,50 @@ export default {
   font-family: "Inter", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
+}
+
+/* ===== INDICADOR DE PERÍODO ===== */
+.periodo-indicator {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  animation: slideDown 0.4s ease;
+}
+
+.periodo-indicator.periodo-diario {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.periodo-indicator i {
+  font-size: 1.25rem;
+}
+
+.periodo-indicator span {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.periodo-indicator strong {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===== INFORMAÇÕES EM TEMPO REAL ===== */
@@ -530,7 +652,14 @@ export default {
   color: #667eea;
 }
 
+.filter-with-button {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
 .filter-select {
+  flex: 1;
   padding: 0.875rem 1rem;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
@@ -545,6 +674,40 @@ export default {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-periodo-completo {
+  padding: 0.875rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  white-space: nowrap;
+}
+
+.btn-periodo-completo:hover {
+  border-color: #10b981;
+  color: #10b981;
+  background: #f0fdf4;
+}
+
+.btn-periodo-completo.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-periodo-completo.active:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
 .view-options {

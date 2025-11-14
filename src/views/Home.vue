@@ -5,7 +5,7 @@
 
     <div class="main-grid">
       <div class="left-column">
-        <PostCreator @post-created="onPostCreated" />
+        <!-- <PostCreator @post-created="onPostCreated" /> -->
         <CommunityFeed
           :feedItems="dashboardStore.feedItems"
           @vote-submitted="handleFeedVote"
