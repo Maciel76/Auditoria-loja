@@ -4,11 +4,19 @@
     <!-- Indicador de Período -->
     <div v-if="usarPeriodoCompleto" class="periodo-indicator">
       <i class="fas fa-calendar-alt"></i>
-      <span>Exibindo <strong>TODAS as auditorias</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong> do período completo (Modelo: MetricasUsuario)</span>
+      <span
+        >Exibindo <strong>TODAS as auditorias</strong> de
+        <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong>
+        do período completo (Modelo: MetricasUsuario)</span
+      >
     </div>
     <div v-else class="periodo-indicator periodo-diario">
       <i class="fas fa-calendar-day"></i>
-      <span>Exibindo auditorias <strong>DIÁRIAS</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong> (Modelo: UserDailyMetrics)</span>
+      <span
+        >Exibindo auditorias <strong>DIÁRIAS</strong> de
+        <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong>
+        (Modelo: UserDailyMetrics)</span
+      >
     </div>
 
     <div class="ranking-header">
@@ -845,7 +853,6 @@ const getFotoUrl = (usuario) => {
   )}&length=2&background=random&color=fff`;
 };
 
-
 // Função para buscar dados do backend
 const buscarDados = async () => {
   if (!lojaStore.isLojaSelected) {
@@ -868,13 +875,17 @@ const buscarDados = async () => {
       url = "http://localhost:3000/ranking-colaboradores-completo";
       tipoSelecionado = filtroTipoAuditoriaCompleto.value;
       params.append("tipo", tipoSelecionado);
-      modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(tipoSelecionado)})`;
+      modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(
+        tipoSelecionado
+      )})`;
     } else {
       // Modo DIÁRIO - usa UserDailyMetrics
       url = "http://localhost:3000/ranking-colaboradores";
       tipoSelecionado = filtroTipoAuditoria.value;
       params.append("tipo", tipoSelecionado);
-      modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(tipoSelecionado)})`;
+      modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(
+        tipoSelecionado
+      )})`;
     }
 
     if (params.toString()) {
@@ -953,7 +964,7 @@ const getTipoAuditoriaName = (tipo) => {
 
 // Função para definir o período (Diário ou Todas)
 const setPeriodo = async (periodo) => {
-  const novoValor = periodo === 'completo';
+  const novoValor = periodo === "completo";
   if (usarPeriodoCompleto.value !== novoValor) {
     usarPeriodoCompleto.value = novoValor;
     await onFiltroChange();
@@ -1392,6 +1403,9 @@ onMounted(async () => {
   grid-template-columns: 1fr 1.2fr 1fr;
   gap: 1.5rem;
   align-items: end;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .podium-item {
@@ -1403,6 +1417,9 @@ onMounted(async () => {
   text-align: center;
   position: relative;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .podium-item:hover {
@@ -1414,6 +1431,7 @@ onMounted(async () => {
   border-color: #fcd34d;
   background: linear-gradient(135deg, #fffbeb, #fef3c7);
   order: 2;
+  padding: 2.2rem 1.5rem; /* Slightly more padding */
 }
 
 .podium-item.segundo {
@@ -1426,6 +1444,7 @@ onMounted(async () => {
   border-color: #fbbf24;
   background: linear-gradient(135deg, #fef3c7, #fde68a);
   order: 3;
+  height: 385px;
 }
 
 .medal-place {
@@ -1439,28 +1458,37 @@ onMounted(async () => {
 }
 
 .podium-base {
-  width: 80%;
+  width: 60%;
   height: 8px;
   border-radius: 8px 8px 0 0;
   margin: 0 auto;
+  position: relative;
 }
 
 .podium-base.primeiro {
   background: linear-gradient(135deg, #fcd34d, #fbbf24);
+  width: 70%;
+  height: 16px;
 }
 
 .podium-base.segundo {
   background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+  width: 50%;
+  height: 12px;
 }
 
 .podium-base.terceiro {
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  width: 40%;
+  height: 8px;
 }
 
 .colaborador-avatar {
   position: relative;
   margin: 0 auto 1.5rem;
   width: 100px;
+  display: flex;
+  justify-content: center;
 }
 
 .avatar-img {
@@ -2401,11 +2429,12 @@ onMounted(async () => {
 @media (max-width: 1024px) {
   .podium-container {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.5rem;
+    margin: 0 auto;
   }
 
   .podium-item {
-    order: 0 !important;
+    order: initial !important;
   }
 }
 
