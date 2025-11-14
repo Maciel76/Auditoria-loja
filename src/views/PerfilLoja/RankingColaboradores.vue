@@ -1,6 +1,16 @@
 <template>
   <div class="ranking-colaboradores-container">
     <!-- Header -->
+    <!-- Indicador de Período -->
+    <div v-if="usarPeriodoCompleto" class="periodo-indicator">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Exibindo <strong>TODAS as auditorias</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong> do período completo (Modelo: MetricasUsuario)</span>
+    </div>
+    <div v-else class="periodo-indicator periodo-diario">
+      <i class="fas fa-calendar-day"></i>
+      <span>Exibindo auditorias <strong>DIÁRIAS</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong> (Modelo: UserDailyMetrics)</span>
+    </div>
+
     <div class="ranking-header">
       <div class="header-left">
         <div class="icon-title">
@@ -18,32 +28,64 @@
         </div>
       </div>
       <div class="header-controls">
+        <!-- Modo: Diário ou Todas -->
         <div class="filter-group">
-          <label for="periodo">Período</label>
+          <label for="periodoModo" class="filter-label">
+            <i class="fas fa-calendar-check"></i>
+            Período:
+          </label>
+          <div class="view-options">
+            <button
+              @click="setPeriodo('diario')"
+              :class="['view-btn', { active: !usarPeriodoCompleto }]"
+              id="periodoModo"
+            >
+              <i class="fas fa-calendar-day"></i>
+              Diário
+            </button>
+            <button
+              @click="setPeriodo('completo')"
+              :class="['view-btn', { active: usarPeriodoCompleto }]"
+            >
+              <i class="fas fa-calendar-alt"></i>
+              Todas
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Tipo - DIÁRIO -->
+        <div v-if="!usarPeriodoCompleto" class="filter-group">
+          <label for="tipoAuditoriaDiario" class="filter-label">
+            <i class="fas fa-clipboard-check"></i>
+            Tipo de Auditoria (Diário):
+          </label>
           <select
-            v-model="periodoSelecionado"
+            v-model="filtroTipoAuditoria"
             @change="onFiltroChange"
-            id="periodo"
+            id="tipoAuditoriaDiario"
             class="filtro-select"
           >
-            <option value="semana">Esta Semana</option>
-            <option value="mes">Este Mês</option>
-            <option value="trimestre">Este Trimestre</option>
+            <option value="etiqueta">🏷️ Etiqueta</option>
+            <option value="presenca">👥 Presença</option>
+            <option value="ruptura">📦 Ruptura</option>
           </select>
         </div>
-        <div class="filter-group">
-          <label for="setor">Setor</label>
+
+        <!-- Filtro de Tipo - PERÍODO COMPLETO -->
+        <div v-if="usarPeriodoCompleto" class="filter-group">
+          <label for="tipoAuditoriaCompleto" class="filter-label">
+            <i class="fas fa-clipboard-check"></i>
+            Tipo de Auditoria (Todas):
+          </label>
           <select
-            v-model="setorSelecionado"
+            v-model="filtroTipoAuditoriaCompleto"
             @change="onFiltroChange"
-            id="setor"
+            id="tipoAuditoriaCompleto"
             class="filtro-select"
           >
-            <option value="todos">Todos os Setores</option>
-            <option value="atendimento">Atendimento</option>
-            <option value="estoque">Estoque</option>
-            <option value="caixa">Caixa</option>
-            <option value="limpeza">Limpeza</option>
+            <option value="etiqueta">🏷️ Etiqueta</option>
+            <option value="presenca">👥 Presença</option>
+            <option value="ruptura">📦 Ruptura</option>
           </select>
         </div>
       </div>
@@ -729,13 +771,17 @@ import axios from "axios";
 
 const lojaStore = useLojaStore();
 
-const periodoSelecionado = ref("mes");
-const setorSelecionado = ref("todos");
+// Estados principais
 const colaboradorSelecionado = ref(null);
 const carregando = ref(true);
 const menuAberto = ref(null);
 const visualizacao = ref("lista");
 const erro = ref("");
+
+// Filtros separados por período
+const filtroTipoAuditoria = ref("etiqueta"); // Para UserDailyMetrics
+const filtroTipoAuditoriaCompleto = ref("etiqueta"); // Para MetricasUsuario
+const usarPeriodoCompleto = ref(false);
 
 const colaboradores = ref([]);
 const stats = ref({
@@ -799,21 +845,6 @@ const getFotoUrl = (usuario) => {
   )}&length=2&background=random&color=fff`;
 };
 
-// Função para converter o período selecionado para o tipo apropriado
-const getTipoAuditoria = () => {
-  // Mapear o período para tipo de auditoria
-  // Esta lógica pode ser ajustada conforme a implementação real do backend
-  switch (periodoSelecionado.value) {
-    case "semana":
-      return "todos"; // Pode ser específico como 'etiqueta' ou 'ruptura' dependendo da implementação
-    case "mes":
-      return "todos";
-    case "trimestre":
-      return "todos";
-    default:
-      return "todos";
-  }
-};
 
 // Função para buscar dados do backend
 const buscarDados = async () => {
@@ -827,16 +858,30 @@ const buscarDados = async () => {
     carregando.value = true;
     erro.value = "";
 
+    let url;
     const params = new URLSearchParams();
-    const endpoint = "http://localhost:3000/ranking-colaboradores";
+    let modeloUsado;
+    let tipoSelecionado;
 
-    // Adicionar tipo de auditoria
-    const tipoAuditoria = getTipoAuditoria();
-    params.append("tipo", tipoAuditoria);
+    if (usarPeriodoCompleto.value) {
+      // Modo PERÍODO COMPLETO - usa MetricasUsuario
+      url = "http://localhost:3000/ranking-colaboradores-completo";
+      tipoSelecionado = filtroTipoAuditoriaCompleto.value;
+      params.append("tipo", tipoSelecionado);
+      modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(tipoSelecionado)})`;
+    } else {
+      // Modo DIÁRIO - usa UserDailyMetrics
+      url = "http://localhost:3000/ranking-colaboradores";
+      tipoSelecionado = filtroTipoAuditoria.value;
+      params.append("tipo", tipoSelecionado);
+      modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(tipoSelecionado)})`;
+    }
 
-    const url = `${endpoint}?${params.toString()}`;
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
 
-    console.log(`🔄 Buscando dados do ranking: ${url}`);
+    console.log(`🔄 Buscando dados do ${modeloUsado}:`, url);
 
     const response = await axios.get(url, {
       headers: {
@@ -895,6 +940,26 @@ const getTendencia = (usuario, index) => {
   return "baixa";
 };
 
+// Função para obter nome do tipo de auditoria
+const getTipoAuditoriaName = (tipo) => {
+  const tipos = {
+    etiqueta: "Etiqueta",
+    presenca: "Presença",
+    ruptura: "Ruptura",
+    todos: "Todas",
+  };
+  return tipos[tipo] || tipo;
+};
+
+// Função para definir o período (Diário ou Todas)
+const setPeriodo = async (periodo) => {
+  const novoValor = periodo === 'completo';
+  if (usarPeriodoCompleto.value !== novoValor) {
+    usarPeriodoCompleto.value = novoValor;
+    await onFiltroChange();
+  }
+};
+
 // Função para obter status com base na conformidade
 const getStatus = (conformidade) => {
   if (conformidade >= 90) return "excelente";
@@ -936,7 +1001,7 @@ const atualizarStats = () => {
   );
 };
 
-// Atualizar dados quando o período ou setor mudar
+// Atualizar dados quando o período ou tipo de auditoria mudar
 const onFiltroChange = async () => {
   await buscarDados();
 };
@@ -957,6 +1022,50 @@ onMounted(async () => {
   position: relative;
   overflow: hidden;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== INDICADOR DE PERÍODO ===== */
+.periodo-indicator {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  animation: slideDown 0.4s ease;
+}
+
+.periodo-indicator.periodo-diario {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.periodo-indicator i {
+  font-size: 1.25rem;
+}
+
+.periodo-indicator span {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.periodo-indicator strong {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ranking-header {
@@ -1104,6 +1213,19 @@ onMounted(async () => {
   color: #374151;
 }
 
+.filter-label {
+  color: #374151;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label i {
+  color: #667eea;
+}
+
 .filtro-select {
   padding: 0.75rem 1rem;
   border: 1.5px solid #e5e7eb;
@@ -1141,6 +1263,43 @@ onMounted(async () => {
 .export-btn:hover {
   background: #f3f4f6;
   border-color: #d1d5db;
+}
+
+/* Estilos para os botões de período */
+.view-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.view-btn {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: "Inter", sans-serif;
+}
+
+.view-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8fafc;
+}
+
+.view-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* Stats Overview */
