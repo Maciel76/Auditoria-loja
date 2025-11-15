@@ -1,8 +1,24 @@
 <template>
   <div class="metricas-setor-container">
-    <div class="metricas-header">
-      <h3>📊 Leitura Auditoria Atual Por Classe</h3>
-      <div class="metricas-actions">
+    <!-- Indicador de carregamento -->
+    <div v-if="carregando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando métricas...</p>
+    </div>
+
+    <!-- Mensagem de erro -->
+    <div v-else-if="erro" class="erro-container">
+      <p class="erro-mensagem">{{ erro }}</p>
+      <button class="action-btn" @click="buscarMetricasLoja">
+        Tentar Novamente
+      </button>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div v-else>
+      <div class="metricas-header">
+        <h3>📊 Leitura Auditoria Atual Por Classe</h3>
+        <div class="metricas-actions">
         <button
           class="action-btn"
           :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
@@ -343,47 +359,35 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useApi } from "@/composables/useApi";
 
 // Estado para controlar o tipo de auditoria atual
 const tipoAuditoriaAtual = ref("etiquetas");
 
-// Dados reais do JSON
-const dadosReais = {
-  usuarioId: "2692473",
-  loja: "68f866ee22514096fd4c3295",
-  lojaNome: "Loja 105 - T9",
+// Estado para armazenar dados carregados da API
+const dadosReais = ref({
+  usuarioId: "",
+  loja: "",
+  lojaNome: "",
   metricas: {
-    data: "2025-10-22T05:09:43.604Z",
+    data: new Date().toISOString(),
     etiquetas: {
-      totalItens: 1301,
-      itensLidos: 1301,
-      itensAtualizados: 1205,
-      itensDesatualizado: 30,
+      totalItens: 0,
+      itensValidos: 0,
+      itensLidos: 0,
+      itensAtualizados: 0,
+      itensDesatualizado: 0,
       itensSemEstoque: 0,
       itensNaopertence: 0,
-      percentualConclusao: 93,
-      contadorClasses: {
-        "A CLASSIFICAR": 2,
-        "ALTO GIRO": 108,
-        BAZAR: 142,
-        DIVERSOS: 1,
-        DPH: 144,
-        FLV: 3,
-        "LATICINIOS 1": 0,
-        LIQUIDA: 52,
-        "PERECIVEL 1": 0,
-        "PERECIVEL 2": 1,
-        "PERECIVEL 2 B": 0,
-        "PERECIVEL 3": 0,
-        "SECA DOCE": 735,
-        "SECA SALGADA": 105,
-        "SECA SALGADA 2": 8,
-      },
+      percentualConclusao: 0,
+      classesLeitura: {},
+      contadorClasses: {},
     },
     rupturas: {
       totalItens: 0,
@@ -395,23 +399,8 @@ const dadosReais = {
       percentualConclusao: 0,
       custoTotalRuptura: 0,
       custoMedioRuptura: 0,
-      contadorClasses: {
-        "A CLASSIFICAR": 2,
-        "ALTO GIRO": 108,
-        BAZAR: 142,
-        DIVERSOS: 1,
-        DPH: 144,
-        FLV: 3,
-        "LATICINIOS 1": 0,
-        LIQUIDA: 52,
-        "PERECIVEL 1": 0,
-        "PERECIVEL 2": 1,
-        "PERECIVEL 2 B": 0,
-        "PERECIVEL 3": 0,
-        "SECA DOCE": 735,
-        "SECA SALGADA": 105,
-        "SECA SALGADA 2": 8,
-      },
+      classesLeitura: {},
+      contadorClasses: {},
     },
     presencas: {
       totalItens: 0,
@@ -423,33 +412,22 @@ const dadosReais = {
       percentualConclusao: 0,
       presencasConfirmadas: 0,
       percentualPresenca: 0,
-      contadorClasses: {
-        "A CLASSIFICAR": 2,
-        "ALTO GIRO": 108,
-        BAZAR: 142,
-        DIVERSOS: 1,
-        DPH: 144,
-        FLV: 3,
-        "LATICINIOS 1": 0,
-        LIQUIDA: 52,
-        "PERECIVEL 1": 0,
-        "PERECIVEL 2": 1,
-        "PERECIVEL 2 B": 0,
-        "PERECIVEL 3": 0,
-        "SECA DOCE": 735,
-        "SECA SALGADA": 105,
-        "SECA SALGADA 2": 8,
-      },
+      classesLeitura: {},
+      contadorClasses: {},
     },
     totais: {
-      totalItens: 1301,
-      itensLidos: 1301,
-      itensAtualizados: 1205,
-      percentualConclusaoGeral: 93,
-      pontuacaoTotal: 1205,
+      totalItens: 0,
+      itensLidos: 0,
+      itensAtualizados: 0,
+      percentualConclusaoGeral: 0,
+      pontuacaoTotal: 0,
     },
   },
-};
+});
+
+// Estado de carregamento
+const carregando = ref(true);
+const erro = ref(null);
 
 // Ícones para cada classe de produtos
 const iconesClasses = {
@@ -697,24 +675,21 @@ const setorSelecionado = ref(null);
 
 // Computed para obter dados filtrados pelo tipo de auditoria
 const dadosFiltrados = computed(() => {
-  const auditoriaAtual = dadosReais.metricas[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.contadorClasses) return [];
+  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
 
-  return Object.entries(auditoriaAtual.contadorClasses).map(
-    ([classe, itensLidos]) => {
-      const totalItens = calcularTotalItensClasse(classe);
-      const percentual = totalItens > 0 ? (itensLidos / totalItens) * 100 : 0;
-
+  return Object.entries(auditoriaAtual.classesLeitura).map(
+    ([classe, dados]) => {
       return {
         ClasseProduto: classe,
         icone: iconesClasses[classe] || "📦",
-        totalItens: totalItens,
-        itensLidos: itensLidos,
+        totalItens: dados.total || 0,
+        itensLidos: dados.lidos || 0,
         itensAtualizados: calcularItensAtualizados(classe),
         itensDesatualizado: calcularItensDesatualizados(classe),
         custoRuptura: calcularCustoRuptura(classe),
         presencasConfirmadas: calcularPresencasConfirmadas(classe),
-        percentualConclusao: percentual,
+        percentualConclusao: dados.percentual || 0,
       };
     }
   );
@@ -729,66 +704,73 @@ const colaboradoresSetor = computed(() => {
 // Computed properties para o resumo
 const percentualConclusaoGeral = computed(() => {
   return (
-    dadosReais.metricas[tipoAuditoriaAtual.value]?.percentualConclusao || 0
+    dadosReais.value.metricas[tipoAuditoriaAtual.value]?.percentualConclusao || 0
   );
 });
 
 const totalItens = computed(() => {
-  return dadosReais.metricas[tipoAuditoriaAtual.value]?.totalItens || 0;
+  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.totalItens || 0;
 });
 
 const itensLidos = computed(() => {
-  return dadosReais.metricas[tipoAuditoriaAtual.value]?.itensLidos || 0;
+  // Para etiquetas usar itensValidos, para outros usar itensLidos
+  if (tipoAuditoriaAtual.value === 'etiquetas') {
+    return dadosReais.value.metricas.etiquetas?.itensValidos || 0;
+  }
+  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.itensLidos || 0;
 });
 
 const itensAtualizados = computed(() => {
-  return dadosReais.metricas.etiquetas?.itensAtualizados || 0;
+  return dadosReais.value.metricas.etiquetas?.itensAtualizados || 0;
 });
 
 const custoTotalRuptura = computed(() => {
-  return dadosReais.metricas.rupturas?.custoTotalRuptura || 0;
+  return dadosReais.value.metricas.rupturas?.custoTotalRuptura || 0;
 });
 
 const percentualPresenca = computed(() => {
-  return dadosReais.metricas.presencas?.percentualPresenca || 0;
+  return dadosReais.value.metricas.presencas?.percentualPresenca || 0;
 });
 
 // === Métodos ===
-const calcularTotalItensClasse = (classe) => {
-  // Usar o maior valor entre os tipos de auditoria como total
-  const valores = [
-    dadosReais.metricas.etiquetas?.contadorClasses[classe] || 0,
-    dadosReais.metricas.rupturas?.contadorClasses[classe] || 0,
-    dadosReais.metricas.presencas?.contadorClasses[classe] || 0,
-  ];
-  return Math.max(...valores);
-};
-
 const calcularItensAtualizados = (classe) => {
-  // Simular cálculo baseado no percentual de conclusão
-  const total = calcularTotalItensClasse(classe);
-  const percentual = dadosReais.metricas.etiquetas?.percentualConclusao || 0;
-  return Math.round(total * (percentual / 100));
+  // Para etiquetas, calcular baseado no percentual de conclusão
+  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
+  const classeLeitura = auditoriaAtual?.classesLeitura?.[classe];
+  if (!classeLeitura) return 0;
+
+  const percentualConclusao = auditoriaAtual.percentualConclusao || 0;
+  return Math.round(classeLeitura.lidos * (percentualConclusao / 100));
 };
 
 const calcularItensDesatualizados = (classe) => {
-  const total = calcularTotalItensClasse(classe);
+  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
+  const classeLeitura = auditoriaAtual?.classesLeitura?.[classe];
+  if (!classeLeitura) return 0;
+
   const atualizados = calcularItensAtualizados(classe);
-  return Math.max(0, total - atualizados);
+  return Math.max(0, classeLeitura.lidos - atualizados);
 };
 
 const calcularCustoRuptura = (classe) => {
-  // Simular custo baseado na quantidade de itens
-  const itensRuptura =
-    dadosReais.metricas.rupturas?.contadorClasses[classe] || 0;
-  return itensRuptura * 15.75; // Valor médio simulado
+  // Calcular custo baseado nos itens lidos de ruptura
+  const rupturas = dadosReais.value.metricas.rupturas;
+  const classeLeitura = rupturas?.classesLeitura?.[classe];
+  if (!classeLeitura) return 0;
+
+  // Usar custo médio ou simular baseado na quantidade
+  const custoMedio = rupturas.custoMedioRuptura || 15.75;
+  return classeLeitura.lidos * custoMedio;
 };
 
 const calcularPresencasConfirmadas = (classe) => {
-  // Simular presenças baseado no percentual
-  const total = calcularTotalItensClasse(classe);
-  const percentual = dadosReais.metricas.presencas?.percentualPresenca || 0;
-  return Math.round(total * (percentual / 100));
+  const presencas = dadosReais.value.metricas.presencas;
+  const classeLeitura = presencas?.classesLeitura?.[classe];
+  if (!classeLeitura) return 0;
+
+  // Calcular baseado no percentual de presença
+  const percentualPresenca = presencas.percentualPresenca || 0;
+  return Math.round(classeLeitura.total * (percentualPresenca / 100));
 };
 
 const getPercentualLeitura = (setor) => {
@@ -855,9 +837,43 @@ const exportarSetor = (setor) => {
   alert(`Dados do setor ${setor.ClasseProduto} exportados com sucesso!`);
 };
 
+// Função para buscar dados da API
+const buscarMetricasLoja = async () => {
+  try {
+    carregando.value = true;
+    erro.value = null;
+
+    const { api } = useApi();
+
+    // Buscar métricas diárias da loja
+    const response = await api.get('/api/metricas/loja-daily');
+
+    if (response.data) {
+      // Se houver dados reais de métricas, usar eles
+      if (response.data.metricas) {
+        dadosReais.value = response.data;
+      }
+      // Senão, usar dados fakes se disponíveis
+      else if (response.data.dadosFakes) {
+        dadosReais.value = response.data.dadosFakes;
+        console.log("⚠️ Usando dados simulados (nenhuma métrica real encontrada)");
+      }
+      console.log("✅ Métricas da loja carregadas com sucesso:", dadosReais.value);
+    }
+  } catch (error) {
+    console.error("❌ Erro ao buscar métricas da loja:", error);
+    erro.value = "Erro ao carregar métricas. Tente novamente mais tarde.";
+
+    // Manter dados vazios em caso de erro
+  } finally {
+    carregando.value = false;
+  }
+};
+
 // Inicialização
 onMounted(() => {
-  console.log("Componente carregado com dados reais:", dadosReais);
+  console.log("Componente MetricasSetor montado");
+  buscarMetricasLoja();
 });
 </script>
 <style scoped>
@@ -867,6 +883,48 @@ onMounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   margin: 1rem 0;
+}
+
+/* Loading e Erro */
+.loading-container,
+.erro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: #718096;
+  font-size: 1rem;
+}
+
+.erro-container {
+  color: #f44336;
+}
+
+.erro-mensagem {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 .metricas-header {

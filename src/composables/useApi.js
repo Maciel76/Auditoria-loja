@@ -1,6 +1,6 @@
 // composables/useApi.js - Configurar axios para sempre enviar header da loja
 import axios from "axios";
-import { useLojaStore } from "@/stores/loja";
+import { useLojaStore } from "@/store/lojaStore";
 
 // Configuração base do axios
 const api = axios.create({
