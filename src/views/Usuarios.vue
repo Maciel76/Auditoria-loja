@@ -1,3 +1,4 @@
+<!-- testando o git -->
 <template>
   <div class="usuarios-container">
     <!-- Seletor de Loja Obrigatório -->
