@@ -88,7 +88,7 @@
             </td>
 
             <!-- Itens totais e lidos -->
-            <td class="meta-cell">{{ setor.totalItens || setor.itens }}</td>
+            <td class="meta-cell">{{ setor.itensValidos || setor.totalItens }}</td>
             <td class="conformidade-cell">{{ setor.itensLidos }}</td>
 
             <!-- Coluna dinâmica baseada no tipo de auditoria -->
@@ -211,7 +211,14 @@
               <div class="metrica-item">
                 <div class="metrica-label">Total de Itens</div>
                 <div class="metrica-valor">
-                  {{ setorSelecionado.totalItens || setorSelecionado.itens }}
+                  {{ setorSelecionado.totalItens }}
+                </div>
+              </div>
+
+              <div class="metrica-item">
+                <div class="metrica-label">Itens Válidos</div>
+                <div class="metrica-valor">
+                  {{ setorSelecionado.itensValidos }}
                 </div>
               </div>
 
@@ -684,11 +691,12 @@ const dadosFiltrados = computed(() => {
         ClasseProduto: classe,
         icone: iconesClasses[classe] || "📦",
         totalItens: dados.total || 0,
+        itensValidos: dados.itensValidos || 0,
         itensLidos: dados.lidos || 0,
-        itensAtualizados: calcularItensAtualizados(classe),
-        itensDesatualizado: calcularItensDesatualizados(classe),
-        custoRuptura: calcularCustoRuptura(classe),
-        presencasConfirmadas: calcularPresencasConfirmadas(classe),
+        itensAtualizados: dados.lidos ? Math.round(dados.lidos * (auditoriaAtual.percentualConclusao || 0) / 100) : 0,
+        itensDesatualizado: dados.lidos ? dados.lidos - Math.round(dados.lidos * (auditoriaAtual.percentualConclusao || 0) / 100) : 0,
+        custoRuptura: tipoAuditoriaAtual.value === 'rupturas' ? (dados.lidos || 0) * 15.75 : 0, // Apenas para rupturas
+        presencasConfirmadas: tipoAuditoriaAtual.value === 'presencas' ? Math.round((dados.total || 0) * (auditoriaAtual.percentualPresenca || 0) / 100) : 0, // Apenas para presencas
         percentualConclusao: dados.percentual || 0,
       };
     }
@@ -732,50 +740,15 @@ const percentualPresenca = computed(() => {
   return dadosReais.value.metricas.presencas?.percentualPresenca || 0;
 });
 
-// === Métodos ===
-const calcularItensAtualizados = (classe) => {
-  // Para etiquetas, calcular baseado no percentual de conclusão
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  const classeLeitura = auditoriaAtual?.classesLeitura?.[classe];
-  if (!classeLeitura) return 0;
-
-  const percentualConclusao = auditoriaAtual.percentualConclusao || 0;
-  return Math.round(classeLeitura.lidos * (percentualConclusao / 100));
-};
-
-const calcularItensDesatualizados = (classe) => {
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  const classeLeitura = auditoriaAtual?.classesLeitura?.[classe];
-  if (!classeLeitura) return 0;
-
-  const atualizados = calcularItensAtualizados(classe);
-  return Math.max(0, classeLeitura.lidos - atualizados);
-};
-
-const calcularCustoRuptura = (classe) => {
-  // Calcular custo baseado nos itens lidos de ruptura
-  const rupturas = dadosReais.value.metricas.rupturas;
-  const classeLeitura = rupturas?.classesLeitura?.[classe];
-  if (!classeLeitura) return 0;
-
-  // Usar custo médio ou simular baseado na quantidade
-  const custoMedio = rupturas.custoMedioRuptura || 15.75;
-  return classeLeitura.lidos * custoMedio;
-};
-
-const calcularPresencasConfirmadas = (classe) => {
-  const presencas = dadosReais.value.metricas.presencas;
-  const classeLeitura = presencas?.classesLeitura?.[classe];
-  if (!classeLeitura) return 0;
-
-  // Calcular baseado no percentual de presença
-  const percentualPresenca = presencas.percentualPresenca || 0;
-  return Math.round(classeLeitura.total * (percentualPresenca / 100));
-};
 
 const getPercentualLeitura = (setor) => {
-  if (!setor.totalItens || setor.totalItens <= 0) return 0;
-  const percentual = (setor.itensLidos / setor.totalItens) * 100;
+  // Use the percentual directly from the backend classesLeitura data
+  if (typeof setor.percentualConclusao !== 'undefined' && setor.percentualConclusao !== null) {
+    return setor.percentualConclusao;
+  }
+  // Fallback calculation if percentualConclusao is not available
+  if (!setor.itensValidos || setor.itensValidos <= 0) return 0;
+  const percentual = (setor.itensLidos / setor.itensValidos) * 100;
   return Math.min(percentual, 100);
 };
 

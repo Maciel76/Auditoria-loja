@@ -10,11 +10,19 @@
           Mostrando {{ startIndex + 1 }}-{{ endIndex }} de {{ totalLojas }}
         </div>
         <div class="pagination-controls">
-          <button @click="$emit('previous-page')" :disabled="currentPage === 1" class="page-btn">
+          <button
+            @click="$emit('previous-page')"
+            :disabled="currentPage === 1"
+            class="page-btn"
+          >
             <i class="fas fa-chevron-left"></i>
           </button>
           <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-          <button @click="$emit('next-page')" :disabled="currentPage === totalPages" class="page-btn">
+          <button
+            @click="$emit('next-page')"
+            :disabled="currentPage === totalPages"
+            class="page-btn"
+          >
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
@@ -70,15 +78,21 @@
             :key="loja.codigo"
             class="table-row"
             :class="{
-              'gold': startIndex + index === 0,
-              'silver': startIndex + index === 1,
-              'bronze': startIndex + index === 2
+              gold: startIndex + index === 0,
+              silver: startIndex + index === 1,
+              bronze: startIndex + index === 2,
             }"
           >
             <td class="position-cell">
               <span class="position-number">{{ startIndex + index + 1 }}</span>
               <span class="position-medal" v-if="startIndex + index < 3">
-                {{ startIndex + index === 0 ? '🥇' : startIndex + index === 1 ? '🥈' : '🥉' }}
+                {{
+                  startIndex + index === 0
+                    ? "🥇"
+                    : startIndex + index === 1
+                    ? "🥈"
+                    : "🥉"
+                }}
               </span>
             </td>
             <td class="loja-cell">
@@ -86,14 +100,19 @@
                 <strong>{{ loja.codigo }}</strong>
                 <small>{{ loja.nome || `Loja ${loja.codigo}` }}</small>
                 <div class="loja-badges">
-                  <span class="liga-badge" :class="getLiga(loja.itensAuditados)">
+                  <span
+                    class="liga-badge"
+                    :class="getLiga(loja.itensAuditados)"
+                  >
                     {{ getLigaIcon(loja.itensAuditados) }}
                   </span>
                 </div>
               </div>
             </td>
             <td class="metric-cell">
-              <div class="metric-value">{{ loja.itensAuditados?.toLocaleString() || 0 }}</div>
+              <div class="metric-value">
+                {{ loja.itensAuditados?.toLocaleString() || 0 }}
+              </div>
               <div class="mini-sparkline">
                 <svg width="40" height="16" viewBox="0 0 40 16">
                   <polyline
@@ -107,7 +126,9 @@
             </td>
             <td class="metric-cell">
               <div class="metric-value">{{ loja.usuariosAtivos || 0 }}</div>
-              <div class="metric-subtitle">de {{ loja.totalUsuarios || 0 }}</div>
+              <div class="metric-subtitle">
+                de {{ loja.totalUsuarios || 0 }}
+              </div>
             </td>
             <td class="metric-cell">
               <div class="efficiency-ring-small">
@@ -129,11 +150,16 @@
                     stroke-width="2"
                     stroke-linecap="round"
                     :stroke-dasharray="circumference"
-                    :stroke-dashoffset="circumference - (calcularEficiencia(loja) / 100) * circumference"
+                    :stroke-dashoffset="
+                      circumference -
+                      (calcularEficiencia(loja) / 100) * circumference
+                    "
                     transform="rotate(-90 12 12)"
                   />
                 </svg>
-                <span class="efficiency-text-small">{{ calcularEficiencia(loja) }}%</span>
+                <span class="efficiency-text-small"
+                  >{{ calcularEficiencia(loja) }}%</span
+                >
               </div>
             </td>
             <td class="trend-cell">
@@ -147,10 +173,16 @@
             </td>
             <td class="actions-cell">
               <div class="table-actions">
-                <button @click="$emit('view-details', loja)" class="action-btn small">
+                <button
+                  @click="$emit('view-details', loja)"
+                  class="action-btn small"
+                >
                   <i class="fas fa-chart-line"></i>
                 </button>
-                <button @click="$emit('compare', loja)" class="action-btn small">
+                <button
+                  @click="$emit('compare', loja)"
+                  class="action-btn small"
+                >
                   <i class="fas fa-balance-scale"></i>
                 </button>
               </div>
@@ -163,109 +195,115 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed } from "vue";
 
 const props = defineProps({
   lojas: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   currentPage: {
     type: Number,
-    default: 1
+    default: 1,
   },
   itemsPerPage: {
     type: Number,
-    default: 25
+    default: 25,
   },
   sortField: {
     type: String,
-    default: 'itens'
+    default: "itens",
   },
   sortDirection: {
     type: String,
-    default: 'desc'
-  }
-})
+    default: "desc",
+  },
+});
 
-defineEmits(['previous-page', 'next-page', 'sort', 'view-details', 'compare'])
+defineEmits(["previous-page", "next-page", "sort", "view-details", "compare"]);
 
 // Computed properties
-const totalLojas = computed(() => props.lojas.length)
-const totalPages = computed(() => Math.ceil(totalLojas.value / props.itemsPerPage))
-const startIndex = computed(() => (props.currentPage - 1) * props.itemsPerPage)
-const endIndex = computed(() => Math.min(startIndex.value + props.itemsPerPage, totalLojas.value))
+const totalLojas = computed(() => props.lojas.length);
+const totalPages = computed(() =>
+  Math.ceil(totalLojas.value / props.itemsPerPage)
+);
+const startIndex = computed(() => (props.currentPage - 1) * props.itemsPerPage);
+const endIndex = computed(() =>
+  Math.min(startIndex.value + props.itemsPerPage, totalLojas.value)
+);
 
 const paginatedLojas = computed(() => {
-  return props.lojas.slice(startIndex.value, endIndex.value)
-})
+  return props.lojas.slice(startIndex.value, endIndex.value);
+});
 
-const circumference = computed(() => 2 * Math.PI * 10)
+const circumference = computed(() => 2 * Math.PI * 10);
 
 // Helper methods
 const calcularEficiencia = (loja) => {
-  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0
+  if (!loja.usuariosAtivos || loja.usuariosAtivos === 0) return 0;
 
   // Se a eficiência já vem calculada da API, usar ela
   if (loja.eficiencia !== undefined) {
-    return Math.min(loja.eficiencia, 100)
+    return Math.min(loja.eficiencia, 100);
   }
 
   // Caso contrário, calcular baseado na média por usuário
-  const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos
+  const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos;
   // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
-  const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100)
-  return Math.round(eficiencia)
-}
+  const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100);
+  return Math.round(eficiencia);
+};
 
 const getLiga = (itens) => {
-  if (itens >= 8000) return 'diamante'
-  if (itens >= 5000) return 'ouro'
-  if (itens >= 2000) return 'prata'
-  return 'bronze'
-}
+  if (itens >= 8000) return "diamante";
+  if (itens >= 5000) return "ouro";
+  if (itens >= 2000) return "prata";
+  return "bronze";
+};
 
 const getLigaIcon = (itens) => {
-  const liga = getLiga(itens)
+  const liga = getLiga(itens);
   const icons = {
-    diamante: '💎',
-    ouro: '🥇',
-    prata: '🥈',
-    bronze: '🥉'
-  }
-  return icons[liga] || '🏪'
-}
+    diamante: "💎",
+    ouro: "🥇",
+    prata: "🥈",
+    bronze: "🥉",
+  };
+  return icons[liga] || "🏪";
+};
 
 const generateSparkline = (historico) => {
   if (!historico || historico.length === 0) {
     // Gerar dados mock
-    const points = []
+    const points = [];
     for (let i = 0; i < 7; i++) {
-      const x = (i / 6) * 40
-      const y = 8 + Math.random() * 8
-      points.push(`${x},${y}`)
+      const x = (i / 6) * 40;
+      const y = 8 + Math.random() * 8;
+      points.push(`${x},${y}`);
     }
-    return points.join(' ')
+    return points.join(" ");
   }
 
-  return historico.map((valor, index) => {
-    const x = (index / (historico.length - 1)) * 40
-    const y = 16 - ((valor / Math.max(...historico)) * 16)
-    return `${x},${y}`
-  }).join(' ')
-}
+  return historico
+    .map((valor, index) => {
+      const x = (index / (historico.length - 1)) * 40;
+      const y = 16 - (valor / Math.max(...historico)) * 16;
+      return `${x},${y}`;
+    })
+    .join(" ");
+};
 
 const getTrendIcon = (tendencia) => {
-  if (tendencia > 5) return 'fas fa-arrow-up'
-  if (tendencia < -5) return 'fas fa-arrow-down'
-  return 'fas fa-minus'
-}
+  if (tendencia > 5) return "fas fa-arrow-up";
+  if (tendencia < -5) return "fas fa-arrow-down";
+  return "fas fa-minus";
+};
 
 const getTrendColor = (tendencia) => {
-  if (tendencia > 5) return '#10b981'
-  if (tendencia < -5) return '#ef4444'
-  return '#6b7280'
-}
+  if (tendencia > 5) return "#10b981";
+  if (tendencia < -5) return "#ef4444";
+  return "#6b7280";
+};
 </script>
 
 <style scoped>
@@ -273,7 +311,8 @@ const getTrendColor = (tendencia) => {
   background: white;
   border-radius: 20px;
   padding: 2rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
 }
 
@@ -391,7 +430,11 @@ const getTrendColor = (tendencia) => {
 }
 
 .table-row.silver {
-  background: linear-gradient(135deg, #f3f4f6 0%, rgba(156, 163, 175, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    #f3f4f6 0%,
+    rgba(156, 163, 175, 0.1) 100%
+  );
 }
 
 .table-row.bronze {
