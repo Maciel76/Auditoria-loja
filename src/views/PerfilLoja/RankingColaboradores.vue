@@ -36,6 +36,11 @@
         </div>
       </div>
       <div class="header-controls">
+        <button @click="gerarImagemParaCompartilhar" class="share-button">
+          <i class="fas fa-share-alt"></i>
+          Compartilhar
+        </button>
+
         <!-- Modo: Diário ou Todas -->
         <div class="filter-group">
           <label for="periodoModo" class="filter-label">
@@ -214,7 +219,7 @@
           <div class="colaborador-stats">
             <div class="stat">
               <span class="stat-value"
-                >{{ colaboradores[1]?.conformidade }}%</span
+                >{{ formatarPorcentagem(colaboradores[1]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
@@ -224,7 +229,7 @@
             </div>
           </div>
           <div class="performance-badge excelente">
-            <span>+{{ colaboradores[1]?.variacao }}%</span>
+            <span>+{{ formatarPorcentagem(colaboradores[1]?.variacao) }}%</span>
           </div>
         </div>
 
@@ -250,7 +255,7 @@
           <div class="colaborador-stats">
             <div class="stat">
               <span class="stat-value"
-                >{{ colaboradores[0]?.conformidade }}%</span
+                >{{ formatarPorcentagem(colaboradores[0]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
@@ -260,7 +265,7 @@
             </div>
           </div>
           <div class="performance-badge destaque">
-            <span>+{{ colaboradores[0]?.variacao }}%</span>
+            <span>+{{ formatarPorcentagem(colaboradores[0]?.variacao) }}%</span>
           </div>
           <div class="crown">👑</div>
         </div>
@@ -287,7 +292,7 @@
           <div class="colaborador-stats">
             <div class="stat">
               <span class="stat-value"
-                >{{ colaboradores[2]?.conformidade }}%</span
+                >{{ formatarPorcentagem(colaboradores[2]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
@@ -297,7 +302,7 @@
             </div>
           </div>
           <div class="performance-badge excelente">
-            <span>+{{ colaboradores[2]?.variacao }}%</span>
+            <span>+{{ formatarPorcentagem(colaboradores[2]?.variacao) }}%</span>
           </div>
         </div>
       </div>
@@ -462,7 +467,7 @@
             <div class="colaborador-metrics">
               <div class="metric">
                 <span class="metric-value"
-                  >{{ colaborador.conformidade }}%</span
+                  >{{ formatarPorcentagem(colaborador.conformidade) }}%</span
                 >
                 <span class="metric-label">Conformidade</span>
               </div>
@@ -482,11 +487,11 @@
                   <div
                     class="progress-fill"
                     :class="colaborador.status"
-                    :style="{ width: colaborador.conformidade + '%' }"
+                    :style="{ width: formatarPorcentagem(colaborador.conformidade) + '%' }"
                   ></div>
                 </div>
                 <span class="progress-text"
-                  >{{ colaborador.conformidade }}%</span
+                  >{{ formatarPorcentagem(colaborador.conformidade) }}%</span
                 >
               </div>
             </div>
@@ -623,7 +628,7 @@
           <div class="metricas-detalhadas">
             <div class="metrica-principal">
               <span class="metrica-valor"
-                >{{ colaboradorSelecionado.conformidade }}%</span
+                >{{ formatarPorcentagem(colaboradorSelecionado.conformidade) }}%</span
               >
               <span class="metrica-label">Taxa de Conformidade</span>
               <div
@@ -633,7 +638,7 @@
                 "
               >
                 {{ colaboradorSelecionado.variacao >= 0 ? "+" : ""
-                }}{{ colaboradorSelecionado.variacao }}%
+                }}{{ formatarPorcentagem(colaboradorSelecionado.variacao) }}%
               </div>
             </div>
 
@@ -1017,6 +1022,191 @@ const onFiltroChange = async () => {
   await buscarDados();
 };
 
+// Helper method to format percentage to 2 decimal places
+const formatarPorcentagem = (valor) => {
+  if (valor === undefined || valor === null) return '0.00';
+  return parseFloat(valor.toFixed(2));
+};
+
+// Método para gerar imagem para compartilhamento
+const gerarImagemParaCompartilhar = async () => {
+  try {
+    // Importar html2canvas dinamicamente
+    const { default: html2canvas } = await import('html2canvas');
+
+    // Criar um container temporário com apenas os elementos que queremos capturar
+    const contentToCapture = document.createElement('div');
+    contentToCapture.style.position = 'absolute';
+    contentToCapture.style.left = '-9999px';
+    contentToCapture.style.width = '1200px';
+    contentToCapture.style.maxWidth = '100%';
+    contentToCapture.style.backgroundColor = 'white';
+    contentToCapture.style.padding = '30px';
+    contentToCapture.style.boxSizing = 'border-box';
+    contentToCapture.style.overflow = 'hidden';
+
+    // Título
+    const titleElement = document.createElement('h1');
+    titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}`;
+    titleElement.style.textAlign = 'center';
+    titleElement.style.color = '#1f2937';
+    titleElement.style.marginBottom = '30px';
+    titleElement.style.fontSize = '24px';
+    titleElement.style.fontFamily = '"Inter", sans-serif';
+    contentToCapture.appendChild(titleElement);
+
+    // Clonar o pódio Top Performers
+    const podiumElement = document.querySelector('.podium-section');
+    if (podiumElement) {
+      const podiumClone = podiumElement.cloneNode(true);
+      podiumClone.style.width = '100%';
+      podiumClone.style.overflow = 'visible';
+      contentToCapture.appendChild(podiumClone);
+    }
+
+    // Clonar a lista de ranking, mas apenas os primeiros 10
+    const rankingListElement = document.querySelector('.ranking-list-section');
+    if (rankingListElement) {
+      const rankingClone = rankingListElement.cloneNode(true);
+
+      // Encontrar e manter apenas os primeiros 10 colaboradores (após os 3 do pódio, então pegamos posições 4 a 13)
+      const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+      if (rankingItems.length > 0) {
+        // Remover itens além dos 10 primeiros
+        for (let i = 10; i < rankingItems.length; i++) {
+          rankingItems[i].remove();
+        }
+      }
+
+      rankingClone.style.width = '100%';
+      rankingClone.style.overflow = 'visible';
+      contentToCapture.appendChild(rankingClone);
+    }
+
+    // Adicionar ao body temporariamente para renderização
+    document.body.appendChild(contentToCapture);
+
+    // Aguardar um pouco para garantir que todos os estilos e imagens sejam carregados
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Processar avatares que usam iniciais (geralmente SVGs ou fallbacks)
+    const avatarImages = contentToCapture.querySelectorAll('.avatar-img img');
+    avatarImages.forEach(img => {
+      // Força o carregamento da imagem
+      if (img.src.includes('ui-avatars.com')) {
+        // Força o carregamento da imagem de iniciais
+        img.crossOrigin = 'anonymous';
+      }
+    });
+
+    // Determinar altura dinamicamente com base no conteúdo
+    const height = contentToCapture.scrollHeight;
+
+    // Capturar a imagem
+    const canvas = await html2canvas(contentToCapture, {
+      scale: 2, // Maior qualidade
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: Math.min(1200, window.innerWidth || 1200), // Ajustar largura dinamicamente
+      height: height + 100, // Adicionar um pouco de altura extra
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+      imageTimeout: 15000,
+      // Opções para melhor renderização de conteúdo responsivo
+      onclone: (clonedDoc) => {
+        // Ajustar estilos para melhor captura
+        const elements = clonedDoc.querySelectorAll('.ranking-item, .podium-item');
+        elements.forEach(el => {
+          el.style.maxWidth = '100%';
+          el.style.overflow = 'visible';
+        });
+
+        // Garantir que os avatares sejam renderizados corretamente
+        const avatarImgs = clonedDoc.querySelectorAll('.avatar-img img');
+        avatarImgs.forEach(img => {
+          // Força renderização de imagens de avatares/iniciais
+          if (!img.complete) {
+            img.style.visibility = 'hidden';
+            img.onload = () => {
+              img.style.visibility = 'visible';
+            };
+          }
+        });
+      }
+    });
+
+    // Remover o elemento temporário
+    document.body.removeChild(contentToCapture);
+
+    // Converter canvas para imagem
+    const imgData = canvas.toDataURL('image/png');
+
+    // Criar link para download
+    const link = document.createElement('a');
+    link.href = imgData;
+    link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || 'loja'}-${new Date().toISOString().slice(0, 10)}.png`;
+    link.click();
+
+  } catch (error) {
+    console.error('Erro ao gerar imagem para compartilhamento:', error);
+
+    // Fallback - abrir uma nova janela com os elementos para impressão
+    const podiumElement = document.querySelector('.podium-section');
+    const rankingListElement = document.querySelector('.ranking-list-section');
+
+    if (podiumElement || rankingListElement) {
+      let printContent = '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+      printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}</h1>`;
+
+      if (podiumElement) {
+        printContent += '<div style="margin-bottom: 30px;">' + podiumElement.outerHTML + '</div>';
+      }
+
+      if (rankingListElement) {
+        // Pegar apenas os primeiros 10 colaboradores
+        const rankingClone = rankingListElement.cloneNode(true);
+        const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+        if (rankingItems.length > 10) {
+          for (let i = 10; i < rankingItems.length; i++) {
+            rankingItems[i].remove();
+          }
+        }
+        printContent += '<div style="margin-top: 30px;">' + rankingClone.innerHTML + '</div>';
+      }
+
+      printContent += '</div>';
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Ranking de Colaboradores - Compartilhamento</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: white; }
+              .podium-section, .ranking-list-content { margin: 20px 0; background: white; }
+              .podium-item, .ranking-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 10px 0; box-sizing: border-box; }
+              .avatar-img img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
+              .avatar-img { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold; }
+            </style>
+          </head>
+          <body>${printContent}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+
+      // Aguardar um pouco para garantir que o conteúdo foi carregado
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      alert('Não foi possível encontrar os elementos para compartilhamento.');
+    }
+  }
+};
+
 onMounted(async () => {
   await buscarDados();
 });
@@ -1033,6 +1223,35 @@ onMounted(async () => {
   position: relative;
   overflow: hidden;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Share Button */
+.share-button {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-right: 1rem;
+}
+
+.share-button:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.header-controls {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 /* ===== INDICADOR DE PERÍODO ===== */

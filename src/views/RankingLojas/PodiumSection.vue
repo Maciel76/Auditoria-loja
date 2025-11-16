@@ -33,8 +33,8 @@
             <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ topLojas[1]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">👥 Usuários</span>
+            <span class="stat-value">{{ formatarEficiencia(topLojas[1]?.eficiencia) }}%</span>
+            <span class="stat-label">⚡ Eficiência</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
             <span class="stat-value">{{ topLojas[1]?.presencas?.percentualPresenca || 0 }}%</span>
@@ -71,8 +71,8 @@
             <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ topLojas[0]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">👥 Usuários</span>
+            <span class="stat-value">{{ formatarEficiencia(topLojas[0]?.eficiencia) }}%</span>
+            <span class="stat-label">⚡ Eficiência</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
             <span class="stat-value">{{ topLojas[0]?.presencas?.percentualPresenca || 0 }}%</span>
@@ -110,8 +110,8 @@
             <span class="stat-label">📊 Itens</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ topLojas[2]?.usuariosAtivos || 0 }}</span>
-            <span class="stat-label">👥 Usuários</span>
+            <span class="stat-value">{{ formatarEficiencia(topLojas[2]?.eficiencia) }}%</span>
+            <span class="stat-label">⚡ Eficiência</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
             <span class="stat-value">{{ topLojas[2]?.presencas?.percentualPresenca || 0 }}%</span>
@@ -205,6 +205,12 @@ const handleImageError = (event) => {
   if (nextElement) {
     nextElement.style.display = 'flex';
   }
+};
+
+// Helper method to format efficiency to 2 decimal places
+const formatarEficiencia = (eficiencia) => {
+  if (eficiencia === undefined || eficiencia === null) return 0;
+  return parseFloat(eficiencia.toFixed(2));
 };
 </script>
 

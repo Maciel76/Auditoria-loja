@@ -15,19 +15,22 @@
     />
 
     <!-- Ranking Controls -->
-    <RankingControls
-      :view-mode="viewMode"
-      :filtro-tipo-auditoria="filtroTipoAuditoria"
-      :filtro-periodo="filtroPeriodo"
-      :filtro-regiao="filtroRegiao"
-      :filtro-liga="filtroLiga"
-      @update:view-mode="viewMode = $event"
-      @update:filtro-tipo-auditoria="handleFilterChange('tipo', $event)"
-      @update:filtro-periodo="handleFilterChange('periodo', $event)"
-      @update:filtro-regiao="handleFilterChange('regiao', $event)"
-      @update:filtro-liga="handleFilterChange('liga', $event)"
-      @buscar-dados="buscarDados"
-    />
+    <div class="ranking-header">
+      <RankingControls
+        :view-mode="viewMode"
+        :filtro-tipo-auditoria="filtroTipoAuditoria"
+        :filtro-periodo="filtroPeriodo"
+        :filtro-regiao="filtroRegiao"
+        :filtro-liga="filtroLiga"
+        @update:view-mode="viewMode = $event"
+        @update:filtro-tipo-auditoria="handleFilterChange('tipo', $event)"
+        @update:filtro-periodo="handleFilterChange('periodo', $event)"
+        @update:filtro-regiao="handleFilterChange('regiao', $event)"
+        @update:filtro-liga="handleFilterChange('liga', $event)"
+        @buscar-dados="buscarDados"
+        @compartilhar="gerarImagemParaCompartilhar"
+      />
+    </div>
 
     <!-- Podium Section -->
     <PodiumSection
@@ -137,7 +140,7 @@ const filtroTipoAuditoria = ref('etiqueta') // Padrão para etiquetas já que re
 const filtroPeriodo = ref('hoje')
 const filtroRegiao = ref('todas')
 const filtroLiga = ref('todas')
-const filtroOrdenacao = ref('itens')
+const filtroOrdenacao = ref('eficiencia')
 
 // Filtros avançados
 const regioesAtivas = ref([])
@@ -153,7 +156,7 @@ const compactMode = ref(false)
 
 // Paginação
 const currentPage = ref(1)
-const sortField = ref('itens')
+const sortField = ref('eficiencia')
 const sortDirection = ref('desc')
 
 // Chart references
@@ -254,7 +257,7 @@ const lojasFiltradas = computed(() => {
         comparison = (b.tendencia || 0) - (a.tendencia || 0)
         break
       default:
-        comparison = (b.pontuacao || 0) - (a.pontuacao || 0)
+        comparison = (b.eficiencia || 0) - (a.eficiencia || 0)
     }
     return sortDirection.value === 'desc' ? comparison : -comparison
   })
@@ -780,6 +783,143 @@ const shareRanking = () => {
   }
 }
 
+// Método para gerar imagem para compartilhamento
+const gerarImagemParaCompartilhar = async () => {
+  try {
+    // Importar html2canvas dinamicamente
+    const { default: html2canvas } = await import('html2canvas');
+
+    // Criar um container temporário com apenas os elementos que queremos capturar
+    const contentToCapture = document.createElement('div');
+    contentToCapture.style.position = 'absolute';
+    contentToCapture.style.left = '-9999px';
+    contentToCapture.style.width = '1200px';
+    contentToCapture.style.maxWidth = '100%';
+    contentToCapture.style.backgroundColor = 'white';
+    contentToCapture.style.padding = '30px';
+    contentToCapture.style.borderRadius = '20px';
+    contentToCapture.style.fontFamily = '"Inter", sans-serif';
+    contentToCapture.style.boxSizing = 'border-box';
+    contentToCapture.style.overflow = 'hidden';
+
+    // Clonar o pódio e o ranking de cartões
+    const podiumElement = document.querySelector('.podium-section');
+    const rankingCardsElement = document.querySelector('.ranking-section');
+
+    if (podiumElement) {
+      const podiumClone = podiumElement.cloneNode(true);
+      // Remover classes responsivas que possam interferir
+      podiumClone.style.width = '100%';
+      podiumClone.style.overflow = 'visible';
+      contentToCapture.appendChild(podiumClone);
+    }
+
+    if (rankingCardsElement) {
+      const rankingClone = rankingCardsElement.cloneNode(true);
+      // Ajustar largura e estilos para melhor renderização
+      rankingClone.style.width = '100%';
+      rankingClone.style.overflow = 'visible';
+      // Remover sombras e bordas que podem causar corte
+      rankingClone.style.boxShadow = 'none';
+      rankingClone.style.border = '1px solid #e5e7eb';
+      contentToCapture.appendChild(rankingClone);
+    }
+
+    // Adicionar ao body temporariamente para renderização
+    document.body.appendChild(contentToCapture);
+
+    // Aguardar um pouco para garantir que todos os estilos sejam aplicados
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Determinar altura dinamicamente com base no conteúdo
+    const height = contentToCapture.scrollHeight;
+
+    // Capturar a imagem
+    const canvas = await html2canvas(contentToCapture, {
+      scale: 2, // Maior qualidade
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: Math.min(1200, window.innerWidth || 1200), // Ajustar largura dinamicamente
+      height: height + 100, // Adicionar um pouco de altura extra
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+      imageTimeout: 15000,
+      // Opções para melhor renderização de conteúdo responsivo
+      onclone: (clonedDoc) => {
+        // Ajustar estilos para melhor captura
+        const elements = clonedDoc.querySelectorAll('.ranking-card, .podium-card');
+        elements.forEach(el => {
+          el.style.maxWidth = '100%';
+          el.style.overflow = 'visible';
+        });
+      }
+    });
+
+    // Remover o elemento temporário
+    document.body.removeChild(contentToCapture);
+
+    // Converter canvas para imagem
+    const imgData = canvas.toDataURL('image/png');
+
+    // Criar link para download
+    const link = document.createElement('a');
+    link.href = imgData;
+    link.download = `ranking-lojas-${new Date().toISOString().slice(0, 10)}.png`;
+    link.click();
+
+  } catch (error) {
+    console.error('Erro ao gerar imagem para compartilhamento:', error);
+
+    // Fallback - abrir uma nova janela com os elementos para impressão
+    const podiumElement = document.querySelector('.podium-section');
+    const rankingCardsElement = document.querySelector('.ranking-section');
+
+    if (podiumElement || rankingCardsElement) {
+      let printContent = '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+      printContent += '<h1 style="text-align: center; color: #1f2937;">Ranking de Lojas</h1>';
+
+      if (podiumElement) {
+        printContent += '<div style="margin-bottom: 30px;">' + podiumElement.outerHTML + '</div>';
+      }
+
+      if (rankingCardsElement) {
+        printContent += '<div style="margin-top: 30px;">' + rankingCardsElement.outerHTML + '</div>';
+      }
+
+      printContent += '</div>';
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Ranking de Lojas - Compartilhamento</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: white; }
+              .podium-section, .ranking-section { margin: 20px 0; background: white; }
+              .podium-card, .ranking-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 10px 0; box-sizing: border-box; }
+              .ranking-card { display: flex; align-items: center; }
+              .print-content { max-width: 100%; overflow-x: auto; }
+              .ranking-list { max-width: 100%; overflow-x: auto; }
+            </style>
+          </head>
+          <body>${printContent}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+
+      // Aguardar um pouco para garantir que o conteúdo foi carregado
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      alert('Não foi possível encontrar os elementos para compartilhamento.');
+    }
+  }
+}
+
 const handleInsightClick = (insight) => {
   console.log('Insight clicked:', insight)
 }
@@ -1078,6 +1218,10 @@ onUnmounted(() => {
 
 .insight-item .trend.negative {
   color: #ef4444;
+}
+
+.ranking-header {
+  margin-bottom: 2rem;
 }
 
 /* Responsive */

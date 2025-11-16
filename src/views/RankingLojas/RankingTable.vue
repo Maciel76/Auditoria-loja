@@ -212,7 +212,7 @@ const props = defineProps({
   },
   sortField: {
     type: String,
-    default: "itens",
+    default: "eficiencia",
   },
   sortDirection: {
     type: String,
@@ -244,14 +244,14 @@ const calcularEficiencia = (loja) => {
 
   // Se a eficiência já vem calculada da API, usar ela
   if (loja.eficiencia !== undefined) {
-    return Math.min(loja.eficiencia, 100);
+    return parseFloat(Math.min(loja.eficiencia, 100).toFixed(2));
   }
 
   // Caso contrário, calcular baseado na média por usuário
   const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos;
   // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
   const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100);
-  return Math.round(eficiencia);
+  return parseFloat(eficiencia.toFixed(2));
 };
 
 const getLiga = (itens) => {

@@ -49,10 +49,7 @@
 
         <!-- Avatar/Imagem da Loja -->
         <div class="loja-avatar">
-          <div
-            class="avatar-container"
-            :class="getAvatarClass(index)"
-          >
+          <div class="avatar-container" :class="getAvatarClass(index)">
             <img
               v-if="getLojaImagePath(loja.codigo)"
               :src="getLojaImagePath(loja.codigo)"
@@ -77,6 +74,14 @@
         <!-- Estatísticas -->
         <div class="loja-stats">
           <div class="stat-item">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-data">
+              <span class="stat-value">{{ calcularEficiencia(loja) }}%</span>
+              <span class="stat-label">Eficiência</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
             <div class="stat-icon">📊</div>
             <div class="stat-data">
               <span class="stat-value">{{
@@ -91,14 +96,6 @@
             <div class="stat-data">
               <span class="stat-value">{{ loja.usuariosAtivos || 0 }}</span>
               <span class="stat-label">Usuários Ativos</span>
-            </div>
-          </div>
-
-          <div class="stat-item">
-            <div class="stat-icon">⚡</div>
-            <div class="stat-data">
-              <span class="stat-value">{{ calcularEficiencia(loja) }}%</span>
-              <span class="stat-label">Eficiência</span>
             </div>
           </div>
 
@@ -138,7 +135,7 @@
 </template>
 
 <script setup>
-import { useLojaStore } from '@/store/lojaStore.js';
+import { useLojaStore } from "@/store/lojaStore.js";
 
 const props = defineProps({
   lojas: {
@@ -169,14 +166,14 @@ const calcularEficiencia = (loja) => {
 
   // Se a eficiência já vem calculada da API, usar ela
   if (loja.eficiencia !== undefined) {
-    return Math.min(loja.eficiencia, 100);
+    return parseFloat(Math.min(loja.eficiencia, 100).toFixed(2));
   }
 
   // Caso contrário, calcular baseado na média por usuário
   const mediaPorUsuario = loja.itensAuditados / loja.usuariosAtivos;
   // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
   const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100);
-  return Math.round(eficiencia);
+  return parseFloat(eficiencia.toFixed(2));
 };
 
 const calcularMediaPorUsuario = (loja) => {
@@ -190,19 +187,16 @@ const calcularMediaPorUsuario = (loja) => {
   return Math.round(loja.itensAuditados / loja.usuariosAtivos);
 };
 
-
 const getProgressPercentage = (loja) => {
   return props.maxItens > 0
     ? ((loja.itensAuditados || 0) / props.maxItens) * 100
     : 0;
 };
 
-
-
 // Métodos para avatar das lojas
 const getLojaImagePath = (codigo) => {
   // Buscar a loja no store
-  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === codigo);
+  const lojaDoStore = lojaStore.lojas.find((l) => l.codigo === codigo);
 
   if (lojaDoStore && lojaDoStore.imagem) {
     return lojaDoStore.imagem;
@@ -215,24 +209,23 @@ const getLojaImagePath = (codigo) => {
 
 const getLojaInitials = (loja) => {
   // Primeiro tentar pegar o nome do store
-  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === loja.codigo);
+  const lojaDoStore = lojaStore.lojas.find((l) => l.codigo === loja.codigo);
   const nomeCompleto = lojaDoStore?.nome || loja.nome;
 
   if (nomeCompleto && nomeCompleto.trim()) {
     // Pegar iniciais do nome da loja
-    const palavras = nomeCompleto.trim().split(' ');
+    const palavras = nomeCompleto.trim().split(" ");
 
     // Se tem "Loja" no início, pular ela
-    const palavrasLimpas = palavras.filter(palavra =>
-      palavra.toLowerCase() !== 'loja' &&
-      !palavra.match(/^\d+$/) // Também pular números puros
+    const palavrasLimpas = palavras.filter(
+      (palavra) => palavra.toLowerCase() !== "loja" && !palavra.match(/^\d+$/) // Também pular números puros
     );
 
     if (palavrasLimpas.length > 0) {
       return palavrasLimpas
         .slice(0, 2)
-        .map(word => word.charAt(0).toUpperCase())
-        .join('');
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("");
     }
   }
 
@@ -241,18 +234,18 @@ const getLojaInitials = (loja) => {
 };
 
 const getAvatarClass = (index) => {
-  if (index === 0) return 'gold';
-  if (index === 1) return 'silver';
-  if (index === 2) return 'bronze';
-  return '';
+  if (index === 0) return "gold";
+  if (index === 1) return "silver";
+  if (index === 2) return "bronze";
+  return "";
 };
 
 const handleImageError = (event) => {
   // Se a imagem falhar ao carregar, esconder ela para mostrar as iniciais
-  event.target.style.display = 'none';
+  event.target.style.display = "none";
   const nextElement = event.target.nextElementSibling;
   if (nextElement) {
-    nextElement.style.display = 'flex';
+    nextElement.style.display = "flex";
   }
 };
 </script>
@@ -401,7 +394,6 @@ const handleImageError = (event) => {
   color: #1f2937;
 }
 
-
 /* Avatar da Loja */
 .loja-avatar {
   display: flex;
@@ -500,13 +492,10 @@ const handleImageError = (event) => {
   margin: 0;
 }
 
-
 .loja-nome {
   color: #6b7280;
   margin: 0;
 }
-
-
 
 .loja-stats {
   display: grid;
@@ -568,7 +557,6 @@ const handleImageError = (event) => {
 .action-button.primary:hover {
   background: #5b21b6;
 }
-
 
 .progress-bar {
   position: absolute;

@@ -43,6 +43,12 @@
         />
         Atualizar
       </button>
+
+      <!-- Botão de compartilhar -->
+      <button @click="$emit('compartilhar')" class="filter-btn share-btn">
+        <i class="fas fa-share-alt nav-icon-small"></i>
+        Compartilhar
+      </button>
     </div>
 
     <!-- Visualização -->
@@ -102,6 +108,7 @@ export default {
     "update:filtroTipoAuditoria",
     "update:filtroPeriodo",
     "buscarDados",
+    "compartilhar",
   ],
 };
 </script>
@@ -185,6 +192,14 @@ export default {
 .filter-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.share-btn:hover {
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .view-options {
