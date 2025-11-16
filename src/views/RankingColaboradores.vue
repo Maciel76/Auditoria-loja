@@ -160,7 +160,7 @@
       :topPerformer="topPerformer"
       :mediaItensPorUsuario="mediaItensPorUsuario"
       :totalItensLidos="totalItensLidos"
-      :percentualAboveAverage="percentualAboveAverage"
+      :usuarios="usuarios"
       :tipoAuditoria="filtroTipoAuditoria"
     />
 

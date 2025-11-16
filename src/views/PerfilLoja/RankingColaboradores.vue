@@ -123,8 +123,8 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">+{{ stats.crescimentoMedio }}%</span>
-            <span class="stat-label">Crescimento Médio</span>
+            <span class="stat-value">{{ stats.crescimentoMedio }}</span>
+            <span class="stat-label">Itens Auditado</span>
           </div>
         </div>
 
@@ -218,18 +218,22 @@
           </div>
           <div class="colaborador-stats">
             <div class="stat">
+              <span class="stat-value">{{ colaboradores[1]?.auditorias }}</span>
+              <span class="stat-label">Itens Auditados</span>
+            </div>
+            <!--
+            <div class="stat">
               <span class="stat-value"
                 >{{ formatarPorcentagem(colaboradores[1]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
-            <div class="stat">
-              <span class="stat-value">{{ colaboradores[1]?.auditorias }}</span>
-              <span class="stat-label">Auditorias</span>
-            </div>
+            -->
           </div>
           <div class="performance-badge excelente">
-            <span>+{{ formatarPorcentagem(colaboradores[1]?.variacao) }}%</span>
+            <span
+              >{{ formatarPorcentagem(colaboradores[1]?.conformidade) }}%</span
+            >
           </div>
         </div>
 
@@ -254,18 +258,22 @@
           </div>
           <div class="colaborador-stats">
             <div class="stat">
+              <span class="stat-value">{{ colaboradores[0]?.auditorias }}</span>
+              <span class="stat-label">Itens Auditados</span>
+            </div>
+            <!--
+            <div class="stat">
               <span class="stat-value"
                 >{{ formatarPorcentagem(colaboradores[0]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
-            <div class="stat">
-              <span class="stat-value">{{ colaboradores[0]?.auditorias }}</span>
-              <span class="stat-label">Auditorias</span>
-            </div>
+            -->
           </div>
           <div class="performance-badge destaque">
-            <span>+{{ formatarPorcentagem(colaboradores[0]?.variacao) }}%</span>
+            <span
+              >{{ formatarPorcentagem(colaboradores[0]?.conformidade) }}%</span
+            >
           </div>
           <div class="crown">👑</div>
         </div>
@@ -291,18 +299,22 @@
           </div>
           <div class="colaborador-stats">
             <div class="stat">
+              <span class="stat-value">{{ colaboradores[2]?.auditorias }}</span>
+              <span class="stat-label">Itens Auditados</span>
+            </div>
+            <!--
+            <div class="stat">
               <span class="stat-value"
                 >{{ formatarPorcentagem(colaboradores[2]?.conformidade) }}%</span
               >
               <span class="stat-label">Conformidade</span>
             </div>
-            <div class="stat">
-              <span class="stat-value">{{ colaboradores[2]?.auditorias }}</span>
-              <span class="stat-label">Auditorias</span>
-            </div>
+            -->
           </div>
           <div class="performance-badge excelente">
-            <span>+{{ formatarPorcentagem(colaboradores[2]?.variacao) }}%</span>
+            <span
+              >{{ formatarPorcentagem(colaboradores[2]?.conformidade) }}%</span
+            >
           </div>
         </div>
       </div>
@@ -403,10 +415,6 @@
                 <div class="avatar-img">
                   <img :src="colaborador.foto" :alt="colaborador.nome" />
                 </div>
-                <div
-                  class="online-indicator"
-                  :class="{ online: colaborador.online }"
-                ></div>
               </div>
 
               <div class="colaborador-details">
@@ -428,7 +436,10 @@
                       </svg>
                       Destaque
                     </span>
-                    <span v-if="colaborador.metaAtingida" class="badge meta">
+                    <span
+                      v-if="colaborador.auditorias >= 500"
+                      class="badge meta"
+                    >
                       <svg
                         width="12"
                         height="12"
@@ -466,14 +477,14 @@
 
             <div class="colaborador-metrics">
               <div class="metric">
+                <span class="metric-value">{{ colaborador.auditorias }}</span>
+                <span class="metric-label">Itens Auditados</span>
+              </div>
+              <div class="metric">
                 <span class="metric-value"
                   >{{ formatarPorcentagem(colaborador.conformidade) }}%</span
                 >
                 <span class="metric-label">Conformidade</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">{{ colaborador.auditorias }}</span>
-                <span class="metric-label">Auditorias</span>
               </div>
               <div class="metric">
                 <span class="metric-value">{{ colaborador.pontuacao }}</span>
@@ -487,7 +498,10 @@
                   <div
                     class="progress-fill"
                     :class="colaborador.status"
-                    :style="{ width: formatarPorcentagem(colaborador.conformidade) + '%' }"
+                    :style="{
+                      width:
+                        formatarPorcentagem(colaborador.conformidade) + '%',
+                    }"
                   ></div>
                 </div>
                 <span class="progress-text"
@@ -599,12 +613,6 @@
                       : "Baixo"
                   }}
                 </span>
-                <span
-                  class="online-status"
-                  :class="{ online: colaboradorSelecionado.online }"
-                >
-                  {{ colaboradorSelecionado.online ? "Online" : "Offline" }}
-                </span>
               </div>
             </div>
           </div>
@@ -628,7 +636,9 @@
           <div class="metricas-detalhadas">
             <div class="metrica-principal">
               <span class="metrica-valor"
-                >{{ formatarPorcentagem(colaboradorSelecionado.conformidade) }}%</span
+                >{{
+                  formatarPorcentagem(colaboradorSelecionado.conformidade)
+                }}%</span
               >
               <span class="metrica-label">Taxa de Conformidade</span>
               <div
@@ -907,28 +917,38 @@ const buscarDados = async () => {
 
     console.log("✅ Dados recebidos:", response.data);
 
+    // Calcular o total de auditorias de todos os colaboradores
+    const totalAuditorias = response.data.reduce(
+      (sum, usuario) => sum + (usuario.contador || 0),
+      0
+    );
+
     // Mapear os dados recebidos para o formato esperado pela UI
     // Formato do endpoint /ranking-colaboradores (único endpoint real implementado)
-    colaboradores.value = response.data.map((usuario, index) => ({
-      id: usuario.id || usuario.usuarioId,
-      nome: usuario.nome || usuario.usuarioNome,
-      setor: usuario.setor || "Geral", // Usar setor genérico se não especificado
-      foto: getFotoUrl(usuario),
-      conformidade:
-        (usuario.eficiencia || usuario.contador || 0) > 100
-          ? 100
-          : usuario.eficiencia || usuario.contador || 0,
-      auditorias: usuario.contador || usuario.itensAtualizados || 0,
-      pontuacao: usuario.pontuacao || usuario.contador || 0,
-      ranking: index + 1, // A posição será definida pela ordem do array já ordenado
-      tendencia: getTendencia(usuario, index), // Calcular tendência com base na posição anterior
-      status: getStatus(usuario.eficiencia || usuario.contador || 0),
-      destaque: index < 3, // Primeiros 3 são destaques
-      metaAtingida: (usuario.eficiencia || usuario.contador || 0) >= 90, // Considerar meta atingida se acima de 90%
-      online: Math.random() > 0.3, // Simular status online randomicamente
-      variacao: Math.floor(Math.random() * 20) - 5, // Simular variação
-      novato: usuario.novato || false,
-    }));
+    colaboradores.value = response.data.map((usuario, index) => {
+      // Calcular a conformidade como percentual de auditorias do total
+      const auditoriasPessoais = usuario.contador || 0;
+      const conformidade =
+        totalAuditorias > 0 ? (auditoriasPessoais / totalAuditorias) * 100 : 0;
+
+      return {
+        id: usuario.id || usuario.usuarioId,
+        nome: usuario.nome || usuario.usuarioNome,
+        setor: usuario.setor || "Geral", // Usar setor genérico se não especificado
+        foto: getFotoUrl(usuario),
+        conformidade: parseFloat(conformidade.toFixed(2)), // Limitar a 2 casas decimais
+        auditorias: auditoriasPessoais,
+        pontuacao: usuario.pontuacao || usuario.contador || 0,
+        ranking: index + 1, // A posição será definida pela ordem do array já ordenado
+        tendencia: getTendencia(usuario, index), // Calcular tendência com base na posição anterior
+        status: getStatus(conformidade),
+        destaque: index < 3, // Primeiros 3 são destaques
+        metaAtingida: auditoriasPessoais >= 500, // Considerar meta atingida se tiver 500+ auditorias
+        online: Math.random() > 0.3, // Simular status online randomicamente
+        variacao: Math.floor(Math.random() * 20) - 5, // Simular variação
+        novato: usuario.novato || false,
+      };
+    });
 
     // Atualizar as estatísticas
     atualizarStats();
@@ -996,24 +1016,27 @@ const atualizarStats = () => {
     return;
   }
 
-  // Calcular crescimento médio (simulado)
-  stats.value.crescimentoMedio = Math.floor(Math.random() * 10) + 5;
+  // Calcular crescimento médio como o total de auditorias
+  stats.value.crescimentoMedio = colaboradores.value.reduce(
+    (sum, c) => sum + (c.auditorias || 0),
+    0
+  );
 
-  // Contar metas atingidas
+  // Contar metas atingidas (usuários com 500 ou mais auditorias)
   stats.value.metasAtingidas = colaboradores.value.filter(
-    (c) => c.metaAtingida
+    (c) => (c.auditorias || 0) >= 500
   ).length;
 
   // Contar melhoria rápida (simulado)
   stats.value.melhoriaRapida = Math.floor(Math.random() * 10);
 
-  // Calcular média geral
+  // Calcular média geral de conformidade (percentual médio)
   const somaConformidade = colaboradores.value.reduce(
     (sum, c) => sum + c.conformidade,
     0
   );
-  stats.value.mediaGeral = Math.round(
-    somaConformidade / colaboradores.value.length
+  stats.value.mediaGeral = parseFloat(
+    (somaConformidade / colaboradores.value.length).toFixed(2)
   );
 };
 
@@ -1024,7 +1047,7 @@ const onFiltroChange = async () => {
 
 // Helper method to format percentage to 2 decimal places
 const formatarPorcentagem = (valor) => {
-  if (valor === undefined || valor === null) return '0.00';
+  if (valor === undefined || valor === null) return "0.00";
   return parseFloat(valor.toFixed(2));
 };
 
@@ -1032,45 +1055,47 @@ const formatarPorcentagem = (valor) => {
 const gerarImagemParaCompartilhar = async () => {
   try {
     // Importar html2canvas dinamicamente
-    const { default: html2canvas } = await import('html2canvas');
+    const { default: html2canvas } = await import("html2canvas");
 
     // Criar um container temporário com apenas os elementos que queremos capturar
-    const contentToCapture = document.createElement('div');
-    contentToCapture.style.position = 'absolute';
-    contentToCapture.style.left = '-9999px';
-    contentToCapture.style.width = '1200px';
-    contentToCapture.style.maxWidth = '100%';
-    contentToCapture.style.backgroundColor = 'white';
-    contentToCapture.style.padding = '30px';
-    contentToCapture.style.boxSizing = 'border-box';
-    contentToCapture.style.overflow = 'hidden';
+    const contentToCapture = document.createElement("div");
+    contentToCapture.style.position = "absolute";
+    contentToCapture.style.left = "-9999px";
+    contentToCapture.style.width = "1200px";
+    contentToCapture.style.maxWidth = "100%";
+    contentToCapture.style.backgroundColor = "white";
+    contentToCapture.style.padding = "30px";
+    contentToCapture.style.boxSizing = "border-box";
+    contentToCapture.style.overflow = "hidden";
 
     // Título
-    const titleElement = document.createElement('h1');
-    titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}`;
-    titleElement.style.textAlign = 'center';
-    titleElement.style.color = '#1f2937';
-    titleElement.style.marginBottom = '30px';
-    titleElement.style.fontSize = '24px';
+    const titleElement = document.createElement("h1");
+    titleElement.textContent = `Ranking de Colaboradores - ${
+      lojaStore.nomeLojaAtual || "Loja"
+    }`;
+    titleElement.style.textAlign = "center";
+    titleElement.style.color = "#1f2937";
+    titleElement.style.marginBottom = "30px";
+    titleElement.style.fontSize = "24px";
     titleElement.style.fontFamily = '"Inter", sans-serif';
     contentToCapture.appendChild(titleElement);
 
     // Clonar o pódio Top Performers
-    const podiumElement = document.querySelector('.podium-section');
+    const podiumElement = document.querySelector(".podium-section");
     if (podiumElement) {
       const podiumClone = podiumElement.cloneNode(true);
-      podiumClone.style.width = '100%';
-      podiumClone.style.overflow = 'visible';
+      podiumClone.style.width = "100%";
+      podiumClone.style.overflow = "visible";
       contentToCapture.appendChild(podiumClone);
     }
 
     // Clonar a lista de ranking, mas apenas os primeiros 10
-    const rankingListElement = document.querySelector('.ranking-list-section');
+    const rankingListElement = document.querySelector(".ranking-list-section");
     if (rankingListElement) {
       const rankingClone = rankingListElement.cloneNode(true);
 
       // Encontrar e manter apenas os primeiros 10 colaboradores (após os 3 do pódio, então pegamos posições 4 a 13)
-      const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+      const rankingItems = rankingClone.querySelectorAll(".ranking-item");
       if (rankingItems.length > 0) {
         // Remover itens além dos 10 primeiros
         for (let i = 10; i < rankingItems.length; i++) {
@@ -1078,8 +1103,8 @@ const gerarImagemParaCompartilhar = async () => {
         }
       }
 
-      rankingClone.style.width = '100%';
-      rankingClone.style.overflow = 'visible';
+      rankingClone.style.width = "100%";
+      rankingClone.style.overflow = "visible";
       contentToCapture.appendChild(rankingClone);
     }
 
@@ -1087,15 +1112,15 @@ const gerarImagemParaCompartilhar = async () => {
     document.body.appendChild(contentToCapture);
 
     // Aguardar um pouco para garantir que todos os estilos e imagens sejam carregados
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Processar avatares que usam iniciais (geralmente SVGs ou fallbacks)
-    const avatarImages = contentToCapture.querySelectorAll('.avatar-img img');
-    avatarImages.forEach(img => {
+    const avatarImages = contentToCapture.querySelectorAll(".avatar-img img");
+    avatarImages.forEach((img) => {
       // Força o carregamento da imagem
-      if (img.src.includes('ui-avatars.com')) {
+      if (img.src.includes("ui-avatars.com")) {
         // Força o carregamento da imagem de iniciais
-        img.crossOrigin = 'anonymous';
+        img.crossOrigin = "anonymous";
       }
     });
 
@@ -1107,7 +1132,7 @@ const gerarImagemParaCompartilhar = async () => {
       scale: 2, // Maior qualidade
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       width: Math.min(1200, window.innerWidth || 1200), // Ajustar largura dinamicamente
       height: height + 100, // Adicionar um pouco de altura extra
       scrollX: 0,
@@ -1117,68 +1142,78 @@ const gerarImagemParaCompartilhar = async () => {
       // Opções para melhor renderização de conteúdo responsivo
       onclone: (clonedDoc) => {
         // Ajustar estilos para melhor captura
-        const elements = clonedDoc.querySelectorAll('.ranking-item, .podium-item');
-        elements.forEach(el => {
-          el.style.maxWidth = '100%';
-          el.style.overflow = 'visible';
+        const elements = clonedDoc.querySelectorAll(
+          ".ranking-item, .podium-item"
+        );
+        elements.forEach((el) => {
+          el.style.maxWidth = "100%";
+          el.style.overflow = "visible";
         });
 
         // Garantir que os avatares sejam renderizados corretamente
-        const avatarImgs = clonedDoc.querySelectorAll('.avatar-img img');
-        avatarImgs.forEach(img => {
+        const avatarImgs = clonedDoc.querySelectorAll(".avatar-img img");
+        avatarImgs.forEach((img) => {
           // Força renderização de imagens de avatares/iniciais
           if (!img.complete) {
-            img.style.visibility = 'hidden';
+            img.style.visibility = "hidden";
             img.onload = () => {
-              img.style.visibility = 'visible';
+              img.style.visibility = "visible";
             };
           }
         });
-      }
+      },
     });
 
     // Remover o elemento temporário
     document.body.removeChild(contentToCapture);
 
     // Converter canvas para imagem
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL("image/png");
 
     // Criar link para download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = imgData;
-    link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || 'loja'}-${new Date().toISOString().slice(0, 10)}.png`;
+    link.download = `ranking-colaboradores-${
+      lojaStore.codigoLojaAtual || "loja"
+    }-${new Date().toISOString().slice(0, 10)}.png`;
     link.click();
-
   } catch (error) {
-    console.error('Erro ao gerar imagem para compartilhamento:', error);
+    console.error("Erro ao gerar imagem para compartilhamento:", error);
 
     // Fallback - abrir uma nova janela com os elementos para impressão
-    const podiumElement = document.querySelector('.podium-section');
-    const rankingListElement = document.querySelector('.ranking-list-section');
+    const podiumElement = document.querySelector(".podium-section");
+    const rankingListElement = document.querySelector(".ranking-list-section");
 
     if (podiumElement || rankingListElement) {
-      let printContent = '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
-      printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}</h1>`;
+      let printContent =
+        '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+      printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${
+        lojaStore.nomeLojaAtual || "Loja"
+      }</h1>`;
 
       if (podiumElement) {
-        printContent += '<div style="margin-bottom: 30px;">' + podiumElement.outerHTML + '</div>';
+        printContent +=
+          '<div style="margin-bottom: 30px;">' +
+          podiumElement.outerHTML +
+          "</div>";
       }
 
       if (rankingListElement) {
         // Pegar apenas os primeiros 10 colaboradores
         const rankingClone = rankingListElement.cloneNode(true);
-        const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+        const rankingItems = rankingClone.querySelectorAll(".ranking-item");
         if (rankingItems.length > 10) {
           for (let i = 10; i < rankingItems.length; i++) {
             rankingItems[i].remove();
           }
         }
-        printContent += '<div style="margin-top: 30px;">' + rankingClone.innerHTML + '</div>';
+        printContent +=
+          '<div style="margin-top: 30px;">' + rankingClone.innerHTML + "</div>";
       }
 
-      printContent += '</div>';
+      printContent += "</div>";
 
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       printWindow.document.write(`
         <html>
           <head>
@@ -1202,7 +1237,7 @@ const gerarImagemParaCompartilhar = async () => {
         printWindow.print();
       }, 500);
     } else {
-      alert('Não foi possível encontrar os elementos para compartilhamento.');
+      alert("Não foi possível encontrar os elementos para compartilhamento.");
     }
   }
 };
@@ -1238,14 +1273,16 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   margin-right: 1rem;
 }
 
 .share-button:hover {
   background: #059669;
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .header-controls {
@@ -1660,8 +1697,8 @@ onMounted(async () => {
 }
 
 .podium-item.terceiro {
-  border-color: #fbbf24;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: #d49b65;
+  background: linear-gradient(135deg, #f3b23aee, #e99a595b);
   order: 3;
   height: 385px;
 }
@@ -1686,7 +1723,7 @@ onMounted(async () => {
 
 .podium-base.primeiro {
   background: linear-gradient(135deg, #fcd34d, #fbbf24);
-  width: 70%;
+  width: auto;
   height: 16px;
 }
 
@@ -2053,21 +2090,6 @@ onMounted(async () => {
   object-fit: cover;
 }
 
-.online-indicator {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #ef4444;
-  border: 2px solid white;
-}
-
-.online-indicator.online {
-  background: #10b981;
-}
-
 .colaborador-details {
   flex: 1;
 }
@@ -2348,20 +2370,6 @@ onMounted(async () => {
 .status-badge.baixo {
   background: #fee2e2;
   color: #dc2626;
-}
-
-.online-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.online-status.online {
-  background: #d1fae5;
-  color: #065f46;
 }
 
 .fechar-btn {

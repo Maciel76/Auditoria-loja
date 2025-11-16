@@ -43,15 +43,11 @@
 
       <div class="stat-card">
         <div class="stat-icon">
-          <img
-            src="../../../assets/svg/icon-ranking/grafico.svg"
-            alt="Upload"
-            class="nav-icon"
-          />
+          <img src="../../../assets/svg/alvo.svg" alt="Upload" />
         </div>
-        <h3>Eficiência</h3>
-        <p class="stat-value">{{ percentualAboveAverage }}%</p>
-        <p class="stat-label">Acima da média</p>
+        <h3>Meta</h3>
+        <p class="stat-value">{{ usuariosAcima500 }}</p>
+        <p class="stat-label">Colaboradores acima de 500 itens</p>
       </div>
     </div>
   </div>
@@ -73,9 +69,16 @@ export default {
       type: Number,
       default: 0,
     },
-    percentualAboveAverage: {
-      type: Number,
-      default: 0,
+    usuarios: {
+      type: Array,
+      default: () => [],
+    },
+  },
+
+  computed: {
+    usuariosAcima500() {
+      if (!this.usuarios || !Array.isArray(this.usuarios)) return 0;
+      return this.usuarios.filter((usuario) => usuario.contador > 500).length;
     },
   },
 };
