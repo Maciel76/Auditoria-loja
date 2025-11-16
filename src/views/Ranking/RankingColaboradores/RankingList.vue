@@ -79,7 +79,8 @@ export default {
   methods: {
     calcularProgresso(itens) {
       const maxItens = this.usuariosOrdenados[0]?.contador || 1;
-      return (itens / maxItens) * 100;
+      const progress = (itens / maxItens) * 100;
+      return parseFloat(progress.toFixed(2));
     },
     detectarGenero(nome) {
       const nomeCompleto = nome.toLowerCase().trim();

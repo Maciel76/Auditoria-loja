@@ -60,19 +60,21 @@
                   >{{
                     getMetricaEspecifica(usuario, "etiquetas", "totalItens")
                   }}
-                  totais</span
+                  Etiquetas</span
                 >
               </div>
               <div class="metric-item">
                 <i class="fas fa-percentage"></i>
                 <span
                   >{{
-                    getMetricaEspecifica(
-                      usuario,
-                      "etiquetas",
-                      "percentualConclusao"
+                    formatarPorcentagem(
+                      getMetricaEspecifica(
+                        usuario,
+                        "etiquetas",
+                        "percentualConclusao"
+                      )
                     )
-                  }}% concluído</span
+                  }}% Auditoria</span
                 >
               </div>
             </template>
@@ -104,10 +106,12 @@
                 <i class="fas fa-chart-line"></i>
                 <span
                   >{{
-                    getMetricaEspecifica(
-                      usuario,
-                      "presencas",
-                      "percentualPresenca"
+                    formatarPorcentagem(
+                      getMetricaEspecifica(
+                        usuario,
+                        "presencas",
+                        "percentualPresenca"
+                      )
                     )
                   }}% presença</span
                 >
@@ -160,7 +164,10 @@
             <template v-if="tipoAuditoria === 'todos'">
               <div class="metric-item">
                 <i class="fas fa-clipboard-list"></i>
-                <span>{{ usuario.eficiencia }}% eficiência</span>
+                <span
+                  >{{ formatarPorcentagem(usuario.eficiencia) }}%
+                  eficiência</span
+                >
               </div>
               <div class="metric-item">
                 <i class="fas fa-star"></i>
@@ -238,7 +245,7 @@ export default {
     const getUserInitials = (nome) => {
       if (!nome || !nome.trim()) return "??";
 
-      const palavras = nome.trim().split(' ');
+      const palavras = nome.trim().split(" ");
 
       if (palavras.length === 1) {
         // Se só tem uma palavra, pega as duas primeiras letras
@@ -248,8 +255,8 @@ export default {
       // Se tem múltiplas palavras, pega a primeira letra de cada uma (máximo 2)
       return palavras
         .slice(0, 2)
-        .map(palavra => palavra.charAt(0).toUpperCase())
-        .join('');
+        .map((palavra) => palavra.charAt(0).toUpperCase())
+        .join("");
     };
 
     const getUserIcon = (index) => {
@@ -329,6 +336,11 @@ export default {
       }).format(valor);
     };
 
+    const formatarPorcentagem = (valor) => {
+      if (valor === null || valor === undefined) return "0.00";
+      return parseFloat(valor.toFixed(2));
+    };
+
     return {
       calcularProgresso,
       getRankingClass,
@@ -342,6 +354,7 @@ export default {
       getUnidadeMedida,
       getMetricaEspecifica,
       formatarMoeda,
+      formatarPorcentagem,
     };
   },
 };

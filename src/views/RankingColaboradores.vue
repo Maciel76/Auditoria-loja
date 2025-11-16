@@ -103,6 +103,14 @@
             </button>
           </div>
         </div>
+
+        <!-- Botão de Compartilhar -->
+        <div class="filter-group">
+          <button @click="gerarImagemParaCompartilhar" class="share-btn">
+            <i class="fas fa-share-alt"></i>
+            Compartilhar
+          </button>
+        </div>
       </div>
     </div>
 
@@ -416,6 +424,213 @@ export default {
       );
     };
 
+    // Método para gerar imagem para compartilhamento
+    const gerarImagemParaCompartilhar = async () => {
+      try {
+        // Importar html2canvas dinamicamente
+        const { default: html2canvas } = await import('html2canvas');
+
+        // Criar um container temporário com apenas os elementos que queremos capturar
+        const contentToCapture = document.createElement('div');
+        contentToCapture.style.position = 'absolute';
+        contentToCapture.style.left = '-9999px';
+        contentToCapture.style.width = '1200px';
+        contentToCapture.style.maxWidth = '100%';
+        contentToCapture.style.backgroundColor = 'white';
+        contentToCapture.style.padding = '30px';
+        contentToCapture.style.boxSizing = 'border-box';
+        contentToCapture.style.overflow = 'hidden';
+
+        // Título
+        const titleElement = document.createElement('h1');
+        titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}`;
+        titleElement.style.textAlign = 'center';
+        titleElement.style.color = '#1f2937';
+        titleElement.style.marginBottom = '30px';
+        titleElement.style.fontSize = '24px';
+        titleElement.style.fontFamily = '"Inter", sans-serif';
+        contentToCapture.appendChild(titleElement);
+
+        // Clonar o pódio Top Performers
+        const podiumElement = document.querySelector('.podium-section');
+        if (podiumElement) {
+          const podiumClone = podiumElement.cloneNode(true);
+          podiumClone.style.width = '100%';
+          podiumClone.style.overflow = 'visible';
+          contentToCapture.appendChild(podiumClone);
+        }
+
+        // Clonar a lista de ranking com base no modo de visualização atual
+        let rankingListToCapture = null;
+
+        if (viewMode.value === 'podium') {
+          // Em modo pódio, capturar apenas os primeiros colaboradores (do 4º ao 15º lugar)
+          const rankingListElement = document.querySelector('.full-ranking-section');
+          if (rankingListElement) {
+            const rankingClone = rankingListElement.cloneNode(true);
+
+            // Encontrar e manter apenas os primeiros 12 colaboradores (posição 4 a 15)
+            const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+            if (rankingItems.length > 0) {
+              // Remover itens além dos 12 primeiros (para que tenhamos do 4º ao 15º)
+              for (let i = 12; i < rankingItems.length; i++) {
+                rankingItems[i].remove();
+              }
+            }
+
+            rankingClone.style.width = '100%';
+            rankingClone.style.overflow = 'visible';
+            rankingListToCapture = rankingClone;
+          }
+        } else if (viewMode.value === 'all') {
+          // Em modo lista, capturar a lista completa de ranking
+          const rankingListElement = document.querySelector('.full-ranking-section');
+          if (rankingListElement) {
+            const rankingClone = rankingListElement.cloneNode(true);
+            rankingClone.style.width = '100%';
+            rankingClone.style.overflow = 'visible';
+            rankingListToCapture = rankingClone;
+          }
+        }
+
+        if (rankingListToCapture) {
+          contentToCapture.appendChild(rankingListToCapture);
+        }
+
+        // Adicionar ao body temporariamente para renderização
+        document.body.appendChild(contentToCapture);
+
+        // Aguardar um pouco para garantir que todos os estilos e imagens sejam carregados
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Processar avatares que usam iniciais (geralmente SVGs ou fallbacks)
+        const avatarImages = contentToCapture.querySelectorAll('.avatar-icon img, .user-avatar img');
+        avatarImages.forEach(img => {
+          // Força o carregamento da imagem
+          if (img.src.includes('ui-avatars.com')) {
+            // Força o carregamento da imagem de iniciais
+            img.crossOrigin = 'anonymous';
+          }
+        });
+
+        // Determinar altura dinamicamente com base no conteúdo
+        const height = contentToCapture.scrollHeight;
+
+        // Capturar a imagem
+        const canvas = await html2canvas(contentToCapture, {
+          scale: 2, // Maior qualidade
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          width: Math.min(1200, window.innerWidth || 1200), // Ajustar largura dinamicamente
+          height: height + 100, // Adicionar um pouco de altura extra
+          scrollX: 0,
+          scrollY: 0,
+          logging: false,
+          imageTimeout: 15000,
+          // Opções para melhor renderização de conteúdo responsivo
+          onclone: (clonedDoc) => {
+            // Ajustar estilos para melhor captura
+            const elements = clonedDoc.querySelectorAll('.ranking-item, .podium-item');
+            elements.forEach(el => {
+              el.style.maxWidth = '100%';
+              el.style.overflow = 'visible';
+            });
+
+            // Garantir que os avatares sejam renderizados corretamente
+            const avatarImgs = clonedDoc.querySelectorAll('.avatar-icon img, .user-avatar img');
+            avatarImgs.forEach(img => {
+              // Força renderização de imagens de avatares/iniciais
+              if (!img.complete) {
+                img.style.visibility = 'hidden';
+                img.onload = () => {
+                  img.style.visibility = 'visible';
+                };
+              }
+            });
+          }
+        });
+
+        // Remover o elemento temporário
+        document.body.removeChild(contentToCapture);
+
+        // Converter canvas para imagem
+        const imgData = canvas.toDataURL('image/png');
+
+        // Criar link para download
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || 'loja'}-${new Date().toISOString().slice(0, 10)}-${viewMode.value}.png`;
+        link.click();
+
+      } catch (error) {
+        console.error('Erro ao gerar imagem para compartilhamento:', error);
+
+        // Fallback - abrir uma nova janela com os elementos para impressão
+        const podiumElement = document.querySelector('.podium-section');
+
+        // Determinar qual conteúdo de ranking será capturado com base no modo de visualização
+        let rankingListElement = null;
+        if (viewMode.value === 'podium') {
+          rankingListElement = document.querySelector('.full-ranking-section');
+        } else if (viewMode.value === 'all') {
+          rankingListElement = document.querySelector('.full-ranking-section');
+        }
+
+        if (podiumElement || rankingListElement) {
+          let printContent = '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+          printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'} - Modo: ${viewMode.value === 'podium' ? 'Pódio' : 'Lista Completa'}</h1>`;
+
+          if (podiumElement) {
+            printContent += '<div style="margin-bottom: 30px;">' + podiumElement.outerHTML + '</div>';
+          }
+
+          if (rankingListElement) {
+            // Clonar a lista baseado no modo de visualização
+            const rankingClone = rankingListElement.cloneNode(true);
+            if (viewMode.value === 'podium') {
+              // Limitar a 12 colaboradores (posição 4 a 15)
+              const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+              if (rankingItems.length > 12) {
+                for (let i = 12; i < rankingItems.length; i++) {
+                  rankingItems[i].remove();
+                }
+              }
+            }
+            printContent += '<div style="margin-top: 30px;">' + rankingClone.innerHTML + '</div>';
+          }
+
+          printContent += '</div>';
+
+          const printWindow = window.open('', '_blank');
+          printWindow.document.write(`
+            <html>
+              <head>
+                <title>Ranking de Colaboradores - Compartilhamento</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: white; }
+                  .podium-section, .full-ranking-section { margin: 20px 0; background: white; }
+                  .podium-item, .ranking-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin: 10px 0; box-sizing: border-box; }
+                  .avatar-icon img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; }
+                  .avatar-icon { display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-weight: bold; }
+                </style>
+              </head>
+              <body>${printContent}</body>
+            </html>
+          `);
+          printWindow.document.close();
+          printWindow.focus();
+
+          // Aguardar um pouco para garantir que o conteúdo foi carregado
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        } else {
+          alert('Não foi possível encontrar os elementos para compartilhamento.');
+        }
+      }
+    };
+
     // Lifecycle e Watchers
     onMounted(async () => {
       if (lojaStore.isLojaSelected) {
@@ -459,6 +674,7 @@ export default {
       buscarDados,
       setPeriodo,
       exportarRanking,
+      gerarImagemParaCompartilhar,
     };
   },
 };
@@ -773,6 +989,29 @@ export default {
   opacity: 0.7;
   cursor: not-allowed;
   transform: none;
+}
+
+.share-btn {
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.share-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .spinning {
