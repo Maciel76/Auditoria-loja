@@ -1,4 +1,4 @@
-<!-- testando o git -->
+<!-- Usuarios.vue - Recreato para usar dados diretamente do modelo backend -->
 <template>
   <div class="usuarios-container">
     <!-- Seletor de Loja Obrigatório -->
@@ -15,11 +15,11 @@
 
         <div class="lojas-grid">
           <div
-            v-for="loja in lojaStore.lojas"
+            v-for="loja in lojasDisponiveis"
             :key="loja.codigo"
             class="loja-card"
             @click="selecionarLoja(loja)"
-            :class="{ loading: lojaStore.loading }"
+            :class="{ loading: carregando }"
           >
             <div class="loja-image">
               <img :src="loja.imagem" :alt="loja.nome" />
@@ -32,9 +32,9 @@
           </div>
         </div>
 
-        <div v-if="lojaStore.error" class="error-message">
+        <div v-if="erro" class="error-message">
           <i class="fas fa-exclamation-triangle"></i>
-          {{ lojaStore.error }}
+          {{ erro }}
         </div>
       </div>
     </div>
@@ -120,37 +120,32 @@
 
         <div class="filter-group">
           <label class="filter-label">
-            <i class="fas fa-filter"></i>
-            Filtro:
+            <i class="fas fa-store"></i>
+            Loja:
           </label>
-          <select
-            v-model="filtroLoja"
-            @change="carregarUsuarios"
-            class="filter-select"
-          >
-            <option value="loja">Apenas desta loja</option>
-            <option value="todos">Todos os usuários</option>
+          <select v-model="filtroLojaSelect" class="filter-select">
+            <option value="">
+              Loja Atual ({{ lojaStore.codigoLojaAtual }})
+            </option>
+            <option value="todos">Todas as lojas</option>
+            <option
+              v-for="loja in lojasDisponiveis"
+              :key="loja.codigo"
+              :value="loja.codigo"
+            >
+              {{ loja.nome }}
+            </option>
           </select>
         </div>
 
         <div class="filter-group">
           <label class="filter-label">
-            <i class="fas fa-calendar-alt"></i>
-            Data:
+            <i class="fas fa-th"></i>
+            Visualização:
           </label>
-          <select
-            v-model="dataFiltro"
-            @change="carregarUsuarios"
-            class="filter-select"
-          >
-            <option value="">Todas as datas</option>
-            <option
-              v-for="data in datasAuditoria"
-              :key="data.timestamp"
-              :value="data.data"
-            >
-              {{ data.dataFormatada }}
-            </option>
+          <select v-model="tipoVisualizacao" class="filter-select">
+            <option value="card">Cards</option>
+            <option value="lista">Lista</option>
           </select>
         </div>
       </div>
@@ -329,23 +324,22 @@
         </div>
 
         <div class="metric-card primary">
-          <div class="metric-icon user-icon">
+          <div class="metric-icon">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
               height="32"
               viewBox="0 0 24 24"
             >
-              <circle cx="12" cy="6" r="4" fill="white" />
               <path
                 fill="white"
-                d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5"
+                d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-7 0c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1m-2 14l-4-4l1.41-1.41L10 14.17l6.59-6.59L18 9z"
               />
             </svg>
           </div>
           <div class="metric-data">
-            <span class="metric-value">{{ usuarios.length }}</span>
-            <span class="metric-label">Colaboradores da Loja</span>
+            <span class="metric-value">N/A</span>
+            <span class="metric-label">Total de Auditorias</span>
           </div>
         </div>
 
@@ -414,8 +408,8 @@
         <div class="error-icon">
           <i class="fas fa-exclamation-circle"></i>
         </div>
-        <h3>Ops! Algo deu errado</h3>
-        <p>{{ erro }}</p>
+        <h3>Ops! Nenhum Colaborador Encontrado</h3>
+        <p>Ou a Loja Nao Foi Encontrada</p>
         <button @click="carregarUsuarios" class="btn-retry">
           <i class="fas fa-redo-alt"></i> Tentar Novamente
         </button>
@@ -428,6 +422,9 @@
         </div>
         <h3>Nenhum colaborador encontrado</h3>
         <p v-if="filtro">Tente ajustar os filtros de busca</p>
+        <p v-else-if="filtroLojaSelect && filtroLojaSelect !== 'todos'">
+          Ainda não foi enviada a planilha de auditoria para esta loja
+        </p>
         <p v-else>Faça o upload de uma planilha para esta loja para começar</p>
         <button v-if="filtro" @click="limparFiltros" class="btn-clear-filter">
           <i class="fas fa-times"></i> Limpar Filtros
@@ -437,8 +434,8 @@
         </router-link>
       </div>
 
-      <!-- Grid de Usuários -->
-      <div v-else class="users-grid">
+      <!-- Grid de Usuários (Cards) -->
+      <div v-else-if="tipoVisualizacao === 'card'" class="users-grid">
         <div
           v-for="usuario in usuariosFiltrados"
           :key="usuario.id"
@@ -471,7 +468,7 @@
             <p class="user-matricula">
               <i class="fas fa-id-badge"></i> {{ usuario.id }}
             </p>
-            <p class="user-loja" v-if="filtroLoja === 'todos'">
+            <p class="user-loja">
               <i class="fas fa-store"></i>
               <span>{{ usuario.lojaCompleta }}</span>
             </p>
@@ -508,6 +505,81 @@
           </div>
         </div>
       </div>
+
+      <!-- Lista de Usuários -->
+      <div v-else class="users-list">
+        <div
+          v-for="usuario in usuariosFiltrados"
+          :key="usuario.id"
+          class="user-list-item"
+          @click="verDetalhes(usuario.id)"
+        >
+          <div class="list-avatar">
+            <div class="avatar-circle-small">
+              <img
+                v-if="usuario.foto"
+                :src="usuario.foto"
+                alt="Avatar"
+                class="avatar-image"
+              />
+              <span v-else class="avatar-initials-small">{{
+                usuario.iniciais
+              }}</span>
+            </div>
+          </div>
+
+          <div class="list-info">
+            <div class="list-header">
+              <h3 class="list-name">{{ usuario.nome }}</h3>
+              <div
+                class="loja-badge-list"
+                :style="{
+                  background: gerarCorLoja(usuario.loja).gradient,
+                  boxShadow: `0 2px 8px ${gerarCorLoja(usuario.loja).shadow}`,
+                }"
+              >
+                {{ usuario.loja }}
+              </div>
+            </div>
+            <div class="list-details">
+              <span class="list-matricula">
+                <i class="fas fa-id-badge"></i> {{ usuario.id }}
+              </span>
+              <span class="list-loja">
+                <i class="fas fa-store"></i> {{ usuario.lojaCompleta }}
+              </span>
+            </div>
+          </div>
+
+          <div class="list-metrics">
+            <div class="list-metric">
+              <i class="fas fa-clipboard-list"></i>
+              <span class="list-metric-value green">{{
+                usuario.contador
+              }}</span>
+              <span class="list-metric-label">Itens</span>
+            </div>
+            <div class="list-metric">
+              <i class="fas fa-calendar-check"></i>
+              <span class="list-metric-value purple">{{
+                usuario.totalAuditorias
+              }}</span>
+              <span class="list-metric-label">Auditorias</span>
+            </div>
+          </div>
+
+          <div class="list-actions">
+            <router-link
+              :to="'/perfil/' + usuario.id"
+              class="btn-list-details"
+              @click.stop
+            >
+              <i class="fas fa-eye"></i>
+              Ver Perfil
+            </router-link>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -515,51 +587,115 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useLojaStore } from "@/store/lojaStore";
-import axios from "axios";
+import { useApi } from "@/composables/useApi";
+import { useLojaStore } from "../store/lojaStore";
 
 const router = useRouter();
 const lojaStore = useLojaStore();
 
+// Estados
 const usuarios = ref([]);
+const lojasDisponiveis = ref([
+  {
+    codigo: "056",
+    nome: "Loja 056 - Goiania Burits",
+    cidade: "Goiânia",
+    imagem: "/images/lojas/056.jpg",
+  },
+  {
+    codigo: "084",
+    nome: "Loja 084 - Goiania Independência",
+    cidade: "Goiânia",
+    imagem: "/images/lojas/084.jpg",
+  },
+  {
+    codigo: "105",
+    nome: "Loja 105 - T9",
+    cidade: "Goiânia",
+    imagem: "/images/lojas/105.jpg",
+  },
+  {
+    codigo: "111",
+    nome: "Loja 111 - Rio Verde",
+    cidade: "Rio Verde",
+    imagem: "/images/lojas/111.jpg",
+  },
+  {
+    codigo: "140",
+    nome: "Loja 140 - Perimetral",
+    cidade: "Goiânia",
+    imagem: "/images/lojas/140.jpg",
+  },
+  {
+    codigo: "214",
+    nome: "Loja 214 - Caldas Novas",
+    cidade: "Caldas Novas",
+    imagem: "/images/lojas/214.jpg",
+  },
+  {
+    codigo: "176",
+    nome: "Loja 176 - Palmas Teotônio",
+    cidade: "Palmas",
+    imagem: "/images/lojas/176.jpg",
+  },
+  {
+    codigo: "194",
+    nome: "Loja 194 - Anápolis",
+    cidade: "Anápolis",
+    imagem: "/images/lojas/194.jpg",
+  },
+  {
+    codigo: "310",
+    nome: "Loja 310 - Portugal",
+    cidade: "Goiânia",
+    imagem: "/images/lojas/310.jpg",
+  },
+  {
+    codigo: "320",
+    nome: "Loja 320 - Palmas cesamar",
+    cidade: "Palmas",
+    imagem: "/images/lojas/320.jpg",
+  },
+]);
 const filtro = ref("");
 const carregando = ref(false);
 const erro = ref("");
-const dataFiltro = ref("");
-const filtroLoja = ref("loja");
-const datasAuditoria = ref([]);
+const filtroLojaSelect = ref("");
+const tipoVisualizacao = ref("card");
+const totalColaboradoresGeral = ref(0);
+const melhorColaborador = ref(null);
 
-onMounted(async () => {
-  // Carregar loja do localStorage se existir
-  lojaStore.carregarLoja();
-
-  // Se tem loja selecionada, carregar dados
+// Carregar dados da loja ao montar
+onMounted(() => {
   if (lojaStore.isLojaSelected) {
-    await carregarDatasAuditoria();
-    await carregarUsuarios();
+    carregarUsuarios();
   }
 });
 
-// Watch para recarregar dados quando loja mudar
-watch(
-  () => lojaStore.lojaSelecionada,
-  async (novaLoja) => {
-    if (novaLoja) {
-      await carregarDatasAuditoria();
-      await carregarUsuarios();
-    } else {
-      usuarios.value = [];
-      datasAuditoria.value = [];
-    }
-  }
-);
+// Observar mudanças no filtro de loja e recarregar
+watch(filtroLojaSelect, () => {
+  carregarUsuarios();
+});
 
 // Selecionar loja
 const selecionarLoja = async (loja) => {
-  const sucesso = await lojaStore.selecionarLoja(loja);
-  if (sucesso) {
-    await carregarDatasAuditoria();
-    await carregarUsuarios();
+  try {
+    carregando.value = true;
+    erro.value = "";
+
+    // Usar a store para selecionar a loja
+    const sucesso = await lojaStore.selecionarLoja(loja);
+
+    if (sucesso) {
+      await carregarUsuarios();
+    } else {
+      erro.value = "Erro ao validar loja. Tente novamente.";
+    }
+  } catch (error) {
+    erro.value = "Erro ao validar loja. Tente novamente.";
+    console.error("Erro ao selecionar loja:", error);
+  } finally {
+    carregando.value = false;
   }
 };
 
@@ -567,14 +703,109 @@ const selecionarLoja = async (loja) => {
 const trocarLoja = () => {
   lojaStore.limparLoja();
   usuarios.value = [];
-  datasAuditoria.value = [];
 };
 
-// Voltar para seleção de loja
-const voltarSelecaoLoja = () => {
-  lojaStore.limparLoja();
-  usuarios.value = [];
-  datasAuditoria.value = [];
+// Carregar usuários da loja selecionada
+const carregarUsuarios = async () => {
+  if (!lojaStore.isLojaSelected) return;
+
+  const { api } = useApi();
+  try {
+    carregando.value = true;
+    erro.value = "";
+
+    // Configurar parâmetros e headers baseado no filtro
+    const config = {};
+
+    // Se filtroLojaSelect = "todos", carregar todos os usuários
+    if (filtroLojaSelect.value === "todos") {
+      config.params = { todos: "true" };
+      config.headers = { "x-loja": lojaStore.codigoLojaAtual };
+    } else if (filtroLojaSelect.value) {
+      // Se tiver uma loja específica selecionada, usar ela no header
+      config.headers = { "x-loja": filtroLojaSelect.value };
+    } else {
+      // Se filtroLojaSelect estiver vazio, carrega da loja atual (comportamento padrão)
+      config.headers = { "x-loja": lojaStore.codigoLojaAtual };
+    }
+
+    const { data } = await api.get("/metricas/usuarios", config);
+
+    usuarios.value = data.usuarios.map((user) => ({
+      id: user.id,
+      nome: user.nome,
+      contador: user.contador || 0,
+      iniciais: user.iniciais || obterIniciais(user.nome),
+      loja: user.loja || lojaStore.codigoLojaAtual,
+      lojaCompleta: user.lojaCompleta || lojaStore.nomeLojaAtual,
+      foto: user.foto,
+      ultimaAuditoria: user.ultimaAuditoria,
+      totalAuditorias: user.totalAuditorias || 0,
+    }));
+
+    // Atualizar estatísticas com base nos novos dados
+    totalColaboradoresGeral.value = data.totalColaboradoresGeral || 0;
+    melhorColaborador.value = data.melhorColaborador || null;
+
+    const lojaMsg =
+      filtroLojaSelect.value === "todos"
+        ? "todas as lojas"
+        : filtroLojaSelect.value
+        ? `loja ${filtroLojaSelect.value}`
+        : `loja ${lojaStore.codigoLojaAtual}`;
+    console.log(
+      `✅ ${usuarios.value.length} usuários carregados de ${lojaMsg}`
+    );
+  } catch (error) {
+    console.error("Erro ao carregar usuários:", error);
+    erro.value =
+      error.response?.data?.erro || "Erro ao carregar dados do servidor";
+  } finally {
+    carregando.value = false;
+  }
+};
+
+// Obter iniciais do nome
+const obterIniciais = (nome) => {
+  if (!nome) return "??";
+  const nomeLimpo = nome.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+  return (
+    nomeLimpo
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2) || "??"
+  );
+};
+
+// Extrair nome simples da loja
+function extrairNomeSimples(nomeCompleto) {
+  if (!nomeCompleto) return "Carregando...";
+  const partes = nomeCompleto.split(" - ");
+  return partes.length > 1 ? partes[1] : nomeCompleto;
+}
+
+// Tratar erro de imagem
+function handleImageError(event) {
+  event.target.src = "/images/lojas/default.jpg";
+}
+
+// Formatar data para exibição
+const formatarData = (dataString) => {
+  if (!dataString) return "-";
+  const data = new Date(dataString);
+  return data.toLocaleDateString("pt-BR");
+};
+
+// Navegar para detalhes do usuário
+const verDetalhes = (id) => {
+  router.push(`/perfil/${id}?loja=${lojaStore.codigoLojaAtual}`);
+};
+
+// Limpar filtros
+const limparFiltros = () => {
+  filtro.value = "";
 };
 
 // Limitar nome do usuário
@@ -676,115 +907,11 @@ const gerarCorLoja = (codigoLoja) => {
   return coresAutomaticas[numero % coresAutomaticas.length];
 };
 
-// Carregar datas de auditoria disponíveis
-const carregarDatasAuditoria = async () => {
-  try {
-    const { data } = await axios.get("http://localhost:3000/datas-auditoria", {
-      headers: {
-        "x-loja": lojaStore.codigoLojaAtual,
-      },
-    });
-    datasAuditoria.value = data;
-  } catch (error) {
-    console.error("Erro ao carregar datas:", error);
-  }
-};
-
-// Carregar usuários da loja selecionada
-const carregarUsuarios = async () => {
-  if (!lojaStore.isLojaSelected) return;
-
-  try {
-    carregando.value = true;
-    erro.value = "";
-
-    const params = {};
-    if (dataFiltro.value) {
-      params.dataAuditoria = dataFiltro.value;
-    }
-    if (filtroLoja.value === "todos") {
-      params.todos = "true";
-    }
-
-    const { data } = await axios.get("http://localhost:3000/usuarios", {
-      params,
-      headers: {
-        "x-loja": lojaStore.codigoLojaAtual,
-      },
-    });
-
-    usuarios.value = data.map((user) => ({
-      id: user.id,
-      nome: user.nome,
-      contador: user.contador || 0,
-      iniciais: user.iniciais || obterIniciais(user.nome),
-      loja: user.loja || lojaStore.codigoLojaAtual,
-      lojaCompleta: user.lojaCompleta || lojaStore.nomeLojaAtual,
-      foto: user.foto,
-      ultimaAuditoria: user.ultimaAuditoria,
-      totalAuditorias: user.totalAuditorias || 0,
-    }));
-
-    console.log(
-      `✅ ${usuarios.value.length} usuários carregados da loja ${lojaStore.codigoLojaAtual}`
-    );
-  } catch (error) {
-    console.error("Erro ao carregar usuários:", error);
-    erro.value =
-      error.response?.data?.erro || "Erro ao carregar dados do servidor";
-  } finally {
-    carregando.value = false;
-  }
-};
-
-// Obter iniciais do nome
-const obterIniciais = (nome) => {
-  if (!nome) return "??";
-  const nomeLimpo = nome.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
-  return (
-    nomeLimpo
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2) || "??"
-  );
-};
-
-// Extrair nome simples da loja
-function extrairNomeSimples(nomeCompleto) {
-  if (!nomeCompleto) return "Carregando...";
-  const partes = nomeCompleto.split(" - ");
-  return partes.length > 1 ? partes[1] : nomeCompleto;
-}
-
-// Tratar erro de imagem
-function handleImageError(event) {
-  event.target.src = "/images/lojas/default.jpg";
-}
-
-// Formatar data para exibição
-const formatarData = (dataString) => {
-  if (!dataString) return "-";
-  const data = new Date(dataString);
-  return data.toLocaleDateString("pt-BR");
-};
-
-// Navegar para detalhes do usuário
-const verDetalhes = (id) => {
-  router.push(`/perfil/${id}?loja=${lojaStore.codigoLojaAtual}`);
-};
-
-// Limpar filtros
-const limparFiltros = () => {
-  filtro.value = "";
-};
-
 // Computed: Usuários filtrados
 const usuariosFiltrados = computed(() => {
   let resultado = usuarios.value;
 
-  // Filtro por nome ou matrícula
+  // Filtro por nome ou matrícula (apenas filtro local)
   if (filtro.value) {
     const filtroLower = filtro.value.toLowerCase();
     resultado = resultado.filter(
@@ -797,33 +924,31 @@ const usuariosFiltrados = computed(() => {
   return resultado;
 });
 
+// Computed: Total de auditorias da loja atual
+const totalAuditoriasLoja = computed(() => {
+  const usuariosDaLoja = usuarios.value.filter(
+    (u) => u.loja === lojaStore.codigoLojaAtual
+  );
+  return usuariosDaLoja.reduce(
+    (total, u) => total + (u.totalAuditorias || 0),
+    0
+  );
+});
+
 // Computed: Total de itens lidos
 const totalItensLidos = computed(() =>
   usuarios.value.reduce((total, usuario) => total + usuario.contador, 0)
 );
 
-// Computed: Média de itens por usuário
-const mediaItensPorUsuario = computed(() =>
-  usuarios.value.length
-    ? Math.round(totalItensLidos.value / usuarios.value.length)
-    : 0
-);
-
-// Computed: Total de colaboradores em todas as lojas (simulado como um número maior)
-const totalColaboradoresGeral = computed(() => {
-  // Para este exemplo, vamos simular que há mais colaboradores em todas as lojas
-  // Em uma implementação real, isso viria de uma API que retorna dados gerais
-  return usuarios.value.length * 3; // Simulando que há 3x mais colaboradores no total
-});
-
-// Computed: Melhor colaborador da loja
-const melhorColaborador = computed(() => {
-  if (usuarios.value.length === 0) return null;
-
-  // Encontra o colaborador com maior número de itens lidos
-  return usuarios.value.reduce((melhor, atual) => {
-    return atual.contador > melhor.contador ? atual : melhor;
-  });
+// Computed: Média de itens por usuário (baseada apenas na loja atual)
+const mediaItensPorUsuario = computed(() => {
+  const usuariosDaLoja = usuarios.value.filter(
+    (u) => u.loja === lojaStore.codigoLojaAtual
+  );
+  const totalItens = usuariosDaLoja.reduce((sum, u) => sum + u.contador, 0);
+  return usuariosDaLoja.length
+    ? Math.round(totalItens / usuariosDaLoja.length)
+    : 0;
 });
 </script>
 
@@ -1817,6 +1942,168 @@ const melhorColaborador = computed(() => {
   }
 }
 
+/* ===== VISUALIZAÇÃO EM LISTA ===== */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-list-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-left: 4px solid transparent;
+}
+
+.user-list-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+  border-left-color: #667eea;
+}
+
+.list-avatar {
+  flex-shrink: 0;
+}
+
+.avatar-circle-small {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  overflow: hidden;
+}
+
+.avatar-initials-small {
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.loja-badge-list {
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.list-details {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.list-matricula,
+.list-loja {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.list-matricula {
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.list-metrics {
+  display: flex;
+  gap: 2rem;
+  padding: 0 1rem;
+  border-left: 2px solid #e2e8f0;
+  border-right: 2px solid #e2e8f0;
+}
+
+.list-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.list-metric i {
+  color: #667eea;
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.list-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.list-metric-value.green {
+  color: #10b981;
+}
+
+.list-metric-value.purple {
+  color: #8b5cf6;
+}
+
+.list-metric-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.list-actions {
+  flex-shrink: 0;
+}
+
+.btn-list-details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.btn-list-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
 @media (max-width: 480px) {
   .header-content {
     flex-direction: column;
@@ -1848,6 +2135,37 @@ const melhorColaborador = computed(() => {
 
   .users-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Lista responsiva em mobile */
+  .user-list-item {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .list-metrics {
+    width: 100%;
+    border-left: none;
+    border-right: none;
+    border-top: 2px solid #e2e8f0;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 1rem 0;
+    justify-content: space-around;
+  }
+
+  .list-actions {
+    width: 100%;
+  }
+
+  .btn-list-details {
+    width: 100%;
   }
 }
 </style>

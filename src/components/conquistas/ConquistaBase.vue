@@ -2,9 +2,9 @@
   <div
     class="conquista-card"
     :class="{
-      'desbloqueada': conquistaData.desbloqueada,
-      'nova': conquistaData.nova,
-      'repeticao': conquistaData.repeticao
+      desbloqueada: conquistaData.desbloqueada,
+      nova: conquistaData.nova,
+      repeticao: conquistaData.repeticao,
     }"
   >
     <div class="conquista-icon">
@@ -28,7 +28,10 @@
         </div>
       </div>
 
-      <div v-if="conquistaData.progresso !== undefined" class="progresso-container">
+      <div
+        v-if="conquistaData.progresso !== undefined"
+        class="progresso-container"
+      >
         <div class="progresso-bar">
           <div
             class="progresso-fill"
@@ -55,19 +58,19 @@ export default {
       type: Object,
       required: true,
       default: () => ({
-        id: '',
-        nome: '',
-        descricao: '',
-        icone: '🏆',
+        id: "",
+        nome: "",
+        descricao: "",
+        icone: "🏆",
         xp: 0,
         desbloqueada: false,
         nova: false,
         repeticao: null,
-        progresso: undefined
-      })
-    }
-  }
-}
+        progresso: undefined,
+      }),
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -162,7 +165,8 @@ export default {
   margin-bottom: 1rem;
 }
 
-.xp-badge, .repeticao-badge {
+.xp-badge,
+.repeticao-badge {
   background: #f1f5f9;
   border-radius: 12px;
   padding: 0.4rem 0.8rem;
@@ -183,7 +187,8 @@ export default {
   color: #1e40af;
 }
 
-.xp-icon, .repeticao-icon {
+.xp-icon,
+.repeticao-icon {
   font-size: 0.9rem;
 }
 
@@ -231,7 +236,8 @@ export default {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
   50% {

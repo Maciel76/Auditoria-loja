@@ -177,8 +177,12 @@ export const useLojaStore = defineStore("loja", {
       if (!axios.defaults.headers.common) {
         axios.defaults.headers.common = {};
       }
-      axios.defaults.headers.common["x-loja"] = codigo;
-      console.log(`🔧 Header configurado: x-loja = ${codigo}`);
+
+      // Só atualiza e faz log se o valor realmente mudar
+      if (axios.defaults.headers.common["x-loja"] !== codigo) {
+        axios.defaults.headers.common["x-loja"] = codigo;
+        console.log(`🔧 Header configurado: x-loja = ${codigo}`);
+      }
     },
 
     // Verificar se loja ainda é válida

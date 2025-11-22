@@ -16,7 +16,8 @@ api.interceptors.request.use(
   (config) => {
     const lojaStore = useLojaStore();
 
-    if (lojaStore.codigoLojaAtual) {
+    // Só adiciona o header se ainda não estiver definido
+    if (!config.headers["x-loja"] && lojaStore.codigoLojaAtual) {
       config.headers["x-loja"] = lojaStore.codigoLojaAtual;
     }
 
