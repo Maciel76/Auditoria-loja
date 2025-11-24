@@ -137,7 +137,7 @@
     <div class="resumo-estatistico">
       <div class="estatisticas-grid">
         <div class="estatistica-card">
-          <div class="estatistica-valor">{{ percentualConclusaoGeral }}%</div>
+          <div class="estatistica-valor">{{ percentualConclusaoGeral.toFixed(1) }}%</div>
           <div class="estatistica-label">Conclusão Geral</div>
         </div>
         <div class="estatistica-card">
@@ -147,6 +147,10 @@
         <div class="estatistica-card">
           <div class="estatistica-valor">{{ itensLidos }}</div>
           <div class="estatistica-label">Itens Lidos</div>
+        </div>
+        <div class="estatistica-card">
+          <div class="estatistica-valor">👥 {{ totalColaboradores }}</div>
+          <div class="estatistica-label">Colaboradores Envolvidos</div>
         </div>
         <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'etiquetas'">
           <div class="estatistica-valor">{{ itensAtualizados }}</div>
@@ -159,7 +163,7 @@
           <div class="estatistica-label">Custo Total Ruptura</div>
         </div>
         <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'presencas'">
-          <div class="estatistica-valor">{{ percentualPresenca }}%</div>
+          <div class="estatistica-valor">{{ percentualPresenca.toFixed(1) }}%</div>
           <div class="estatistica-label">Presenças Confirmadas</div>
         </div>
       </div>
@@ -229,6 +233,13 @@
                 </div>
               </div>
 
+              <div class="metrica-item">
+                <div class="metrica-label">👥 Colaboradores</div>
+                <div class="metrica-valor">
+                  {{ colaboradoresSetor.length }}
+                </div>
+              </div>
+
               <!-- Métricas específicas por tipo de auditoria -->
               <div
                 class="metrica-item"
@@ -267,13 +278,6 @@
                 <div class="metrica-label">Presenças Confirmadas</div>
                 <div class="metrica-valor">
                   {{ setorSelecionado.presencasConfirmadas || 0 }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">Percentual de Conclusão</div>
-                <div class="metrica-valor">
-                  {{ getPercentualLeitura(setorSelecionado).toFixed(1) }}%
                 </div>
               </div>
             </div>
@@ -317,17 +321,10 @@
               </div>
             </div>
 
+            <!-- Informações Detalhadas - COMENTADO (não necessário)
             <div class="detalhes-adicionais">
               <h5>Informações Detalhadas</h5>
               <div class="info-grid">
-                <div class="info-item">
-                  <span class="info-label">Percentual de Conclusão:</span>
-                  <span class="info-value"
-                    >{{
-                      getPercentualLeitura(setorSelecionado).toFixed(1)
-                    }}%</span
-                  >
-                </div>
                 <div class="info-item">
                   <span class="info-label">Eficiência de Leitura:</span>
                   <span
@@ -351,6 +348,7 @@
                 </div>
               </div>
             </div>
+            -->
           </div>
         </div>
         <div class="modal-footer">
@@ -703,10 +701,44 @@ const dadosFiltrados = computed(() => {
   );
 });
 
-// Computed para obter colaboradores do setor selecionado
+// Computed para obter colaboradores do setor selecionado (DADOS REAIS DA API)
 const colaboradoresSetor = computed(() => {
   if (!setorSelecionado.value) return [];
-  return colaboradoresPorSetor[setorSelecionado.value.ClasseProduto] || [];
+
+  // Buscar os dados reais da classe no tipo de auditoria atual
+  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+
+  const classeAtual = auditoriaAtual.classesLeitura[setorSelecionado.value.ClasseProduto];
+  if (!classeAtual || !classeAtual.usuarios) return [];
+
+  // Transformar o objeto de usuários em array de colaboradores
+  const usuariosArray = Object.entries(classeAtual.usuarios).map(([nome, itensLidos], index) => {
+    // Calcular eficiência baseada na quantidade de itens lidos
+    const eficiencia = classeAtual.itensValidos > 0
+      ? Math.min(Math.round((itensLidos / classeAtual.itensValidos) * 100 * 10), 100)
+      : 0;
+
+    // Determinar avatar baseado no índice (rotação de emojis)
+    const avatares = ["👨‍💼", "👩‍💼", "👨‍🔧", "👩‍🔧", "👨‍🎨", "👩‍🎨", "👨‍🍳", "👩‍🍳"];
+    const avatar = avatares[index % avatares.length];
+
+    // Determinar status (ativo se leu itens, ausente se não leu)
+    const status = itensLidos > 0 ? "ativo" : "ausente";
+
+    return {
+      id: index + 1,
+      nome: nome,
+      funcao: "Auditor", // Poderia ser enriquecido com dados reais se disponível
+      status: status,
+      itensLidos: itensLidos,
+      eficiencia: eficiencia,
+      avatar: avatar,
+    };
+  });
+
+  // Ordenar por quantidade de itens lidos (decrescente)
+  return usuariosArray.sort((a, b) => b.itensLidos - a.itensLidos);
 });
 
 // Computed properties para o resumo
@@ -738,6 +770,28 @@ const custoTotalRuptura = computed(() => {
 
 const percentualPresenca = computed(() => {
   return dadosReais.value.metricas.presencas?.percentualPresenca || 0;
+});
+
+// Computed para calcular total de colaboradores únicos envolvidos
+const totalColaboradores = computed(() => {
+  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return 0;
+
+  // Coletar todos os usuários únicos de todas as classes
+  const usuariosUnicos = new Set();
+
+  Object.values(auditoriaAtual.classesLeitura).forEach((classe) => {
+    if (classe.usuarios) {
+      Object.keys(classe.usuarios).forEach((usuario) => {
+        // Ignorar "Produto não auditado" da contagem
+        if (usuario !== "Produto não auditado") {
+          usuariosUnicos.add(usuario);
+        }
+      });
+    }
+  });
+
+  return usuariosUnicos.size;
 });
 
 
@@ -818,20 +872,66 @@ const buscarMetricasLoja = async () => {
 
     const { api } = useApi();
 
-    // Buscar métricas diárias da loja
-    const response = await api.get('/api/metricas/loja-daily');
+    // Buscar métricas completas de todas as auditorias (etiquetas, rupturas, presencas)
+    const response = await api.get('/api/metricas/loja-daily/classes-completas');
 
     if (response.data) {
-      // Se houver dados reais de métricas, usar eles
-      if (response.data.metricas) {
-        dadosReais.value = response.data;
-      }
-      // Senão, usar dados fakes se disponíveis
-      else if (response.data.dadosFakes) {
-        dadosReais.value = response.data.dadosFakes;
-        console.log("⚠️ Usando dados simulados (nenhuma métrica real encontrada)");
-      }
-      console.log("✅ Métricas da loja carregadas com sucesso:", dadosReais.value);
+      // Mapear os dados do novo endpoint para a estrutura esperada pelo componente
+      dadosReais.value = {
+        usuarioId: "", // Não disponível neste endpoint
+        loja: "", // Será preenchido pelo nome da loja
+        lojaNome: response.data.loja || "",
+        metricas: {
+          data: response.data.data || new Date().toISOString(),
+
+          // Etiquetas
+          etiquetas: {
+            totalItens: response.data.etiquetas?.resumo?.totalItens || 0,
+            itensValidos: response.data.etiquetas?.resumo?.itensValidos || 0,
+            itensLidos: response.data.etiquetas?.resumo?.itensValidos || 0,
+            itensAtualizados: response.data.etiquetas?.resumo?.itensAtualizados || 0,
+            itensDesatualizado: response.data.etiquetas?.resumo?.itensDesatualizado || 0,
+            percentualConclusao: response.data.etiquetas?.resumo?.percentualConclusao || 0,
+            percentualDesatualizado: response.data.etiquetas?.resumo?.percentualDesatualizado || 0,
+            classesLeitura: response.data.etiquetas?.classesLeitura || {},
+            contadorClasses: {},
+          },
+
+          // Rupturas
+          rupturas: {
+            totalItens: response.data.rupturas?.resumo?.totalItens || 0,
+            itensLidos: response.data.rupturas?.resumo?.itensLidos || 0,
+            itensAtualizados: response.data.rupturas?.resumo?.itensLidos || 0,
+            percentualConclusao: response.data.rupturas?.resumo?.percentualConclusao || 0,
+            custoTotalRuptura: response.data.rupturas?.resumo?.custoTotalRuptura || 0,
+            classesLeitura: response.data.rupturas?.classesLeitura || {},
+            contadorClasses: {},
+          },
+
+          // Presenças
+          presencas: {
+            totalItens: response.data.presencas?.resumo?.totalItens || 0,
+            itensLidos: response.data.presencas?.resumo?.itensValidos || 0,
+            itensAtualizados: response.data.presencas?.resumo?.itensAtualizados || 0,
+            percentualConclusao: response.data.presencas?.resumo?.percentualConclusao || 0,
+            presencasConfirmadas: response.data.presencas?.resumo?.presencasConfirmadas || 0,
+            percentualPresenca: response.data.presencas?.resumo?.percentualConclusao || 0,
+            classesLeitura: response.data.presencas?.classesLeitura || {},
+            contadorClasses: {},
+          },
+
+          // Totais consolidados
+          totais: {
+            totalItens: response.data.totais?.totalItens || 0,
+            itensLidos: 0,
+            itensAtualizados: 0,
+            percentualConclusaoGeral: response.data.totais?.percentualConclusaoGeral || 0,
+            pontuacaoTotal: 0,
+          },
+        },
+      };
+
+      console.log("✅ Métricas completas carregadas com sucesso:", dadosReais.value);
     }
   } catch (error) {
     console.error("❌ Erro ao buscar métricas da loja:", error);

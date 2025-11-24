@@ -1,6 +1,24 @@
 <template>
   <div class="summary-cards-container">
-    <div class="summary-cards">
+    <!-- Loading state -->
+    <div v-if="loading" class="summary-cards">
+      <div v-for="i in 4" :key="i" class="summary-card skeleton">
+        <div class="summary-icon skeleton-icon"></div>
+        <div class="summary-content">
+          <div class="skeleton-line skeleton-value"></div>
+          <div class="skeleton-line skeleton-label"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div v-else-if="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <button @click="buscarMetricas" class="retry-button">Tentar novamente</button>
+    </div>
+
+    <!-- Data loaded -->
+    <div v-else class="summary-cards">
       <div class="summary-card">
         <div class="summary-icon distribuicao">
           <span class="summary-emoji">📊</span>
@@ -54,40 +72,74 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useApi } from "@/composables/useApi";
 
-// Dados de exemplo - você pode substituir por props posteriormente
-const dadosExemplo = ref({
-  auditoriasRealizadas: 20,
-  variacaoAuditorias: 12,
-  posicaoGeral: 3,
-  colaboradorDestaque: "Jhon Doe",
-  totalColaboradores: 28,
+// Estado de loading e erro
+const loading = ref(true);
+const error = ref(null);
+
+// Instância do API
+const { get } = useApi();
+
+// Dados da API
+const dadosMetricas = ref({
+  auditoriasRealizadas: 0,
+  variacaoAuditorias: 0,
+  posicaoGeral: 0,
+  colaboradorDestaque: "N/A",
+  totalColaboradores: 0,
 });
 
 // Computed properties para os dados
 const auditoriasRealizadas = computed(
-  () => dadosExemplo.value.auditoriasRealizadas
+  () => dadosMetricas.value.auditoriasRealizadas
 );
 const variacaoAuditorias = computed(
-  () => dadosExemplo.value.variacaoAuditorias
+  () => dadosMetricas.value.variacaoAuditorias
 );
-const posicaoGeral = computed(() => dadosExemplo.value.posicaoGeral);
+const posicaoGeral = computed(() => dadosMetricas.value.posicaoGeral);
 const colaboradorDestaque = computed(
-  () => dadosExemplo.value.colaboradorDestaque
+  () => dadosMetricas.value.colaboradorDestaque
 );
 const totalColaboradores = computed(
-  () => dadosExemplo.value.totalColaboradores
+  () => dadosMetricas.value.totalColaboradores
 );
 
-// Se quiser tornar o componente mais flexível, pode adicionar props:
-// const props = defineProps({
-//   auditorias: Number,
-//   posicao: Number,
-//   colaborador: String,
-//   totalColaboradores: Number,
-//   variacao: Number
-// })
+// Função para buscar métricas da loja
+const buscarMetricas = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    const response = await get("/metricas/lojas");
+
+    if (response.data) {
+      dadosMetricas.value = {
+        auditoriasRealizadas: response.data.auditoriasRealizadas || 0,
+        variacaoAuditorias: response.data.variacaoAuditorias || 0,
+        posicaoGeral: response.data.posicaoGeral || 0,
+        colaboradorDestaque: response.data.colaboradorDestaque || "N/A",
+        totalColaboradores: response.data.totalColaboradores || 0,
+      };
+    }
+  } catch (err) {
+    console.error("Erro ao buscar métricas da loja:", err);
+    error.value = err.message || "Erro ao carregar dados";
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Carregar dados ao montar o componente
+onMounted(() => {
+  buscarMetricas();
+});
+
+// Expor função de atualização para componentes pai (opcional)
+defineExpose({
+  buscarMetricas,
+});
 </script>
 
 <style scoped>
@@ -179,6 +231,81 @@ const totalColaboradores = computed(
 
 .summary-trend.negative {
   color: #f44336;
+}
+
+/* Loading skeleton styles */
+.summary-card.skeleton {
+  pointer-events: none;
+}
+
+.skeleton-icon {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 10px;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-value {
+  height: 1.5rem;
+  width: 60%;
+}
+
+.skeleton-label {
+  height: 0.9rem;
+  width: 80%;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Error state styles */
+.error-container {
+  padding: 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.error-message {
+  color: #f44336;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.retry-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.retry-button:active {
+  transform: translateY(0);
 }
 
 /* Responsividade */
