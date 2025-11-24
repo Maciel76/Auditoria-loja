@@ -88,8 +88,8 @@
             </td>
 
             <!-- Itens totais e lidos -->
-            <td class="meta-cell">{{ setor.itensValidos || setor.totalItens }}</td>
-            <td class="conformidade-cell">{{ setor.itensLidos }}</td>
+            <td class="meta-cell">{{ setor.totalItens }}</td>
+            <td class="conformidade-cell">{{ setor.itensValidos }}</td>
 
             <!-- Coluna dinâmica baseada no tipo de auditoria -->
             <td
@@ -108,7 +108,7 @@
               }}
             </td>
             <td v-else class="atualizados-cell">
-              {{ setor.itensAtualizados || 0 }}
+              {{ setor.itensLidos || 0 }}
             </td>
 
             <!-- Status -->
