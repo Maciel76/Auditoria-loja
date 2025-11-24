@@ -1,1163 +1,874 @@
 <template>
-  <div class="performance-map-container">
-    <!-- Header -->
-    <div class="section-header">
-      <div class="header-main">
-        <div class="title-section">
-          <div class="title-icon">🗺️</div>
-          <div class="title-content">
-            <h2>Mapa de Performance</h2>
-            <p>Visualize o desempenho das áreas da loja de forma geográfica</p>
-          </div>
-        </div>
-        <div class="header-controls">
-          <div class="filter-group">
-            <div class="filter-item">
-              <label class="filter-label">Visualização:</label>
-              <div class="view-toggle">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: visualizacaoAtiva === 'setorial' }"
-                  @click="visualizacaoAtiva = 'setorial'"
-                >
-                  📊 Setorial
-                </button>
-                <button
-                  class="toggle-btn"
-                  :class="{ active: visualizacaoAtiva === 'geografica' }"
-                  @click="visualizacaoAtiva = 'geografica'"
-                >
-                  🗺️ Geográfica
-                </button>
-              </div>
-            </div>
-            <div class="filter-item">
-              <label class="filter-label">Métrica:</label>
-              <select v-model="metricaSelecionada" class="filter-select">
-                <option value="conformidade">Conformidade</option>
-                <option value="desempenho">Desempenho</option>
-                <option value="atendimento">Atendimento</option>
-                <option value="estoque">Gestão de Estoque</option>
-              </select>
-            </div>
-          </div>
-          <div class="header-actions">
-            <button class="action-btn secondary" @click="exportarMapa">
-              📥 Exportar Mapa
-            </button>
-            <button class="action-btn primary" @click="alternarVistaDetalhada">
-              {{ vistaDetalhada ? "Vista Simplificada" : "Vista Detalhada" }}
-            </button>
-          </div>
+  <div class="metricas-corredor-container">
+    <!-- Indicador de carregamento -->
+    <div v-if="carregando" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Carregando métricas dos corredores...</p>
+    </div>
+
+    <!-- Mensagem de erro -->
+    <div v-else-if="erro" class="erro-container">
+      <p class="erro-mensagem">{{ erro }}</p>
+      <button class="action-btn" @click="buscarMetricasLoja">
+        Tentar Novamente
+      </button>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div v-else>
+      <div class="metricas-header">
+        <h3>🗺️ Mapa de Desempenho por Corredor</h3>
+        <div class="metricas-actions">
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
+            @click="alterarTipoAuditoria('etiquetas')"
+          >
+            Etiqueta
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'presencas' }"
+            @click="alterarTipoAuditoria('presencas')"
+          >
+            Presença
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
+            @click="alterarTipoAuditoria('rupturas')"
+          >
+            Ruptura
+          </button>
         </div>
       </div>
 
       <!-- Cards de Resumo -->
-      <div class="summary-cards">
-        <div class="summary-card">
-          <div class="summary-icon media">📊</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ desempenhoMedio }}%</div>
-            <div class="summary-label">Desempenho Médio</div>
-            <div class="summary-trend" :class="tendenciaGeral">
-              {{ tendenciaGeral === "positive" ? "↗" : "↘" }}
-              {{ Math.abs(variacaoMedia) }}%
-            </div>
+      <div class="resumo-cards">
+        <div class="resumo-card">
+          <div class="resumo-icon">📊</div>
+          <div class="resumo-content">
+            <div class="resumo-valor">{{ desempenhoMedio }}%</div>
+            <div class="resumo-label">Desempenho Médio</div>
           </div>
         </div>
-        <div class="summary-card">
-          <div class="summary-icon excelente">🏆</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ setorDestaque.nome }}</div>
-            <div class="summary-label">Setor em Destaque</div>
-            <div class="summary-trend positive">
-              {{ setorDestaque.pontuacao }}%
-            </div>
+        <div class="resumo-card">
+          <div class="resumo-icon">✅</div>
+          <div class="resumo-content">
+            <div class="resumo-valor">{{ totalItens }}</div>
+            <div class="resumo-label">Total de Itens</div>
           </div>
         </div>
-        <div class="summary-card">
-          <div class="summary-icon atencao">⚠️</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ setorCritico.nome }}</div>
-            <div class="summary-label">Necessita Atenção</div>
-            <div class="summary-trend negative">
-              {{ setorCritico.pontuacao }}%
-            </div>
+        <div class="resumo-card">
+          <div class="resumo-icon">👥</div>
+          <div class="resumo-content">
+            <div class="resumo-valor">{{ totalColaboradores }}</div>
+            <div class="resumo-label">Colaboradores</div>
           </div>
         </div>
-        <div class="summary-card">
-          <div class="summary-icon auditorias">📋</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ totalAuditorias }}</div>
-            <div class="summary-label">Auditorias Realizadas</div>
-            <div class="summary-trend positive">+12%</div>
+        <div class="resumo-card">
+          <div class="resumo-icon">🎯</div>
+          <div class="resumo-content">
+            <div class="resumo-valor">{{ corredorDestaque.nome }}</div>
+            <div class="resumo-label">Melhor Corredor</div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Conteúdo Principal -->
-    <div class="map-content">
-      <!-- Mapa Setorial -->
-      <div v-if="visualizacaoAtiva === 'setorial'" class="mapa-setorial">
-        <div class="setores-grid" :class="{ detailed: vistaDetalhada }">
+      <!-- Grid de Corredores -->
+      <div class="corredores-grid">
+        <div
+          v-for="corredor in dadosFiltrados"
+          :key="corredor.local"
+          class="corredor-card"
+          :class="getStatusCorredor(corredor)"
+          @click="verDetalhesCorredor(corredor)"
+        >
+          <div class="corredor-header">
+            <div class="corredor-icon">
+              {{ getIconeCorredor(corredor.local) }}
+            </div>
+            <div class="corredor-info">
+              <h4 class="corredor-nome">
+                {{ formatarNomeCorredor(corredor.local) }}
+              </h4>
+              <div class="corredor-score">
+                {{ getPercentualLeitura(corredor) }}%
+              </div>
+            </div>
+            <div class="corredor-status" :class="getStatusCorredor(corredor)">
+              {{ getStatusLabel(getPercentualLeitura(corredor)) }}
+            </div>
+          </div>
+
+          <div class="corredor-progress">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: getPercentualLeitura(corredor) + '%' }"
+                :class="getClasseDesempenho(getPercentualLeitura(corredor))"
+              ></div>
+            </div>
+            <div class="progress-text">
+              {{ getPercentualLeitura(corredor).toFixed(0) }}% concluído
+            </div>
+          </div>
+
+          <div class="corredor-stats">
+            <div class="stat">
+              <span class="stat-value">{{ corredor.total }}</span>
+              <span class="stat-label">Total</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ corredor.itensValidos }}</span>
+              <span class="stat-label">Válidos</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ corredor.lidos }}</span>
+              <span class="stat-label">Lidos</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{
+                Object.keys(corredor.usuarios || {}).length
+              }}</span>
+              <span class="stat-label">Colab.</span>
+            </div>
+          </div>
+
+          <!-- Colaboradores do corredor -->
           <div
-            v-for="setor in setores"
-            :key="setor.id"
-            class="setor-card"
-            :class="[
-              setor.status,
-              {
-                selecionado: setorSelecionado?.id === setor.id,
-                'with-details': vistaDetalhada,
-              },
-            ]"
-            @click="selecionarSetor(setor)"
+            v-if="
+              corredor.usuarios && Object.keys(corredor.usuarios).length > 0
+            "
+            class="corredor-colaboradores"
           >
-            <div class="setor-header">
-              <div class="setor-icon">{{ setor.icone }}</div>
-              <div class="setor-info">
-                <span class="setor-nome">{{ setor.nome }}</span>
-                <span class="setor-score">{{ setor.pontuacao }}%</span>
+            <div class="colaboradores-label">Colaboradores:</div>
+            <div class="colaboradores-list">
+              <span
+                v-for="(quantidade, usuario) in corredor.usuarios"
+                :key="usuario"
+                class="colaborador-tag"
+                :title="`${usuario}: ${quantidade} itens`"
+              >
+                {{ usuario.split(" ")[0] }} ({{ quantidade }})
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de Detalhes do Corredor -->
+      <div
+        v-if="corredorSelecionado"
+        class="modal-overlay"
+        @click="fecharModal"
+      >
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <div class="modal-title">
+              <div class="modal-icon">
+                {{ getIconeCorredor(corredorSelecionado.local) }}
               </div>
-              <div class="setor-tendencia" :class="setor.tendencia">
-                {{
-                  setor.tendencia === "positiva"
-                    ? "↗"
-                    : setor.tendencia === "negativa"
-                    ? "↘"
-                    : "→"
-                }}
+              <div>
+                <h3>{{ formatarNomeCorredor(corredorSelecionado.local) }}</h3>
+                <span class="modal-subtitle">{{
+                  getTipoAuditoriaLabel()
+                }}</span>
+              </div>
+            </div>
+            <button class="modal-close" @click="fecharModal">×</button>
+          </div>
+
+          <div class="modal-body">
+            <div class="metricas-destaque">
+              <div class="metrica-principal">
+                <div class="metrica-valor">
+                  {{ getPercentualLeitura(corredorSelecionado) }}%
+                </div>
+                <div class="metrica-label">Taxa de Conclusão</div>
+                <div class="progress-bar-large">
+                  <div
+                    class="progress-fill"
+                    :style="{
+                      width: getPercentualLeitura(corredorSelecionado) + '%',
+                    }"
+                    :class="
+                      getClasseDesempenho(
+                        getPercentualLeitura(corredorSelecionado)
+                      )
+                    "
+                  ></div>
+                </div>
               </div>
             </div>
 
-            <div class="setor-progress">
-              <div class="progress-bar">
+            <div class="metricas-detalhadas">
+              <div class="metrica-item">
+                <div class="metrica-numero">
+                  {{ corredorSelecionado.total }}
+                </div>
+                <div class="metrica-desc">Total de Itens</div>
+              </div>
+              <div class="metrica-item">
+                <div class="metrica-numero">
+                  {{ corredorSelecionado.itensValidos }}
+                </div>
+                <div class="metrica-desc">Itens Válidos</div>
+              </div>
+              <div class="metrica-item">
+                <div class="metrica-numero">
+                  {{ corredorSelecionado.lidos }}
+                </div>
+                <div class="metrica-desc">Itens Lidos</div>
+              </div>
+              <div class="metrica-item">
+                <div class="metrica-numero">
+                  {{ Object.keys(corredorSelecionado.usuarios || {}).length }}
+                </div>
+                <div class="metrica-desc">Colaboradores</div>
+              </div>
+            </div>
+
+            <!-- Colaboradores Detalhados -->
+            <div
+              v-if="
+                corredorSelecionado.usuarios &&
+                Object.keys(corredorSelecionado.usuarios).length > 0
+              "
+              class="colaboradores-section"
+            >
+              <h4>👥 Colaboradores no Corredor</h4>
+              <div class="colaboradores-detailed">
                 <div
-                  class="progress-fill"
-                  :style="{ width: setor.pontuacao + '%' }"
-                ></div>
-              </div>
-              <span class="progress-text">{{ setor.pontuacao }}% da meta</span>
-            </div>
-
-            <div class="setor-stats">
-              <div class="stat">
-                <span class="stat-value">{{ setor.auditorias }}</span>
-                <span class="stat-label">Auditorias</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ setor.nc }}</span>
-                <span class="stat-label">NCs</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">{{ setor.meta }}%</span>
-                <span class="stat-label">Meta</span>
-              </div>
-            </div>
-
-            <div v-if="vistaDetalhada" class="setor-details">
-              <div class="detail-item">
-                <span class="detail-label">Última Auditoria:</span>
-                <span class="detail-value">{{ setor.ultimaAuditoria }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Responsável:</span>
-                <span class="detail-value">{{ setor.responsavel }}</span>
-              </div>
-              <div class="detail-actions">
-                <button
-                  class="detail-btn"
-                  @click.stop="iniciarAuditoria(setor)"
+                  v-for="(quantidade, usuario) in corredorSelecionado.usuarios"
+                  :key="usuario"
+                  class="colaborador-item"
                 >
-                  🎯 Auditoria Rápida
+                  <div class="colaborador-avatar">
+                    {{ usuario.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="colaborador-info">
+                    <div class="colaborador-nome">{{ usuario }}</div>
+                    <div class="colaborador-stats">
+                      <span class="stat">{{ quantidade }} itens</span>
+                      <span class="stat"
+                        >{{
+                          Math.round(
+                            (quantidade / corredorSelecionado.itensValidos) *
+                              100
+                          )
+                        }}% do total</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="acoes-rapidas">
+              <h4>Ações Rápidas</h4>
+              <div class="acoes-grid">
+                <button
+                  class="acao-btn primary"
+                  @click="iniciarAuditoriaCorredor(corredorSelecionado)"
+                >
+                  🎯 Iniciar Auditoria
+                </button>
+                <button
+                  class="acao-btn secondary"
+                  @click="exportarCorredor(corredorSelecionado)"
+                >
+                  📊 Exportar Dados
+                </button>
+                <button
+                  class="acao-btn secondary"
+                  @click="gerarRelatorioCorredor(corredorSelecionado)"
+                >
+                  📋 Gerar Relatório
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Mapa Geográfico -->
-      <div v-else class="mapa-geografico">
-        <div class="mapa-header">
-          <h3>Layout da Loja - Visualização Geográfica</h3>
-          <div class="mapa-actions">
-            <button class="mapa-btn" @click="alternarLegenda">
-              {{ legendaVisivel ? "Ocultar" : "Mostrar" }} Legenda
-            </button>
-            <button class="mapa-btn" @click="zoomReset">🔍 Resetar Zoom</button>
-          </div>
-        </div>
-
-        <div class="layout-container">
-          <div
-            class="layout-loja"
-            :class="{ 'legenda-visible': legendaVisivel }"
-          >
-            <!-- Áreas da Loja -->
-            <div
-              v-for="area in areasGeograficas"
-              :key="area.id"
-              class="area"
-              :class="[
-                area.classe,
-                area.status,
-                { selecionada: areaSelecionada?.id === area.id },
-              ]"
-              :style="{
-                gridColumn: area.gridColumn,
-                gridRow: area.gridRow,
-              }"
-              @click="selecionarArea(area)"
-            >
-              <div class="area-content">
-                <div class="area-icon">{{ area.icone }}</div>
-                <div class="area-info">
-                  <span class="area-name">{{ area.nome }}</span>
-                  <span class="area-score">{{ area.pontuacao }}%</span>
-                </div>
-                <div class="area-badge" :class="area.status">
-                  {{ area.status }}
-                </div>
-              </div>
-
-              <div class="area-overlay">
-                <div class="overlay-content">
-                  <h4>{{ area.nome }}</h4>
-                  <p>Desempenho: {{ area.pontuacao }}%</p>
-                  <p>Auditorias: {{ area.auditorias }}</p>
-                  <p>NCs: {{ area.nc }}</p>
-                  <button
-                    class="overlay-btn"
-                    @click.stop="verDetalhesArea(area)"
-                  >
-                    Ver Detalhes
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Elementos de Layout -->
-            <div class="corredor vertical-1"></div>
-            <div class="corredor vertical-2"></div>
-            <div class="corredor horizontal-1"></div>
-            <div class="corredor horizontal-2"></div>
-          </div>
-
-          <!-- Legenda Flutuante -->
-          <div v-if="legendaVisivel" class="legenda-flutuante">
-            <div class="legenda-header">
-              <h4>Legenda de Performance</h4>
-              <button class="legenda-close" @click="legendaVisivel = false">
-                ×
-              </button>
-            </div>
-            <div class="legenda-items">
-              <div class="legenda-item">
-                <div class="legenda-color excelente"></div>
-                <div class="legenda-info">
-                  <span class="legenda-status">Excelente</span>
-                  <span class="legenda-range">90-100%</span>
-                </div>
-              </div>
-              <div class="legenda-item">
-                <div class="legenda-color bom"></div>
-                <div class="legenda-info">
-                  <span class="legenda-status">Bom</span>
-                  <span class="legenda-range">80-89%</span>
-                </div>
-              </div>
-              <div class="legenda-item">
-                <div class="legenda-color medio"></div>
-                <div class="legenda-info">
-                  <span class="legenda-status">Médio</span>
-                  <span class="legenda-range">70-79%</span>
-                </div>
-              </div>
-              <div class="legenda-item">
-                <div class="legenda-color baixo"></div>
-                <div class="legenda-info">
-                  <span class="legenda-status">Atenção</span>
-                  <span class="legenda-range">&lt;70%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Painel de Insights -->
-    <div v-if="vistaDetalhada" class="insights-panel">
-      <div class="insights-header">
-        <h3>💡 Insights do Mapa de Performance</h3>
-        <span class="insights-count"
-          >{{ insights.length }} insights identificados</span
-        >
-      </div>
-      <div class="insights-grid">
-        <div
-          v-for="insight in insights"
-          :key="insight.id"
-          class="insight-card"
-          :class="insight.tipo"
-        >
-          <div class="insight-icon">{{ insight.icone }}</div>
-          <div class="insight-content">
-            <h4>{{ insight.titulo }}</h4>
-            <p>{{ insight.descricao }}</p>
-            <div class="insight-actions">
-              <button
-                v-for="acao in insight.acoes"
-                :key="acao"
-                class="insight-btn"
-                @click="executarAcao(insight, acao)"
-              >
-                {{ acao }}
-              </button>
-            </div>
-          </div>
-          <div class="insight-priority" :class="insight.prioridade">
-            {{ insight.prioridade }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Detalhes -->
-    <div v-if="itemSelecionado" class="modal-overlay" @click="fecharModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <div class="modal-title">
-            <div class="modal-icon">{{ itemSelecionado.icone }}</div>
-            <h3>{{ itemSelecionado.nome }}</h3>
-          </div>
-          <button class="modal-close" @click="fecharModal">×</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="metricas-principais">
-            <div class="metrica-destaque">
-              <span class="metrica-valor"
-                >{{ itemSelecionado.pontuacao }}%</span
-              >
-              <span class="metrica-label">Pontuação Geral</span>
-              <div
-                class="metrica-comparacao"
-                :class="itemSelecionado.tendencia"
-              >
-                {{ itemSelecionado.tendencia === "positiva" ? "↗" : "↘" }}
-                {{ Math.abs(itemSelecionado.variacao) }}% vs período anterior
-              </div>
-            </div>
-          </div>
-
-          <div class="metricas-detalhadas">
-            <div class="metrica-item">
-              <span class="metrica-numero">{{
-                itemSelecionado.auditorias
-              }}</span>
-              <span class="metrica-desc">Auditorias Realizadas</span>
-            </div>
-            <div class="metrica-item">
-              <span class="metrica-numero">{{ itemSelecionado.nc }}</span>
-              <span class="metrica-desc">Não Conformidades</span>
-            </div>
-            <div class="metrica-item">
-              <span class="metrica-numero">{{ itemSelecionado.meta }}%</span>
-              <span class="metrica-desc">Meta de Desempenho</span>
-            </div>
-          </div>
-
-          <div class="acoes-rapidas">
-            <h4>Ações Rápidas</h4>
-            <div class="acoes-grid">
-              <button
-                class="acao-btn primary"
-                @click="iniciarAuditoria(itemSelecionado)"
-              >
-                🎯 Nova Auditoria
-              </button>
-              <button
-                class="acao-btn secondary"
-                @click="gerarRelatorio(itemSelecionado)"
-              >
-                📊 Relatório Detalhado
-              </button>
-              <button
-                class="acao-btn secondary"
-                @click="agendarVisita(itemSelecionado)"
-              >
-                🗓️ Agendar Visita
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="carregando" class="loading-state">
-      <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <span>Carregando mapa de performance...</span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useApi } from "@/composables/useApi";
 
-// Estado do componente
-const visualizacaoAtiva = ref("setorial");
-const metricaSelecionada = ref("conformidade");
-const vistaDetalhada = ref(false);
-const legendaVisivel = ref(true);
-const setorSelecionado = ref(null);
-const areaSelecionada = ref(null);
+// Estado para controlar o tipo de auditoria atual
+const tipoAuditoriaAtual = ref("etiquetas");
+
+// Estado para armazenar dados carregados da API
+const dadosReais = ref({
+  loja: "",
+  data: new Date().toISOString(),
+  etiquetas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
+  rupturas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
+  presencas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
+});
+
+// Estado de carregamento e erro
 const carregando = ref(true);
+const erro = ref(null);
+const corredorSelecionado = ref(null);
 
-// Computed
-const itemSelecionado = computed(
-  () => setorSelecionado.value || areaSelecionada.value
-);
+// Computed para obter dados filtrados pelo tipo de auditoria
+const dadosFiltrados = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) return [];
 
-// Dados dos setores
-const setores = ref([
-  {
-    id: 1,
-    nome: "Entrada",
-    icone: "🚪",
-    pontuacao: 98,
-    auditorias: 5,
-    nc: 1,
-    meta: 95,
-    status: "excelente",
-    tendencia: "positiva",
-    variacao: 2.1,
-    ultimaAuditoria: "15/01/2024",
-    responsavel: "João Silva",
-  },
-  {
-    id: 2,
-    nome: "Caixas",
-    icone: "💸",
-    pontuacao: 92,
-    auditorias: 8,
-    nc: 3,
-    meta: 90,
-    status: "excelente",
-    tendencia: "positiva",
-    variacao: 1.8,
-    ultimaAuditoria: "14/01/2024",
-    responsavel: "Maria Santos",
-  },
-  {
-    id: 3,
-    nome: "Atendimento",
-    icone: "👥",
-    pontuacao: 95,
-    auditorias: 6,
-    nc: 2,
-    meta: 92,
-    status: "excelente",
-    tendencia: "positiva",
-    variacao: 3.2,
-    ultimaAuditoria: "13/01/2024",
-    responsavel: "Pedro Costa",
-  },
-  {
-    id: 4,
-    nome: "Eletrônicos",
-    icone: "📱",
-    pontuacao: 88,
-    auditorias: 4,
-    nc: 4,
-    meta: 85,
-    status: "bom",
-    tendencia: "positiva",
-    variacao: 2.5,
-    ultimaAuditoria: "12/01/2024",
-    responsavel: "Ana Oliveira",
-  },
-  {
-    id: 5,
-    nome: "Vestuário",
-    icone: "👕",
-    pontuacao: 85,
-    auditorias: 7,
-    nc: 6,
-    meta: 80,
-    status: "bom",
-    tendencia: "neutra",
-    variacao: 0.5,
-    ultimaAuditoria: "11/01/2024",
-    responsavel: "Carlos Lima",
-  },
-  {
-    id: 6,
-    nome: "Alimentos",
-    icone: "🍎",
-    pontuacao: 78,
-    auditorias: 5,
-    nc: 8,
-    meta: 75,
-    status: "medio",
-    tendencia: "negativa",
-    variacao: -2.1,
-    ultimaAuditoria: "10/01/2024",
-    responsavel: "Fernanda Rocha",
-  },
-  {
-    id: 7,
-    nome: "Estoque",
-    icone: "📦",
-    pontuacao: 82,
-    auditorias: 3,
-    nc: 5,
-    meta: 80,
-    status: "bom",
-    tendencia: "positiva",
-    variacao: 1.2,
-    ultimaAuditoria: "09/01/2024",
-    responsavel: "Ricardo Alves",
-  },
-  {
-    id: 8,
-    nome: "Limpeza",
-    icone: "🧹",
-    pontuacao: 100,
-    auditorias: 4,
-    nc: 0,
-    meta: 95,
-    status: "excelente",
-    tendencia: "positiva",
-    variacao: 5.0,
-    ultimaAuditoria: "08/01/2024",
-    responsavel: "Patrícia Souza",
-  },
-]);
+  return Object.entries(auditoriaAtual.locaisLeitura).map(([local, dados]) => {
+    return {
+      local: local,
+      ...dados,
+    };
+  });
+});
 
-// Dados do mapa geográfico
-const areasGeograficas = ref([
-  {
-    id: 1,
-    nome: "Entrada",
-    icone: "🚪",
-    pontuacao: 98,
-    auditorias: 5,
-    nc: 1,
-    status: "excelente",
-    classe: "entrada",
-    gridColumn: "1",
-    gridRow: "1",
-  },
-  {
-    id: 2,
-    nome: "Caixas",
-    icone: "💸",
-    pontuacao: 92,
-    auditorias: 8,
-    nc: 3,
-    status: "excelente",
-    classe: "caixas",
-    gridColumn: "2 / 4",
-    gridRow: "1",
-  },
-  {
-    id: 3,
-    nome: "Atendimento",
-    icone: "👥",
-    pontuacao: 95,
-    auditorias: 6,
-    nc: 2,
-    status: "excelente",
-    classe: "atendimento",
-    gridColumn: "1",
-    gridRow: "2",
-  },
-  {
-    id: 4,
-    nome: "Eletrônicos",
-    icone: "📱",
-    pontuacao: 88,
-    auditorias: 4,
-    nc: 4,
-    status: "bom",
-    classe: "eletronicos",
-    gridColumn: "2",
-    gridRow: "2",
-  },
-  {
-    id: 5,
-    nome: "Vestuário",
-    icone: "👕",
-    pontuacao: 85,
-    auditorias: 7,
-    nc: 6,
-    status: "bom",
-    classe: "vestuario",
-    gridColumn: "3",
-    gridRow: "2",
-  },
-  {
-    id: 6,
-    nome: "Alimentos",
-    icone: "🍎",
-    pontuacao: 78,
-    auditorias: 5,
-    nc: 8,
-    status: "medio",
-    classe: "alimentos",
-    gridColumn: "1 / 3",
-    gridRow: "3",
-  },
-  {
-    id: 7,
-    nome: "Estoque",
-    icone: "📦",
-    pontuacao: 82,
-    auditorias: 3,
-    nc: 5,
-    status: "bom",
-    classe: "estoque",
-    gridColumn: "3",
-    gridRow: "3",
-  },
-  {
-    id: 8,
-    nome: "Limpeza",
-    icone: "🧹",
-    pontuacao: 100,
-    auditorias: 4,
-    nc: 0,
-    status: "excelente",
-    classe: "limpeza",
-    gridColumn: "1",
-    gridRow: "3",
-  },
-]);
-
-// Insights
-const insights = ref([
-  {
-    id: 1,
-    tipo: "destaque",
-    icone: "🏆",
-    titulo: "Área de Limpeza com Performance Perfeita",
-    descricao:
-      "100% de conformidade em todas as auditorias realizadas. Setor exemplar!",
-    acoes: ["Documentar Práticas", "Compartilhar Melhores Práticas"],
-    prioridade: "Alta",
-  },
-  {
-    id: 2,
-    tipo: "alerta",
-    icone: "⚠️",
-    titulo: "Atenção Necessária no Setor de Alimentos",
-    descricao:
-      "Performance abaixo de 80% com tendência negativa. Necessidade de intervenção.",
-    acoes: ["Plano de Ação", "Auditoria Extra"],
-    prioridade: "Urgente",
-  },
-  {
-    id: 3,
-    tipo: "oportunidade",
-    icone: "💡",
-    titulo: "Oportunidade em Eletrônicos",
-    descricao:
-      "Crescimento positivo de 2.5%. Potencial para atingir excelência.",
-    acoes: ["Capacitar Equipe", "Otimizar Processos"],
-    prioridade: "Média",
-  },
-]);
-
-// Computed properties
+// Computed para estatísticas gerais
 const desempenhoMedio = computed(() => {
-  return Math.round(
-    setores.value.reduce((sum, setor) => sum + setor.pontuacao, 0) /
-      setores.value.length
-  );
+  if (dadosFiltrados.value.length === 0) return 0;
+  const total = dadosFiltrados.value.reduce((sum, corredor) => {
+    return (
+      sum +
+      (corredor.itensValidos > 0
+        ? (corredor.lidos / corredor.itensValidos) * 100
+        : 0)
+    );
+  }, 0);
+  return Math.round(total / dadosFiltrados.value.length);
 });
 
-const variacaoMedia = computed(() => {
-  return (
-    setores.value.reduce((sum, setor) => sum + setor.variacao, 0) /
-    setores.value.length
-  );
+const totalItens = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.totalItens || 0;
 });
 
-const tendenciaGeral = computed(() => {
-  return variacaoMedia.value >= 0 ? "positive" : "negative";
+const totalColaboradores = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.usuariosAtivos || 0;
 });
 
-const setorDestaque = computed(() => {
-  return setores.value.reduce((prev, current) =>
-    prev.pontuacao > current.pontuacao ? prev : current
-  );
+const corredorDestaque = computed(() => {
+  if (dadosFiltrados.value.length === 0) return { nome: "-", pontuacao: 0 };
+
+  const melhor = dadosFiltrados.value.reduce((prev, current) => {
+    const prevScore =
+      prev.itensValidos > 0 ? (prev.lidos / prev.itensValidos) * 100 : 0;
+    const currentScore =
+      current.itensValidos > 0
+        ? (current.lidos / current.itensValidos) * 100
+        : 0;
+    return prevScore > currentScore ? prev : current;
+  });
+
+  return {
+    nome: formatarNomeCorredor(melhor.local),
+    pontuacao: Math.round((melhor.lidos / melhor.itensValidos) * 100),
+  };
 });
 
-const setorCritico = computed(() => {
-  return setores.value.reduce((prev, current) =>
-    prev.pontuacao < current.pontuacao ? prev : current
-  );
-});
-
-const totalAuditorias = computed(() => {
-  return setores.value.reduce((sum, setor) => sum + setor.auditorias, 0);
-});
-
-// Métodos
-const selecionarSetor = (setor) => {
-  setorSelecionado.value = setor;
-  areaSelecionada.value = null;
+// Funções auxiliares
+const getPercentualLeitura = (corredor) => {
+  if (!corredor.itensValidos || corredor.itensValidos <= 0) return 0;
+  const percentual = (corredor.lidos / corredor.itensValidos) * 100;
+  return Math.min(percentual, 100);
 };
 
-const selecionarArea = (area) => {
-  areaSelecionada.value = area;
-  setorSelecionado.value = null;
+const getClasseDesempenho = (valor) => {
+  if (valor >= 90) return "excelente";
+  if (valor >= 80) return "bom";
+  if (valor >= 70) return "medio";
+  return "baixo";
+};
+
+const getStatusCorredor = (corredor) => {
+  return getClasseDesempenho(getPercentualLeitura(corredor));
+};
+
+const getStatusLabel = (valor) => {
+  if (valor >= 90) return "Excelente";
+  if (valor >= 80) return "Bom";
+  if (valor >= 70) return "Médio";
+  return "Atenção";
+};
+
+const getIconeCorredor = (local) => {
+  const icones = {
+    G01: "🛒",
+    G02: "🛒",
+    G03: "🛒",
+    G04: "🛒",
+    G05: "🛒",
+    G06: "🛒",
+    G07: "🛒",
+    G08: "🛒",
+    G09: "🛒",
+    G10: "🛒",
+    G11: "🛒",
+    G12: "🛒",
+    G13: "🛒",
+    G14: "🛒",
+    G15: "🛒",
+    G16: "🛒",
+    G17: "🛒",
+    G18: "🛒",
+    G19: "🛒",
+    G20: "🛒",
+    G21: "🛒",
+    G22: "🛒",
+    F01: "🥶",
+    F02: "🥶",
+    C01: "📦",
+    CS01: "📦",
+    FLV: "🍎",
+    PAO: "🥖",
+    SORVETE: "🍦",
+    GELO: "🧊",
+    I01: "🏢",
+    PA01: "📦",
+    PF01: "🥩",
+    PF02: "🥩",
+    PF03: "🥩",
+    PL01: "🧴",
+    PL02: "🧴",
+  };
+
+  for (const [key, icone] of Object.entries(icones)) {
+    if (local.includes(key)) return icone;
+  }
+
+  return "📍";
+};
+
+const formatarNomeCorredor = (local) => {
+  // Remove duplicatas como "G01A - G01A" para "G01A"
+  const partes = local.split(" - ");
+  if (partes[0] === partes[1]) {
+    return partes[0];
+  }
+  return local;
+};
+
+const getTipoAuditoriaLabel = () => {
+  const labels = {
+    etiquetas: "Auditoria de Etiquetas",
+    presencas: "Auditoria de Presenças",
+    rupturas: "Auditoria de Rupturas",
+  };
+  return labels[tipoAuditoriaAtual.value] || "Auditoria";
+};
+
+// Funções para o modal e ações
+const verDetalhesCorredor = (corredor) => {
+  corredorSelecionado.value = corredor;
 };
 
 const fecharModal = () => {
-  setorSelecionado.value = null;
-  areaSelecionada.value = null;
+  corredorSelecionado.value = null;
 };
 
-const alternarVistaDetalhada = () => {
-  vistaDetalhada.value = !vistaDetalhada.value;
+const alterarTipoAuditoria = (tipo) => {
+  tipoAuditoriaAtual.value = tipo;
 };
 
-const alternarLegenda = () => {
-  legendaVisivel.value = !legendaVisivel.value;
+const iniciarAuditoriaCorredor = (corredor) => {
+  console.log("Iniciando auditoria no corredor:", corredor.local);
+  alert(`Auditoria iniciada no ${formatarNomeCorredor(corredor.local)}`);
 };
 
-const zoomReset = () => {
-  console.log("Resetando zoom do mapa...");
+const exportarCorredor = (corredor) => {
+  console.log("Exportando dados do corredor:", corredor.local);
+  alert(`Dados do ${formatarNomeCorredor(corredor.local)} exportados!`);
 };
 
-const exportarMapa = () => {
-  console.log("Exportando mapa...");
-  alert("Mapa de performance exportado com sucesso!");
+const gerarRelatorioCorredor = (corredor) => {
+  console.log("Gerando relatório do corredor:", corredor.local);
+  alert(`Relatório do ${formatarNomeCorredor(corredor.local)} gerado!`);
 };
 
-const iniciarAuditoria = (item) => {
-  console.log("Iniciando auditoria para:", item.nome);
-  alert(`Auditoria iniciada para ${item.nome}`);
-};
+// Função para buscar dados da API
+const buscarMetricasLoja = async () => {
+  try {
+    carregando.value = true;
+    erro.value = null;
 
-const gerarRelatorio = (item) => {
-  console.log("Gerando relatório para:", item.nome);
-  alert(`Relatório gerado para ${item.nome}`);
-};
+    const { api } = useApi();
 
-const agendarVisita = (item) => {
-  console.log("Agendando visita para:", item.nome);
-  alert(`Visita agendada para ${item.nome}`);
-};
+    // Usar o novo endpoint específico para corredores
+    const response = await api.get("/api/metricas/loja-daily/locais-completas");
 
-const verDetalhesArea = (area) => {
-  selecionarArea(area);
-};
+    if (response.data) {
+      dadosReais.value = {
+        loja: response.data.loja || "",
+        data: response.data.data || new Date().toISOString(),
+        etiquetas: {
+          locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
+          resumo: response.data.etiquetas?.resumo || {},
+        },
+        rupturas: {
+          locaisLeitura: response.data.rupturas?.locaisLeitura || {},
+          resumo: response.data.rupturas?.resumo || {},
+        },
+        presencas: {
+          locaisLeitura: response.data.presencas?.locaisLeitura || {},
+          resumo: response.data.presencas?.resumo || {},
+        },
+      };
+      console.log("✅ Métricas dos corredores carregadas:", dadosReais.value);
+    }
+  } catch (error) {
+    console.error("❌ Erro ao buscar métricas dos corredores:", error);
+    erro.value =
+      "Erro ao carregar métricas dos corredores. Tente novamente mais tarde.";
 
-const executarAcao = (insight, acao) => {
-  console.log(`Executando ação: ${acao} para insight: ${insight.titulo}`);
-  alert(`Ação "${acao}" executada para: ${insight.titulo}`);
-};
-
-onMounted(() => {
-  // Simular carregamento de dados
-  setTimeout(() => {
+    // Opcional: Tentar carregar dados de demonstração em caso de erro
+    // await carregarDadosDemonstracao();
+  } finally {
     carregando.value = false;
-  }, 2000);
+  }
+};
+// Função opcional para carregar dados de demonstração
+const carregarDadosDemonstracao = async () => {
+  try {
+    const { api } = useApi();
+    const response = await api.get(
+      "/api/metricas/loja-daily/locais-completas-demo"
+    );
+    dadosReais.value = {
+      loja: response.data.loja || "",
+      data: response.data.data || new Date().toISOString(),
+      etiquetas: {
+        locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
+        resumo: response.data.etiquetas?.resumo || {},
+      },
+      rupturas: {
+        locaisLeitura: response.data.rupturas?.locaisLeitura || {},
+        resumo: response.data.rupturas?.resumo || {},
+      },
+      presencas: {
+        locaisLeitura: response.data.presencas?.locaisLeitura || {},
+        resumo: response.data.presencas?.resumo || {},
+      },
+    };
+    console.log("📊 Dados de demonstração carregados");
+  } catch (demoError) {
+    console.error("Erro ao carregar dados de demonstração:", demoError);
+  }
+};
+
+// Inicialização
+onMounted(() => {
+  console.log("Componente MetricasCorredor montado");
+  buscarMetricasLoja();
 });
 </script>
 
 <style scoped>
-.performance-map-container {
+.metricas-corredor-container {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   margin: 1rem 0;
 }
 
-/* Header Section */
-.section-header {
-  padding: 2rem;
+/* Loading e Erro */
+.loading-container,
+.erro-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.erro-container {
+  color: #f44336;
+}
+
+.erro-mensagem {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Header */
+.metricas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.header-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-}
-
-.title-section {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.title-icon {
-  font-size: 2.5rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 12px;
-  padding: 0.75rem;
-}
-
-.title-content h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-}
-
-.title-content p {
-  margin: 0;
-  color: #718096;
-  font-size: 1rem;
-}
-
-.header-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: flex-end;
-}
-
-.filter-group {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.filter-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filter-label {
+.metricas-header h3 {
+  font-size: 1.3rem;
   font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
+  color: #2c3e50;
+  margin: 0;
 }
 
-.view-toggle {
+.metricas-actions {
   display: flex;
-  background: #f7fafc;
-  border-radius: 12px;
-  padding: 4px;
-  border: 1px solid #e2e8f0;
-}
-
-.toggle-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.toggle-btn.active {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: #667eea;
-}
-
-.filter-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
-  color: #4a5568;
-  cursor: pointer;
-  min-width: 160px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .action-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
+  background: #e2e8f0;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 6px;
+  color: #4a5568;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 2px solid transparent;
 }
 
-.action-btn.primary {
+.action-btn:hover {
+  background: #cbd5e0;
+  transform: translateY(-1px);
+}
+
+.action-btn.active {
   background: #667eea;
   color: white;
+  border-color: #5a6fd8;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.action-btn.primary:hover {
-  background: #5a6fd8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.action-btn.secondary {
-  background: white;
-  color: #667eea;
-  border: 1px solid #667eea;
-}
-
-.action-btn.secondary:hover {
+/* Cards de Resumo */
+.resumo-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
   background: #f8fafc;
 }
 
-/* Summary Cards */
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+.resumo-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
   gap: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.summary-card {
+.resumo-icon {
+  font-size: 2rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.resumo-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.resumo-label {
+  font-size: 0.8rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Grid de Corredores */
+.corredores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.corredor-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-}
-
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.summary-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.summary-icon.media {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.summary-icon.excelente {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.summary-icon.atencao {
-  background: rgba(255, 152, 0, 0.1);
-}
-
-.summary-icon.auditorias {
-  background: rgba(156, 39, 176, 0.1);
-}
-
-.summary-value {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #2c3e50;
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.summary-label {
-  font-size: 0.9rem;
-  color: #718096;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.summary-trend {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.summary-trend.positive {
-  color: #4caf50;
-}
-
-.summary-trend.negative {
-  color: #f44336;
-}
-
-/* Map Content */
-.map-content {
-  padding: 2rem;
-}
-
-/* Mapa Setorial */
-.setores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.setores-grid.detailed {
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-}
-
-.setor-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 3px solid transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  border-left: 4px solid transparent;
 }
 
-.setor-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
+.corredor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
-.setor-card.excelente::before {
-  background: linear-gradient(90deg, #48bb78, #68d391);
-}
-.setor-card.bom::before {
-  background: linear-gradient(90deg, #4299e1, #63b3ed);
-}
-.setor-card.medio::before {
-  background: linear-gradient(90deg, #ed8936, #f6ad55);
-}
-.setor-card.baixo::before {
-  background: linear-gradient(90deg, #f56565, #fc8181);
+.corredor-card.excelente {
+  border-left-color: #48bb78;
 }
 
-.setor-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.15);
+.corredor-card.bom {
+  border-left-color: #4299e1;
 }
 
-.setor-card.selecionado {
-  border-color: #667eea;
-  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.2);
+.corredor-card.medio {
+  border-left-color: #ed8936;
 }
 
-.setor-header {
+.corredor-card.baixo {
+  border-left-color: #f56565;
+}
+
+.corredor-header {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-.setor-icon {
+.corredor-icon {
   font-size: 2rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
 }
 
-.setor-info {
+.corredor-info {
   flex: 1;
 }
 
-.setor-nome {
-  display: block;
+.corredor-nome {
   font-weight: 600;
-  color: #2d3748;
+  color: #2c3e50;
+  margin: 0 0 0.25rem 0;
   font-size: 1.1rem;
 }
 
-.setor-score {
-  font-size: 1.3rem;
+.corredor-score {
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
-.setor-card.excelente .setor-score {
+.corredor-card.excelente .corredor-score {
   color: #48bb78;
 }
-.setor-card.bom .setor-score {
+
+.corredor-card.bom .corredor-score {
   color: #4299e1;
 }
-.setor-card.medio .setor-score {
+
+.corredor-card.medio .corredor-score {
   color: #ed8936;
 }
-.setor-card.baixo .setor-score {
+
+.corredor-card.baixo .corredor-score {
   color: #f56565;
 }
 
-.setor-tendencia {
-  font-size: 1.2rem;
-  font-weight: 700;
+.corredor-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
-.setor-tendencia.positiva {
+.corredor-status.excelente {
+  background: rgba(72, 187, 120, 0.1);
   color: #48bb78;
 }
-.setor-tendencia.negativa {
-  color: #f56565;
-}
-.setor-tendencia.neutra {
-  color: #a0aec0;
+
+.corredor-status.bom {
+  background: rgba(66, 153, 225, 0.1);
+  color: #4299e1;
 }
 
-.setor-progress {
+.corredor-status.medio {
+  background: rgba(237, 137, 54, 0.1);
+  color: #ed8936;
+}
+
+.corredor-status.baixo {
+  background: rgba(245, 101, 101, 0.1);
+  color: #f56565;
+}
+
+.corredor-progress {
   margin-bottom: 1rem;
 }
 
 .progress-bar {
-  width: 100%;
   height: 8px;
   background: #e2e8f0;
-  border-radius: 10px;
+  border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 10px;
+  border-radius: 4px;
   transition: width 0.5s ease;
 }
 
-.setor-card.excelente .progress-fill {
-  background: linear-gradient(90deg, #48bb78, #68d391);
+.progress-fill.excelente {
+  background: #48bb78;
 }
-.setor-card.bom .progress-fill {
-  background: linear-gradient(90deg, #4299e1, #63b3ed);
+
+.progress-fill.bom {
+  background: #4299e1;
 }
-.setor-card.medio .progress-fill {
-  background: linear-gradient(90deg, #ed8936, #f6ad55);
+
+.progress-fill.medio {
+  background: #ed8936;
 }
-.setor-card.baixo .progress-fill {
-  background: linear-gradient(90deg, #f56565, #fc8181);
+
+.progress-fill.baixo {
+  background: #f56565;
 }
 
 .progress-text {
   font-size: 0.8rem;
   color: #718096;
   text-align: center;
-  display: block;
 }
 
-.setor-stats {
-  display: flex;
-  justify-content: space-around;
+.corredor-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e2e8f0;
-  margin-bottom: 1rem;
 }
 
 .stat {
@@ -1167,545 +878,46 @@ onMounted(() => {
 .stat-value {
   display: block;
   font-weight: 700;
-  color: #2d3748;
-  font-size: 1.2rem;
+  color: #2c3e50;
+  font-size: 1.1rem;
 }
 
 .stat-label {
+  font-size: 0.7rem;
+  color: #718096;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.corredor-colaboradores {
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.colaboradores-label {
   font-size: 0.8rem;
   color: #718096;
-}
-
-.setor-details {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.detail-label {
-  color: #718096;
-}
-
-.detail-value {
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.detail-actions {
-  margin-top: 1rem;
-}
-
-.detail-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
 }
 
-.detail-btn:hover {
-  background: #5a67d8;
-}
-
-/* Mapa Geográfico */
-.mapa-geografico {
-  position: relative;
-}
-
-.mapa-header {
+.colaboradores-list {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.mapa-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.mapa-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.mapa-btn {
-  padding: 0.5rem 1rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  color: #4a5568;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.mapa-btn:hover {
-  background: #f7fafc;
-  border-color: #667eea;
-  color: #667eea;
-}
-
-.layout-container {
-  position: relative;
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 2rem;
-  border: 1px solid #e2e8f0;
-}
-
-.layout-loja {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 150px 150px 150px;
-  gap: 1rem;
-  height: 500px;
-  position: relative;
-}
-
-/* Áreas do Mapa Geográfico */
-.area {
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  border: 3px solid transparent;
-}
-
-.area:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.area.selecionada {
-  border-color: #667eea;
-  box-shadow: 0 8px 24px rgba(67, 97, 238, 0.2);
-}
-
-.area-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  text-align: center;
-  z-index: 2;
-  position: relative;
-}
-
-.area-icon {
-  font-size: 2rem;
-}
-
-.area-info {
-  display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.25rem;
 }
 
-.area-name {
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  font-size: 1rem;
-}
-
-.area-score {
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  font-size: 1.1rem;
-}
-
-.area-badge {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
-.area-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 3;
-}
-
-.area:hover .area-overlay {
-  opacity: 1;
-}
-
-.overlay-content {
-  text-align: center;
-  color: white;
-  padding: 1rem;
-}
-
-.overlay-content h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.2rem;
-}
-
-.overlay-content p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-}
-
-.overlay-btn {
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.overlay-btn:hover {
-  background: #5a67d8;
-}
-
-/* Cores das áreas baseadas no desempenho */
-.area.excelente {
-  background: linear-gradient(135deg, #48bb78, #38a169);
-}
-.area.bom {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
-}
-.area.medio {
-  background: linear-gradient(135deg, #ed8936, #dd6b20);
-}
-.area.baixo {
-  background: linear-gradient(135deg, #f56565, #e53e3e);
-}
-
-/* Posicionamento das áreas */
-.entrada {
-  grid-column: 1;
-  grid-row: 1;
-}
-.caixas {
-  grid-column: 2 / 4;
-  grid-row: 1;
-}
-.atendimento {
-  grid-column: 1;
-  grid-row: 2;
-}
-.eletronicos {
-  grid-column: 2;
-  grid-row: 2;
-}
-.vestuario {
-  grid-column: 3;
-  grid-row: 2;
-}
-.alimentos {
-  grid-column: 1 / 3;
-  grid-row: 3;
-}
-.estoque {
-  grid-column: 3;
-  grid-row: 3;
-}
-.limpeza {
-  grid-column: 1;
-  grid-row: 3;
-}
-
-/* Corredores */
-.corredor {
-  position: absolute;
-  background: #e2e8f0;
-  z-index: 1;
-}
-
-.corredor.vertical-1 {
-  left: 33.33%;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent, #cbd5e0, transparent);
-}
-
-.corredor.vertical-2 {
-  left: 66.66%;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent, #cbd5e0, transparent);
-}
-
-.corredor.horizontal-1 {
-  top: 33.33%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(to right, transparent, #cbd5e0, transparent);
-}
-
-.corredor.horizontal-2 {
-  top: 66.66%;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(to right, transparent, #cbd5e0, transparent);
-}
-
-/* Legenda Flutuante */
-.legenda-flutuante {
-  position: absolute;
-  top: 2rem;
-  right: 2rem;
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 1px solid #e2e8f0;
-  z-index: 10;
-  min-width: 200px;
-}
-
-.legenda-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.legenda-header h4 {
-  margin: 0;
-  font-size: 1rem;
-  color: #2c3e50;
-}
-
-.legenda-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.legenda-close:hover {
+.colaborador-tag {
   background: #f7fafc;
-}
-
-.legenda-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.legenda-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.legenda-color {
-  width: 16px;
-  height: 16px;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.legenda-color.excelente {
-  background: #48bb78;
-}
-.legenda-color.bom {
-  background: #4299e1;
-}
-.legenda-color.medio {
-  background: #ed8936;
-}
-.legenda-color.baixo {
-  background: #f56565;
-}
-
-.legenda-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.legenda-status {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.legenda-range {
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-/* Insights Panel */
-.insights-panel {
-  padding: 2rem;
-  background: #f8fafc;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.insights-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.insights-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.insights-count {
-  color: #718096;
-  font-weight: 500;
-}
-
-.insights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.insight-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid;
-  display: flex;
-  gap: 1rem;
-  transition: all 0.3s ease;
-}
-
-.insight-card:hover {
-  transform: translateX(4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.insight-card.destaque {
-  border-left-color: #4caf50;
-}
-
-.insight-card.alerta {
-  border-left-color: #f44336;
-}
-
-.insight-card.oportunidade {
-  border-left-color: #ff9800;
-}
-
-.insight-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.insight-content {
-  flex: 1;
-}
-
-.insight-content h4 {
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-}
-
-.insight-content p {
-  color: #718096;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin: 0 0 1rem 0;
-}
-
-.insight-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.insight-btn {
-  padding: 0.4rem 0.8rem;
-  background: #667eea;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.insight-btn:hover {
-  background: #5a6fd8;
-}
-
-.insight-priority {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  padding: 0.2rem 0.5rem;
   font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  height: fit-content;
-  flex-shrink: 0;
+  color: #4a5568;
+  cursor: help;
 }
 
-.insight-priority.Alta {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-}
-
-.insight-priority.Urgente {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid #f44336;
-}
-
-.insight-priority.Media {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-/* Modal */
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1722,46 +934,45 @@ onMounted(() => {
 
 .modal-content {
   background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  max-width: 500px;
+  border-radius: 12px;
+  max-width: 600px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: modalAppear 0.3s ease;
-}
-
-@keyframes modalAppear {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .modal-title {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
 }
 
 .modal-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
 }
 
 .modal-title h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.5rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: #718096;
 }
 
 .modal-close {
@@ -1770,88 +981,149 @@ onMounted(() => {
   font-size: 1.5rem;
   cursor: pointer;
   color: #718096;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  padding: 0;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
 }
 
 .modal-close:hover {
-  background: #f7fafc;
-  color: #4a5568;
+  background: #f8fafc;
 }
 
-.metricas-principais {
+.modal-body {
+  padding: 1.5rem;
+}
+
+.metricas-destaque {
   margin-bottom: 2rem;
 }
 
-.metrica-destaque {
+.metrica-principal {
   text-align: center;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  border-radius: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .metrica-valor {
-  display: block;
   font-size: 3rem;
   font-weight: 700;
+  color: #2c3e50;
   margin-bottom: 0.5rem;
 }
 
 .metrica-label {
-  font-size: 1.1rem;
-  opacity: 0.9;
-  margin-bottom: 0.5rem;
-  display: block;
+  font-size: 1rem;
+  color: #718096;
+  margin-bottom: 1rem;
 }
 
-.metrica-comparacao {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.metrica-comparacao.positiva {
-  color: #68d391;
-}
-.metrica-comparacao.negativa {
-  color: #fc8181;
+.progress-bar-large {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .metricas-detalhadas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .metrica-item {
-  text-align: center;
+  background: #f8fafc;
   padding: 1rem;
-  background: #f7fafc;
   border-radius: 8px;
+  text-align: center;
+  border-left: 4px solid #667eea;
 }
 
 .metrica-numero {
-  display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: #2c3e50;
   margin-bottom: 0.25rem;
 }
 
 .metrica-desc {
   font-size: 0.8rem;
   color: #718096;
+  font-weight: 500;
+}
+
+.colaboradores-section {
+  margin-bottom: 2rem;
+}
+
+.colaboradores-section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.colaboradores-detailed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.colaborador-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.colaborador-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #667eea;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.colaborador-info {
+  flex: 1;
+}
+
+.colaborador-nome {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.colaborador-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.colaborador-stats .stat {
+  font-size: 0.8rem;
+  color: #718096;
 }
 
 .acoes-rapidas h4 {
   margin: 0 0 1rem 0;
-  color: #2c3e50;
   font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
 .acoes-grid {
@@ -1889,127 +1161,52 @@ onMounted(() => {
   background: #f8fafc;
 }
 
-/* Loading State */
-.loading-state {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  z-index: 100;
-}
-
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e2e8f0;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* Responsividade */
-@media (max-width: 1024px) {
-  .setores-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-
-  .insights-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
-  .section-header,
-  .map-content,
-  .insights-panel {
-    padding: 1.5rem;
-  }
-
-  .header-main {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .header-controls {
-    align-items: stretch;
-    width: 100%;
-  }
-
-  .filter-group {
+  .metricas-header {
     flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
   }
 
-  .header-actions {
-    justify-content: space-between;
+  .metricas-actions {
+    justify-content: center;
   }
 
-  .summary-cards {
+  .resumo-cards {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .layout-loja {
+  .corredores-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(8, 100px);
-    height: auto;
-  }
-
-  .area {
-    grid-column: 1 !important;
-    grid-row: auto !important;
   }
 
   .metricas-detalhadas {
     grid-template-columns: 1fr;
   }
 
-  .legenda-flutuante {
-    position: static;
-    margin-top: 1rem;
+  .modal-content {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+
+  .colaborador-stats {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 
 @media (max-width: 480px) {
-  .summary-cards {
+  .resumo-cards {
     grid-template-columns: 1fr;
   }
 
-  .setores-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .header-actions {
+  .metricas-actions {
     flex-direction: column;
   }
 
   .action-btn {
-    justify-content: center;
-  }
-
-  .mapa-actions {
-    flex-direction: column;
+    text-align: center;
   }
 }
 </style>

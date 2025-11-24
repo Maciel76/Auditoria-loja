@@ -292,13 +292,34 @@
                   class="colaborador-card"
                 >
                   <div class="colaborador-avatar">
-                    {{ colaborador.avatar }}
+                    <img
+                      v-if="colaborador.foto"
+                      :src="colaborador.foto"
+                      :alt="colaborador.nome"
+                      class="colaborador-foto"
+                    />
+                    <span v-else class="colaborador-iniciais">
+                      {{ colaborador.iniciais }}
+                    </span>
                   </div>
                   <div class="colaborador-info">
                     <div class="colaborador-nome">{{ colaborador.nome }}</div>
                     <div class="colaborador-funcao">
                       {{ colaborador.funcao }}
                     </div>
+
+                    <!-- Conquistas e Nível -->
+                    <div class="colaborador-conquistas">
+                      🏆 {{ colaborador.conquistas.totalConquistas }} conquistas
+                      • ⭐ Nv {{ colaborador.conquistas.nivel }}
+                    </div>
+
+                    <!-- Ranking -->
+                    <div class="colaborador-ranking">
+                      📊 Loja: #{{ colaborador.desempenho.posicaoLoja }}
+                      • 🌍 Geral: #{{ colaborador.desempenho.posicaoGeral }}
+                    </div>
+
                     <div class="colaborador-status" :class="colaborador.status">
                       {{ colaborador.status }}
                     </div>
@@ -315,6 +336,10 @@
                         >{{ colaborador.eficiencia }}%</span
                       >
                       <span class="metrica-label">Eficiência</span>
+                    </div>
+                    <div class="colaborador-metrica">
+                      <span class="metrica-valor">{{ colaborador.conquistas.xpTotal }}</span>
+                      <span class="metrica-label">XP</span>
                     </div>
                   </div>
                 </div>
@@ -370,7 +395,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
+import api from "@/composables/useApi";
 
 // Estado para controlar o tipo de auditoria atual
 const tipoAuditoriaAtual = ref("etiquetas");
@@ -433,6 +458,9 @@ const dadosReais = ref({
 // Estado de carregamento
 const carregando = ref(true);
 const erro = ref(null);
+
+// Dados de usuários do endpoint /metricas/usuarios
+const dadosUsuarios = ref([]);
 
 // Ícones para cada classe de produtos
 const iconesClasses = {
@@ -691,10 +719,10 @@ const dadosFiltrados = computed(() => {
         totalItens: dados.total || 0,
         itensValidos: dados.itensValidos || 0,
         itensLidos: dados.lidos || 0,
-        itensAtualizados: dados.lidos ? Math.round(dados.lidos * (auditoriaAtual.percentualConclusao || 0) / 100) : 0,
-        itensDesatualizado: dados.lidos ? dados.lidos - Math.round(dados.lidos * (auditoriaAtual.percentualConclusao || 0) / 100) : 0,
-        custoRuptura: tipoAuditoriaAtual.value === 'rupturas' ? (dados.lidos || 0) * 15.75 : 0, // Apenas para rupturas
-        presencasConfirmadas: tipoAuditoriaAtual.value === 'presencas' ? Math.round((dados.total || 0) * (auditoriaAtual.percentualPresenca || 0) / 100) : 0, // Apenas para presencas
+        itensAtualizados: dados.itensAtualizados || 0,
+        itensDesatualizado: dados.itensDesatualizado || 0,
+        custoRuptura: dados.custoRuptura || 0, // O valor real já está disponível em classesLeitura
+        presencasConfirmadas: dados.presencasConfirmadas || 0, // O valor real já está disponível em classesLeitura
         percentualConclusao: dados.percentual || 0,
       };
     }
@@ -714,6 +742,9 @@ const colaboradoresSetor = computed(() => {
 
   // Transformar o objeto de usuários em array de colaboradores
   const usuariosArray = Object.entries(classeAtual.usuarios).map(([nome, itensLidos], index) => {
+    // Buscar dados completos do usuário do endpoint /metricas/usuarios
+    const usuarioCompleto = dadosUsuarios.value.find(u => u.nome === nome);
+
     // Calcular eficiência baseada na quantidade de itens lidos
     const eficiencia = classeAtual.itensValidos > 0
       ? Math.min(Math.round((itensLidos / classeAtual.itensValidos) * 100 * 10), 100)
@@ -727,13 +758,33 @@ const colaboradoresSetor = computed(() => {
     const status = itensLidos > 0 ? "ativo" : "ausente";
 
     return {
-      id: index + 1,
+      id: usuarioCompleto?.id || index + 1,
       nome: nome,
-      funcao: "Auditor", // Poderia ser enriquecido com dados reais se disponível
+      funcao: "Auditor",
       status: status,
       itensLidos: itensLidos,
       eficiencia: eficiencia,
       avatar: avatar,
+
+      // Dados enriquecidos do endpoint /metricas/usuarios
+      foto: usuarioCompleto?.foto || null,
+      iniciais: usuarioCompleto?.iniciais || nome.split(' ').map(p => p[0]).join('').toUpperCase().substring(0, 2),
+      conquistas: usuarioCompleto?.conquistas || {
+        totalConquistas: 0,
+        nivel: 1,
+        titulo: 'Novato',
+        xpTotal: 0
+      },
+      desempenho: usuarioCompleto?.desempenho || {
+        posicaoLoja: 0,
+        posicaoGeral: 0,
+        pontuacaoTotal: 0
+      },
+      auditoriasPorTipo: usuarioCompleto?.auditoriasPorTipo || {
+        etiquetas: 0,
+        rupturas: 0,
+        presencas: 0
+      }
     };
   });
 
@@ -870,69 +921,80 @@ const buscarMetricasLoja = async () => {
     carregando.value = true;
     erro.value = null;
 
-    const { api } = useApi();
+    // Buscar métricas completas de todas as auditorias E dados dos usuários em paralelo
+    const [responseClasses, responseUsuarios] = await Promise.all([
+      api.get('/api/metricas/loja-daily/classes-completas'),
+      api.get('/metricas/usuarios')
+    ]);
 
-    // Buscar métricas completas de todas as auditorias (etiquetas, rupturas, presencas)
-    const response = await api.get('/api/metricas/loja-daily/classes-completas');
-
-    if (response.data) {
-      // Mapear os dados do novo endpoint para a estrutura esperada pelo componente
+    if (responseClasses.data) {
+      // Mapear dados do endpoint classes-completas
       dadosReais.value = {
-        usuarioId: "", // Não disponível neste endpoint
-        loja: "", // Será preenchido pelo nome da loja
-        lojaNome: response.data.loja || "",
+        usuarioId: "",
+        loja: responseClasses.data.loja || "",
+        lojaNome: responseClasses.data.loja || "",
         metricas: {
-          data: response.data.data || new Date().toISOString(),
+          data: responseClasses.data.data || new Date().toISOString(),
 
           // Etiquetas
           etiquetas: {
-            totalItens: response.data.etiquetas?.resumo?.totalItens || 0,
-            itensValidos: response.data.etiquetas?.resumo?.itensValidos || 0,
-            itensLidos: response.data.etiquetas?.resumo?.itensValidos || 0,
-            itensAtualizados: response.data.etiquetas?.resumo?.itensAtualizados || 0,
-            itensDesatualizado: response.data.etiquetas?.resumo?.itensDesatualizado || 0,
-            percentualConclusao: response.data.etiquetas?.resumo?.percentualConclusao || 0,
-            percentualDesatualizado: response.data.etiquetas?.resumo?.percentualDesatualizado || 0,
-            classesLeitura: response.data.etiquetas?.classesLeitura || {},
+            totalItens: responseClasses.data.etiquetas?.resumo?.totalItens || 0,
+            itensValidos: responseClasses.data.etiquetas?.resumo?.itensValidos || 0,
+            itensLidos: responseClasses.data.etiquetas?.resumo?.itensValidos || 0,
+            itensAtualizados: responseClasses.data.etiquetas?.resumo?.itensAtualizados || 0,
+            itensDesatualizado: responseClasses.data.etiquetas?.resumo?.itensDesatualizado || 0,
+            percentualConclusao: responseClasses.data.etiquetas?.resumo?.percentualConclusao || 0,
+            percentualDesatualizado: responseClasses.data.etiquetas?.resumo?.percentualDesatualizado || 0,
+            classesLeitura: responseClasses.data.etiquetas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Rupturas
           rupturas: {
-            totalItens: response.data.rupturas?.resumo?.totalItens || 0,
-            itensLidos: response.data.rupturas?.resumo?.itensLidos || 0,
-            itensAtualizados: response.data.rupturas?.resumo?.itensLidos || 0,
-            percentualConclusao: response.data.rupturas?.resumo?.percentualConclusao || 0,
-            custoTotalRuptura: response.data.rupturas?.resumo?.custoTotalRuptura || 0,
-            classesLeitura: response.data.rupturas?.classesLeitura || {},
+            totalItens: responseClasses.data.rupturas?.resumo?.totalItens || 0,
+            itensLidos: responseClasses.data.rupturas?.resumo?.itensLidos || 0,
+            itensAtualizados: responseClasses.data.rupturas?.resumo?.itensLidos || 0,
+            percentualConclusao: responseClasses.data.rupturas?.resumo?.percentualConclusao || 0,
+            custoTotalRuptura: responseClasses.data.rupturas?.resumo?.custoTotalRuptura || 0,
+            classesLeitura: responseClasses.data.rupturas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Presenças
           presencas: {
-            totalItens: response.data.presencas?.resumo?.totalItens || 0,
-            itensLidos: response.data.presencas?.resumo?.itensValidos || 0,
-            itensAtualizados: response.data.presencas?.resumo?.itensAtualizados || 0,
-            percentualConclusao: response.data.presencas?.resumo?.percentualConclusao || 0,
-            presencasConfirmadas: response.data.presencas?.resumo?.presencasConfirmadas || 0,
-            percentualPresenca: response.data.presencas?.resumo?.percentualConclusao || 0,
-            classesLeitura: response.data.presencas?.classesLeitura || {},
+            totalItens: responseClasses.data.presencas?.resumo?.totalItens || 0,
+            itensLidos: responseClasses.data.presencas?.resumo?.itensValidos || 0,
+            itensAtualizados: responseClasses.data.presencas?.resumo?.itensAtualizados || 0,
+            percentualConclusao: responseClasses.data.presencas?.resumo?.percentualConclusao || 0,
+            presencasConfirmadas: responseClasses.data.presencas?.resumo?.presencasConfirmadas || 0,
+            percentualPresenca: responseClasses.data.presencas?.resumo?.percentualConclusao || 0,
+            classesLeitura: responseClasses.data.presencas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Totais consolidados
           totais: {
-            totalItens: response.data.totais?.totalItens || 0,
+            totalItens: responseClasses.data.totais?.totalItens || 0,
             itensLidos: 0,
             itensAtualizados: 0,
-            percentualConclusaoGeral: response.data.totais?.percentualConclusaoGeral || 0,
+            percentualConclusaoGeral: responseClasses.data.totais?.percentualConclusaoGeral || 0,
             pontuacaoTotal: 0,
           },
         },
       };
 
       console.log("✅ Métricas completas carregadas com sucesso:", dadosReais.value);
+      console.log("📊 Classes de Etiquetas:", Object.keys(dadosReais.value.metricas.etiquetas.classesLeitura).length);
+      console.log("📊 Classes de Rupturas:", Object.keys(dadosReais.value.metricas.rupturas.classesLeitura).length);
+      console.log("📊 Classes de Presenças:", Object.keys(dadosReais.value.metricas.presencas.classesLeitura).length);
     }
+
+    // Armazenar dados dos usuários
+    if (responseUsuarios.data?.usuarios) {
+      dadosUsuarios.value = responseUsuarios.data.usuarios;
+      console.log("✅ Dados de usuários carregados:", dadosUsuarios.value.length, "usuários");
+    }
+
   } catch (error) {
     console.error("❌ Erro ao buscar métricas da loja:", error);
     erro.value = "Erro ao carregar métricas. Tente novamente mais tarde.";
@@ -1430,6 +1492,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.colaborador-foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.colaborador-iniciais {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #667eea;
 }
 
 .colaborador-info {
@@ -1446,6 +1521,20 @@ onMounted(() => {
   font-size: 0.8rem;
   color: #718096;
   margin-bottom: 0.25rem;
+}
+
+.colaborador-conquistas {
+  font-size: 0.75rem;
+  color: #667eea;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.colaborador-ranking {
+  font-size: 0.7rem;
+  color: #4a5568;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
 }
 
 .colaborador-status {

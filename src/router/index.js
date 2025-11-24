@@ -33,6 +33,7 @@ import ConteudoTeste1 from "../views/Conteudo/ConteudoTeste1.vue";
 import ConteudoTeste2 from "../views/Conteudo/ConteudoTeste2.vue";
 import SelecionarLoja from "../views/SelecionarLoja.vue";
 import PerfilLoja from "@/views/PerfilLoja.vue";
+import TesteMetricas from "@/views/PerfilLoja/TesteMetricas.vue";
 import { useLojaStore } from "../store/lojaStore";
 import Login from "@/views/Login.vue";
 
@@ -213,6 +214,12 @@ const routes = [
     component: PerfilLoja,
     props: true,
     meta: { requiresLoja: false },
+  },
+  {
+    path: "/teste-metricas",
+    name: "TesteMetricas",
+    component: TesteMetricas,
+    meta: { requiresLoja: true },
   },
 
   // Rotas de teste (opcional - pode requerer loja também se necessário)
