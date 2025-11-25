@@ -46,8 +46,12 @@
             <i class="fas fa-lightbulb"></i>
             💡 Enviar Sugestão
           </button>
-          <button class="btn-secondary" @click="openNoticeModal">💬 Novo Aviso</button>
-          <button class="btn-secondary" @click="openVotingModal">🚀 Nova votação</button>
+          <button class="btn-secondary" @click="openNoticeModal">
+            💬 Novo Aviso
+          </button>
+          <button class="btn-secondary" @click="openVotingModal">
+            🚀 Nova votação
+          </button>
         </div>
       </div>
 
@@ -126,11 +130,7 @@
     </div>
 
     <!-- Modal de Nova Postagem -->
-    <div
-      v-if="showPostModal"
-      class="modal-overlay"
-      @click="closePostModal"
-    >
+    <div v-if="showPostModal" class="modal-overlay" @click="closePostModal">
       <div class="suggestion-modal" @click.stop>
         <div class="modal-header">
           <h2>📝 Criar Nova Postagem</h2>
@@ -189,9 +189,7 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn-cancel" @click="closePostModal">
-            Cancelar
-          </button>
+          <button class="btn-cancel" @click="closePostModal">Cancelar</button>
           <button
             class="btn-submit"
             @click="submitPost"
@@ -205,11 +203,7 @@
     </div>
 
     <!-- Modal de Novo Aviso -->
-    <div
-      v-if="showNoticeModal"
-      class="modal-overlay"
-      @click="closeNoticeModal"
-    >
+    <div v-if="showNoticeModal" class="modal-overlay" @click="closeNoticeModal">
       <div class="suggestion-modal" @click.stop>
         <div class="modal-header">
           <h2>💬 Criar Novo Aviso</h2>
@@ -256,7 +250,11 @@
 
           <div class="form-group">
             <label for="notice-priority">Prioridade</label>
-            <select id="notice-priority" v-model="noticeForm.priority" class="form-input">
+            <select
+              id="notice-priority"
+              v-model="noticeForm.priority"
+              class="form-input"
+            >
               <option value="baixa">🟢 Baixa</option>
               <option value="media">🟡 Média</option>
               <option value="alta">🟠 Alta</option>
@@ -266,9 +264,7 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn-cancel" @click="closeNoticeModal">
-            Cancelar
-          </button>
+          <button class="btn-cancel" @click="closeNoticeModal">Cancelar</button>
           <button
             class="btn-submit"
             @click="submitNotice"
@@ -282,11 +278,7 @@
     </div>
 
     <!-- Modal de Nova Votação -->
-    <div
-      v-if="showVotingModal"
-      class="modal-overlay"
-      @click="closeVotingModal"
-    >
+    <div v-if="showVotingModal" class="modal-overlay" @click="closeVotingModal">
       <div class="suggestion-modal" @click.stop>
         <div class="modal-header">
           <h2>🚀 Nova Votação de Melhorias</h2>
@@ -344,9 +336,7 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn-cancel" @click="closeVotingModal">
-            Cancelar
-          </button>
+          <button class="btn-cancel" @click="closeVotingModal">Cancelar</button>
           <button
             class="btn-submit"
             @click="submitVoting"
@@ -358,13 +348,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Overlay de Sucesso -->
+    <div v-if="showSuccessOverlay" class="success-overlay">
+      <div class="success-content">
+        <div class="success-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.06-1.06L10.5 13.19l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l4.5-4.5z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <h3>{{ successOverlayTitle }}</h3>
+        <p>{{ successOverlayMessage }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
 
-defineEmits(["start-audit", "post-created", "notice-created", "voting-created"]);
+defineEmits([
+  "start-audit",
+  "post-created",
+  "notice-created",
+  "voting-created",
+]);
 
 // Estados reativos para modal de sugestões
 const showSuggestionModal = ref(false);
@@ -378,7 +394,7 @@ const postForm = ref({
   author: "",
   title: "",
   content: "",
-  type: "geral"
+  type: "geral",
 });
 const isSubmittingPost = ref(false);
 
@@ -388,7 +404,7 @@ const noticeForm = ref({
   author: "",
   title: "",
   content: "",
-  priority: "media"
+  priority: "media",
 });
 const isSubmittingNotice = ref(false);
 
@@ -398,33 +414,44 @@ const votingForm = ref({
   author: "",
   title: "",
   description: "",
-  benefits: ""
+  benefits: "",
 });
 const isSubmittingVoting = ref(false);
 
+// Estado para o overlay de sucesso
+const showSuccessOverlay = ref(false);
+const successOverlayTitle = ref("");
+const successOverlayMessage = ref("");
+
 // Computed para validações dos formulários
 const isPostFormValid = computed(() => {
-  return postForm.value.author.trim() &&
-         postForm.value.title.trim() &&
-         postForm.value.content.trim() &&
-         postForm.value.title.length >= 5 &&
-         postForm.value.content.length >= 10;
+  return (
+    postForm.value.author.trim() &&
+    postForm.value.title.trim() &&
+    postForm.value.content.trim() &&
+    postForm.value.title.length >= 5 &&
+    postForm.value.content.length >= 10
+  );
 });
 
 const isNoticeFormValid = computed(() => {
-  return noticeForm.value.author.trim() &&
-         noticeForm.value.title.trim() &&
-         noticeForm.value.content.trim() &&
-         noticeForm.value.title.length >= 5 &&
-         noticeForm.value.content.length >= 10;
+  return (
+    noticeForm.value.author.trim() &&
+    noticeForm.value.title.trim() &&
+    noticeForm.value.content.trim() &&
+    noticeForm.value.title.length >= 5 &&
+    noticeForm.value.content.length >= 10
+  );
 });
 
 const isVotingFormValid = computed(() => {
-  return votingForm.value.author.trim() &&
-         votingForm.value.title.trim() &&
-         votingForm.value.description.trim() &&
-         votingForm.value.title.length >= 5 &&
-         votingForm.value.description.length >= 20;
+  return (
+    votingForm.value.author.trim() &&
+    votingForm.value.title.trim() &&
+    votingForm.value.description.trim() &&
+    votingForm.value.title.length >= 5 &&
+    votingForm.value.description.length >= 20
+  );
 });
 
 // Métodos para modal de sugestões
@@ -450,7 +477,7 @@ const closePostModal = () => {
     author: "",
     title: "",
     content: "",
-    type: "geral"
+    type: "geral",
   };
   isSubmittingPost.value = false;
 };
@@ -466,7 +493,7 @@ const closeNoticeModal = () => {
     author: "",
     title: "",
     content: "",
-    priority: "media"
+    priority: "media",
   };
   isSubmittingNotice.value = false;
 };
@@ -482,7 +509,7 @@ const closeVotingModal = () => {
     author: "",
     title: "",
     description: "",
-    benefits: ""
+    benefits: "",
   };
   isSubmittingVoting.value = false;
 };
@@ -509,8 +536,13 @@ const submitSuggestion = async () => {
     });
 
     if (response.ok) {
-      alert("Sugestão enviada com sucesso! Obrigado pelo feedback.");
       closeSuggestionModal();
+      successOverlayTitle.value = "Sugestão Enviada com Sucesso!";
+      successOverlayMessage.value = "Obrigado pelo seu feedback.";
+      showSuccessOverlay.value = true;
+      setTimeout(() => {
+        showSuccessOverlay.value = false;
+      }, 3000);
     } else {
       throw new Error("Erro ao enviar sugestão");
     }
@@ -546,8 +578,14 @@ const submitPost = async () => {
     });
 
     if (response.ok) {
-      alert("Postagem criada com sucesso! Será enviada para aprovação no dashboard.");
       closePostModal();
+      successOverlayTitle.value = "Postagem Criada com Sucesso!";
+      successOverlayMessage.value = "Sua postagem foi enviada para aprovação.";
+      showSuccessOverlay.value = true;
+      // Esconde o overlay após alguns segundos
+      setTimeout(() => {
+        showSuccessOverlay.value = false;
+      }, 3000);
     } else {
       const errorData = await response.json();
       throw new Error(errorData.erro || "Erro ao criar postagem");
@@ -584,8 +622,14 @@ const submitNotice = async () => {
     });
 
     if (response.ok) {
-      alert("Aviso criado com sucesso! Será enviado para aprovação no dashboard.");
       closeNoticeModal();
+      successOverlayTitle.value = "Aviso Criado com Sucesso!";
+      successOverlayMessage.value =
+        "Seu aviso será enviado para aprovação no dashboard.";
+      showSuccessOverlay.value = true;
+      setTimeout(() => {
+        showSuccessOverlay.value = false;
+      }, 3000);
     } else {
       throw new Error("Erro ao criar aviso");
     }
@@ -623,8 +667,13 @@ const submitVoting = async () => {
     });
 
     if (response.ok) {
-      alert("Votação criada com sucesso! Será enviada para aprovação no dashboard.");
       closeVotingModal();
+      successOverlayTitle.value = "Votação criada com sucesso!";
+      successOverlayMessage.value = "Será enviada para aprovação no dashboard.";
+      showSuccessOverlay.value = true;
+      setTimeout(() => {
+        showSuccessOverlay.value = false;
+      }, 3000);
     } else {
       throw new Error("Erro ao criar votação");
     }
@@ -1093,6 +1142,72 @@ const submitVoting = async () => {
   .btn-cancel,
   .btn-submit {
     width: 100%;
+  }
+}
+
+/* Estilos do Overlay de Sucesso */
+.success-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001; /* Acima do outro modal */
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.success-content {
+  background: white;
+  color: #1e293b;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+  max-width: 400px;
+}
+
+.success-icon {
+  color: #22c55e; /* Verde sucesso */
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  animation: popIn 0.5s ease-out 0.2s backwards;
+}
+
+.success-content h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.success-content p {
+  color: #64748b;
+  font-size: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 </style>

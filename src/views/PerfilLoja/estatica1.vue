@@ -1,1108 +1,1425 @@
 <template>
-  <div class="auditorias-mensais-container">
-    <!-- Cabeçalho da Seção -->
-    <div class="section-header">
-      <div class="header-main">
-        <div class="title-section">
-          <div class="title-icon">📅</div>
-          <div class="title-content">
-            <h2>Auditorias Mensais</h2>
-            <p>Análise detalhada do volume de auditorias ao longo do tempo</p>
-          </div>
+  <div class="dashboard-analytics">
+    <!-- Header com Filtros -->
+    <div class="dashboard-header">
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Período:</label>
+          <select v-model="filters.periodo" @change="atualizarDados">
+            <option value="diario">Diário</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensal">Mensal</option>
+          </select>
         </div>
-        <div class="header-actions">
-          <div class="filter-group">
-            <label class="filter-label">Período:</label>
-            <select v-model="activePeriod" class="period-select">
-              <option
-                v-for="period in timePeriods"
-                :key="period.value"
-                :value="period.value"
-              >
-                {{ period.label }}
-              </option>
-            </select>
-          </div>
-          <button class="export-btn" @click="exportData">
-            <span class="export-icon">📊</span>
-            Exportar Dados
-          </button>
+
+        <div class="filter-group">
+          <label>Loja:</label>
+          <select v-model="filters.loja" @change="atualizarDados">
+            <option value="todas">Todas as Lojas</option>
+            <option v-for="loja in lojas" :key="loja._id" :value="loja._id">
+              {{ loja.nome }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Tipo Auditoria:</label>
+          <select v-model="filters.tipoAuditoria" @change="atualizarDados">
+            <option value="todos">Todos</option>
+            <option value="etiqueta">Etiquetas</option>
+            <option value="ruptura">Rupturas</option>
+            <option value="presenca">Presenças</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Data Início:</label>
+          <input
+            type="date"
+            v-model="filters.dataInicio"
+            @change="atualizarDados"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label>Data Fim:</label>
+          <input
+            type="date"
+            v-model="filters.dataFim"
+            @change="atualizarDados"
+          />
         </div>
       </div>
 
-      <!-- Cards de Resumo -->
-      <div class="summary-cards">
-        <div class="summary-card">
-          <div class="summary-icon total">📋</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ totalAuditorias }}</div>
-            <div class="summary-label">Total de Auditorias</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon average">📈</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ mediaMensal }}</div>
-            <div class="summary-label">Média Mensal</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon growth">🚀</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ crescimento }}%</div>
-            <div class="summary-label">Crescimento</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-icon target">🎯</div>
-          <div class="summary-content">
-            <div class="summary-value">{{ percentualMeta }}%</div>
-            <div class="summary-label">Meta Atingida</div>
-          </div>
-        </div>
+      <div class="header-actions">
+        <button class="btn-primary" @click="exportarRelatorio">
+          📊 Exportar Relatório
+        </button>
+        <button class="btn-secondary" @click="atualizarDados">
+          🔄 Atualizar
+        </button>
       </div>
     </div>
 
-    <!-- Gráfico Principal -->
-    <div class="chart-section">
+    <!-- Cards de Métricas Principais -->
+    <div class="metrics-cards">
+      <div class="metric-card">
+        <div class="metric-icon">📈</div>
+        <div class="metric-info">
+          <h3>
+            {{
+              formatarNumero(dashboardData.totais?.totalItensProcessados || 0)
+            }}
+          </h3>
+          <p>Itens Processados</p>
+        </div>
+        <div
+          class="metric-trend"
+          :class="getTrendClass(dashboardData.tendencias?.crescimentoItens)"
+        >
+          {{ getTrendIcon(dashboardData.tendencias?.crescimentoItens) }}
+          {{ Math.abs(dashboardData.tendencias?.crescimentoItens || 0) }}%
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">✅</div>
+        <div class="metric-info">
+          <h3>{{ dashboardData.totais?.percentualConclusaoGeral || 0 }}%</h3>
+          <p>Conclusão Geral</p>
+        </div>
+        <div
+          class="metric-trend"
+          :class="getTrendClass(dashboardData.tendencias?.melhoriaQualidade)"
+        >
+          {{ getTrendIcon(dashboardData.tendencias?.melhoriaQualidade) }}
+          {{ Math.abs(dashboardData.tendencias?.melhoriaQualidade || 0) }}%
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">👥</div>
+        <div class="metric-info">
+          <h3>
+            {{ formatarNumero(dashboardData.totais?.usuariosAtivos || 0) }}
+          </h3>
+          <p>Usuários Ativos</p>
+        </div>
+        <div
+          class="metric-trend"
+          :class="getTrendClass(dashboardData.tendencias?.crescimentoUsuarios)"
+        >
+          {{ getTrendIcon(dashboardData.tendencias?.crescimentoUsuarios) }}
+          {{ Math.abs(dashboardData.tendencias?.crescimentoUsuarios || 0) }}%
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">💰</div>
+        <div class="metric-info">
+          <h3>
+            R$
+            {{ formatarMoeda(dashboardData.rupturas?.custoTotalRuptura || 0) }}
+          </h3>
+          <p>Custo Ruptura</p>
+        </div>
+        <div class="metric-trend negative">📉 Economia Potencial</div>
+      </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="charts-grid">
+      <!-- Gráfico de Conclusão por Tipo -->
       <div class="chart-container">
-        <canvas ref="barChart"></canvas>
+        <h3>Conclusão por Tipo de Auditoria</h3>
+        <div class="chart-wrapper">
+          <canvas ref="conclusaoChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de Tendência Temporal -->
+      <div class="chart-container">
+        <h3>Evolução da Performance</h3>
+        <div class="chart-wrapper">
+          <canvas ref="tendenciaChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de Distribuição por Situação -->
+      <div class="chart-container">
+        <h3>Distribuição de Situações - Etiquetas</h3>
+        <div class="chart-wrapper">
+          <canvas ref="situacaoChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Mapa de Calor de Locais -->
+      <div class="chart-container full-width">
+        <h3>Performance por Local/Setor</h3>
+        <div class="chart-wrapper">
+          <canvas ref="heatmapChart"></canvas>
+        </div>
       </div>
     </div>
 
-    <!-- Detalhes e Métricas -->
-    <div class="details-section">
-      <div class="details-grid">
-        <!-- Estatísticas Detalhadas -->
-        <div class="details-card">
-          <h3 class="details-title">📊 Estatísticas Detalhadas</h3>
-          <div class="metrics-grid">
-            <div class="metric-item">
-              <span class="metric-label">Mês com Maior Volume</span>
-              <span class="metric-value"
-                >{{ mesMaiorVolume.mes }} ({{ mesMaiorVolume.valor }})</span
+    <!-- Rankings e Tabelas -->
+    <div class="tables-section">
+      <div class="table-container">
+        <h3>🏆 Ranking de Lojas</h3>
+        <div class="table-wrapper">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>Posição</th>
+                <th>Loja</th>
+                <th>Conclusão</th>
+                <th>Pontuação</th>
+                <th>Usuários Ativos</th>
+                <th>Tendência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(loja, index) in dashboardData.rankingLojas"
+                :key="loja._id"
               >
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Mês com Menor Volume</span>
-              <span class="metric-value"
-                >{{ mesMenorVolume.mes }} ({{ mesMenorVolume.valor }})</span
+                <td class="position-cell">
+                  <span
+                    class="position-badge"
+                    :class="getPositionClass(index + 1)"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                </td>
+                <td class="loja-info">
+                  <strong>{{ loja.nome }}</strong>
+                  <small>{{ loja.cidade }} - {{ loja.regiao }}</small>
+                </td>
+                <td>
+                  <div class="progress-container">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        :style="{ width: loja.percentualConclusao + '%' }"
+                        :class="getProgressClass(loja.percentualConclusao)"
+                      ></div>
+                    </div>
+                    <span>{{ loja.percentualConclusao }}%</span>
+                  </div>
+                </td>
+                <td class="score">{{ loja.pontuacao }}</td>
+                <td>{{ loja.usuariosAtivos }}</td>
+                <td>
+                  <span
+                    class="trend-indicator"
+                    :class="getTrendClass(loja.variacao)"
+                  >
+                    {{ getTrendIcon(loja.variacao) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <h3>👤 Ranking de Usuários</h3>
+        <div class="table-wrapper">
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>Posição</th>
+                <th>Usuário</th>
+                <th>Loja</th>
+                <th>Itens Processados</th>
+                <th>Conquistas</th>
+                <th>Nível</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(usuario, index) in dashboardData.rankingUsuarios"
+                :key="usuario.usuarioId"
               >
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Tendência</span>
-              <span class="metric-value" :class="tendenciaClass">{{
-                tendencia
+                <td class="position-cell">
+                  <span
+                    class="position-badge"
+                    :class="getPositionClass(index + 1)"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                </td>
+                <td class="user-info">
+                  <strong>{{ usuario.usuarioNome }}</strong>
+                  <small>XP: {{ formatarNumero(usuario.xp) }}</small>
+                </td>
+                <td>{{ usuario.lojaNome }}</td>
+                <td>{{ formatarNumero(usuario.itensProcessados) }}</td>
+                <td>
+                  <div class="achievements">
+                    <span class="achievement-count">{{
+                      usuario.conquistasDesbloqueadas
+                    }}</span>
+                    <span class="achievement-badge">🏆</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="level-info">
+                    <span class="level-badge">Nv. {{ usuario.nivel }}</span>
+                    <span class="level-title">{{ usuario.tituloNivel }}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas e Insights -->
+    <div class="alerts-section">
+      <h3>🚨 Alertas Críticos</h3>
+      <div class="alerts-grid">
+        <div
+          v-for="alerta in dashboardData.alertas"
+          :key="alerta._id"
+          class="alert-card"
+          :class="'severity-' + alerta.severidade"
+        >
+          <div class="alert-icon">
+            {{ getAlertIcon(alerta.tipo) }}
+          </div>
+          <div class="alert-content">
+            <h4>{{ alerta.titulo }}</h4>
+            <p>{{ alerta.descricao }}</p>
+            <div class="alert-meta">
+              <span class="severity-badge" :class="alerta.severidade">
+                {{ alerta.severidade }}
+              </span>
+              <span class="alert-date">{{
+                formatarData(alerta.dataDeteccao)
               }}</span>
             </div>
-            <div class="metric-item">
-              <span class="metric-label">Previsão Próximo Mês</span>
-              <span class="metric-value">{{ previsaoProximoMes }}</span>
-            </div>
           </div>
-        </div>
-
-        <!-- Distribuição por Tipo -->
-        <div class="details-card">
-          <h3 class="details-title">🔍 Distribuição por Tipo</h3>
-          <div class="distribution-chart">
-            <canvas ref="doughnutChart"></canvas>
-          </div>
-          <div class="distribution-stats">
-            <div
-              v-for="(tipo, index) in distribuicaoTipos"
-              :key="tipo.nome"
-              class="distribution-item"
-            >
-              <div
-                class="distribution-color"
-                :style="{ background: tipo.cor }"
-              ></div>
-              <span class="distribution-name">{{ tipo.nome }}</span>
-              <span class="distribution-value"
-                >{{ tipo.quantidade }} ({{ tipo.percentual }}%)</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Insights e Alertas -->
-        <div class="details-card">
-          <h3 class="details-title">💡 Insights</h3>
-          <div class="insights-list">
-            <div
-              v-for="insight in insights"
-              :key="insight.id"
-              class="insight-item"
-              :class="insight.tipo"
-            >
-              <div class="insight-icon">{{ insight.icone }}</div>
-              <div class="insight-content">
-                <div class="insight-title">{{ insight.titulo }}</div>
-                <div class="insight-description">{{ insight.descricao }}</div>
-              </div>
-            </div>
+          <div class="alert-actions">
+            <button class="btn-sm" @click="verDetalhesAlerta(alerta)">
+              Ver Detalhes
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Tabela de Dados -->
-    <div class="table-section">
-      <div class="table-header">
-        <h3>📋 Dados Detalhados</h3>
-        <div class="table-actions">
-          <button class="table-btn" @click="toggleTableView">
-            {{ showTable ? "Ocultar" : "Mostrar" }} Tabela
-          </button>
-        </div>
+    <!-- Modal de Detalhes -->
+    <div v-if="modalAberto" class="modal-overlay" @click="fecharModal">
+      <div class="modal-content" @click.stop>
+        <h2>{{ modalDados.titulo }}</h2>
+        <div v-html="modalDados.conteudo"></div>
+        <button class="btn-close" @click="fecharModal">Fechar</button>
       </div>
+    </div>
 
-      <div v-if="showTable" class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Período</th>
-              <th>Auditorias Realizadas</th>
-              <th>Meta</th>
-              <th>Atingimento</th>
-              <th>Variação</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in tabelaDados" :key="index">
-              <td class="period-cell">{{ item.periodo }}</td>
-              <td class="value-cell">{{ item.realizadas }}</td>
-              <td class="value-cell">{{ item.meta }}</td>
-              <td class="value-cell">{{ item.atingimento }}%</td>
-              <td
-                class="variation-cell"
-                :class="item.variacao >= 0 ? 'positive' : 'negative'"
-              >
-                {{ item.variacao >= 0 ? "+" : "" }}{{ item.variacao }}%
-              </td>
-              <td class="status-cell">
-                <span class="status-badge" :class="item.status">
-                  {{ item.status }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- Loading -->
+    <div v-if="carregando" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Carregando dados...</p>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onUnmounted, watch, computed } from "vue";
-import {
-  Chart,
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Tooltip,
-  Legend,
-  DoughnutController,
-  ArcElement,
-} from "chart.js";
+<script>
+import { ref, onMounted, watch } from "vue";
+import Chart from "chart.js/auto";
 
-// Registrar componentes do Chart.js
-Chart.register(
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Tooltip,
-  Legend,
-  DoughnutController,
-  ArcElement
-);
+export default {
+  name: "DashboardAnalytics",
+  setup() {
+    // Refs para dados e estado
+    const filters = ref({
+      periodo: "mensal",
+      loja: "todas",
+      tipoAuditoria: "todos",
+      dataInicio: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        .toISOString()
+        .split("T")[0],
+      dataFim: new Date().toISOString().split("T")[0],
+    });
 
-// Refs para os gráficos
-const barChart = ref(null);
-const doughnutChart = ref(null);
+    const dashboardData = ref({
+      totais: {},
+      tendencias: {},
+      rankingLojas: [],
+      rankingUsuarios: [],
+      alertas: [],
+      rupturas: {},
+    });
 
-// Instâncias dos gráficos
-const barChartInstance = ref(null);
-const doughnutChartInstance = ref(null);
+    const lojas = ref([]);
+    const carregando = ref(false);
+    const modalAberto = ref(false);
+    const modalDados = ref({});
 
-// Estado do componente
-const activePeriod = ref("month");
-const showTable = ref(false);
+    // Refs para gráficos
+    const conclusaoChart = ref(null);
+    const tendenciaChart = ref(null);
+    const situacaoChart = ref(null);
+    const heatmapChart = ref(null);
 
-// Períodos disponíveis
-const timePeriods = [
-  { label: "Última Semana", value: "week" },
-  { label: "Último Mês", value: "month" },
-  { label: "Último Trimestre", value: "quarter" },
-  { label: "Último Ano", value: "year" },
-];
+    // Instâncias dos gráficos
+    let conclusaoChartInstance = null;
+    let tendenciaChartInstance = null;
+    let situacaoChartInstance = null;
+    let heatmapChartInstance = null;
 
-// Dados dos gráficos
-const chartData = {
-  week: {
-    labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
-    auditorias: [3, 5, 4, 6, 8, 5, 7],
-    meta: 40,
-    tipos: [
-      { nome: "Etiquetas", quantidade: 25, cor: "#667eea" },
-      { nome: "Presença", quantidade: 10, cor: "#4CAF50" },
-      { nome: "Ruptura", quantidade: 5, cor: "#FF9800" },
-    ],
-  },
-  month: {
-    labels: [
-      "Jan",
-      "Fev",
-      "Mar",
-      "Abr",
-      "Mai",
-      "Jun",
-      "Jul",
-      "Ago",
-      "Set",
-      "Out",
-      "Nov",
-      "Dez",
-    ],
-    auditorias: [12, 19, 15, 22, 30, 25, 28, 32, 27, 20, 18, 24],
-    meta: 250,
-    tipos: [
-      { nome: "Etiquetas", quantidade: 150, cor: "#667eea" },
-      { nome: "Presença", quantidade: 75, cor: "#4CAF50" },
-      { nome: "Ruptura", quantidade: 25, cor: "#FF9800" },
-    ],
-  },
-  quarter: {
-    labels: ["Q1", "Q2", "Q3"],
-    auditorias: [45, 67, 55],
-    meta: 180,
-    tipos: [
-      { nome: "Etiquetas", quantidade: 100, cor: "#667eea" },
-      { nome: "Presença", quantidade: 50, cor: "#4CAF50" },
-      { nome: "Ruptura", quantidade: 17, cor: "#FF9800" },
-    ],
-  },
-  year: {
-    labels: ["2021", "2022", "2023", "2024"],
-    auditorias: [180, 195, 210, 230],
-    meta: 800,
-    tipos: [
-      { nome: "Etiquetas", quantidade: 480, cor: "#667eea" },
-      { nome: "Presença", quantidade: 240, cor: "#4CAF50" },
-      { nome: "Ruptura", quantidade: 80, cor: "#FF9800" },
-    ],
-  },
-};
+    // Métodos
+    const carregarLojas = async () => {
+      try {
+        // Simulação - substituir por chamada real à API
+        lojas.value = [
+          {
+            _id: "1",
+            nome: "Loja Centro",
+            cidade: "São Paulo",
+            regiao: "Centro",
+          },
+          {
+            _id: "2",
+            nome: "Loja Norte",
+            cidade: "São Paulo",
+            regiao: "Norte",
+          },
+          { _id: "3", nome: "Loja Sul", cidade: "São Paulo", regiao: "Sul" },
+        ];
+      } catch (error) {
+        console.error("Erro ao carregar lojas:", error);
+      }
+    };
 
-// Computed properties
-const totalAuditorias = computed(() => {
-  const data = chartData[activePeriod.value];
-  return data.auditorias.reduce((sum, val) => sum + val, 0);
-});
+    const carregarDadosDashboard = async () => {
+      carregando.value = true;
+      try {
+        // Simulação de dados - substituir por chamadas reais à API
+        const dados = await simularDadosDashboard();
+        dashboardData.value = dados;
 
-const mediaMensal = computed(() => {
-  const data = chartData[activePeriod.value];
-  return Math.round(totalAuditorias.value / data.auditorias.length);
-});
+        // Atualizar gráficos após carregar dados
+        setTimeout(() => {
+          inicializarGraficos();
+        }, 100);
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      } finally {
+        carregando.value = false;
+      }
+    };
 
-const crescimento = computed(() => {
-  const data = chartData[activePeriod.value].auditorias;
-  if (data.length < 2) return 0;
+    const simularDadosDashboard = async () => {
+      // Dados simulados baseados nos modelos do banco
+      return {
+        totais: {
+          totalItensProcessados: 15420,
+          percentualConclusaoGeral: 78.5,
+          usuariosAtivos: 45,
+          lojasAtivas: 12,
+        },
+        tendencias: {
+          crescimentoItens: 12.5,
+          melhoriaQualidade: 8.2,
+          crescimentoUsuarios: 5.7,
+        },
+        rupturas: {
+          custoTotalRuptura: 125000,
+          economiaEstimada: 87500,
+        },
+        rankingLojas: [
+          {
+            _id: "1",
+            nome: "Loja Centro",
+            cidade: "São Paulo",
+            regiao: "Centro",
+            percentualConclusao: 92,
+            pontuacao: 456,
+            usuariosAtivos: 8,
+            variacao: 5.2,
+          },
+          {
+            _id: "2",
+            nome: "Loja Norte",
+            cidade: "São Paulo",
+            regiao: "Norte",
+            percentualConclusao: 87,
+            pontuacao: 423,
+            usuariosAtivos: 6,
+            variacao: 2.1,
+          },
+          {
+            _id: "3",
+            nome: "Loja Sul",
+            cidade: "São Paulo",
+            regiao: "Sul",
+            percentualConclusao: 79,
+            pontuacao: 398,
+            usuariosAtivos: 7,
+            variacao: -1.5,
+          },
+        ],
+        rankingUsuarios: [
+          {
+            usuarioId: "1",
+            usuarioNome: "João Silva",
+            lojaNome: "Loja Centro",
+            itensProcessados: 1245,
+            xp: 2450,
+            conquistasDesbloqueadas: 8,
+            nivel: 12,
+            tituloNivel: "Especialista",
+          },
+          {
+            usuarioId: "2",
+            usuarioNome: "Maria Santos",
+            lojaNome: "Loja Norte",
+            itensProcessados: 987,
+            xp: 1870,
+            conquistasDesbloqueadas: 6,
+            nivel: 9,
+            tituloNivel: "Experiente",
+          },
+          {
+            usuarioId: "3",
+            usuarioNome: "Pedro Oliveira",
+            lojaNome: "Loja Sul",
+            itensProcessados: 856,
+            xp: 1620,
+            conquistasDesbloqueadas: 5,
+            nivel: 8,
+            tituloNivel: "Competente",
+          },
+        ],
+        alertas: [
+          {
+            _id: "1",
+            tipo: "alta_ruptura",
+            severidade: "alta",
+            titulo: "Custo Elevado de Rupturas",
+            descricao: "Custo total de rupturas acima do esperado",
+            dataDeteccao: new Date(),
+          },
+          {
+            _id: "2",
+            tipo: "baixa_produtividade",
+            severidade: "media",
+            titulo: "Baixa Produtividade em Etiquetas",
+            descricao: "Taxa de conclusão abaixo da meta em 3 lojas",
+            dataDeteccao: new Date(Date.now() - 86400000),
+          },
+        ],
+      };
+    };
 
-  const primeiro = data[0];
-  const ultimo = data[data.length - 1];
-  return Math.round(((ultimo - primeiro) / primeiro) * 100);
-});
+    const inicializarGraficos = () => {
+      // Destruir gráficos existentes
+      destruirGraficos();
 
-const percentualMeta = computed(() => {
-  const data = chartData[activePeriod.value];
-  return Math.round((totalAuditorias.value / data.meta) * 100);
-});
+      // Gráfico de Conclusão por Tipo
+      if (conclusaoChart.value) {
+        const ctx = conclusaoChart.value.getContext("2d");
+        conclusaoChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Etiquetas", "Rupturas", "Presenças"],
+            datasets: [
+              {
+                label: "Percentual de Conclusão",
+                data: [85, 72, 78],
+                backgroundColor: [
+                  "rgba(75, 192, 192, 0.8)",
+                  "rgba(255, 99, 132, 0.8)",
+                  "rgba(54, 162, 235, 0.8)",
+                ],
+                borderColor: [
+                  "rgb(75, 192, 192)",
+                  "rgb(255, 99, 132)",
+                  "rgb(54, 162, 235)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: "Performance por Tipo de Auditoria",
+              },
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function (value) {
+                    return value + "%";
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
 
-const mesMaiorVolume = computed(() => {
-  const data = chartData[activePeriod.value];
-  const maxValue = Math.max(...data.auditorias);
-  const maxIndex = data.auditorias.indexOf(maxValue);
-  return {
-    mes: data.labels[maxIndex],
-    valor: maxValue,
-  };
-});
+      // Gráfico de Tendência Temporal
+      if (tendenciaChart.value) {
+        const ctx = tendenciaChart.value.getContext("2d");
+        tendenciaChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+            datasets: [
+              {
+                label: "Itens Processados",
+                data: [1200, 1900, 1500, 2100, 1800, 2400],
+                borderColor: "rgb(75, 192, 192)",
+                backgroundColor: "rgba(75, 192, 192, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Conclusão %",
+                data: [65, 72, 68, 75, 78, 82],
+                borderColor: "rgb(153, 102, 255)",
+                backgroundColor: "rgba(153, 102, 255, 0.1)",
+                tension: 0.4,
+                fill: true,
+                yAxisID: "y1",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            scales: {
+              y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                title: {
+                  display: true,
+                  text: "Itens Processados",
+                },
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                max: 100,
+                ticks: {
+                  callback: function (value) {
+                    return value + "%";
+                  },
+                },
+                title: {
+                  display: true,
+                  text: "Percentual de Conclusão",
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+              },
+            },
+          },
+        });
+      }
 
-const mesMenorVolume = computed(() => {
-  const data = chartData[activePeriod.value];
-  const minValue = Math.min(...data.auditorias);
-  const minIndex = data.auditorias.indexOf(minValue);
-  return {
-    mes: data.labels[minIndex],
-    valor: minValue,
-  };
-});
+      // Gráfico de Situações
+      if (situacaoChart.value) {
+        const ctx = situacaoChart.value.getContext("2d");
+        situacaoChartInstance = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: [
+              "Atualizados",
+              "Desatualizados",
+              "Não Lidos",
+              "Sem Estoque",
+            ],
+            datasets: [
+              {
+                data: [65, 15, 12, 8],
+                backgroundColor: [
+                  "rgba(75, 192, 192, 0.8)",
+                  "rgba(255, 205, 86, 0.8)",
+                  "rgba(255, 99, 132, 0.8)",
+                  "rgba(201, 203, 207, 0.8)",
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      }
 
-const tendencia = computed(() => {
-  return crescimento.value >= 0 ? "Crescimento" : "Queda";
-});
+      // Mapa de Calor (simplificado)
+      if (heatmapChart.value) {
+        const ctx = heatmapChart.value.getContext("2d");
+        heatmapChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: [
+              "G01A",
+              "G01B",
+              "G02A",
+              "G02B",
+              "G03A",
+              "G03B",
+              "FLV",
+              "C01",
+            ],
+            datasets: [
+              {
+                label: "Percentual de Conclusão",
+                data: [92, 85, 78, 88, 82, 79, 91, 76],
+                backgroundColor: function (context) {
+                  const value = context.raw;
+                  if (value >= 90) return "rgba(75, 192, 192, 0.8)";
+                  if (value >= 80) return "rgba(255, 205, 86, 0.8)";
+                  if (value >= 70) return "rgba(255, 159, 64, 0.8)";
+                  return "rgba(255, 99, 132, 0.8)";
+                },
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: "Performance por Local/Corredor",
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function (value) {
+                    return value + "%";
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+    };
 
-const tendenciaClass = computed(() => {
-  return crescimento.value >= 0 ? "positive" : "negative";
-});
+    const destruirGraficos = () => {
+      [
+        conclusaoChartInstance,
+        tendenciaChartInstance,
+        situacaoChartInstance,
+        heatmapChartInstance,
+      ].forEach((instance) => {
+        if (instance) {
+          instance.destroy();
+        }
+      });
+    };
 
-const previsaoProximoMes = computed(() => {
-  const data = chartData[activePeriod.value].auditorias;
-  if (data.length < 2) return mediaMensal.value;
+    const atualizarDados = () => {
+      carregarDadosDashboard();
+    };
 
-  const ultimo = data[data.length - 1];
-  const penultimo = data[data.length - 2];
-  const variacao = ((ultimo - penultimo) / penultimo) * 100;
+    const exportarRelatorio = () => {
+      // Implementar exportação de relatório
+      console.log("Exportando relatório...");
+    };
 
-  return Math.round(ultimo * (1 + variacao / 100));
-});
+    const verDetalhesAlerta = (alerta) => {
+      modalDados.value = {
+        titulo: alerta.titulo,
+        conteudo: `
+          <div class="modal-alert-details">
+            <p><strong>Descrição:</strong> ${alerta.descricao}</p>
+            <p><strong>Severidade:</strong> <span class="severity-${
+              alerta.severidade
+            }">${alerta.severidade}</span></p>
+            <p><strong>Detectado em:</strong> ${formatarData(
+              alerta.dataDeteccao
+            )}</p>
+            <div class="recommendations">
+              <h4>Ações Recomendadas:</h4>
+              <ul>
+                <li>Revisar processo de treinamento</li>
+                <li>Alocar mais recursos na área</li>
+                <li>Monitorar métricas diariamente</li>
+              </ul>
+            </div>
+          </div>
+        `,
+      };
+      modalAberto.value = true;
+    };
 
-const distribuicaoTipos = computed(() => {
-  const tipos = chartData[activePeriod.value].tipos;
-  const total = tipos.reduce((sum, tipo) => sum + tipo.quantidade, 0);
+    const fecharModal = () => {
+      modalAberto.value = false;
+      modalDados.value = {};
+    };
 
-  return tipos.map((tipo) => ({
-    ...tipo,
-    percentual: Math.round((tipo.quantidade / total) * 100),
-  }));
-});
+    // Métodos auxiliares
+    const formatarNumero = (numero) => {
+      return new Intl.NumberFormat("pt-BR").format(numero);
+    };
 
-const insights = computed(() => [
-  {
-    id: 1,
-    tipo: "success",
-    icone: "🚀",
-    titulo: "Performance Positiva",
-    descricao: `Crescimento de ${crescimento.value}% no período selecionado`,
-  },
-  {
-    id: 2,
-    tipo: "info",
-    icone: "📈",
-    titulo: "Meta Atingida",
-    descricao: `${percentualMeta.value}% da meta mensal foi alcançada`,
-  },
-  {
-    id: 3,
-    tipo: "warning",
-    icone: "⚠️",
-    titulo: "Pico de Atividade",
-    descricao: `Maior volume em ${mesMaiorVolume.value.mes} com ${mesMaiorVolume.value.valor} auditorias`,
-  },
-]);
+    const formatarMoeda = (valor) => {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(valor);
+    };
 
-const tabelaDados = computed(() => {
-  const data = chartData[activePeriod.value];
-  return data.labels.map((label, index) => {
-    const realizado = data.auditorias[index];
-    const metaPeriodo = Math.round(data.meta / data.labels.length);
-    const atingimento = Math.round((realizado / metaPeriodo) * 100);
-    const variacao =
-      index > 0
-        ? Math.round(
-            ((realizado - data.auditorias[index - 1]) /
-              data.auditorias[index - 1]) *
-              100
-          )
-        : 0;
+    const formatarData = (data) => {
+      return new Date(data).toLocaleDateString("pt-BR");
+    };
 
-    let status = "normal";
-    if (atingimento >= 100) status = "excelente";
-    else if (atingimento >= 80) status = "bom";
-    else if (atingimento < 60) status = "critico";
+    const getTrendClass = (valor) => {
+      if (valor > 0) return "positive";
+      if (valor < 0) return "negative";
+      return "neutral";
+    };
+
+    const getTrendIcon = (valor) => {
+      if (valor > 0) return "📈";
+      if (valor < 0) return "📉";
+      return "➡️";
+    };
+
+    const getPositionClass = (posicao) => {
+      if (posicao === 1) return "gold";
+      if (posicao === 2) return "silver";
+      if (posicao === 3) return "bronze";
+      return "other";
+    };
+
+    const getProgressClass = (percentual) => {
+      if (percentual >= 90) return "excellent";
+      if (percentual >= 80) return "good";
+      if (percentual >= 70) return "warning";
+      return "critical";
+    };
+
+    const getAlertIcon = (tipo) => {
+      const icons = {
+        alta_ruptura: "💰",
+        baixa_produtividade: "📊",
+        poucos_usuarios: "👥",
+        qualidade_baixa: "🎯",
+      };
+      return icons[tipo] || "⚠️";
+    };
+
+    // Watchers
+    watch(
+      filters,
+      () => {
+        atualizarDados();
+      },
+      { deep: true }
+    );
+
+    // Lifecycle
+    onMounted(() => {
+      carregarLojas();
+      carregarDadosDashboard();
+    });
 
     return {
-      periodo: label,
-      realizadas: realizado,
-      meta: metaPeriodo,
-      atingimento: atingimento,
-      variacao: variacao,
-      status: status,
+      filters,
+      dashboardData,
+      lojas,
+      carregando,
+      modalAberto,
+      modalDados,
+      conclusaoChart,
+      tendenciaChart,
+      situacaoChart,
+      heatmapChart,
+      atualizarDados,
+      exportarRelatorio,
+      verDetalhesAlerta,
+      fecharModal,
+      formatarNumero,
+      formatarMoeda,
+      formatarData,
+      getTrendClass,
+      getTrendIcon,
+      getPositionClass,
+      getProgressClass,
+      getAlertIcon,
     };
-  });
-});
-
-// Métodos
-const initializeCharts = () => {
-  if (!barChart.value || !doughnutChart.value) return;
-
-  // Gráfico de Barras Principal
-  barChartInstance.value = new Chart(barChart.value, {
-    type: "bar",
-    data: {
-      labels: chartData[activePeriod.value].labels,
-      datasets: [
-        {
-          label: "Auditorias Realizadas",
-          data: chartData[activePeriod.value].auditorias,
-          backgroundColor: "rgba(102, 126, 234, 0.8)",
-          borderRadius: 8,
-          borderSkipped: false,
-        },
-        {
-          label: "Meta",
-          data: Array(chartData[activePeriod.value].labels.length).fill(
-            Math.round(
-              chartData[activePeriod.value].meta /
-                chartData[activePeriod.value].labels.length
-            )
-          ),
-          backgroundColor: "rgba(255, 255, 255, 0.2)",
-          borderColor: "rgba(102, 126, 234, 1)",
-          borderWidth: 2,
-          borderDash: [5, 5],
-          type: "line",
-          fill: false,
-          pointStyle: false,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top",
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-          },
-        },
-        tooltip: {
-          backgroundColor: "rgba(0,0,0,0.8)",
-          titleColor: "#fff",
-          bodyColor: "#fff",
-        },
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-            drawBorder: false,
-          },
-        },
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: "rgba(0,0,0,0.05)",
-            drawBorder: false,
-          },
-          ticks: {
-            padding: 10,
-          },
-        },
-      },
-    },
-  });
-
-  // Gráfico de Rosca - Distribuição por Tipo
-  doughnutChartInstance.value = new Chart(doughnutChart.value, {
-    type: "doughnut",
-    data: {
-      labels: distribuicaoTipos.value.map((t) => t.nome),
-      datasets: [
-        {
-          data: distribuicaoTipos.value.map((t) => t.quantidade),
-          backgroundColor: distribuicaoTipos.value.map((t) => t.cor),
-          borderWidth: 0,
-          spacing: 2,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "70%",
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          backgroundColor: "rgba(0,0,0,0.8)",
-          titleColor: "#fff",
-          bodyColor: "#fff",
-        },
-      },
-    },
-  });
+  },
 };
-
-const updateCharts = () => {
-  if (barChartInstance.value) {
-    barChartInstance.value.data.labels = chartData[activePeriod.value].labels;
-    barChartInstance.value.data.datasets[0].data =
-      chartData[activePeriod.value].auditorias;
-    barChartInstance.value.data.datasets[1].data = Array(
-      chartData[activePeriod.value].labels.length
-    ).fill(
-      Math.round(
-        chartData[activePeriod.value].meta /
-          chartData[activePeriod.value].labels.length
-      )
-    );
-    barChartInstance.value.update();
-  }
-
-  if (doughnutChartInstance.value) {
-    doughnutChartInstance.value.data.labels = distribuicaoTipos.value.map(
-      (t) => t.nome
-    );
-    doughnutChartInstance.value.data.datasets[0].data =
-      distribuicaoTipos.value.map((t) => t.quantidade);
-    doughnutChartInstance.value.data.datasets[0].backgroundColor =
-      distribuicaoTipos.value.map((t) => t.cor);
-    doughnutChartInstance.value.update();
-  }
-};
-
-const exportData = () => {
-  // Simulação de exportação de dados
-  console.log("Exportando dados das auditorias...", {
-    periodo: activePeriod.value,
-    dados: chartData[activePeriod.value],
-  });
-  alert(`Dados do período ${activePeriod.value} exportados com sucesso!`);
-};
-
-const toggleTableView = () => {
-  showTable.value = !showTable.value;
-};
-
-// Lifecycle
-onMounted(() => {
-  initializeCharts();
-  window.addEventListener("resize", () => {
-    if (barChartInstance.value) barChartInstance.value.resize();
-    if (doughnutChartInstance.value) doughnutChartInstance.value.resize();
-  });
-});
-
-onUnmounted(() => {
-  if (barChartInstance.value) barChartInstance.value.destroy();
-  if (doughnutChartInstance.value) doughnutChartInstance.value.destroy();
-});
-
-// Watchers
-watch(activePeriod, () => {
-  updateCharts();
-});
 </script>
 
 <style scoped>
-.auditorias-mensais-container {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin: 1rem 0;
+.dashboard-analytics {
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Header Section */
-.section-header {
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.header-main {
+.dashboard-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-}
-
-.title-section {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.title-icon {
-  font-size: 2.5rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 12px;
-  padding: 0.75rem;
-}
-
-.title-content h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
-}
-
-.title-content p {
-  margin: 0;
-  color: #718096;
-  font-size: 1rem;
-}
-
-.header-actions {
-  display: flex;
   align-items: center;
-  gap: 1.5rem;
+  margin-bottom: 30px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.filters-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.filter-label {
+.filter-group label {
   font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
 }
 
-.period-select {
-  padding: 0.6rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
-  color: #4a5568;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
-.period-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
-.export-btn {
-  padding: 0.75rem 1.5rem;
-  background: #667eea;
+.btn-primary,
+.btn-secondary,
+.btn-sm,
+.btn-close {
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
   transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.export-btn:hover {
-  background: #5a6fd8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.btn-primary {
+  background: #007bff;
+  color: white;
 }
 
-/* Summary Cards */
-.summary-cards {
+.btn-primary:hover {
+  background: #0056b3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #545b62;
+}
+
+.metrics-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.summary-card {
+.metric-card {
   background: white;
+  padding: 25px;
   border-radius: 12px;
-  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+  gap: 15px;
+  transition: transform 0.3s ease;
 }
 
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+.metric-card:hover {
+  transform: translateY(-5px);
 }
 
-.summary-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
+.metric-icon {
+  font-size: 2em;
 }
 
-.summary-icon.total {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.summary-icon.average {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.summary-icon.growth {
-  background: rgba(255, 152, 0, 0.1);
-}
-
-.summary-icon.target {
-  background: rgba(156, 39, 176, 0.1);
-}
-
-.summary-value {
-  font-size: 1.8rem;
-  font-weight: 800;
+.metric-info h3 {
+  font-size: 1.8em;
+  margin: 0;
   color: #2c3e50;
-  line-height: 1;
-  margin-bottom: 0.25rem;
 }
 
-.summary-label {
-  font-size: 0.85rem;
-  color: #718096;
-  font-weight: 500;
+.metric-info p {
+  margin: 5px 0 0 0;
+  color: #7f8c8d;
+  font-size: 0.9em;
 }
 
-/* Chart Section */
-.chart-section {
-  padding: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.metric-trend {
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.metric-trend.positive {
+  background: #d4edda;
+  color: #155724;
+}
+
+.metric-trend.negative {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.metric-trend.neutral {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .chart-container {
-  height: 400px;
-  position: relative;
-}
-
-/* Details Section */
-.details-section {
-  padding: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.details-card {
-  background: #f8fafc;
+  background: white;
+  padding: 20px;
   border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.details-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+.chart-container.full-width {
+  grid-column: 1 / -1;
+}
+
+.chart-container h3 {
+  margin: 0 0 15px 0;
   color: #2c3e50;
-  margin: 0 0 1rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 1.1em;
 }
 
-.metrics-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.chart-wrapper {
+  position: relative;
+  height: 300px;
 }
 
-.metric-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.metric-item:last-child {
-  border-bottom: none;
-}
-
-.metric-label {
-  color: #718096;
-  font-size: 0.9rem;
-}
-
-.metric-value {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.metric-value.positive {
-  color: #4caf50;
-}
-
-.metric-value.negative {
-  color: #f44336;
-}
-
-.distribution-chart {
-  height: 200px;
-  margin-bottom: 1rem;
-}
-
-.distribution-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.distribution-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  background: white;
-}
-
-.distribution-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.distribution-name {
-  flex: 1;
-  font-size: 0.9rem;
-  color: #4a5568;
-}
-
-.distribution-value {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 0.9rem;
-}
-
-.insights-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.insight-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 8px;
-  background: white;
-  transition: all 0.3s ease;
-}
-
-.insight-item:hover {
-  transform: translateX(4px);
-}
-
-.insight-item.success {
-  border-left: 4px solid #4caf50;
-}
-
-.insight-item.info {
-  border-left: 4px solid #2196f3;
-}
-
-.insight-item.warning {
-  border-left: 4px solid #ff9800;
-}
-
-.insight-icon {
-  font-size: 1.2rem;
-}
-
-.insight-title {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-  font-size: 0.95rem;
-}
-
-.insight-description {
-  color: #718096;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-/* Table Section */
-.table-section {
-  padding: 2rem;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.table-header h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.table-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.table-btn {
-  padding: 0.5rem 1rem;
-  background: #667eea;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-}
-
-.table-btn:hover {
-  background: #5a6fd8;
+.tables-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .table-container {
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
   background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.data-table th {
-  background: #f8fafc;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.data-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.9rem;
-}
-
-.data-table tr:last-child td {
-  border-bottom: none;
-}
-
-.period-cell {
-  font-weight: 600;
+.table-container h3 {
+  margin: 0 0 15px 0;
   color: #2c3e50;
 }
 
-.value-cell {
-  color: #4a5568;
-  font-weight: 500;
+.table-wrapper {
+  overflow-x: auto;
 }
 
-.variation-cell {
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranking-table th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
   font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
 }
 
-.variation-cell.positive {
-  color: #4caf50;
+.ranking-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
 }
 
-.variation-cell.negative {
-  color: #f44336;
+.position-cell {
+  text-align: center;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
+.position-badge {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 30px;
+  font-weight: 600;
+  color: white;
+}
+
+.position-badge.gold {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+}
+
+.position-badge.silver {
+  background: linear-gradient(135deg, #c0c0c0, #a9a9a9);
+}
+
+.position-badge.bronze {
+  background: linear-gradient(135deg, #cd7f32, #8b4513);
+}
+
+.position-badge.other {
+  background: #6c757d;
+}
+
+.loja-info,
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.loja-info small,
+.user-info small {
+  color: #6c757d;
+  font-size: 0.8em;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.excellent {
+  background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.progress-fill.good {
+  background: linear-gradient(90deg, #20c997, #17a2b8);
+}
+
+.progress-fill.warning {
+  background: linear-gradient(90deg, #ffc107, #fd7e14);
+}
+
+.progress-fill.critical {
+  background: linear-gradient(90deg, #dc3545, #e83e8c);
+}
+
+.score {
+  font-weight: 600;
+  color: #495057;
+}
+
+.trend-indicator {
+  font-size: 1.2em;
+}
+
+.achievements {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.achievement-count {
+  font-weight: 600;
+  color: #495057;
+}
+
+.achievement-badge {
+  font-size: 1.2em;
+}
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.level-badge {
+  background: #007bff;
+  color: white;
+  padding: 2px 8px;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.8em;
   font-weight: 600;
-  text-transform: capitalize;
 }
 
-.status-badge.excelente {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
+.level-title {
+  font-size: 0.8em;
+  color: #6c757d;
 }
 
-.status-badge.bom {
-  background: rgba(33, 150, 243, 0.1);
-  color: #2196f3;
+.alerts-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
 }
 
-.status-badge.normal {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
+.alerts-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
 }
 
-.status-badge.critico {
-  background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
+.alerts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.alert-card.severity-critica {
+  border-left-color: #dc3545;
+  background: #f8d7da;
+}
+
+.alert-card.severity-alta {
+  border-left-color: #fd7e14;
+  background: #fff3cd;
+}
+
+.alert-card.severity-media {
+  border-left-color: #ffc107;
+  background: #fff3cd;
+}
+
+.alert-card.severity-baixa {
+  border-left-color: #28a745;
+  background: #d4edda;
+}
+
+.alert-icon {
+  font-size: 1.5em;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content h4 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+}
+
+.alert-content p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+.alert-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.severity-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity-badge.critica {
+  background: #dc3545;
+  color: white;
+}
+
+.severity-badge.alta {
+  background: #fd7e14;
+  color: white;
+}
+
+.severity-badge.media {
+  background: #ffc107;
+  color: #212529;
+}
+
+.severity-badge.baixa {
+  background: #28a745;
+  color: white;
+}
+
+.alert-date {
+  font-size: 0.8em;
+  color: #6c757d;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 0.8em;
+  background: #6c757d;
+  color: white;
+}
+
+.btn-sm:hover {
+  background: #545b62;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-content h2 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+}
+
+.btn-close {
+  margin-top: 20px;
+  background: #6c757d;
+  color: white;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsividade */
 @media (max-width: 1024px) {
-  .header-main {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
+  .charts-grid,
+  .tables-section {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .section-header,
-  .chart-section,
-  .details-section,
-  .table-section {
-    padding: 1.5rem;
+  .dashboard-header {
+    flex-direction: column;
+    gap: 15px;
   }
 
-  .summary-cards {
-    grid-template-columns: repeat(2, 1fr);
+  .filters-section {
+    justify-content: center;
   }
 
-  .details-grid {
+  .metrics-cards {
     grid-template-columns: 1fr;
   }
 
-  .chart-container {
-    height: 300px;
-  }
-}
-
-@media (max-width: 480px) {
-  .summary-cards {
+  .alerts-grid {
     grid-template-columns: 1fr;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .filter-group {
-    justify-content: space-between;
-  }
-
-  .title-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .title-icon {
-    align-self: center;
   }
 }
 </style>

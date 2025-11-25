@@ -143,6 +143,20 @@ export default {
     });
 
     onMounted(async () => {
+      // 🔥 IMPORTANTE: Selecionar a loja no store ANTES de carregar dados
+      console.log(`🏪 Selecionando loja ${props.codigo} no store...`);
+
+      // Buscar loja completa da lista do store
+      const lojaCompleta = lojaStore.lojas.find(l => l.codigo === props.codigo);
+
+      if (lojaCompleta) {
+        // Selecionar loja no store (isso configura o header x-loja)
+        await lojaStore.selecionarLoja(lojaCompleta);
+        console.log(`✅ Loja ${props.codigo} selecionada no store`);
+      } else {
+        console.warn(`⚠️ Loja ${props.codigo} não encontrada na lista do store`);
+      }
+
       await carregarDadosLoja(props.codigo);
     });
 

@@ -1,1727 +1,1921 @@
 <template>
-  <div class="metricas-setor-container">
-    <!-- Indicador de carregamento -->
-    <div v-if="carregando" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Carregando métricas...</p>
-    </div>
-
-    <!-- Mensagem de erro -->
-    <div v-else-if="erro" class="erro-container">
-      <p class="erro-mensagem">{{ erro }}</p>
-      <button class="action-btn" @click="buscarMetricasLoja">
-        Tentar Novamente
-      </button>
-    </div>
-
-    <!-- Conteúdo principal -->
-    <div v-else>
-      <div class="metricas-header">
-        <h3>📊 Leitura Auditoria Atual Por Classe (TESTE COM DADOS MOCKADOS)</h3>
-        <div class="metricas-actions">
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
-          @click="alterarTipoAuditoria('etiquetas')"
-        >
-          Etiqueta
-        </button>
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'presencas' }"
-          @click="alterarTipoAuditoria('presencas')"
-        >
-          Presença
-        </button>
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
-          @click="alterarTipoAuditoria('rupturas')"
-        >
-          Ruptura
-        </button>
-      </div>
-    </div>
-
-    <div class="metricas-table-container">
-      <table class="metricas-table">
-        <thead>
-          <tr>
-            <th>Classe Produtos</th>
-            <th>Desempenho</th>
-            <th>Total Itens</th>
-            <th>Itens Lidos</th>
-            <th v-if="tipoAuditoriaAtual === 'rupturas'">Custo Ruptura</th>
-            <th v-else-if="tipoAuditoriaAtual === 'presencas'">Presenças</th>
-            <th v-else>Itens Atualizados</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr
-            v-for="setor in dadosFiltrados"
-            :key="setor.ClasseProduto"
-            :class="getStatusLinha(setor)"
-          >
-            <!-- Nome / Ícone -->
-            <td class="setor-cell">
-              <div class="setor-info">
-                <div class="setor-icon">{{ setor.icone }}</div>
-                <span>{{ setor.ClasseProduto }}</span>
-              </div>
-            </td>
-
-            <!-- Desempenho -->
-            <td class="desempenho-cell">
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :style="{ width: getPercentualLeitura(setor) + '%' }"
-                  :class="getClasseDesempenho(getPercentualLeitura(setor))"
-                ></div>
-                <span class="progress-text">
-                  {{ getPercentualLeitura(setor).toFixed(0) }}%
-                </span>
-              </div>
-            </td>
-
-            <!-- Itens totais e lidos -->
-            <td class="meta-cell">{{ setor.itensValidos || setor.totalItens }}</td>
-            <td class="conformidade-cell">{{ setor.itensLidos }}</td>
-
-            <!-- Coluna dinâmica baseada no tipo de auditoria -->
-            <td
-              v-if="tipoAuditoriaAtual === 'rupturas'"
-              class="custo-cell"
-              :class="getClasseCusto(setor)"
+  <div class="premium-dashboard">
+    <!-- Header Avançado -->
+    <div class="dashboard-header premium">
+      <div class="header-main">
+        <div class="header-title">
+          <h1>📊 Analytics Center Premium</h1>
+          <p>Análises avançadas em tempo real - {{ dataAtual }}</p>
+        </div>
+        <div class="header-stats">
+          <div class="stat-item">
+            <span class="stat-value"
+              >{{ dashboardData.indicadores?.saudeOperacional || 0 }}%</span
             >
-              R$ {{ formatarMoeda(setor.custoRuptura || 0) }}
-            </td>
-            <td
-              v-else-if="tipoAuditoriaAtual === 'presencas'"
-              class="presenca-cell"
-            >
-              {{ setor.presencasConfirmadas || 0 }}/{{
-                setor.totalItens || setor.itens
-              }}
-            </td>
-            <td v-else class="atualizados-cell">
-              {{ setor.itensAtualizados || 0 }}
-            </td>
-
-            <!-- Status -->
-            <td class="status-cell">
-              <span class="status-badge" :class="getStatusSetor(setor)">
-                {{ getStatusSetor(setor) }}
-              </span>
-            </td>
-
-            <!-- Ações -->
-            <td class="acoes-cell">
-              <button
-                class="acao-btn"
-                @click="verDetalhesSetor(setor)"
-                title="Ver detalhes"
-              >
-                👁️
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Resumo Estatístico -->
-    <div class="resumo-estatistico">
-      <div class="estatisticas-grid">
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ percentualConclusaoGeral.toFixed(1) }}%</div>
-          <div class="estatistica-label">Conclusão Geral</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ totalItens }}</div>
-          <div class="estatistica-label">Total de Itens</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ itensLidos }}</div>
-          <div class="estatistica-label">Itens Lidos</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">👥 {{ totalColaboradores }}</div>
-          <div class="estatistica-label">Colaboradores Envolvidos</div>
-        </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'etiquetas'">
-          <div class="estatistica-valor">{{ itensAtualizados }}</div>
-          <div class="estatistica-label">Itens Atualizados</div>
-        </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'rupturas'">
-          <div class="estatistica-valor">
-            R$ {{ formatarMoeda(custoTotalRuptura) }}
+            <span class="stat-label">Saúde Operacional</span>
           </div>
-          <div class="estatistica-label">Custo Total Ruptura</div>
+          <div class="stat-item">
+            <span class="stat-value"
+              >{{ dashboardData.totais?.lojasAtivas || 0 }}/{{
+                dashboardData.totais?.totalLojas || 0
+              }}</span
+            >
+            <span class="stat-label">Lojas Ativas</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value"
+              >R$
+              {{
+                formatarMoeda(dashboardData.rupturas?.economiaEstimada || 0)
+              }}</span
+            >
+            <span class="stat-label">Economia Estimada</span>
+          </div>
         </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'presencas'">
-          <div class="estatistica-valor">{{ percentualPresenca.toFixed(1) }}%</div>
-          <div class="estatistica-label">Presenças Confirmadas</div>
+      </div>
+
+      <!-- Filtros Avançados -->
+      <div class="advanced-filters">
+        <div class="filter-section">
+          <h4>📅 Período e Escopo</h4>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label>Escopo Temporal</label>
+              <select v-model="filters.periodo" @change="atualizarDados">
+                <option value="diario">Diário</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Comparação</label>
+              <select v-model="filters.comparacao" @change="atualizarDados">
+                <option value="nenhuma">Sem Comparação</option>
+                <option value="periodo_anterior">Período Anterior</option>
+                <option value="ano_anterior">Ano Anterior</option>
+                <option value="meta">Vs Meta</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Granularidade</label>
+              <select v-model="filters.granularidade" @change="atualizarDados">
+                <option value="diaria">Diária</option>
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h4>🏪 Filtros de Negócio</h4>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label>Região</label>
+              <select v-model="filters.regiao" @change="atualizarDados">
+                <option value="todas">Todas as Regiões</option>
+                <option v-for="regiao in regioes" :key="regiao" :value="regiao">
+                  {{ regiao }}
+                </option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Tipo de Loja</label>
+              <select v-model="filters.tipoLoja" @change="atualizarDados">
+                <option value="todas">Todos os Tipos</option>
+                <option value="padrao">Padrão</option>
+                <option value="premium">Premium</option>
+                <option value="express">Express</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Faixa de Performance</label>
+              <select
+                v-model="filters.faixaPerformance"
+                @change="atualizarDados"
+              >
+                <option value="todas">Todas</option>
+                <option value="alta">Alta (80-100%)</option>
+                <option value="media">Média (60-79%)</option>
+                <option value="baixa">Baixa (0-59%)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn-primary" @click="aplicarFiltrosAvancados">
+            🚀 Aplicar Filtros
+          </button>
+          <button class="btn-secondary" @click="resetarFiltros">
+            🔄 Resetar
+          </button>
+          <button class="btn-outline" @click="salvarConfiguracao">
+            💾 Salvar Configuração
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Detalhes do Setor -->
-    <div v-if="setorSelecionado" class="modal-overlay" @click="fecharModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>Detalhes do Setor - {{ getTipoAuditoriaLabel() }}</h3>
-          <button class="modal-close" @click="fecharModal">×</button>
+    <!-- Painel de Métricas em Tempo Real -->
+    <div class="realtime-panel">
+      <div class="panel-header">
+        <h3>⏱️ Métricas em Tempo Real</h3>
+        <div class="last-update">
+          Última atualização: {{ ultimaAtualizacao }}
+          <span class="sync-status" :class="{ syncing: sincronizando }">
+            {{ sincronizando ? "🔄 Sincronizando..." : "✅ Sincronizado" }}
+          </span>
         </div>
-        <div class="modal-body">
-          <div class="setor-detalhes">
-            <div class="detalhe-header">
-              <div class="setor-icone-grande">{{ setorSelecionado.icone }}</div>
-              <div class="setor-info-grande">
-                <h4>{{ setorSelecionado.ClasseProduto }}</h4>
-                <span
-                  class="status-badge"
-                  :class="getStatusSetor(setorSelecionado)"
+      </div>
+      <div class="realtime-metrics">
+        <div class="realtime-metric">
+          <div class="metric-value">
+            {{ dashboardData.totais?.itensProcessadosMinuto || 0 }}
+          </div>
+          <div class="metric-label">Itens/min</div>
+          <div class="metric-trend">
+            <span
+              :class="
+                getTrendClass(dashboardData.tendencias?.velocidadeProcessamento)
+              "
+            >
+              {{
+                getTrendIcon(dashboardData.tendencias?.velocidadeProcessamento)
+              }}
+            </span>
+          </div>
+        </div>
+        <div class="realtime-metric">
+          <div class="metric-value">
+            {{ dashboardData.totais?.auditoriasAtivas || 0 }}
+          </div>
+          <div class="metric-label">Auditorias Ativas</div>
+          <div class="metric-trend">
+            <span
+              :class="getTrendClass(dashboardData.tendencias?.auditoriasAtivas)"
+            >
+              {{ getTrendIcon(dashboardData.tendencias?.auditoriasAtivas) }}
+            </span>
+          </div>
+        </div>
+        <div class="realtime-metric">
+          <div class="metric-value">
+            {{ dashboardData.totais?.usuariosOnline || 0 }}
+          </div>
+          <div class="metric-label">Usuários Online</div>
+          <div class="metric-trend">
+            <span
+              :class="getTrendClass(dashboardData.tendencias?.usuariosOnline)"
+            >
+              {{ getTrendIcon(dashboardData.tendencias?.usuariosOnline) }}
+            </span>
+          </div>
+        </div>
+        <div class="realtime-metric">
+          <div class="metric-value">
+            {{ dashboardData.rupturas?.rupturasMinuto || 0 }}
+          </div>
+          <div class="metric-label">Rupturas/min</div>
+          <div class="metric-trend negative">📉</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid Principal de Análises -->
+    <div class="analytics-grid">
+      <!-- Coluna 1: Overview e Performance -->
+      <div class="grid-column">
+        <!-- Scorecard de Performance -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <h3>🎯 Scorecard de Performance</h3>
+            <div class="card-actions">
+              <button class="btn-icon" @click="exportarScorecard">📋</button>
+              <button class="btn-icon" @click="compartilharScorecard">
+                📤
+              </button>
+            </div>
+          </div>
+          <div class="scorecard-grid">
+            <div
+              class="scorecard-item"
+              v-for="kpi in dashboardData.kpis"
+              :key="kpi.id"
+            >
+              <div class="kpi-header">
+                <span class="kpi-icon">{{ kpi.icone }}</span>
+                <span class="kpi-title">{{ kpi.nome }}</span>
+              </div>
+              <div class="kpi-value" :class="getKpiClass(kpi.valor, kpi.meta)">
+                {{
+                  kpi.formato === "percentual"
+                    ? kpi.valor + "%"
+                    : kpi.formato === "monetario"
+                    ? "R$ " + formatarNumero(kpi.valor)
+                    : formatarNumero(kpi.valor)
+                }}
+              </div>
+              <div class="kpi-meta">
+                <span class="kpi-target"
+                  >Meta: {{ kpi.meta
+                  }}{{ kpi.formato === "percentual" ? "%" : "" }}</span
                 >
-                  {{ getStatusSetor(setorSelecionado) }}
+                <span
+                  class="kpi-variance"
+                  :class="getVarianceClass(kpi.variacao)"
+                >
+                  {{ kpi.variacao > 0 ? "+" : "" }}{{ kpi.variacao }}%
                 </span>
               </div>
-            </div>
-
-            <div class="metricas-grid">
-              <div class="metrica-item">
-                <div class="metrica-label">Desempenho</div>
-                <div class="metrica-valor">
-                  {{ getPercentualLeitura(setorSelecionado).toFixed(1) }}%
-                </div>
-                <div class="progress-bar-small">
+              <div class="kpi-progress">
+                <div class="progress-bar">
                   <div
                     class="progress-fill"
                     :style="{
-                      width: getPercentualLeitura(setorSelecionado) + '%',
+                      width: Math.min((kpi.valor / kpi.meta) * 100, 100) + '%',
                     }"
-                    :class="
-                      getClasseDesempenho(
-                        getPercentualLeitura(setorSelecionado)
-                      )
-                    "
+                    :class="getProgressClass(kpi.valor, kpi.meta)"
                   ></div>
                 </div>
               </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">Total de Itens</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.totalItens }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">Itens Válidos</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensValidos }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">Itens Lidos</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensLidos }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">👥 Colaboradores</div>
-                <div class="metrica-valor">
-                  {{ colaboradoresSetor.length }}
-                </div>
-              </div>
-
-              <!-- Métricas específicas por tipo de auditoria -->
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'etiquetas'"
-              >
-                <div class="metrica-label">Itens Atualizados</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensAtualizados || 0 }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'etiquetas'"
-              >
-                <div class="metrica-label">Itens Desatualizados</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensDesatualizado || 0 }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'rupturas'"
-              >
-                <div class="metrica-label">Custo Ruptura</div>
-                <div class="metrica-valor">
-                  R$ {{ formatarMoeda(setorSelecionado.custoRuptura || 0) }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'presencas'"
-              >
-                <div class="metrica-label">Presenças Confirmadas</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.presencasConfirmadas || 0 }}
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Seção: Colaboradores Envolvidos -->
-            <div class="colaboradores-section">
-              <h5>👥 Colaboradores Envolvidos</h5>
-              <div class="colaboradores-grid">
+        <!-- Análise de Tendências -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <h3>📈 Análise de Tendências</h3>
+            <div class="timeframe-selector">
+              <button
+                v-for="periodo in periodosTendencia"
+                :key="periodo"
+                :class="{ active: tendenciaPeriodo === periodo }"
+                @click="tendenciaPeriodo = periodo"
+              >
+                {{ periodo }}
+              </button>
+            </div>
+          </div>
+          <div class="trend-analysis">
+            <div class="trend-chart">
+              <canvas ref="tendenciaAvancadaChart"></canvas>
+            </div>
+            <div class="trend-insights">
+              <h4>💡 Insights das Tendências</h4>
+              <div class="insight-list">
                 <div
-                  v-for="colaborador in colaboradoresSetor"
-                  :key="colaborador.id"
-                  class="colaborador-card"
+                  v-for="insight in dashboardData.insightsTendencia"
+                  :key="insight.id"
+                  class="insight-item"
+                  :class="insight.tipo"
                 >
-                  <div class="colaborador-avatar">
-                    <img
-                      v-if="colaborador.foto"
-                      :src="colaborador.foto"
-                      :alt="colaborador.nome"
-                      class="colaborador-foto"
-                    />
-                    <span v-else class="colaborador-iniciais">
-                      {{ colaborador.iniciais }}
-                    </span>
-                  </div>
-                  <div class="colaborador-info">
-                    <div class="colaborador-nome">{{ colaborador.nome }}</div>
-                    <div class="colaborador-funcao">
-                      {{ colaborador.funcao }}
-                    </div>
-
-                    <!-- Conquistas e Nível -->
-                    <div class="colaborador-conquistas">
-                      🏆 {{ colaborador.conquistas.totalConquistas }} conquistas
-                      • ⭐ Nv {{ colaborador.conquistas.nivel }}
-                    </div>
-
-                    <!-- Ranking -->
-                    <div class="colaborador-ranking">
-                      📊 Loja: #{{ colaborador.desempenho.posicaoLoja }}
-                      • 🌍 Geral: #{{ colaborador.desempenho.posicaoGeral }}
-                    </div>
-
-                    <div class="colaborador-status" :class="colaborador.status">
-                      {{ colaborador.status }}
-                    </div>
-                  </div>
-                  <div class="colaborador-metricas">
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor">{{
-                        colaborador.itensLidos
-                      }}</span>
-                      <span class="metrica-label">Itens</span>
-                    </div>
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor"
-                        >{{ colaborador.eficiencia }}%</span
-                      >
-                      <span class="metrica-label">Eficiência</span>
-                    </div>
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor">{{ colaborador.conquistas.xpTotal }}</span>
-                      <span class="metrica-label">XP</span>
-                    </div>
+                  <span class="insight-icon">{{
+                    getInsightIcon(insight.tipo)
+                  }}</span>
+                  <div class="insight-content">
+                    <strong>{{ insight.titulo }}</strong>
+                    <p>{{ insight.descricao }}</p>
+                    <span class="insight-impact">{{ insight.impacto }}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="action-btn secondary" @click="fecharModal">
-            Fechar
-          </button>
-          <button
-            class="action-btn primary"
-            @click="exportarSetor(setorSelecionado)"
-          >
-            Exportar Dados
-          </button>
+      </div>
+
+      <!-- Coluna 2: Análises Detalhadas -->
+      <div class="grid-column">
+        <!-- Mapa de Calor de Performance -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <h3>🌡️ Mapa de Calor - Performance por Local</h3>
+            <div class="heatmap-controls">
+              <select v-model="heatmapMetrica" @change="atualizarHeatmap">
+                <option value="conclusao">Taxa de Conclusão</option>
+                <option value="produtividade">Produtividade</option>
+                <option value="qualidade">Qualidade</option>
+                <option value="rupturas">Rupturas</option>
+              </select>
+            </div>
+          </div>
+          <div class="heatmap-container">
+            <div class="heatmap-legend">
+              <span>0%</span>
+              <div class="legend-gradient"></div>
+              <span>100%</span>
+            </div>
+            <div class="heatmap-grid">
+              <div
+                v-for="local in dashboardData.heatmapLocais"
+                :key="local.id"
+                class="heatmap-cell"
+                :style="{ backgroundColor: getHeatmapColor(local.valor) }"
+                :title="`${local.nome}: ${local.valor}%`"
+              >
+                <span class="local-name">{{ local.nome }}</span>
+                <span class="local-value">{{ local.valor }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Análise de Correlação -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <h3>🔄 Análise de Correlação</h3>
+            <div class="correlation-controls">
+              <select v-model="correlacaoX" @change="atualizarCorrelacao">
+                <option value="produtividade">Produtividade</option>
+                <option value="qualidade">Qualidade</option>
+                <option value="experiencia">Experiência do Usuário</option>
+              </select>
+              <span class="correlation-vs">vs</span>
+              <select v-model="correlacaoY" @change="atualizarCorrelacao">
+                <option value="conclusao">Taxa de Conclusão</option>
+                <option value="rupturas">Rupturas</option>
+                <option value="satisfacao">Satisfação</option>
+              </select>
+            </div>
+          </div>
+          <div class="correlation-analysis">
+            <div class="correlation-chart">
+              <canvas ref="correlacaoChart"></canvas>
+            </div>
+            <div class="correlation-stats">
+              <div class="stat">
+                <span class="stat-label">Coeficiente de Correlação</span>
+                <span class="stat-value">{{
+                  dashboardData.correlacao?.coeficiente || 0
+                }}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Significância</span>
+                <span class="stat-value">{{
+                  dashboardData.correlacao?.significancia || "N/A"
+                }}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">R²</span>
+                <span class="stat-value">{{
+                  dashboardData.correlacao?.rQuadrado || 0
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna 3: Alertas e Recomendações -->
+      <div class="grid-column">
+        <!-- Painel de Alertas Inteligentes -->
+        <div class="analysis-card alerts-panel">
+          <div class="card-header">
+            <h3>🚨 Alertas Inteligentes</h3>
+            <div class="alert-filters">
+              <button
+                :class="{ active: filtroAlerta === 'todos' }"
+                @click="filtroAlerta = 'todos'"
+              >
+                Todos
+              </button>
+              <button
+                :class="{ active: filtroAlerta === 'criticos' }"
+                @click="filtroAlerta = 'criticos'"
+              >
+                Críticos
+              </button>
+              <button
+                :class="{ active: filtroAlerta === 'oportunidades' }"
+                @click="filtroAlerta = 'oportunidades'"
+              >
+                Oportunidades
+              </button>
+            </div>
+          </div>
+          <div class="alerts-container">
+            <div
+              v-for="alerta in alertasFiltrados"
+              :key="alerta.id"
+              class="intelligent-alert"
+              :class="['severity-' + alerta.severidade, alerta.tipo]"
+            >
+              <div class="alert-header">
+                <span class="alert-icon">{{ getAlertIcon(alerta.tipo) }}</span>
+                <span class="alert-title">{{ alerta.titulo }}</span>
+                <span class="alert-priority" :class="alerta.prioridade">
+                  {{ alerta.prioridade }}
+                </span>
+              </div>
+              <div class="alert-body">
+                <p>{{ alerta.descricao }}</p>
+                <div class="alert-metrics">
+                  <div
+                    class="metric"
+                    v-for="metric in alerta.metricas"
+                    :key="metric.nome"
+                  >
+                    <span class="metric-name">{{ metric.nome }}:</span>
+                    <span class="metric-value">{{ metric.valor }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="alert-footer">
+                <span class="alert-time">{{
+                  formatarTempoRelativo(alerta.timestamp)
+                }}</span>
+                <div class="alert-actions">
+                  <button class="btn-sm" @click="investigarAlerta(alerta)">
+                    🔍 Investigar
+                  </button>
+                  <button class="btn-sm" @click="ignorarAlerta(alerta)">
+                    ❌ Ignorar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recomendações de Otimização -->
+        <div class="analysis-card">
+          <div class="card-header">
+            <h3>💡 Recomendações de Otimização</h3>
+            <div class="recommendation-filters">
+              <select
+                v-model="filtroRecomendacao"
+                @change="filtrarRecomendacoes"
+              >
+                <option value="todas">Todas</option>
+                <option value="alta">Alto Impacto</option>
+                <option value="rapida">Rápida Implementação</option>
+                <option value="baixo_custo">Baixo Custo</option>
+              </select>
+            </div>
+          </div>
+          <div class="recommendations-list">
+            <div
+              v-for="recomendacao in recomendacoesFiltradas"
+              :key="recomendacao.id"
+              class="recommendation-item"
+              :class="recomendacao.categoria"
+            >
+              <div class="recommendation-header">
+                <span class="rec-icon">{{
+                  getRecommendationIcon(recomendacao.categoria)
+                }}</span>
+                <span class="rec-title">{{ recomendacao.titulo }}</span>
+                <span class="rec-impact" :class="recomendacao.impacto">
+                  {{ recomendacao.impacto }}
+                </span>
+              </div>
+              <div class="recommendation-body">
+                <p>{{ recomendacao.descricao }}</p>
+                <div class="rec-metrics">
+                  <div class="rec-metric">
+                    <span>ROI Estimado:</span>
+                    <strong>{{ recomendacao.roi }}</strong>
+                  </div>
+                  <div class="rec-metric">
+                    <span>Esforço:</span>
+                    <strong>{{ recomendacao.esforço }}</strong>
+                  </div>
+                  <div class="rec-metric">
+                    <span>Prazo:</span>
+                    <strong>{{ recomendacao.prazo }}</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="recommendation-footer">
+                <button
+                  class="btn-primary"
+                  @click="implementarRecomendacao(recomendacao)"
+                >
+                  🚀 Implementar
+                </button>
+                <button
+                  class="btn-outline"
+                  @click="agendarRecomendacao(recomendacao)"
+                >
+                  📅 Agendar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Painel de Benchmarking -->
+    <div class="benchmarking-panel">
+      <div class="panel-header">
+        <h3>🏆 Benchmarking Avançado</h3>
+        <div class="benchmark-controls">
+          <select v-model="benchmarkGrupo" @change="atualizarBenchmark">
+            <option value="regiao">Por Região</option>
+            <option value="tipo_loja">Por Tipo de Loja</option>
+            <option value="tamanho">Por Tamanho</option>
+            <option value="performance">Por Performance</option>
+          </select>
+        </div>
+      </div>
+      <div class="benchmark-content">
+        <div class="benchmark-chart">
+          <canvas ref="benchmarkChart"></canvas>
+        </div>
+        <div class="benchmark-insights">
+          <h4>📊 Posicionamento Competitivo</h4>
+          <div class="positioning-metrics">
+            <div class="position-metric">
+              <span class="metric-label">Quartil Atual</span>
+              <span class="metric-value">{{
+                dashboardData.benchmark?.quartil || "N/A"
+              }}</span>
+            </div>
+            <div class="position-metric">
+              <span class="metric-label">Percentil</span>
+              <span class="metric-value"
+                >{{ dashboardData.benchmark?.percentil || 0 }}%</span
+              >
+            </div>
+            <div class="position-metric">
+              <span class="metric-label">Gap para Líder</span>
+              <span class="metric-value"
+                >{{ dashboardData.benchmark?.gapLider || 0 }}%</span
+              >
+            </div>
+          </div>
+          <div class="improvement-areas">
+            <h5>Áreas de Melhoria Crítica</h5>
+            <ul>
+              <li
+                v-for="area in dashboardData.benchmark?.areasMelhoria"
+                :key="area"
+              >
+                {{ area }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Painel de Previsões -->
+    <div class="forecast-panel">
+      <div class="panel-header">
+        <h3>🔮 Previsões e Projeções</h3>
+        <div class="forecast-horizon">
+          <button
+            v-for="horizonte in horizontesPrevisao"
+            :key="horizonte"
+            :class="{ active: previsaoHorizonte === horizonte }"
+            @click="previsaoHorizonte = horizonte"
+          >
+            {{ horizonte }}
+          </button>
+        </div>
+      </div>
+      <div class="forecast-content">
+        <div class="forecast-chart">
+          <canvas ref="previsaoChart"></canvas>
+        </div>
+        <div class="forecast-details">
+          <div class="forecast-metrics">
+            <div class="forecast-metric">
+              <span class="metric-label">Previsão de Conclusão</span>
+              <span class="metric-value"
+                >{{ dashboardData.previsoes?.conclusao || 0 }}%</span
+              >
+              <span
+                class="metric-confidence"
+                :class="getConfidenceClass(dashboardData.previsoes?.confianca)"
+              >
+                {{ dashboardData.previsoes?.confianca || 0 }}% confiança
+              </span>
+            </div>
+            <div class="forecast-metric">
+              <span class="metric-label">Economia Projetada</span>
+              <span class="metric-value"
+                >R$
+                {{
+                  formatarNumero(dashboardData.previsoes?.economia || 0)
+                }}</span
+              >
+              <span
+                class="metric-trend"
+                :class="
+                  getTrendClass(dashboardData.previsoes?.tendenciaEconomia)
+                "
+              >
+                {{ getTrendIcon(dashboardData.previsoes?.tendenciaEconomia) }}
+              </span>
+            </div>
+          </div>
+          <div class="forecast-alerts">
+            <h5>Alertas de Previsão</h5>
+            <div
+              v-for="alerta in dashboardData.previsoes?.alertas"
+              :key="alerta.id"
+              class="forecast-alert"
+              :class="alerta.tipo"
+            >
+              <span class="alert-icon">⚠️</span>
+              <span class="alert-message">{{ alerta.mensagem }}</span>
+              <span class="alert-probability">{{ alerta.probabilidade }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div v-if="carregando" class="loading-overlay premium">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <p>Processando análises avançadas...</p>
+        <div class="loading-progress">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              :style="{ width: progressoCarregamento + '%' }"
+            ></div>
+          </div>
+          <span>{{ progressoCarregamento }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Detalhes Avançados -->
+    <AdvancedAnalyticsModal
+      v-if="modalAberto"
+      :dados="modalDados"
+      :tipo="modalTipo"
+      @fechar="fecharModal"
+      @exportar="exportarAnalise"
+    />
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue";
+<script>
+import { ref, onMounted, watch, computed } from "vue";
+import Chart from "chart.js/auto";
+import AdvancedAnalyticsModal from "./AdvancedAnalyticsModal.vue";
 
-// Estado para controlar o tipo de auditoria atual
-const tipoAuditoriaAtual = ref("etiquetas");
-
-// Estado para armazenar dados carregados (MOCKADOS)
-const dadosReais = ref({
-  usuarioId: "",
-  loja: "056",
-  lojaNome: "Loja 056 - Goiania Burits",
-  metricas: {
-    data: new Date().toISOString(),
-    etiquetas: {
-      totalItens: 1500,
-      itensValidos: 1200,
-      itensLidos: 980,
-      itensAtualizados: 850,
-      itensDesatualizado: 130,
-      itensSemEstoque: 300,
-      itensNaopertence: 50,
-      percentualConclusao: 81.67,
-      classesLeitura: {
-        "A CLASSIFICAR": {
-          total: 15,
-          itensValidos: 12,
-          lidos: 10,
-          percentual: 83.33,
-          itensAtualizados: 8,
-          itensDesatualizado: 2,
-          usuarios: { "João Silva": 6, "Maria Santos": 4 }
-        },
-        "ALTO GIRO": {
-          total: 120,
-          itensValidos: 108,
-          lidos: 95,
-          percentual: 87.96,
-          itensAtualizados: 85,
-          itensDesatualizado: 10,
-          usuarios: { "Carlos Lima": 50, "Ana Oliveira": 45 }
-        },
-        "BAZAR": {
-          total: 180,
-          itensValidos: 150,
-          lidos: 130,
-          percentual: 86.67,
-          itensAtualizados: 115,
-          itensDesatualizado: 15,
-          usuarios: { "Pedro Costa": 70, "Fernanda Rocha": 60 }
-        },
-        "DIVERSOS": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 40,
-          percentual: 88.89,
-          itensAtualizados: 38,
-          itensDesatualizado: 2,
-          usuarios: { "Ricardo Alves": 40 }
-        },
-        "DPH": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 160,
-          percentual: 88.89,
-          itensAtualizados: 145,
-          itensDesatualizado: 15,
-          usuarios: { "Patrícia Nunes": 90, "Roberto Santos": 70 }
-        },
-        "FLV": {
-          total: 80,
-          itensValidos: 70,
-          lidos: 55,
-          percentual: 78.57,
-          itensAtualizados: 50,
-          itensDesatualizado: 5,
-          usuarios: { "Juliana Costa": 30, "Marcos Oliveira": 25 }
-        },
-        "LATICINIOS 1": {
-          total: 100,
-          itensValidos: 85,
-          lidos: 70,
-          percentual: 82.35,
-          itensAtualizados: 65,
-          itensDesatualizado: 5,
-          usuarios: { "Carla Silva": 40, "Paulo Rodrigues": 30 }
-        },
-        "LIQUIDA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 110,
-          percentual: 84.62,
-          itensAtualizados: 100,
-          itensDesatualizado: 10,
-          usuarios: { "Amanda Lima": 60, "Diego Souza": 50 }
-        },
-        "PERECIVEL 1": {
-          total: 90,
-          itensValidos: 80,
-          lidos: 65,
-          percentual: 81.25,
-          itensAtualizados: 60,
-          itensDesatualizado: 5,
-          usuarios: { "Camila Rocha": 35, "Lucas Almeida": 30 }
-        },
-        "PERECIVEL 2": {
-          total: 85,
-          itensValidos: 75,
-          lidos: 60,
-          percentual: 80.00,
-          itensAtualizados: 55,
-          itensDesatualizado: 5,
-          usuarios: { "Tatiane Pereira": 30, "Gabriel Santos": 30 }
-        },
-        "PERECIVEL 2 B": {
-          total: 60,
-          itensValidos: 50,
-          lidos: 40,
-          percentual: 80.00,
-          itensAtualizados: 38,
-          itensDesatualizado: 2,
-          usuarios: { "Renata Oliveira": 40 }
-        },
-        "PERECIVEL 3": {
-          total: 70,
-          itensValidos: 60,
-          lidos: 50,
-          percentual: 83.33,
-          itensAtualizados: 48,
-          itensDesatualizado: 2,
-          usuarios: { "Felipe Costa": 50 }
-        },
-        "SECA DOCE": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 165,
-          percentual: 91.67,
-          itensAtualizados: 155,
-          itensDesatualizado: 10,
-          usuarios: { "João Silva": 85, "Maria Santos": 80 }
-        },
-        "SECA SALGADA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 115,
-          percentual: 88.46,
-          itensAtualizados: 105,
-          itensDesatualizado: 10,
-          usuarios: { "Carlos Lima": 60, "Ana Oliveira": 55 }
-        },
-        "SECA SALGADA 2": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 40,
-          percentual: 88.89,
-          itensAtualizados: 38,
-          itensDesatualizado: 2,
-          usuarios: { "Pedro Costa": 40 }
-        }
-      },
-      contadorClasses: {},
-    },
-    rupturas: {
-      totalItens: 1200,
-      itensLidos: 950,
-      itensAtualizados: 0,
-      itensDesatualizado: 0,
-      itensSemEstoque: 0,
-      itensNaopertence: 0,
-      percentualConclusao: 79.17,
-      custoTotalRuptura: 15750.50,
-      custoMedioRuptura: 16.58,
-      classesLeitura: {
-        "A CLASSIFICAR": {
-          total: 15,
-          itensValidos: 12,
-          lidos: 10,
-          percentual: 83.33,
-          custoRuptura: 125.50,
-          usuarios: { "João Silva": 6, "Maria Santos": 4 }
-        },
-        "ALTO GIRO": {
-          total: 120,
-          itensValidos: 108,
-          lidos: 90,
-          percentual: 83.33,
-          custoRuptura: 1850.75,
-          usuarios: { "Carlos Lima": 50, "Ana Oliveira": 40 }
-        },
-        "BAZAR": {
-          total: 180,
-          itensValidos: 150,
-          lidos: 120,
-          percentual: 80.00,
-          custoRuptura: 2200.00,
-          usuarios: { "Pedro Costa": 65, "Fernanda Rocha": 55 }
-        },
-        "DIVERSOS": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 38,
-          percentual: 84.44,
-          custoRuptura: 450.25,
-          usuarios: { "Ricardo Alves": 38 }
-        },
-        "DPH": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 150,
-          percentual: 83.33,
-          custoRuptura: 2850.00,
-          usuarios: { "Patrícia Nunes": 80, "Roberto Santos": 70 }
-        },
-        "FLV": {
-          total: 80,
-          itensValidos: 70,
-          lidos: 52,
-          percentual: 74.29,
-          custoRuptura: 980.50,
-          usuarios: { "Juliana Costa": 28, "Marcos Oliveira": 24 }
-        },
-        "LATICINIOS 1": {
-          total: 100,
-          itensValidos: 85,
-          lidos: 68,
-          percentual: 80.00,
-          custoRuptura: 1250.00,
-          usuarios: { "Carla Silva": 38, "Paulo Rodrigues": 30 }
-        },
-        "LIQUIDA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 105,
-          percentual: 80.77,
-          custoRuptura: 1800.00,
-          usuarios: { "Amanda Lima": 55, "Diego Souza": 50 }
-        },
-        "PERECIVEL 1": {
-          total: 90,
-          itensValidos: 80,
-          lidos: 62,
-          percentual: 77.50,
-          custoRuptura: 1150.00,
-          usuarios: { "Camila Rocha": 32, "Lucas Almeida": 30 }
-        },
-        "PERECIVEL 2": {
-          total: 85,
-          itensValidos: 75,
-          lidos: 58,
-          percentual: 77.33,
-          custoRuptura: 950.00,
-          usuarios: { "Tatiane Pereira": 28, "Gabriel Santos": 30 }
-        },
-        "PERECIVEL 2 B": {
-          total: 60,
-          itensValidos: 50,
-          lidos: 38,
-          percentual: 76.00,
-          custoRuptura: 580.00,
-          usuarios: { "Renata Oliveira": 38 }
-        },
-        "PERECIVEL 3": {
-          total: 70,
-          itensValidos: 60,
-          lidos: 48,
-          percentual: 80.00,
-          custoRuptura: 720.00,
-          usuarios: { "Felipe Costa": 48 }
-        },
-        "SECA DOCE": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 160,
-          percentual: 88.89,
-          custoRuptura: 2400.00,
-          usuarios: { "João Silva": 82, "Maria Santos": 78 }
-        },
-        "SECA SALGADA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 110,
-          percentual: 84.62,
-          custoRuptura: 1650.00,
-          usuarios: { "Carlos Lima": 58, "Ana Oliveira": 52 }
-        },
-        "SECA SALGADA 2": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 38,
-          percentual: 84.44,
-          custoRuptura: 570.00,
-          usuarios: { "Pedro Costa": 38 }
-        }
-      },
-      contadorClasses: {},
-    },
-    presencas: {
-      totalItens: 1400,
-      itensLidos: 1100,
-      itensAtualizados: 1050,
-      itensDesatualizado: 0,
-      itensSemEstoque: 0,
-      itensNaopertence: 0,
-      percentualConclusao: 78.57,
-      presencasConfirmadas: 1050,
-      percentualPresenca: 75.00,
-      classesLeitura: {
-        "A CLASSIFICAR": {
-          total: 15,
-          itensValidos: 12,
-          lidos: 11,
-          percentual: 91.67,
-          presencasConfirmadas: 11,
-          usuarios: { "João Silva": 6, "Maria Santos": 5 }
-        },
-        "ALTO GIRO": {
-          total: 120,
-          itensValidos: 108,
-          lidos: 100,
-          percentual: 92.59,
-          presencasConfirmadas: 100,
-          usuarios: { "Carlos Lima": 52, "Ana Oliveira": 48 }
-        },
-        "BAZAR": {
-          total: 180,
-          itensValidos: 150,
-          lidos: 135,
-          percentual: 90.00,
-          presencasConfirmadas: 135,
-          usuarios: { "Pedro Costa": 72, "Fernanda Rocha": 63 }
-        },
-        "DIVERSOS": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 42,
-          percentual: 93.33,
-          presencasConfirmadas: 42,
-          usuarios: { "Ricardo Alves": 42 }
-        },
-        "DPH": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 165,
-          percentual: 91.67,
-          presencasConfirmadas: 165,
-          usuarios: { "Patrícia Nunes": 88, "Roberto Santos": 77 }
-        },
-        "FLV": {
-          total: 80,
-          itensValidos: 70,
-          lidos: 58,
-          percentual: 82.86,
-          presencasConfirmadas: 58,
-          usuarios: { "Juliana Costa": 32, "Marcos Oliveira": 26 }
-        },
-        "LATICINIOS 1": {
-          total: 100,
-          itensValidos: 85,
-          lidos: 72,
-          percentual: 84.71,
-          presencasConfirmadas: 72,
-          usuarios: { "Carla Silva": 42, "Paulo Rodrigues": 30 }
-        },
-        "LIQUIDA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 112,
-          percentual: 86.15,
-          presencasConfirmadas: 112,
-          usuarios: { "Amanda Lima": 62, "Diego Souza": 50 }
-        },
-        "PERECIVEL 1": {
-          total: 90,
-          itensValidos: 80,
-          lidos: 67,
-          percentual: 83.75,
-          presencasConfirmadas: 67,
-          usuarios: { "Camila Rocha": 37, "Lucas Almeida": 30 }
-        },
-        "PERECIVEL 2": {
-          total: 85,
-          itensValidos: 75,
-          lidos: 62,
-          percentual: 82.67,
-          presencasConfirmadas: 62,
-          usuarios: { "Tatiane Pereira": 32, "Gabriel Santos": 30 }
-        },
-        "PERECIVEL 2 B": {
-          total: 60,
-          itensValidos: 50,
-          lidos: 42,
-          percentual: 84.00,
-          presencasConfirmadas: 42,
-          usuarios: { "Renata Oliveira": 42 }
-        },
-        "PERECIVEL 3": {
-          total: 70,
-          itensValidos: 60,
-          lidos: 52,
-          percentual: 86.67,
-          presencasConfirmadas: 52,
-          usuarios: { "Felipe Costa": 52 }
-        },
-        "SECA DOCE": {
-          total: 200,
-          itensValidos: 180,
-          lidos: 168,
-          percentual: 93.33,
-          presencasConfirmadas: 168,
-          usuarios: { "João Silva": 88, "Maria Santos": 80 }
-        },
-        "SECA SALGADA": {
-          total: 150,
-          itensValidos: 130,
-          lidos: 118,
-          percentual: 90.77,
-          presencasConfirmadas: 118,
-          usuarios: { "Carlos Lima": 62, "Ana Oliveira": 56 }
-        },
-        "SECA SALGADA 2": {
-          total: 50,
-          itensValidos: 45,
-          lidos: 42,
-          percentual: 93.33,
-          presencasConfirmadas: 42,
-          usuarios: { "Pedro Costa": 42 }
-        }
-      },
-      contadorClasses: {},
-    },
-    totais: {
-      totalItens: 4100,
-      itensLidos: 3030,
-      itensAtualizados: 1900,
-      percentualConclusaoGeral: 73.90,
-      pontuacaoTotal: 0,
-    },
+export default {
+  name: "PremiumDashboard",
+  components: {
+    AdvancedAnalyticsModal,
   },
-});
+  setup() {
+    // Refs para estado e dados
+    const filters = ref({
+      periodo: "mensal",
+      comparacao: "periodo_anterior",
+      granularidade: "diaria",
+      regiao: "todas",
+      tipoLoja: "todas",
+      faixaPerformance: "todas",
+    });
 
-// Estado de carregamento
-const carregando = ref(false);
-const erro = ref(null);
+    const dashboardData = ref({});
+    const carregando = ref(false);
+    const sincronizando = ref(false);
+    const progressoCarregamento = ref(0);
+    const modalAberto = ref(false);
+    const modalDados = ref({});
+    const modalTipo = ref("");
 
-// Dados de usuários do endpoint /metricas/usuarios (MOCKADOS)
-const dadosUsuarios = ref([
-  {
-    id: 1,
-    nome: "João Silva",
-    foto: null,
-    iniciais: "JS",
-    conquistas: { totalConquistas: 12, nivel: 5, titulo: "Expert", xpTotal: 2500 },
-    desempenho: { posicaoLoja: 1, posicaoGeral: 15, pontuacaoTotal: 2500 }
-  },
-  {
-    id: 2,
-    nome: "Maria Santos",
-    foto: null,
-    iniciais: "MS",
-    conquistas: { totalConquistas: 10, nivel: 4, titulo: "Avançado", xpTotal: 2200 },
-    desempenho: { posicaoLoja: 2, posicaoGeral: 22, pontuacaoTotal: 2200 }
-  },
-  {
-    id: 3,
-    nome: "Carlos Lima",
-    foto: null,
-    iniciais: "CL",
-    conquistas: { totalConquistas: 8, nivel: 4, titulo: "Avançado", xpTotal: 1900 },
-    desempenho: { posicaoLoja: 3, posicaoGeral: 28, pontuacaoTotal: 1900 }
-  },
-  {
-    id: 4,
-    nome: "Ana Oliveira",
-    foto: null,
-    iniciais: "AO",
-    conquistas: { totalConquistas: 7, nivel: 3, titulo: "Intermediário", xpTotal: 1700 },
-    desempenho: { posicaoLoja: 4, posicaoGeral: 35, pontuacaoTotal: 1700 }
-  },
-  {
-    id: 5,
-    nome: "Pedro Costa",
-    foto: null,
-    iniciais: "PC",
-    conquistas: { totalConquistas: 6, nivel: 3, titulo: "Intermediário", xpTotal: 1500 },
-    desempenho: { posicaoLoja: 5, posicaoGeral: 42, pontuacaoTotal: 1500 }
-  }
-]);
+    // Refs para controles avançados
+    const tendenciaPeriodo = ref("30d");
+    const heatmapMetrica = ref("conclusao");
+    const correlacaoX = ref("produtividade");
+    const correlacaoY = ref("conclusao");
+    const filtroAlerta = ref("todos");
+    const filtroRecomendacao = ref("todas");
+    const benchmarkGrupo = ref("regiao");
+    const previsaoHorizonte = ref("30d");
 
-// Ícones para cada classe de produtos
-const iconesClasses = {
-  "A CLASSIFICAR": "❓",
-  "ALTO GIRO": "⚡",
-  BAZAR: "🛍️",
-  DIVERSOS: "🧰",
-  DPH: "🧴",
-  FLV: "🍎",
-  "LATICINIOS 1": "🥛",
-  LIQUIDA: "🥤",
-  "PERECIVEL 1": "🍗",
-  "PERECIVEL 2": "🍖",
-  "PERECIVEL 2 B": "🧀",
-  "PERECIVEL 3": "🥬",
-  "SECA DOCE": "🥦",
-  "SECA SALGADA": "🧂",
-  "SECA SALGADA 2": "🥫",
-};
+    // Refs para gráficos
+    const tendenciaAvancadaChart = ref(null);
+    const correlacaoChart = ref(null);
+    const benchmarkChart = ref(null);
+    const previsaoChart = ref(null);
 
-const setorSelecionado = ref(null);
+    // Instâncias dos gráficos
+    let tendenciaAvancadaChartInstance = null;
+    let correlacaoChartInstance = null;
+    let benchmarkChartInstance = null;
+    let previsaoChartInstance = null;
 
-// Computed para obter dados filtrados pelo tipo de auditoria
-const dadosFiltrados = computed(() => {
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+    // Computed
+    const dataAtual = computed(() => {
+      return new Date().toLocaleDateString("pt-BR", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    });
 
-  return Object.entries(auditoriaAtual.classesLeitura).map(
-    ([classe, dados]) => {
-      return {
-        ClasseProduto: classe,
-        icone: iconesClasses[classe] || "📦",
-        totalItens: dados.total || 0,
-        itensValidos: dados.itensValidos || 0,
-        itensLidos: dados.lidos || 0,
-        itensAtualizados: dados.itensAtualizados || 0,
-        itensDesatualizado: dados.itensDesatualizado || 0,
-        custoRuptura: dados.custoRuptura || 0,
-        presencasConfirmadas: dados.presencasConfirmadas || 0,
-        percentualConclusao: dados.percentual || 0,
-      };
-    }
-  );
-});
+    const ultimaAtualizacao = computed(() => {
+      return new Date().toLocaleTimeString("pt-BR");
+    });
 
-// Computed para obter colaboradores do setor selecionado
-const colaboradoresSetor = computed(() => {
-  if (!setorSelecionado.value) return [];
+    const alertasFiltrados = computed(() => {
+      if (!dashboardData.value.alertas) return [];
+      if (filtroAlerta.value === "todos") return dashboardData.value.alertas;
+      return dashboardData.value.alertas.filter((alerta) =>
+        filtroAlerta.value === "criticos"
+          ? alerta.severidade === "critica"
+          : filtroAlerta.value === "oportunidades"
+          ? alerta.tipo === "oportunidade"
+          : true
+      );
+    });
 
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+    const recomendacoesFiltradas = computed(() => {
+      if (!dashboardData.value.recomendacoes) return [];
+      if (filtroRecomendacao.value === "todas")
+        return dashboardData.value.recomendacoes;
+      return dashboardData.value.recomendacoes.filter((rec) =>
+        filtroRecomendacao.value === "alta"
+          ? rec.impacto === "alto"
+          : filtroRecomendacao.value === "rapida"
+          ? rec.esforço === "baixo"
+          : filtroRecomendacao.value === "baixo_custo"
+          ? rec.custo === "baixo"
+          : true
+      );
+    });
 
-  const classeAtual = auditoriaAtual.classesLeitura[setorSelecionado.value.ClasseProduto];
-  if (!classeAtual || !classeAtual.usuarios) return [];
+    // Constantes
+    const periodosTendencia = ["7d", "30d", "90d", "1a"];
+    const horizontesPrevisao = ["7d", "30d", "90d", "1a"];
+    const regioes = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"];
 
-  const usuariosArray = Object.entries(classeAtual.usuarios).map(([nome, itensLidos], index) => {
-    const usuarioCompleto = dadosUsuarios.value.find(u => u.nome === nome);
+    // Métodos principais
+    const carregarDadosPremium = async () => {
+      carregando.value = true;
+      progressoCarregamento.value = 0;
 
-    const eficiencia = classeAtual.itensValidos > 0
-      ? Math.min(Math.round((itensLidos / classeAtual.itensValidos) * 100 * 10), 100)
-      : 0;
+      try {
+        // Simular carregamento progressivo
+        const interval = setInterval(() => {
+          progressoCarregamento.value += Math.random() * 10;
+          if (progressoCarregamento.value >= 100) {
+            clearInterval(interval);
+          }
+        }, 200);
 
-    const avatares = ["👨‍💼", "👩‍💼", "👨‍🔧", "👩‍🔧", "👨‍🎨", "👩‍🎨", "👨‍🍳", "👩‍🍳"];
-    const avatar = avatares[index % avatares.length];
+        const dados = await simularDadosPremium();
+        dashboardData.value = dados;
 
-    const status = itensLidos > 0 ? "ativo" : "ausente";
-
-    return {
-      id: usuarioCompleto?.id || index + 1,
-      nome: nome,
-      funcao: "Auditor",
-      status: status,
-      itensLidos: itensLidos,
-      eficiencia: eficiencia,
-      avatar: avatar,
-      foto: usuarioCompleto?.foto || null,
-      iniciais: usuarioCompleto?.iniciais || nome.split(' ').map(p => p[0]).join('').toUpperCase().substring(0, 2),
-      conquistas: usuarioCompleto?.conquistas || {
-        totalConquistas: 0,
-        nivel: 1,
-        titulo: 'Novato',
-        xpTotal: 0
-      },
-      desempenho: usuarioCompleto?.desempenho || {
-        posicaoLoja: 0,
-        posicaoGeral: 0,
-        pontuacaoTotal: 0
+        setTimeout(() => {
+          inicializarGraficosAvancados();
+          carregando.value = false;
+        }, 1500);
+      } catch (error) {
+        console.error("Erro ao carregar dados premium:", error);
+        carregando.value = false;
       }
     };
-  });
 
-  return usuariosArray.sort((a, b) => b.itensLidos - a.itensLidos);
-});
+    const simularDadosPremium = async () => {
+      // Dados simulados extremamente ricos baseados nos modelos
+      return {
+        indicadores: {
+          saudeOperacional: 82,
+          engajamentoUsuarios: 76,
+          eficienciaProcessos: 88,
+          qualidadeDados: 91,
+          impactoFinanceiro: 125000,
+        },
+        totais: {
+          totalLojas: 15,
+          lojasAtivas: 12,
+          totalUsuarios: 156,
+          usuariosAtivos: 89,
+          usuariosOnline: 23,
+          itensProcessados: 45892,
+          itensProcessadosMinuto: 12,
+          auditoriasAtivas: 8,
+          percentualConclusaoGeral: 78.5,
+        },
+        tendencias: {
+          crescimentoItens: 12.5,
+          melhoriaQualidade: 8.2,
+          crescimentoUsuarios: 5.7,
+          velocidadeProcessamento: 3.2,
+          auditoriasAtivas: -2.1,
+          usuariosOnline: 4.8,
+        },
+        rupturas: {
+          custoTotalRuptura: 125000,
+          economiaEstimada: 87500,
+          rupturasMinuto: 2,
+        },
+        kpis: [
+          {
+            id: 1,
+            nome: "Taxa de Conclusão",
+            icone: "✅",
+            valor: 78.5,
+            meta: 85,
+            variacao: -7.6,
+            formato: "percentual",
+          },
+          {
+            id: 2,
+            nome: "Produtividade",
+            icone: "⚡",
+            valor: 125,
+            meta: 140,
+            variacao: -10.7,
+            formato: "numerico",
+          },
+          {
+            id: 3,
+            nome: "Qualidade",
+            icone: "🎯",
+            valor: 91.2,
+            meta: 90,
+            variacao: 1.3,
+            formato: "percentual",
+          },
+          {
+            id: 4,
+            nome: "Custo Ruptura",
+            icone: "💰",
+            valor: 125000,
+            meta: 100000,
+            variacao: 25,
+            formato: "monetario",
+          },
+          {
+            id: 5,
+            nome: "Engajamento",
+            icone: "👥",
+            valor: 76.3,
+            meta: 80,
+            variacao: -4.6,
+            formato: "percentual",
+          },
+          {
+            id: 6,
+            nome: "Eficiência",
+            icone: "🏃",
+            valor: 88.7,
+            meta: 85,
+            variacao: 4.3,
+            formato: "percentual",
+          },
+        ],
+        insightsTendencia: [
+          {
+            id: 1,
+            tipo: "positivo",
+            titulo: "Crescimento Consistente",
+            descricao: "Aumento de 12.5% no volume processado",
+            impacto: "Alto",
+          },
+          {
+            id: 2,
+            tipo: "alerta",
+            titulo: "Queda na Produtividade",
+            descricao: "Redução de 10.7% na produtividade média",
+            impacto: "Médio",
+          },
+          {
+            id: 3,
+            tipo: "oportunidade",
+            titulo: "Otimização de Processos",
+            descricao: "Potencial de economia de R$ 45.000 com otimizações",
+            impacto: "Alto",
+          },
+        ],
+        heatmapLocais: [
+          { id: 1, nome: "G01A", valor: 92 },
+          { id: 2, nome: "G01B", valor: 85 },
+          { id: 3, nome: "G02A", valor: 78 },
+          { id: 4, nome: "G02B", valor: 88 },
+          { id: 5, nome: "G03A", valor: 82 },
+          { id: 6, nome: "G03B", valor: 79 },
+          { id: 7, nome: "FLV", valor: 91 },
+          { id: 8, nome: "C01", valor: 76 },
+          { id: 9, nome: "CS01", valor: 84 },
+          { id: 10, nome: "F01", valor: 81 },
+          { id: 11, nome: "F02", valor: 87 },
+          { id: 12, nome: "G04A", valor: 83 },
+        ],
+        correlacao: {
+          coeficiente: 0.78,
+          significancia: "Alta",
+          rQuadrado: 0.61,
+        },
+        alertas: [
+          {
+            id: 1,
+            tipo: "performance",
+            severidade: "alta",
+            prioridade: "alta",
+            titulo: "Queda Crítica na Produtividade",
+            descricao: "Redução de 25% na produtividade da loja centro",
+            metricas: [
+              { nome: "Produtividade", valor: "-25%" },
+              { nome: "Itens Processados", valor: "1.2k" },
+              { nome: "Tempo Médio", valor: "+3.2min" },
+            ],
+            timestamp: new Date(Date.now() - 3600000),
+          },
+          {
+            id: 2,
+            tipo: "ruptura",
+            severidade: "critica",
+            prioridade: "urgente",
+            titulo: "Ruptura em Produtos Críticos",
+            descricao: "5 produtos de alto giro com ruptura crítica",
+            metricas: [
+              { nome: "Produtos Afetados", valor: "5" },
+              { nome: "Custo Estimado", valor: "R$ 12.5k" },
+              { nome: "Tempo de Ruptura", valor: "48h" },
+            ],
+            timestamp: new Date(Date.now() - 7200000),
+          },
+          {
+            id: 3,
+            tipo: "oportunidade",
+            severidade: "media",
+            prioridade: "media",
+            titulo: "Otimização de Processo Disponível",
+            descricao: "Nova metodologia pode aumentar eficiência em 15%",
+            metricas: [
+              { nome: "Ganho Potencial", valor: "+15%" },
+              { nome: "ROI Estimado", valor: "R$ 8.2k" },
+              { nome: "Implementação", valor: "7 dias" },
+            ],
+            timestamp: new Date(Date.now() - 10800000),
+          },
+        ],
+        recomendacoes: [
+          {
+            id: 1,
+            categoria: "processo",
+            titulo: "Otimização de Roteiro de Auditoria",
+            descricao:
+              "Reorganizar sequência de auditoria para reduzir tempo de deslocamento",
+            impacto: "alto",
+            roi: "R$ 15.200/ano",
+            esforço: "médio",
+            prazo: "2 semanas",
+            custo: "baixo",
+          },
+          {
+            id: 2,
+            categoria: "tecnologia",
+            titulo: "Implementar Scanner Inteligente",
+            descricao:
+              "Utilizar tecnologia de reconhecimento de imagem para acelerar leitura",
+            impacto: "muito alto",
+            roi: "R$ 45.800/ano",
+            esforço: "alto",
+            prazo: "8 semanas",
+            custo: "alto",
+          },
+          {
+            id: 3,
+            categoria: "treinamento",
+            titulo: "Capacitação em Produtividade",
+            descricao: "Treinamento focado em técnicas de auditoria eficiente",
+            impacto: "médio",
+            roi: "R$ 8.500/ano",
+            esforço: "baixo",
+            prazo: "1 semana",
+            custo: "baixo",
+          },
+        ],
+        benchmark: {
+          quartil: "Q3",
+          percentil: 72,
+          gapLider: 18.5,
+          areasMelhoria: [
+            "Velocidade de processamento de etiquetas",
+            "Taxa de ruptura em produtos perecíveis",
+            "Engajamento de usuários temporários",
+          ],
+        },
+        previsoes: {
+          conclusao: 82.3,
+          confianca: 87,
+          economia: 156000,
+          tendenciaEconomia: 12.5,
+          alertas: [
+            {
+              id: 1,
+              tipo: "alerta",
+              mensagem: "Possível queda na produtividade em 15 dias",
+              probabilidade: 65,
+            },
+            {
+              id: 2,
+              tipo: "oportunidade",
+              mensagem: "Pico de eficiência esperado na próxima semana",
+              probabilidade: 78,
+            },
+          ],
+        },
+      };
+    };
 
-// Computed properties para o resumo
-const percentualConclusaoGeral = computed(() => {
-  return (
-    dadosReais.value.metricas[tipoAuditoriaAtual.value]?.percentualConclusao || 0
-  );
-});
+    const inicializarGraficosAvancados = () => {
+      // Implementação dos gráficos avançados...
+      // Gráfico de Tendência Avançada
+      if (tendenciaAvancadaChart.value) {
+        const ctx = tendenciaAvancadaChart.value.getContext("2d");
+        tendenciaAvancadaChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [
+              "Jan",
+              "Fev",
+              "Mar",
+              "Abr",
+              "Mai",
+              "Jun",
+              "Jul",
+              "Ago",
+              "Set",
+              "Out",
+              "Nov",
+              "Dez",
+            ],
+            datasets: [
+              {
+                label: "Performance Real",
+                data: [65, 68, 72, 75, 78, 82, 85, 83, 81, 79, 82, 85],
+                borderColor: "rgb(75, 192, 192)",
+                backgroundColor: "rgba(75, 192, 192, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+              {
+                label: "Meta",
+                data: [70, 72, 75, 78, 80, 82, 84, 85, 85, 85, 86, 87],
+                borderColor: "rgb(255, 99, 132)",
+                borderDash: [5, 5],
+                tension: 0.4,
+                fill: false,
+              },
+              {
+                label: "Previsão",
+                data: [
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  null,
+                  84,
+                  88,
+                ],
+                borderColor: "rgb(153, 102, 255)",
+                borderDash: [3, 3],
+                tension: 0.4,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: { display: true, text: "Evolução da Performance vs Meta" },
+              tooltip: { mode: "index", intersect: false },
+            },
+            scales: {
+              y: {
+                min: 60,
+                max: 100,
+                ticks: { callback: (value) => value + "%" },
+              },
+            },
+          },
+        });
+      }
 
-const totalItens = computed(() => {
-  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.totalItens || 0;
-});
+      // Gráfico de Correlação (Scatter Plot)
+      if (correlacaoChart.value) {
+        const ctx = correlacaoChart.value.getContext("2d");
+        correlacaoChartInstance = new Chart(ctx, {
+          type: "scatter",
+          data: {
+            datasets: [
+              {
+                label: "Lojas",
+                data: [
+                  { x: 65, y: 70 },
+                  { x: 72, y: 75 },
+                  { x: 78, y: 82 },
+                  { x: 82, y: 85 },
+                  { x: 75, y: 78 },
+                  { x: 68, y: 72 },
+                  { x: 85, y: 88 },
+                  { x: 79, y: 81 },
+                  { x: 88, y: 90 },
+                  { x: 72, y: 76 },
+                  { x: 81, y: 83 },
+                  { x: 76, y: 79 },
+                ],
+                backgroundColor: "rgba(75, 192, 192, 0.6)",
+                borderColor: "rgb(75, 192, 192)",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return `Produtividade: ${context.parsed.x}%, Conclusão: ${context.parsed.y}%`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                title: { display: true, text: "Produtividade (%)" },
+                min: 60,
+                max: 100,
+              },
+              y: {
+                title: { display: true, text: "Taxa de Conclusão (%)" },
+                min: 60,
+                max: 100,
+              },
+            },
+          },
+        });
+      }
+    };
 
-const itensLidos = computed(() => {
-  if (tipoAuditoriaAtual.value === 'etiquetas') {
-    return dadosReais.value.metricas.etiquetas?.itensValidos || 0;
-  }
-  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.itensLidos || 0;
-});
+    // Métodos auxiliares avançados
+    const getHeatmapColor = (valor) => {
+      if (valor >= 90) return "#10b981";
+      if (valor >= 80) return "#84cc16";
+      if (valor >= 70) return "#eab308";
+      if (valor >= 60) return "#f97316";
+      return "#ef4444";
+    };
 
-const itensAtualizados = computed(() => {
-  return dadosReais.value.metricas.etiquetas?.itensAtualizados || 0;
-});
+    const getKpiClass = (valor, meta) => {
+      const percentual = (valor / meta) * 100;
+      if (percentual >= 100) return "excellent";
+      if (percentual >= 90) return "good";
+      if (percentual >= 80) return "warning";
+      return "critical";
+    };
 
-const custoTotalRuptura = computed(() => {
-  return dadosReais.value.metricas.rupturas?.custoTotalRuptura || 0;
-});
+    const getVarianceClass = (variacao) => {
+      return variacao >= 0 ? "positive" : "negative";
+    };
 
-const percentualPresenca = computed(() => {
-  return dadosReais.value.metricas.presencas?.percentualPresenca || 0;
-});
+    const getProgressClass = (valor, meta) => {
+      const percentual = (valor / meta) * 100;
+      if (percentual >= 100) return "excellent";
+      if (percentual >= 90) return "good";
+      if (percentual >= 80) return "warning";
+      return "critical";
+    };
 
-// Computed para calcular total de colaboradores únicos envolvidos
-const totalColaboradores = computed(() => {
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return 0;
+    const getInsightIcon = (tipo) => {
+      const icons = {
+        positivo: "📈",
+        alerta: "⚠️",
+        oportunidade: "💡",
+      };
+      return icons[tipo] || "ℹ️";
+    };
 
-  const usuariosUnicos = new Set();
+    const getAlertIcon = (tipo) => {
+      const icons = {
+        performance: "⚡",
+        ruptura: "💰",
+        oportunidade: "💡",
+        qualidade: "🎯",
+        usuario: "👥",
+      };
+      return icons[tipo] || "⚠️";
+    };
 
-  Object.values(auditoriaAtual.classesLeitura).forEach((classe) => {
-    if (classe.usuarios) {
-      Object.keys(classe.usuarios).forEach((usuario) => {
-        if (usuario !== "Produto não auditado") {
-          usuariosUnicos.add(usuario);
-        }
-      });
-    }
-  });
+    const getRecommendationIcon = (categoria) => {
+      const icons = {
+        processo: "🔄",
+        tecnologia: "💻",
+        treinamento: "🎓",
+        estrategia: "🎯",
+      };
+      return icons[categoria] || "💡";
+    };
 
-  return usuariosUnicos.size;
-});
+    const getConfidenceClass = (confianca) => {
+      if (confianca >= 90) return "high";
+      if (confianca >= 70) return "medium";
+      return "low";
+    };
 
-const getPercentualLeitura = (setor) => {
-  if (typeof setor.percentualConclusao !== 'undefined' && setor.percentualConclusao !== null) {
-    return setor.percentualConclusao;
-  }
-  if (!setor.itensValidos || setor.itensValidos <= 0) return 0;
-  const percentual = (setor.itensLidos / setor.itensValidos) * 100;
-  return Math.min(percentual, 100);
+    const formatarTempoRelativo = (data) => {
+      const agora = new Date();
+      const diffMs = agora - new Date(data);
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+
+      if (diffMins < 1) return "Agora mesmo";
+      if (diffMins < 60) return `Há ${diffMins} min`;
+      if (diffHours < 24) return `Há ${diffHours} h`;
+      return `Há ${Math.floor(diffHours / 24)} dias`;
+    };
+
+    // Métodos de ação
+    const aplicarFiltrosAvancados = () => {
+      carregarDadosPremium();
+    };
+
+    const resetarFiltros = () => {
+      filters.value = {
+        periodo: "mensal",
+        comparacao: "periodo_anterior",
+        granularidade: "diaria",
+        regiao: "todas",
+        tipoLoja: "todas",
+        faixaPerformance: "todas",
+      };
+      carregarDadosPremium();
+    };
+
+    const investigarAlerta = (alerta) => {
+      modalTipo.value = "alerta";
+      modalDados.value = alerta;
+      modalAberto.value = true;
+    };
+
+    const implementarRecomendacao = (recomendacao) => {
+      console.log("Implementando recomendação:", recomendacao);
+      // Implementar lógica de ação
+    };
+
+    // Lifecycle
+    onMounted(() => {
+      carregarDadosPremium();
+      // Iniciar sincronização em tempo real
+      setInterval(() => {
+        sincronizando.value = true;
+        setTimeout(() => {
+          sincronizando.value = false;
+        }, 2000);
+      }, 30000);
+    });
+
+    return {
+      // Refs
+      filters,
+      dashboardData,
+      carregando,
+      sincronizando,
+      progressoCarregamento,
+      modalAberto,
+      modalDados,
+      modalTipo,
+      tendenciaPeriodo,
+      heatmapMetrica,
+      correlacaoX,
+      correlacaoY,
+      filtroAlerta,
+      filtroRecomendacao,
+      benchmarkGrupo,
+      previsaoHorizonte,
+      tendenciaAvancadaChart,
+      correlacaoChart,
+      benchmarkChart,
+      previsaoChart,
+
+      // Computed
+      dataAtual,
+      ultimaAtualizacao,
+      alertasFiltrados,
+      recomendacoesFiltradas,
+
+      // Constantes
+      periodosTendencia,
+      horizontesPrevisao,
+      regioes,
+
+      // Métodos
+      carregarDadosPremium,
+      aplicarFiltrosAvancados,
+      resetarFiltros,
+      investigarAlerta,
+      implementarRecomendacao,
+      getHeatmapColor,
+      getKpiClass,
+      getVarianceClass,
+      getProgressClass,
+      getInsightIcon,
+      getAlertIcon,
+      getRecommendationIcon,
+      getConfidenceClass,
+      formatarTempoRelativo,
+      formatarNumero: (num) => new Intl.NumberFormat("pt-BR").format(num),
+      formatarMoeda: (valor) =>
+        new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(valor),
+      getTrendClass: (valor) =>
+        valor > 0 ? "positive" : valor < 0 ? "negative" : "neutral",
+      getTrendIcon: (valor) => (valor > 0 ? "📈" : valor < 0 ? "📉" : "➡️"),
+    };
+  },
 };
-
-const getClasseDesempenho = (valor) => {
-  if (valor >= 90) return "excelente";
-  if (valor >= 80) return "bom";
-  if (valor >= 70) return "atencao";
-  return "critico";
-};
-
-const getClasseCusto = (setor) => {
-  const custo = setor.custoRuptura || 0;
-  if (custo === 0) return "sem-custo";
-  if (custo < 500) return "baixo";
-  if (custo < 2000) return "medio";
-  return "alto";
-};
-
-const getStatusSetor = (setor) =>
-  getClasseDesempenho(getPercentualLeitura(setor));
-
-const getStatusLinha = (setor) => ({
-  "linha-destaque": getPercentualLeitura(setor) >= 90,
-  "linha-atencao": getPercentualLeitura(setor) < 70,
-});
-
-const getTipoAuditoriaLabel = () => {
-  const labels = {
-    etiquetas: "Etiquetas",
-    presencas: "Presenças",
-    rupturas: "Rupturas",
-  };
-  return labels[tipoAuditoriaAtual.value] || "Auditoria";
-};
-
-const formatarMoeda = (valor) => {
-  return new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(valor);
-};
-
-const alterarTipoAuditoria = (tipo) => {
-  tipoAuditoriaAtual.value = tipo;
-};
-
-const verDetalhesSetor = (setor) => {
-  setorSelecionado.value = setor;
-};
-
-const fecharModal = () => {
-  setorSelecionado.value = null;
-};
-
-const exportarSetor = (setor) => {
-  console.log("Exportando dados do setor:", setor);
-  alert(`Dados do setor ${setor.ClasseProduto} exportados com sucesso!`);
-};
-
-// Função simulada (não faz requisição real)
-const buscarMetricasLoja = async () => {
-  try {
-    carregando.value = true;
-    erro.value = null;
-
-    // Simular delay de carregamento
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    console.log("✅ Dados mockados carregados com sucesso!");
-
-  } catch (error) {
-    console.error("❌ Erro ao buscar métricas da loja:", error);
-    erro.value = "Erro ao carregar métricas. Tente novamente mais tarde.";
-  } finally {
-    carregando.value = false;
-  }
-};
-
-// Inicialização
-onMounted(() => {
-  console.log("Componente TesteMetricas montado com DADOS MOCKADOS");
-  buscarMetricasLoja();
-});
 </script>
 
 <style scoped>
-.metricas-setor-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin: 1rem 0;
+/* Estilos premium - muito mais elaborados */
+.premium-dashboard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
 }
 
-/* Loading e Erro */
-.loading-container,
-.erro-container {
+.dashboard-header.premium {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header-title h1 {
+  margin: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2.5em;
+  font-weight: 700;
+}
+
+.header-title p {
+  margin: 5px 0 0 0;
+  color: #6c757d;
+  font-size: 1.1em;
+}
+
+.header-stats {
+  display: flex;
+  gap: 30px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 15px 25px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 15px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.advanced-filters {
+  background: rgba(248, 249, 250, 0.8);
+  border-radius: 15px;
+  padding: 25px;
+}
+
+.filter-section {
+  margin-bottom: 25px;
+}
+
+.filter-section h4 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-weight: 600;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  font-size: 0.85em;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-group select {
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.filter-group select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+/* Cards de análise premium */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.grid-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analysis-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.analysis-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+/* Scorecard Grid */
+.scorecard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.scorecard-item {
+  background: rgba(248, 249, 250, 0.8);
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.scorecard-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi-icon {
+  font-size: 1.5em;
+}
+
+.kpi-title {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.kpi-value.excellent {
+  color: #10b981;
+}
+.kpi-value.good {
+  color: #84cc16;
+}
+.kpi-value.warning {
+  color: #eab308;
+}
+.kpi-value.critical {
+  color: #ef4444;
+}
+
+.kpi-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 0.8em;
+}
+
+.kpi-target {
+  color: #6c757d;
+}
+
+.kpi-variance.positive {
+  color: #10b981;
+}
+.kpi-variance.negative {
+  color: #ef4444;
+}
+
+/* Heatmap */
+.heatmap-container {
+  margin-top: 15px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.8em;
+  color: #6c757d;
+}
+
+.legend-gradient {
+  flex: 1;
+  height: 8px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, #ef4444, #eab308, #84cc16, #10b981);
+  border-radius: 4px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  min-height: 300px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+.heatmap-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.local-name {
+  font-size: 0.7em;
+  opacity: 0.9;
 }
 
-.loading-container p {
-  color: #718096;
-  font-size: 1rem;
+.local-value {
+  font-size: 0.9em;
+  font-weight: 700;
 }
 
-.erro-container {
-  color: #f44336;
+/* Alertas Inteligentes */
+.alerts-panel {
+  max-height: 600px;
+  overflow-y: auto;
 }
 
-.erro-mensagem {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  text-align: center;
+.intelligent-alert {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 4px solid;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
-.metricas-header {
+.intelligent-alert:hover {
+  transform: translateX(5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.intelligent-alert.severity-critica {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+.intelligent-alert.severity-alta {
+  border-left-color: #f97316;
+  background: #fff7ed;
+}
+.intelligent-alert.severity-media {
+  border-left-color: #eab308;
+  background: #fefce8;
+}
+.intelligent-alert.severity-baixa {
+  border-left-color: #84cc16;
+  background: #f7fee7;
+}
+
+.alert-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.alert-icon {
+  font-size: 1.2em;
+}
+
+.alert-title {
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+}
+
+.alert-priority {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.alert-priority.urgente {
+  background: #ef4444;
+  color: white;
+}
+.alert-priority.alta {
+  background: #f97316;
+  color: white;
+}
+.alert-priority.media {
+  background: #eab308;
+  color: #1f2937;
+}
+.alert-priority.baixa {
+  background: #84cc16;
+  color: white;
+}
+
+.alert-body p {
+  margin: 0 0 10px 0;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.alert-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+}
+
+.metric-name {
+  color: #6b7280;
+}
+
+.metric-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.alert-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
 }
 
-.metricas-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
+.alert-time {
+  font-size: 0.8em;
+  color: #9ca3af;
 }
 
-.metricas-actions {
+.alert-actions {
   display: flex;
-  gap: 1rem;
+  gap: 8px;
 }
 
-.action-btn {
-  padding: 0.5rem 1rem;
-  background: #e2e8f0;
-  border: none;
-  border-radius: 6px;
-  color: #4a5568;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  border: 2px solid transparent;
+/* Loading Premium */
+.loading-overlay.premium {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
 }
 
-.action-btn:hover {
-  background: #cbd5e0;
-  transform: translateY(-1px);
-}
-
-.action-btn.active {
-  background: #667eea;
+.loading-content {
+  text-align: center;
   color: white;
-  border-color: #5a6fd8;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.metricas-table-container {
-  padding: 1.5rem;
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
 }
 
-.metricas-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.metricas-table th {
-  background: #f8fafc;
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.metricas-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.9rem;
-}
-
-.metricas-table tr:last-child td {
-  border-bottom: none;
-}
-
-.metricas-table tr.linha-destaque {
-  background: rgba(76, 175, 80, 0.05);
-}
-
-.metricas-table tr.linha-atencao {
-  background: rgba(244, 67, 54, 0.05);
-}
-
-.setor-cell .setor-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.setor-icon {
-  font-size: 1.2rem;
+.loading-progress {
+  margin-top: 20px;
 }
 
 .progress-bar {
-  position: relative;
-  height: 24px;
-  background: #e2e8f0;
-  border-radius: 12px;
+  width: 300px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  margin: 0 auto 10px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 12px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px;
   transition: width 0.3s ease;
-  position: relative;
 }
 
-.progress-fill.excelente {
-  background: #4caf50;
-}
-.progress-fill.bom {
-  background: #ff9800;
-}
-.progress-fill.atencao {
-  background: #ffeb3b;
-}
-.progress-fill.critico {
-  background: #f44336;
-}
-
-.progress-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.meta-cell,
-.conformidade-cell,
-.ruptura-cell {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.status-badge.excelente {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-}
-
-.status-badge.bom {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-.status-badge.atencao {
-  background: rgba(255, 235, 59, 0.1);
-  color: #fbc02d;
-}
-
-.status-badge.critico {
-  background: rgba(244, 67, 54, 0.1);
-  color: #f44336;
-}
-
-.acoes-cell {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.acao-btn {
-  padding: 0.5rem;
-  background: none;
+/* Botões Premium */
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-sm,
+.btn-icon {
+  padding: 12px 24px;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
+  font-size: 14px;
 }
 
-.acao-btn:hover {
-  background: #f8fafc;
-  transform: scale(1.1);
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.resumo-estatistico {
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
-.estatisticas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+.btn-secondary {
+  background: #6c757d;
+  color: white;
 }
 
-.estatistica-card {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.btn-outline {
+  background: transparent;
+  border: 2px solid #667eea;
+  color: #667eea;
 }
 
-.estatistica-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.estatistica-label {
-  font-size: 0.8rem;
-  color: #718096;
-  font-weight: 500;
-}
-
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  max-width: 700px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.modal-close:hover {
-  background: #f8fafc;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.action-btn.primary {
+.btn-outline:hover {
   background: #667eea;
   color: white;
 }
 
-.action-btn.secondary {
-  background: #718096;
-  color: white;
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.8em;
 }
 
-.setor-detalhes {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.btn-icon {
+  padding: 8px;
+  background: transparent;
+  color: #6c757d;
 }
 
-.detalhe-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.setor-icone-grande {
-  font-size: 3rem;
+.btn-icon:hover {
   background: rgba(102, 126, 234, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.setor-info-grande h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.metricas-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.metrica-item {
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-}
-
-.metrica-label {
-  font-size: 0.8rem;
-  color: #718096;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.metrica-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.progress-bar-small {
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-bar-small .progress-fill {
-  height: 100%;
-  border-radius: 3px;
-}
-
-.colaboradores-section {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-radius: 8px;
-}
-
-.colaboradores-section h5 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.colaboradores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.colaborador-card {
-  background: white;
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #667eea;
-}
-
-.colaborador-avatar {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.colaborador-foto {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.colaborador-iniciais {
-  font-size: 1rem;
-  font-weight: 700;
   color: #667eea;
 }
 
-.colaborador-info {
-  flex: 1;
+/* Responsividade */
+@media (max-width: 1400px) {
+  .analytics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.colaborador-nome {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
+@media (max-width: 1024px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
 
-.colaborador-funcao {
-  font-size: 0.8rem;
-  color: #718096;
-  margin-bottom: 0.25rem;
-}
+  .header-main {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
 
-.colaborador-conquistas {
-  font-size: 0.75rem;
-  color: #667eea;
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-
-.colaborador-ranking {
-  font-size: 0.7rem;
-  color: #4a5568;
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-
-.colaborador-status {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
-  display: inline-block;
-}
-
-.colaborador-status.ativo {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-}
-
-.colaborador-status.ausente {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-.colaborador-metricas {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  text-align: center;
-}
-
-.colaborador-metrica {
-  display: flex;
-  flex-direction: column;
-}
-
-.colaborador-metrica .metrica-valor {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0;
-}
-
-.colaborador-metrica .metrica-label {
-  font-size: 0.7rem;
-  color: #718096;
-  margin-bottom: 0;
-}
-
-.custo-cell.sem-custo {
-  color: #4caf50;
-  font-weight: 600;
-}
-
-.custo-cell.baixo {
-  color: #ff9800;
-  font-weight: 600;
-}
-
-.custo-cell.medio {
-  color: #ff5722;
-  font-weight: 600;
-}
-
-.custo-cell.alto {
-  color: #f44336;
-  font-weight: 700;
-}
-
-.presenca-cell {
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.atualizados-cell {
-  font-weight: 600;
-  color: #2c3e50;
+  .header-stats {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 768px) {
-  .metricas-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  .premium-dashboard {
+    padding: 10px;
   }
 
-  .metricas-actions {
-    justify-content: center;
-  }
-
-  .metricas-table-container {
-    padding: 1rem;
-    overflow-x: auto;
-  }
-
-  .estatisticas-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .metricas-grid {
+  .scorecard-grid {
     grid-template-columns: 1fr;
   }
 
-  .colaboradores-grid {
+  .heatmap-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filter-grid {
     grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    margin: 1rem;
-    max-width: calc(100% - 2rem);
-  }
-
-  .modal-footer {
-    flex-direction: column;
-  }
-
-  .colaborador-card {
-    flex-direction: column;
-    text-align: center;
   }
 }
 
-@media (max-width: 480px) {
-  .estatisticas-grid {
-    grid-template-columns: 1fr;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-
-  .metricas-actions {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    text-align: center;
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

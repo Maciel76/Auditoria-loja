@@ -1,329 +1,160 @@
 <template>
-  <div class="evolucao-auditorias-container">
-    <!-- Cabeçalho com Filtros -->
+  <div class="auditoria-tipos-desempenho-container">
+    <!-- Cabeçalho da Seção -->
     <div class="section-header">
       <div class="header-main">
         <div class="title-section">
-          <div class="title-icon">📈</div>
+          <div class="title-icon">📊</div>
           <div class="title-content">
-            <h2>Evolução nas Auditorias</h2>
-            <p>Análise detalhada do desempenho e tendências das auditorias</p>
+            <h2>Análise de Auditorias por Corredor</h2>
+            <p>Desempenho detalhado por tipo de auditoria e local</p>
           </div>
         </div>
-        <div class="header-controls">
-          <div class="filter-group">
-            <div class="filter-item">
-              <label class="filter-label">Período:</label>
-              <select v-model="periodoSelecionado" class="filter-select">
-                <option
-                  v-for="periodo in periodos"
-                  :key="periodo.value"
-                  :value="periodo.value"
-                >
-                  {{ periodo.label }}
-                </option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label class="filter-label">Setor:</label>
-              <select v-model="setorSelecionado" class="filter-select">
-                <option value="todos">Todos os Setores</option>
-                <option
-                  v-for="setor in setores"
-                  :key="setor.id"
-                  :value="setor.id"
-                >
-                  {{ setor.nome }}
-                </option>
-              </select>
-            </div>
-            <div class="filter-item">
-              <label class="filter-label">Tipo:</label>
-              <select v-model="tipoSelecionado" class="filter-select">
-                <option value="todos">Todos os Tipos</option>
-                <option
-                  v-for="tipo in tiposAuditoria"
-                  :key="tipo.id"
-                  :value="tipo.id"
-                >
-                  {{ tipo.nome }}
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="header-actions">
-            <button class="action-btn secondary" @click="exportarRelatorio">
-              📊 Exportar
-            </button>
-            <button class="action-btn primary" @click="gerarInsights">
-              💡 Gerar Insights
-            </button>
-          </div>
+
+        <!-- Botões de Tipo de Auditoria -->
+        <div class="auditoria-tabs">
+          <button
+            class="tab-btn"
+            :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
+            @click="alterarTipoAuditoria('etiquetas')"
+          >
+            🏷️ Etiquetas
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: tipoAuditoriaAtual === 'presencas' }"
+            @click="alterarTipoAuditoria('presencas')"
+          >
+            👥 Presenças
+          </button>
+          <button
+            class="tab-btn"
+            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
+            @click="alterarTipoAuditoria('rupturas')"
+          >
+            📦 Rupturas
+          </button>
         </div>
       </div>
 
-      <!-- Cards de Métricas Rápidas -->
-      <div class="metricas-rapidas">
-        <div class="metrica-card">
-          <div class="metrica-icon desempenho">📊</div>
-          <div class="metrica-content">
-            <div class="metrica-valor">{{ desempenhoAtual }}%</div>
-            <div class="metrica-label">Desempenho Atual</div>
-            <div
-              class="metrica-variacao"
-              :class="variacaoDesempenho >= 0 ? 'positiva' : 'negativa'"
-            >
-              {{ variacaoDesempenho >= 0 ? "↗" : "↘" }}
-              {{ Math.abs(variacaoDesempenho) }}%
+      <!-- Cards de Resumo -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <div class="summary-icon distribuição">📋</div>
+          <div class="summary-content">
+            <div class="summary-value">{{ totalItens }}</div>
+            <div class="summary-label">Total de Itens</div>
+            <div class="summary-subtitle">{{ getTipoAuditoriaLabel() }}</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon desempenho">🎯</div>
+          <div class="summary-content">
+            <div class="summary-value">{{ desempenhoMedio }}%</div>
+            <div class="summary-label">Desempenho Médio</div>
+            <div class="summary-subtitle">Conclusão</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon setor-destaque">🏆</div>
+          <div class="summary-content">
+            <div class="summary-value">{{ corredorDestaque.nome }}</div>
+            <div class="summary-label">Melhor Corredor</div>
+            <div class="summary-subtitle">
+              {{ corredorDestaque.pontuacao }}%
             </div>
           </div>
         </div>
-        <div class="metrica-card">
-          <div class="metrica-icon tendencia">📈</div>
-          <div class="metrica-content">
-            <div class="metrica-valor">{{ tendenciaGeral }}</div>
-            <div class="metrica-label">Tendência</div>
-            <div class="metrica-detalhe">Últimas 7 auditorias</div>
-          </div>
-        </div>
-        <div class="metrica-card">
-          <div class="metrica-icon consistencia">🎯</div>
-          <div class="metrica-content">
-            <div class="metrica-valor">{{ consistencia }}%</div>
-            <div class="metrica-label">Consistência</div>
-            <div class="metrica-detalhe">
-              Desvio padrão: {{ desvioPadrao }}%
-            </div>
-          </div>
-        </div>
-        <div class="metrica-card">
-          <div class="metrica-icon meta">🏆</div>
-          <div class="metrica-content">
-            <div class="metrica-valor">{{ atingimentoMeta }}%</div>
-            <div class="metrica-label">Meta Atingida</div>
-            <div class="metrica-detalhe">Meta: {{ meta }}%</div>
+        <div class="summary-card">
+          <div class="summary-icon tipo-predominante">👥</div>
+          <div class="summary-content">
+            <div class="summary-value">{{ totalColaboradores }}</div>
+            <div class="summary-label">Colaboradores</div>
+            <div class="summary-subtitle">Ativos</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Gráficos Principais -->
-    <div class="graficos-section">
+    <!-- Grid Principal de Gráficos -->
+    <div class="graficos-main-section">
       <div class="graficos-grid">
-        <!-- Gráfico de Linha Principal -->
-        <div class="grafico-card principal">
+        <!-- Distribuição por Corredor -->
+        <div class="grafico-card tipos-auditoria">
           <div class="grafico-header">
-            <h3>Evolução do Desempenho</h3>
-            <div class="grafico-legenda">
-              <div class="legenda-item">
-                <div class="legenda-cor desempenho"></div>
-                <span>Desempenho Real</span>
-              </div>
-              <div class="legenda-item">
-                <div class="legenda-cor meta"></div>
-                <span>Meta</span>
-              </div>
-              <div class="legenda-item">
-                <div class="legenda-cor media"></div>
-                <span>Média Móvel (7 dias)</span>
-              </div>
+            <div class="grafico-title">
+              <h3>📋 Distribuição por Corredor</h3>
+              <p>Itens totais, válidos e lidos por local</p>
             </div>
-          </div>
-          <div class="grafico-container">
-            <canvas ref="graficoLinha"></canvas>
-          </div>
-          <div class="grafico-stats">
-            <div class="stat-item">
-              <span class="stat-label">Melhor Desempenho:</span>
-              <span class="stat-value"
-                >{{ melhorDesempenho.valor }}% em
-                {{ melhorDesempenho.data }}</span
-              >
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Pior Desempenho:</span>
-              <span class="stat-value"
-                >{{ piorDesempenho.valor }}% em {{ piorDesempenho.data }}</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Gráfico de Comparação por Setor -->
-        <div class="grafico-card comparacao">
-          <div class="grafico-header">
-            <h3>Comparativo por Setor</h3>
-            <div class="periodo-comparacao">
-              <span>Variação vs período anterior</span>
-            </div>
-          </div>
-          <div class="grafico-container">
-            <canvas ref="graficoComparacao"></canvas>
-          </div>
-        </div>
-
-        <!-- Indicadores de Performance -->
-        <div class="indicadores-grid">
-          <div class="indicador-card">
-            <div class="indicador-header">
-              <div class="indicador-icon velocidade">⚡</div>
-              <span class="indicador-title">Velocidade de Melhoria</span>
-            </div>
-            <div class="indicador-value">{{ velocidadeMelhoria }}%</div>
-            <div class="indicador-progress">
-              <div
-                class="progress-bar"
-                :style="{ width: Math.min(velocidadeMelhoria, 100) + '%' }"
-              ></div>
-            </div>
-            <div class="indicador-desc">Taxa de crescimento semanal</div>
           </div>
 
-          <div class="indicador-card">
-            <div class="indicador-header">
-              <div class="indicador-icon estabilidade">🛡️</div>
-              <span class="indicador-title">Estabilidade</span>
+          <div class="grafico-content">
+            <div class="chart-container">
+              <canvas ref="graficoBarras"></canvas>
             </div>
-            <div class="indicador-value">{{ estabilidade }}%</div>
-            <div class="indicador-progress">
-              <div
-                class="progress-bar"
-                :style="{ width: estabilidade + '%' }"
-              ></div>
-            </div>
-            <div class="indicador-desc">Menos variações bruscas</div>
-          </div>
 
-          <div class="indicador-card">
-            <div class="indicador-header">
-              <div class="indicador-icon previsao">🔮</div>
-              <span class="indicador-title">Previsão 30 dias</span>
-            </div>
-            <div class="indicador-value">{{ previsao30dias }}%</div>
-            <div class="indicador-progress">
-              <div
-                class="progress-bar"
-                :style="{ width: Math.min(previsao30dias, 100) + '%' }"
-              ></div>
-            </div>
-            <div class="indicador-desc">Baseado na tendência atual</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Análise Detalhada -->
-    <div class="analise-section">
-      <div class="analise-header">
-        <h3>📋 Análise Detalhada das Últimas Auditorias</h3>
-        <button class="toggle-btn" @click="toggleDetalhes">
-          {{ mostrarDetalhes ? "Ocultar" : "Mostrar" }} Detalhes
-        </button>
-      </div>
-
-      <div v-if="mostrarDetalhes" class="detalhes-content">
-        <!-- Tabela de Auditorias -->
-        <div class="tabela-auditorias">
-          <table class="auditorias-table">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Setor</th>
-                <th>Tipo</th>
-                <th>Auditor</th>
-                <th>Desempenho</th>
-                <th>Pontuação</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="auditoria in auditoriasDetalhadas"
-                :key="auditoria.id"
-                :class="getLinhaClasse(auditoria)"
-              >
-                <td class="data-cell">{{ formatarData(auditoria.data) }}</td>
-                <td class="setor-cell">
-                  <div class="setor-info">
-                    <div class="setor-icone">{{ auditoria.setor.icone }}</div>
-                    <span>{{ auditoria.setor.nome }}</span>
-                  </div>
-                </td>
-                <td class="tipo-cell">
-                  <span
-                    class="tipo-badge"
-                    :style="{ background: auditoria.tipo.cor }"
-                  >
-                    {{ auditoria.tipo.nome }}
-                  </span>
-                </td>
-                <td class="auditor-cell">{{ auditoria.auditor }}</td>
-                <td class="desempenho-cell">
-                  <div class="desempenho-bar">
-                    <div
-                      class="bar-fill"
-                      :style="{
-                        width: auditoria.desempenho + '%',
-                        background: getCorDesempenho(auditoria.desempenho),
-                      }"
-                    ></div>
-                    <span class="desempenho-value"
-                      >{{ auditoria.desempenho }}%</span
-                    >
-                  </div>
-                </td>
-                <td class="pontuacao-cell">
-                  <div class="pontuacao">
-                    {{ auditoria.pontos }}/{{ auditoria.totalPontos }}
-                  </div>
-                </td>
-                <td class="status-cell">
-                  <span class="status-badge" :class="auditoria.status">
-                    {{ auditoria.status }}
-                  </span>
-                </td>
-                <td class="acoes-cell">
-                  <button
-                    class="acao-btn"
-                    @click="verDetalhesAuditoria(auditoria)"
-                  >
-                    👁️
-                  </button>
-                  <button
-                    class="acao-btn"
-                    @click="exportarAuditoria(auditoria)"
-                  >
-                    📥
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Insights Automáticos -->
-        <div class="insights-section">
-          <h4>💡 Insights Automáticos</h4>
-          <div class="insights-grid">
-            <div
-              v-for="insight in insights"
-              :key="insight.id"
-              class="insight-card"
-              :class="insight.tipo"
-            >
-              <div class="insight-header">
-                <div class="insight-icone">{{ insight.icone }}</div>
-                <div class="insight-titulo">{{ insight.titulo }}</div>
-                <div class="insight-badge" :class="insight.tipo">
-                  {{ insight.prioridade }}
+            <div class="detalhes-distribuicao">
+              <div class="distribuicao-stats">
+                <div class="stat-item">
+                  <span class="stat-label">Total de Itens:</span>
+                  <span class="stat-value">{{ totalItens }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Itens Válidos:</span>
+                  <span class="stat-value">{{ totalItensValidos }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Itens Lidos:</span>
+                  <span class="stat-value">{{ totalItensLidos }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Taxa de Conclusão:</span>
+                  <span class="stat-value">{{ taxaConclusaoGeral }}%</span>
                 </div>
               </div>
-              <div class="insight-descricao">{{ insight.descricao }}</div>
-              <div class="insight-acoes">
-                <button class="insight-btn" @click="aplicarInsight(insight)">
-                  Aplicar
-                </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desempenho por Corredor -->
+        <div class="grafico-card desempenho-setor">
+          <div class="grafico-header">
+            <div class="grafico-title">
+              <h3>🎯 Desempenho por Corredor</h3>
+              <p>Percentual de conclusão por local</p>
+            </div>
+          </div>
+
+          <div class="grafico-content">
+            <div class="chart-container">
+              <canvas ref="graficoRadar"></canvas>
+            </div>
+
+            <div class="detalhes-setores">
+              <div class="setores-ranking">
+                <h4>Top 5 Corredores</h4>
+                <div class="ranking-list">
+                  <div
+                    v-for="(corredor, index) in topCorredores"
+                    :key="corredor.local"
+                    class="ranking-item"
+                  >
+                    <div class="ranking-position">
+                      <span class="position-number">{{ index + 1 }}</span>
+                      <div class="position-medal" v-if="index < 3">
+                        {{ ["🥇", "🥈", "🥉"][index] }}
+                      </div>
+                    </div>
+                    <div class="ranking-info">
+                      <span class="setor-name">{{
+                        formatarNomeCorredor(corredor.local)
+                      }}</span>
+                      <span class="setor-desempenho"
+                        >{{ getPercentualLeitura(corredor).toFixed(1) }}%</span
+                      >
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -331,43 +162,89 @@
       </div>
     </div>
 
-    <!-- Modal de Detalhes da Auditoria -->
-    <div v-if="auditoriaSelecionada" class="modal-overlay" @click="fecharModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>Detalhes da Auditoria</h3>
-          <button class="modal-close" @click="fecharModal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="auditoria-detalhes">
-            <div class="detalhe-item">
-              <label>Data:</label>
-              <span>{{ formatarData(auditoriaSelecionada.data) }}</span>
-            </div>
-            <div class="detalhe-item">
-              <label>Setor:</label>
-              <span>{{ auditoriaSelecionada.setor.nome }}</span>
-            </div>
-            <div class="detalhe-item">
-              <label>Auditor:</label>
-              <span>{{ auditoriaSelecionada.auditor }}</span>
-            </div>
-            <div class="detalhe-item">
-              <label>Desempenho:</label>
-              <span class="detalhe-valor"
-                >{{ auditoriaSelecionada.desempenho }}%</span
-              >
-            </div>
-            <div class="detalhe-item">
-              <label>Pontuação:</label>
-              <span
-                >{{ auditoriaSelecionada.pontos }}/{{
-                  auditoriaSelecionada.totalPontos
-                }}</span
-              >
-            </div>
+    <!-- Tabela de Métricas Detalhadas -->
+    <div class="analise-comparativa-section">
+      <div class="analise-header">
+        <h3>
+          📊 Métricas Detalhadas por Corredor - {{ getTipoAuditoriaLabel() }}
+        </h3>
+        <div class="analise-periodo">Atualizado em: {{ dataAtual }}</div>
+      </div>
+
+      <div class="comparativa-grid">
+        <div class="analise-card metricas-setor">
+          <div class="metricas-table-container">
+            <table class="metricas-table">
+              <thead>
+                <tr>
+                  <th>Corredor</th>
+                  <th>Ícone</th>
+                  <th>Total Itens</th>
+                  <th>Itens Válidos</th>
+                  <th>Itens Lidos</th>
+                  <th>Desempenho</th>
+                  <th>Progresso</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="corredor in dadosFiltrados"
+                  :key="corredor.local"
+                  :class="getStatusLinha(corredor)"
+                >
+                  <td class="setor-cell">
+                    <div class="setor-info">
+                      <span>{{ formatarNomeCorredor(corredor.local) }}</span>
+                    </div>
+                  </td>
+                  <td class="icon-cell">
+                    <div class="corredor-icon-small">
+                      {{ getIconeCorredor(corredor.local) }}
+                    </div>
+                  </td>
+                  <td class="total-cell">{{ corredor.total }}</td>
+                  <td class="validos-cell">{{ corredor.itensValidos }}</td>
+                  <td class="lidos-cell">{{ corredor.lidos }}</td>
+                  <td class="desempenho-cell">
+                    {{ getPercentualLeitura(corredor).toFixed(1) }}%
+                  </td>
+                  <td class="progress-cell">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        :style="{ width: getPercentualLeitura(corredor) + '%' }"
+                        :class="
+                          getClasseDesempenho(getPercentualLeitura(corredor))
+                        "
+                      ></div>
+                    </div>
+                  </td>
+                  <td class="status-cell">
+                    <span
+                      class="status-badge"
+                      :class="getStatusCorredor(corredor)"
+                    >
+                      {{ getStatusLabel(getPercentualLeitura(corredor)) }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Footer com Ações Rápidas -->
+    <div class="footer-actions">
+      <div class="actions-grid">
+        <button class="footer-btn" @click="exportarDados">
+          📄 Exportar Relatório
+        </button>
+        <button class="footer-btn" @click="atualizarDados">
+          🔄 Atualizar Dados
+        </button>
       </div>
     </div>
   </div>
@@ -377,353 +254,285 @@
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import {
   Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  CategoryScale,
-  LinearScale,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
   BarController,
   BarElement,
+  RadarController,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+  Title,
+  CategoryScale,
+  LinearScale,
 } from "chart.js";
 
 // Registrar componentes do Chart.js
 Chart.register(
-  LineController,
-  LineElement,
+  BarController,
+  BarElement,
+  RadarController,
+  RadialLinearScale,
   PointElement,
-  CategoryScale,
-  LinearScale,
-  Title,
+  LineElement,
+  Filler,
   Tooltip,
   Legend,
-  Filler,
-  BarController,
-  BarElement
+  Title,
+  CategoryScale,
+  LinearScale
 );
 
 // Refs para os gráficos
-const graficoLinha = ref(null);
-const graficoComparacao = ref(null);
+const graficoBarras = ref(null);
+const graficoRadar = ref(null);
 
 // Instâncias dos gráficos
-const graficoLinhaInstance = ref(null);
-const graficoComparacaoInstance = ref(null);
+const graficoBarrasInstance = ref(null);
+const graficoRadarInstance = ref(null);
 
 // Estado do componente
-const periodoSelecionado = ref("7d");
-const setorSelecionado = ref("todos");
-const tipoSelecionado = ref("todos");
-const mostrarDetalhes = ref(false);
-const auditoriaSelecionada = ref(null);
-
-// Dados de configuração
-const periodos = [
-  { label: "Últimos 7 Dias", value: "7d" },
-  { label: "Últimas 2 Semanas", value: "14d" },
-  { label: "Último Mês", value: "30d" },
-  { label: "Último Trimestre", value: "90d" },
-];
-
-const setores = [
-  { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
-  { id: "acougue", nome: "Açougue", icone: "🥩" },
-  { id: "padaria", nome: "Padaria", icone: "🍞" },
-  { id: "laticinios", nome: "Laticínios", icone: "🥛" },
-  { id: "mercearia", nome: "Mercearia", icone: "🛒" },
-  { id: "bebidas", nome: "Bebidas", icone: "🥤" },
-];
-
-const tiposAuditoria = [
-  { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
-  { id: "presenca", nome: "Presença", cor: "#4CAF50" },
-  { id: "ruptura", nome: "Ruptura", cor: "#FF9800" },
-  { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
-];
-
-// Dados das auditorias
-const dadosAuditorias = {
-  "7d": {
-    labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
-    desempenhos: [85, 88, 90, 87, 92, 94, 91],
-    mediaMovel: [85, 86.5, 87.7, 87.5, 88.4, 89.3, 89.6],
-    meta: 90,
-    comparacaoSetores: [
-      { setor: "Hortifruti", atual: 95, anterior: 92, variacao: 3.3 },
-      { setor: "Açougue", atual: 88, anterior: 85, variacao: 3.5 },
-      { setor: "Padaria", atual: 91, anterior: 89, variacao: 2.2 },
-      { setor: "Laticínios", atual: 94, anterior: 91, variacao: 3.3 },
-      { setor: "Mercearia", atual: 89, anterior: 87, variacao: 2.3 },
-      { setor: "Bebidas", atual: 76, anterior: 78, variacao: -2.6 },
-    ],
+const tipoAuditoriaAtual = ref("etiquetas");
+const dadosReais = ref({
+  etiquetas: {
+    locaisLeitura: {},
+    resumo: { totalItens: 0, usuariosAtivos: 0 },
   },
-  "14d": {
-    labels: [
-      "Dia 1",
-      "Dia 2",
-      "Dia 3",
-      "Dia 4",
-      "Dia 5",
-      "Dia 6",
-      "Dia 7",
-      "Dia 8",
-      "Dia 9",
-      "Dia 10",
-      "Dia 11",
-      "Dia 12",
-      "Dia 13",
-      "Dia 14",
-    ],
-    desempenhos: [82, 85, 87, 84, 89, 91, 88, 90, 92, 89, 93, 91, 94, 92],
-    mediaMovel: [
-      82, 83.5, 84.7, 84.5, 85.4, 86.3, 86.6, 87.1, 87.8, 88.1, 88.7, 89.1,
-      89.6, 90.0,
-    ],
-    meta: 90,
-    comparacaoSetores: [
-      { setor: "Hortifruti", atual: 94, anterior: 90, variacao: 4.4 },
-      { setor: "Açougue", atual: 87, anterior: 83, variacao: 4.8 },
-      { setor: "Padaria", atual: 90, anterior: 87, variacao: 3.4 },
-      { setor: "Laticínios", atual: 93, anterior: 89, variacao: 4.5 },
-      { setor: "Mercearia", atual: 88, anterior: 85, variacao: 3.5 },
-      { setor: "Bebidas", atual: 78, anterior: 75, variacao: 4.0 },
-    ],
+  rupturas: {
+    locaisLeitura: {},
+    resumo: { totalItens: 0, usuariosAtivos: 0 },
   },
-};
-
-// Dados detalhados das auditorias
-const auditoriasDetalhadas = ref([
-  {
-    id: 1,
-    data: "2024-01-15",
-    setor: { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
-    tipo: { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
-    auditor: "João Silva",
-    desempenho: 95,
-    pontos: 38,
-    totalPontos: 40,
-    status: "excelente",
+  presencas: {
+    locaisLeitura: {},
+    resumo: { totalItens: 0, usuariosAtivos: 0 },
   },
-  {
-    id: 2,
-    data: "2024-01-14",
-    setor: { id: "acougue", nome: "Açougue", icone: "🥩" },
-    tipo: { id: "presenca", nome: "Presença", cor: "#4CAF50" },
-    auditor: "Maria Santos",
-    desempenho: 88,
-    pontos: 35,
-    totalPontos: 40,
-    status: "bom",
-  },
-  {
-    id: 3,
-    data: "2024-01-13",
-    setor: { id: "padaria", nome: "Padaria", icone: "🍞" },
-    tipo: { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
-    auditor: "Pedro Costa",
-    desempenho: 91,
-    pontos: 36,
-    totalPontos: 40,
-    status: "excelente",
-  },
-  {
-    id: 4,
-    data: "2024-01-12",
-    setor: { id: "laticinios", nome: "Laticínios", icone: "🥛" },
-    tipo: { id: "ruptura", nome: "Ruptura", cor: "#FF9800" },
-    auditor: "Ana Oliveira",
-    desempenho: 94,
-    pontos: 37,
-    totalPontos: 40,
-    status: "excelente",
-  },
-  {
-    id: 5,
-    data: "2024-01-11",
-    setor: { id: "mercearia", nome: "Mercearia", icone: "🛒" },
-    tipo: { id: "etiqueta", nome: "Etiqueta", cor: "#667eea" },
-    auditor: "Carlos Lima",
-    desempenho: 89,
-    pontos: 35,
-    totalPontos: 40,
-    status: "bom",
-  },
-  {
-    id: 6,
-    data: "2024-01-10",
-    setor: { id: "bebidas", nome: "Bebidas", icone: "🥤" },
-    tipo: { id: "presenca", nome: "Presença", cor: "#4CAF50" },
-    auditor: "Fernanda Rocha",
-    desempenho: 76,
-    pontos: 30,
-    totalPontos: 40,
-    status: "atencao",
-  },
-  {
-    id: 7,
-    data: "2024-01-09",
-    setor: { id: "hortifruti", nome: "Hortifruti", icone: "🥦" },
-    tipo: { id: "qualidade", nome: "Qualidade", cor: "#9C27B0" },
-    auditor: "João Silva",
-    desempenho: 92,
-    pontos: 36,
-    totalPontos: 40,
-    status: "excelente",
-  },
-]);
-
-// Insights automáticos
-const insights = ref([
-  {
-    id: 1,
-    tipo: "positivo",
-    icone: "🚀",
-    titulo: "Performance em Alta",
-    descricao: "Crescimento consistente de 5.2% nas últimas 7 auditorias",
-    prioridade: "Alta",
-  },
-  {
-    id: 2,
-    tipo: "alerta",
-    icone: "⚠️",
-    titulo: "Setor Crítico",
-    descricao: "Bebidas apresenta desempenho 15% abaixo da média",
-    prioridade: "Urgente",
-  },
-  {
-    id: 3,
-    tipo: "sugestao",
-    icone: "💡",
-    titulo: "Oportunidade de Melhoria",
-    descricao:
-      "Auditorias de etiqueta têm melhor desempenho - replicar boas práticas",
-    prioridade: "Média",
-  },
-]);
-
-// Computed properties
-const dadosAtuais = computed(() => {
-  return dadosAuditorias[periodoSelecionado.value] || dadosAuditorias["7d"];
 });
 
-const desempenhoAtual = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  return desempenhos[desempenhos.length - 1];
+// Computed properties baseadas no modelo LojaDailyMetrics
+const dadosFiltrados = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) return [];
+
+  return Object.entries(auditoriaAtual.locaisLeitura).map(([local, dados]) => {
+    return {
+      local: local,
+      ...dados,
+    };
+  });
 });
 
-const variacaoDesempenho = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  if (desempenhos.length < 2) return 0;
-  const primeiro = desempenhos[0];
-  const ultimo = desempenhos[desempenhos.length - 1];
-  return (((ultimo - primeiro) / primeiro) * 100).toFixed(1);
+const totalItens = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.totalItens || 0;
 });
 
-const tendenciaGeral = computed(() => {
-  return variacaoDesempenho.value >= 0 ? "Positiva ↗" : "Negativa ↘";
+const totalColaboradores = computed(() => {
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.usuariosAtivos || 0;
 });
 
-const consistencia = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  const media = desempenhos.reduce((a, b) => a + b, 0) / desempenhos.length;
-  return Math.round(100 - (desvioPadrao.value / media) * 100);
+const desempenhoMedio = computed(() => {
+  if (dadosFiltrados.value.length === 0) return 0;
+  const total = dadosFiltrados.value.reduce((sum, corredor) => {
+    return sum + getPercentualLeitura(corredor);
+  }, 0);
+  return (total / dadosFiltrados.value.length).toFixed(1);
 });
 
-const desvioPadrao = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  const media = desempenhos.reduce((a, b) => a + b, 0) / desempenhos.length;
-  const squaredDiffs = desempenhos.map((val) => Math.pow(val - media, 2));
-  const avgSquaredDiff =
-    squaredDiffs.reduce((a, b) => a + b, 0) / desempenhos.length;
-  return Math.sqrt(avgSquaredDiff).toFixed(1);
-});
+const corredorDestaque = computed(() => {
+  if (dadosFiltrados.value.length === 0) return { nome: "-", pontuacao: 0 };
 
-const meta = computed(() => dadosAtuais.value.meta);
+  const melhor = dadosFiltrados.value.reduce((prev, current) => {
+    const prevScore = getPercentualLeitura(prev);
+    const currentScore = getPercentualLeitura(current);
+    return prevScore > currentScore ? prev : current;
+  });
 
-const atingimentoMeta = computed(() => {
-  return Math.round((desempenhoAtual.value / meta.value) * 100);
-});
-
-const melhorDesempenho = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  const maxIndex = desempenhos.indexOf(Math.max(...desempenhos));
   return {
-    valor: Math.max(...desempenhos),
-    data: dadosAtuais.value.labels[maxIndex],
+    nome: formatarNomeCorredor(melhor.local),
+    pontuacao: getPercentualLeitura(melhor).toFixed(1),
   };
 });
 
-const piorDesempenho = computed(() => {
-  const desempenhos = dadosAtuais.value.desempenhos;
-  const minIndex = desempenhos.indexOf(Math.min(...desempenhos));
-  return {
-    valor: Math.min(...desempenhos),
-    data: dadosAtuais.value.labels[minIndex],
-  };
-});
-
-const velocidadeMelhoria = computed(() => {
-  return Math.max(0, variacaoDesempenho.value);
-});
-
-const estabilidade = computed(() => {
-  return Math.max(0, 100 - desvioPadrao.value * 2);
-});
-
-const previsao30dias = computed(() => {
-  const crescimentoDiario =
-    variacaoDesempenho.value / dadosAtuais.value.desempenhos.length;
-  return Math.min(
-    100,
-    Math.round(desempenhoAtual.value + crescimentoDiario * 30)
+const totalItensValidos = computed(() => {
+  return dadosFiltrados.value.reduce(
+    (sum, corredor) => sum + (corredor.itensValidos || 0),
+    0
   );
 });
 
-// Métodos
-const initializeCharts = () => {
-  if (!graficoLinha.value || !graficoComparacao.value) return;
+const totalItensLidos = computed(() => {
+  return dadosFiltrados.value.reduce(
+    (sum, corredor) => sum + (corredor.lidos || 0),
+    0
+  );
+});
 
-  // Gráfico de Linha Principal
-  graficoLinhaInstance.value = new Chart(graficoLinha.value, {
-    type: "line",
+const taxaConclusaoGeral = computed(() => {
+  if (totalItensValidos.value === 0) return 0;
+  return ((totalItensLidos.value / totalItensValidos.value) * 100).toFixed(1);
+});
+
+const topCorredores = computed(() => {
+  return [...dadosFiltrados.value]
+    .sort((a, b) => getPercentualLeitura(b) - getPercentualLeitura(a))
+    .slice(0, 5);
+});
+
+const dataAtual = computed(() => {
+  return new Date().toLocaleDateString("pt-BR");
+});
+
+// Funções auxiliares
+const getPercentualLeitura = (corredor) => {
+  if (!corredor.itensValidos || corredor.itensValidos <= 0) return 0;
+  const percentual = (corredor.lidos / corredor.itensValidos) * 100;
+  return Math.min(percentual, 100);
+};
+
+const getClasseDesempenho = (valor) => {
+  if (valor >= 90) return "excelente";
+  if (valor >= 80) return "bom";
+  if (valor >= 70) return "medio";
+  return "baixo";
+};
+
+const getStatusCorredor = (corredor) => {
+  return getClasseDesempenho(getPercentualLeitura(corredor));
+};
+
+const getStatusLabel = (valor) => {
+  if (valor >= 90) return "Excelente";
+  if (valor >= 80) return "Bom";
+  if (valor >= 70) return "Médio";
+  return "Atenção";
+};
+
+const getIconeCorredor = (local) => {
+  const icones = {
+    G01: "🛒",
+    G02: "🛒",
+    G03: "🛒",
+    G04: "🛒",
+    G05: "🛒",
+    G06: "🛒",
+    G07: "🛒",
+    G08: "🛒",
+    G09: "🛒",
+    G10: "🛒",
+    G11: "🛒",
+    G12: "🛒",
+    G13: "🛒",
+    G14: "🛒",
+    G15: "🛒",
+    G16: "🛒",
+    G17: "🛒",
+    G18: "🛒",
+    G19: "🛒",
+    G20: "🛒",
+    G21: "🛒",
+    G22: "🛒",
+    F01: "🥶",
+    F02: "🥶",
+    C01: "📦",
+    CS01: "📦",
+    FLV: "🍎",
+    PAO: "🥖",
+    SORVETE: "🍦",
+    GELO: "🧊",
+    I01: "🏢",
+    PA01: "📦",
+    PF01: "🥩",
+    PF02: "🥩",
+    PF03: "🥩",
+    PL01: "🧴",
+    PL02: "🧴",
+  };
+
+  for (const [key, icone] of Object.entries(icones)) {
+    if (local.includes(key)) return icone;
+  }
+
+  return "📍";
+};
+
+const formatarNomeCorredor = (local) => {
+  const partes = local.split(" - ");
+  if (partes[0] === partes[1]) {
+    return partes[0];
+  }
+  return local;
+};
+
+const getTipoAuditoriaLabel = () => {
+  const labels = {
+    etiquetas: "Auditoria de Etiquetas",
+    presencas: "Auditoria de Presenças",
+    rupturas: "Auditoria de Rupturas",
+  };
+  return labels[tipoAuditoriaAtual.value] || "Auditoria";
+};
+
+const getStatusLinha = (corredor) => {
+  const desempenho = getPercentualLeitura(corredor);
+  return {
+    "linha-destaque": desempenho >= 90,
+    "linha-atencao": desempenho < 70,
+  };
+};
+
+// Métodos de ação
+const alterarTipoAuditoria = (tipo) => {
+  tipoAuditoriaAtual.value = tipo;
+  setTimeout(updateCharts, 100);
+};
+
+const exportarDados = () => {
+  console.log("Exportando dados...", {
+    tipo: tipoAuditoriaAtual.value,
+    corredores: dadosFiltrados.value,
+  });
+  alert("Dados exportados com sucesso!");
+};
+
+const atualizarDados = () => {
+  gerarDadosFake();
+  updateCharts();
+};
+
+// Gráficos
+const initializeCharts = () => {
+  if (!graficoBarras.value || !graficoRadar.value) return;
+
+  // Gráfico de Barras - Distribuição por Corredor
+  graficoBarrasInstance.value = new Chart(graficoBarras.value, {
+    type: "bar",
     data: {
-      labels: dadosAtuais.value.labels,
+      labels: dadosFiltrados.value
+        .slice(0, 10)
+        .map((c) => formatarNomeCorredor(c.local)),
       datasets: [
         {
-          label: "Desempenho Real",
-          data: dadosAtuais.value.desempenhos,
+          label: "Total Itens",
+          data: dadosFiltrados.value.slice(0, 10).map((c) => c.total),
+          backgroundColor: "rgba(102, 126, 234, 0.6)",
           borderColor: "#667eea",
-          backgroundColor: "rgba(102, 126, 234, 0.05)",
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: "#667eea",
-          pointBorderColor: "#fff",
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
+          borderWidth: 1,
         },
         {
-          label: "Meta",
-          data: Array(dadosAtuais.value.labels.length).fill(
-            dadosAtuais.value.meta
-          ),
+          label: "Itens Válidos",
+          data: dadosFiltrados.value.slice(0, 10).map((c) => c.itensValidos),
+          backgroundColor: "rgba(76, 175, 80, 0.6)",
           borderColor: "#4CAF50",
-          borderWidth: 2,
-          borderDash: [5, 5],
-          fill: false,
-          pointStyle: false,
+          borderWidth: 1,
         },
         {
-          label: "Média Móvel",
-          data: dadosAtuais.value.mediaMovel,
+          label: "Itens Lidos",
+          data: dadosFiltrados.value.slice(0, 10).map((c) => c.lidos),
+          backgroundColor: "rgba(255, 152, 0, 0.6)",
           borderColor: "#FF9800",
-          borderWidth: 2,
-          fill: false,
-          pointStyle: false,
+          borderWidth: 1,
         },
       ],
     },
@@ -732,94 +541,73 @@ const initializeCharts = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false,
+          position: "top",
         },
-        tooltip: {
-          backgroundColor: "rgba(0,0,0,0.8)",
-          titleColor: "#fff",
-          bodyColor: "#fff",
-          callbacks: {
-            label: function (context) {
-              return `${context.dataset.label}: ${context.parsed.y}%`;
-            },
-          },
+        title: {
+          display: true,
+          text: "Distribuição de Itens por Corredor (Top 10)",
         },
       },
       scales: {
-        x: {
-          grid: {
-            display: false,
-            drawBorder: false,
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Quantidade de Itens",
           },
         },
-        y: {
-          min: 70,
-          max: 100,
-          grid: {
-            color: "rgba(0,0,0,0.05)",
-            drawBorder: false,
-          },
-          ticks: {
-            callback: function (value) {
-              return value + "%";
-            },
+        x: {
+          title: {
+            display: true,
+            text: "Corredores",
           },
         },
       },
     },
   });
 
-  // Gráfico de Comparação por Setor
-  graficoComparacaoInstance.value = new Chart(graficoComparacao.value, {
-    type: "bar",
+  // Gráfico de Radar - Desempenho por Corredor
+  graficoRadarInstance.value = new Chart(graficoRadar.value, {
+    type: "radar",
     data: {
-      labels: dadosAtuais.value.comparacaoSetores.map((s) => s.setor),
+      labels: dadosFiltrados.value
+        .slice(0, 8)
+        .map((c) => formatarNomeCorredor(c.local)),
       datasets: [
         {
-          label: "Variação %",
-          data: dadosAtuais.value.comparacaoSetores.map((s) => s.variacao),
-          backgroundColor: dadosAtuais.value.comparacaoSetores.map((s) =>
-            s.variacao >= 0
-              ? "rgba(76, 175, 80, 0.8)"
-              : "rgba(244, 67, 54, 0.8)"
-          ),
-          borderRadius: 8,
+          label: "Desempenho (%)",
+          data: dadosFiltrados.value
+            .slice(0, 8)
+            .map((c) => getPercentualLeitura(c)),
+          backgroundColor: "rgba(102, 126, 234, 0.2)",
+          borderColor: "#667eea",
+          borderWidth: 2,
+          pointBackgroundColor: "#667eea",
+          pointBorderColor: "#fff",
+          pointHoverBackgroundColor: "#fff",
+          pointHoverBorderColor: "#667eea",
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const setor =
-                dadosAtuais.value.comparacaoSetores[context.dataIndex];
-              return [
-                `Atual: ${setor.atual}%`,
-                `Anterior: ${setor.anterior}%`,
-                `Variação: ${setor.variacao >= 0 ? "+" : ""}${setor.variacao}%`,
-              ];
-            },
+      scales: {
+        r: {
+          angleLines: {
+            display: true,
+            color: "rgba(0,0,0,0.05)",
+          },
+          suggestedMin: 0,
+          suggestedMax: 100,
+          ticks: {
+            stepSize: 20,
           },
         },
       },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-        },
-        y: {
-          ticks: {
-            callback: function (value) {
-              return value + "%";
-            },
-          },
+      plugins: {
+        legend: {
+          display: false,
         },
       },
     },
@@ -827,104 +615,139 @@ const initializeCharts = () => {
 };
 
 const updateCharts = () => {
-  if (graficoLinhaInstance.value) {
-    graficoLinhaInstance.value.data.labels = dadosAtuais.value.labels;
-    graficoLinhaInstance.value.data.datasets[0].data =
-      dadosAtuais.value.desempenhos;
-    graficoLinhaInstance.value.data.datasets[1].data = Array(
-      dadosAtuais.value.labels.length
-    ).fill(dadosAtuais.value.meta);
-    graficoLinhaInstance.value.data.datasets[2].data =
-      dadosAtuais.value.mediaMovel;
-    graficoLinhaInstance.value.update();
+  if (graficoBarrasInstance.value) {
+    const top10 = dadosFiltrados.value.slice(0, 10);
+    graficoBarrasInstance.value.data.labels = top10.map((c) =>
+      formatarNomeCorredor(c.local)
+    );
+    graficoBarrasInstance.value.data.datasets[0].data = top10.map(
+      (c) => c.total
+    );
+    graficoBarrasInstance.value.data.datasets[1].data = top10.map(
+      (c) => c.itensValidos
+    );
+    graficoBarrasInstance.value.data.datasets[2].data = top10.map(
+      (c) => c.lidos
+    );
+    graficoBarrasInstance.value.update();
   }
 
-  if (graficoComparacaoInstance.value) {
-    graficoComparacaoInstance.value.data.labels =
-      dadosAtuais.value.comparacaoSetores.map((s) => s.setor);
-    graficoComparacaoInstance.value.data.datasets[0].data =
-      dadosAtuais.value.comparacaoSetores.map((s) => s.variacao);
-    graficoComparacaoInstance.value.data.datasets[0].backgroundColor =
-      dadosAtuais.value.comparacaoSetores.map((s) =>
-        s.variacao >= 0 ? "rgba(76, 175, 80, 0.8)" : "rgba(244, 67, 54, 0.8)"
-      );
-    graficoComparacaoInstance.value.update();
+  if (graficoRadarInstance.value) {
+    const top8 = dadosFiltrados.value.slice(0, 8);
+    graficoRadarInstance.value.data.labels = top8.map((c) =>
+      formatarNomeCorredor(c.local)
+    );
+    graficoRadarInstance.value.data.datasets[0].data = top8.map((c) =>
+      getPercentualLeitura(c)
+    );
+    graficoRadarInstance.value.update();
   }
 };
 
-const getLinhaClasse = (auditoria) => {
-  return {
-    "linha-destaque": auditoria.desempenho >= 90,
-    "linha-atencao": auditoria.desempenho < 80,
+// Gerar dados fake baseados no modelo LojaDailyMetrics
+const gerarDadosFake = () => {
+  const corredores = [
+    "G01A - G01A",
+    "G01B - G01B",
+    "G02A - G02A",
+    "G02B - G02B",
+    "G03A - G03A",
+    "G03B - G03B",
+    "G04A - G04A",
+    "G04B - G04B",
+    "G05A - G05A",
+    "G05B - G05B",
+    "G06A - G06A",
+    "G06B - G06B",
+    "G07A - G07A",
+    "G07B - G07B",
+    "G08A - G08A",
+    "G08B - G08B",
+    "G09A - G09A",
+    "G09B - G09B",
+    "G10A - G10A",
+    "G10B - G10B",
+    "F01 - F01",
+    "F02 - F02",
+    "C01 - C01",
+    "FLV - FLV",
+    "PAO - PAO",
+  ];
+
+  const usuarios = [
+    "João Silva",
+    "Maria Santos",
+    "Carlos Lima",
+    "Ana Oliveira",
+    "Pedro Costa",
+  ];
+
+  const gerarLocaisLeitura = () => {
+    const locaisLeitura = {};
+    let totalItensGeral = 0;
+    const usuariosAtivos = new Set();
+
+    corredores.forEach((corredor) => {
+      const total = Math.floor(Math.random() * 200) + 50;
+      const itensValidos = Math.floor(total * (Math.random() * 0.2 + 0.8));
+      const lidos = Math.floor(itensValidos * (Math.random() * 0.3 + 0.6));
+
+      const usuariosCorredor = {};
+      const numUsuarios = Math.floor(Math.random() * 2) + 1;
+      for (let i = 0; i < numUsuarios; i++) {
+        const usuario = usuarios[Math.floor(Math.random() * usuarios.length)];
+        usuariosAtivos.add(usuario);
+        usuariosCorredor[usuario] = Math.floor(lidos / numUsuarios);
+      }
+
+      locaisLeitura[corredor] = {
+        total,
+        itensValidos,
+        lidos,
+        usuarios: usuariosCorredor,
+        percentual:
+          itensValidos > 0 ? Math.round((lidos / itensValidos) * 100) : 0,
+      };
+      totalItensGeral += total;
+    });
+
+    return {
+      locaisLeitura,
+      resumo: {
+        totalItens: totalItensGeral,
+        usuariosAtivos: usuariosAtivos.size,
+      },
+    };
   };
-};
 
-const getCorDesempenho = (desempenho) => {
-  if (desempenho >= 90) return "#4CAF50";
-  if (desempenho >= 80) return "#FF9800";
-  return "#f44336";
-};
+  dadosReais.value = {
+    etiquetas: gerarLocaisLeitura(),
+    rupturas: gerarLocaisLeitura(),
+    presencas: gerarLocaisLeitura(),
+  };
 
-const formatarData = (data) => {
-  return new Date(data).toLocaleDateString("pt-BR");
-};
-
-const toggleDetalhes = () => {
-  mostrarDetalhes.value = !mostrarDetalhes.value;
-};
-
-const verDetalhesAuditoria = (auditoria) => {
-  auditoriaSelecionada.value = auditoria;
-};
-
-const fecharModal = () => {
-  auditoriaSelecionada.value = null;
-};
-
-const exportarAuditoria = (auditoria) => {
-  console.log("Exportando auditoria:", auditoria);
-  alert(`Auditoria ${auditoria.id} exportada com sucesso!`);
-};
-
-const exportarRelatorio = () => {
-  console.log("Exportando relatório completo...");
-  alert("Relatório de evolução exportado com sucesso!");
-};
-
-const gerarInsights = () => {
-  console.log("Gerando insights...");
-  alert("Novos insights gerados com sucesso!");
-};
-
-const aplicarInsight = (insight) => {
-  console.log("Aplicando insight:", insight);
-  alert(`Insight "${insight.titulo}" aplicado com sucesso!`);
+  console.log("✅ Dados fake gerados:", dadosReais.value);
 };
 
 // Lifecycle
 onMounted(() => {
-  initializeCharts();
-  window.addEventListener("resize", () => {
-    if (graficoLinhaInstance.value) graficoLinhaInstance.value.resize();
-    if (graficoComparacaoInstance.value)
-      graficoComparacaoInstance.value.resize();
-  });
+  gerarDadosFake();
+  setTimeout(initializeCharts, 100);
 });
 
 onUnmounted(() => {
-  if (graficoLinhaInstance.value) graficoLinhaInstance.value.destroy();
-  if (graficoComparacaoInstance.value)
-    graficoComparacaoInstance.value.destroy();
+  if (graficoBarrasInstance.value) graficoBarrasInstance.value.destroy();
+  if (graficoRadarInstance.value) graficoRadarInstance.value.destroy();
 });
 
 // Watchers
-watch(periodoSelecionado, () => {
-  updateCharts();
+watch(tipoAuditoriaAtual, () => {
+  setTimeout(updateCharts, 100);
 });
 </script>
 
 <style scoped>
-.evolucao-auditorias-container {
+.auditoria-tipos-desempenho-container {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -972,56 +795,22 @@ watch(periodoSelecionado, () => {
   font-size: 1rem;
 }
 
-.header-controls {
+/* Auditoria Tabs */
+.auditoria-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: flex-end;
-}
-
-.filter-group {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.filter-item {
-  display: flex;
-  flex-direction: column;
   gap: 0.5rem;
-}
-
-.filter-label {
-  font-weight: 600;
-  color: #4a5568;
-  font-size: 0.9rem;
-}
-
-.filter-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
   background: white;
-  font-size: 0.9rem;
-  color: #4a5568;
-  cursor: pointer;
-  min-width: 140px;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.filter-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.action-btn {
+.tab-btn {
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 8px;
+  background: transparent;
+  color: #718096;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1030,35 +819,25 @@ watch(periodoSelecionado, () => {
   gap: 0.5rem;
 }
 
-.action-btn.primary {
+.tab-btn:hover {
+  background: rgba(102, 126, 234, 0.05);
+  color: #667eea;
+}
+
+.tab-btn.active {
   background: #667eea;
   color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.action-btn.primary:hover {
-  background: #5a6fd8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.action-btn.secondary {
-  background: white;
-  color: #667eea;
-  border: 1px solid #667eea;
-}
-
-.action-btn.secondary:hover {
-  background: #f8fafc;
-}
-
-/* Métricas Rápidas */
-.metricas-rapidas {
+/* Summary Cards */
+.summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
-.metrica-card {
+.summary-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -1069,12 +848,12 @@ watch(periodoSelecionado, () => {
   transition: all 0.3s ease;
 }
 
-.metrica-card:hover {
+.summary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.metrica-icon {
+.summary-icon {
   width: 50px;
   height: 50px;
   border-radius: 10px;
@@ -1084,66 +863,53 @@ watch(periodoSelecionado, () => {
   font-size: 1.5rem;
 }
 
-.metrica-icon.desempenho {
+.summary-icon.distribuição {
   background: rgba(102, 126, 234, 0.1);
 }
 
-.metrica-icon.tendencia {
+.summary-icon.desempenho {
   background: rgba(76, 175, 80, 0.1);
 }
 
-.metrica-icon.consistencia {
-  background: rgba(255, 152, 0, 0.1);
+.summary-icon.setor-destaque {
+  background: rgba(255, 193, 7, 0.1);
 }
 
-.metrica-icon.meta {
+.summary-icon.tipo-predominante {
   background: rgba(156, 39, 176, 0.1);
 }
 
-.metrica-valor {
-  font-size: 1.8rem;
+.summary-value {
+  font-size: 1.5rem;
   font-weight: 800;
   color: #2c3e50;
   line-height: 1;
   margin-bottom: 0.25rem;
 }
 
-.metrica-label {
+.summary-label {
   font-size: 0.9rem;
   color: #718096;
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
 
-.metrica-variacao {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.metrica-variacao.positiva {
-  color: #4caf50;
-}
-
-.metrica-variacao.negativa {
-  color: #f44336;
-}
-
-.metrica-detalhe {
+.summary-subtitle {
   font-size: 0.8rem;
   color: #a0aec0;
+  font-weight: 500;
 }
 
-/* Gráficos Section */
-.graficos-section {
+/* Gráficos Main Section */
+.graficos-main-section {
   padding: 2rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .graficos-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
 }
 
 .grafico-card {
@@ -1153,169 +919,138 @@ watch(periodoSelecionado, () => {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.grafico-card.principal {
-  grid-column: 1;
-}
-
-.grafico-card.comparacao {
-  grid-column: 2;
-}
-
 .grafico-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.grafico-header h3 {
-  font-size: 1.2rem;
+.grafico-title h3 {
+  font-size: 1.3rem;
   font-weight: 600;
   color: #2c3e50;
+  margin: 0 0 0.25rem 0;
+}
+
+.grafico-title p {
   margin: 0;
-}
-
-.grafico-legenda {
-  display: flex;
-  gap: 1rem;
-}
-
-.legenda-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
   color: #718096;
+  font-size: 0.9rem;
 }
 
-.legenda-cor {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+.grafico-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
 }
 
-.legenda-cor.desempenho {
-  background: #667eea;
-}
-
-.legenda-cor.meta {
-  background: #4caf50;
-}
-
-.legenda-cor.media {
-  background: #ff9800;
-}
-
-.periodo-comparacao {
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-.grafico-container {
+.chart-container {
+  flex: 1;
   height: 300px;
   position: relative;
 }
 
-.grafico-stats {
+/* Detalhes Expandidos */
+.detalhes-distribuicao,
+.detalhes-setores {
   display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 200px;
+}
+
+.distribuicao-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
 }
 
 .stat-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
 }
 
 .stat-label {
-  font-size: 0.8rem;
   color: #718096;
+  font-size: 0.9rem;
 }
 
 .stat-value {
-  font-size: 0.9rem;
   font-weight: 600;
   color: #2c3e50;
 }
 
-/* Indicadores */
-.indicadores-grid {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+.setores-ranking h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
 }
 
-.indicador-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid #667eea;
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.indicador-header {
+.ranking-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
 }
 
-.indicador-icon {
-  font-size: 1.5rem;
+.ranking-position {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.indicador-icon.velocidade {
-  color: #4caf50;
+.position-number {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 1.1rem;
+  min-width: 20px;
 }
 
-.indicador-icon.estabilidade {
-  color: #ff9800;
+.position-medal {
+  font-size: 1.2rem;
 }
 
-.indicador-icon.previsao {
-  color: #9c27b0;
+.ranking-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.indicador-title {
+.setor-name {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.setor-desempenho {
   font-weight: 600;
   color: #2c3e50;
-  font-size: 0.95rem;
 }
 
-.indicador-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.indicador-progress {
-  height: 6px;
-  background: #e2e8f0;
-  border-radius: 3px;
-  margin-bottom: 0.5rem;
-  overflow: hidden;
-}
-
-.indicador-progress .progress-bar {
-  height: 100%;
-  background: #667eea;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.indicador-desc {
-  font-size: 0.8rem;
-  color: #718096;
-}
-
-/* Análise Section */
-.analise-section {
+/* Análise Comparativa */
+.analise-comparativa-section {
   padding: 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .analise-header {
@@ -1332,36 +1067,45 @@ watch(periodoSelecionado, () => {
   margin: 0;
 }
 
-.toggle-btn {
-  padding: 0.5rem 1rem;
-  background: #667eea;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.analise-periodo {
+  color: #718096;
+  font-size: 0.9rem;
 }
 
-.toggle-btn:hover {
-  background: #5a6fd8;
+.comparativa-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-/* Tabela de Auditorias */
-.tabela-auditorias {
-  margin-bottom: 2rem;
+.analise-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.auditorias-table {
+.analise-card h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+}
+
+/* Tabela de Métricas */
+.metricas-table-container {
+  overflow-x: auto;
+}
+
+.metricas-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.auditorias-table th {
+.metricas-table th {
   background: #f8fafc;
   padding: 1rem;
   text-align: left;
@@ -1371,71 +1115,74 @@ watch(periodoSelecionado, () => {
   border-bottom: 1px solid #e2e8f0;
 }
 
-.auditorias-table td {
+.metricas-table td {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   font-size: 0.9rem;
 }
 
-.auditorias-table tr:last-child td {
+.metricas-table tr:last-child td {
   border-bottom: none;
 }
 
-.auditorias-table tr.linha-destaque {
+.metricas-table tr.linha-destaque {
   background: rgba(76, 175, 80, 0.05);
 }
 
-.auditorias-table tr.linha-atencao {
+.metricas-table tr.linha-atencao {
   background: rgba(244, 67, 54, 0.05);
 }
 
-.setor-info {
+.setor-cell .setor-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.setor-icone {
+.corredor-icon-small {
   font-size: 1.2rem;
+  text-align: center;
 }
 
-.tipo-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: white;
+.total-cell,
+.validos-cell,
+.lidos-cell,
+.desempenho-cell {
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
 }
 
-.desempenho-bar {
+.progress-cell {
+  min-width: 120px;
+}
+
+.progress-bar {
   position: relative;
-  height: 24px;
+  height: 20px;
   background: #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
-.bar-fill {
+.progress-fill {
   height: 100%;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: width 0.3s ease;
   position: relative;
 }
 
-.desempenho-value {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+.progress-fill.excelente {
+  background: #4caf50;
 }
-
-.pontuacao {
-  font-weight: 600;
-  color: #2c3e50;
+.progress-fill.bom {
+  background: #ff9800;
+}
+.progress-fill.medio {
+  background: #ffeb3b;
+}
+.progress-fill.baixo {
+  background: #f44336;
 }
 
 .status-badge {
@@ -1452,251 +1199,69 @@ watch(periodoSelecionado, () => {
 }
 
 .status-badge.bom {
-  background: rgba(33, 150, 243, 0.1);
-  color: #2196f3;
-}
-
-.status-badge.atencao {
   background: rgba(255, 152, 0, 0.1);
   color: #ff9800;
 }
 
-.acoes-cell {
+.status-badge.medio {
+  background: rgba(255, 235, 59, 0.1);
+  color: #fbc02d;
+}
+
+.status-badge.baixo {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+/* Footer Actions */
+.footer-actions {
+  padding: 1.5rem 2rem;
+  background: #f8fafc;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.footer-btn {
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
-.acao-btn {
-  padding: 0.5rem;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.acao-btn:hover {
-  background: #f8fafc;
-}
-
-/* Insights Section */
-.insights-section {
-  margin-top: 2rem;
-}
-
-.insights-section h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-}
-
-.insights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.insight-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid;
-}
-
-.insight-card.positivo {
-  border-left-color: #4caf50;
-}
-
-.insight-card.alerta {
-  border-left-color: #ff9800;
-}
-
-.insight-card.sugestao {
-  border-left-color: #2196f3;
-}
-
-.insight-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.insight-icone {
-  font-size: 1.5rem;
-}
-
-.insight-titulo {
-  font-weight: 600;
-  color: #2c3e50;
-  flex: 1;
-}
-
-.insight-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.insight-badge.positivo {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4caf50;
-}
-
-.insight-badge.alerta {
-  background: rgba(255, 152, 0, 0.1);
-  color: #ff9800;
-}
-
-.insight-badge.sugestao {
-  background: rgba(33, 150, 243, 0.1);
-  color: #2196f3;
-}
-
-.insight-descricao {
-  color: #718096;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-}
-
-.insight-acoes {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.insight-btn {
-  padding: 0.5rem 1rem;
+.footer-btn:hover {
   background: #667eea;
-  border: none;
-  border-radius: 6px;
   color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.8rem;
-}
-
-.insight-btn:hover {
-  background: #5a6fd8;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  max-width: 500px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.modal-close:hover {
-  background: #f8fafc;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.auditoria-detalhes {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.detalhe-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.detalhe-item:last-child {
-  border-bottom: none;
-}
-
-.detalhe-item label {
-  font-weight: 600;
-  color: #4a5568;
-}
-
-.detalhe-item span {
-  color: #2c3e50;
-}
-
-.detalhe-valor {
-  font-weight: 600;
-  color: #667eea;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsividade */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .graficos-grid {
     grid-template-columns: 1fr;
-  }
-
-  .grafico-card.principal,
-  .grafico-card.comparacao {
-    grid-column: 1;
   }
 }
 
 @media (max-width: 768px) {
   .section-header,
-  .graficos-section,
-  .analise-section {
+  .graficos-main-section,
+  .analise-comparativa-section {
     padding: 1.5rem;
   }
 
@@ -1705,55 +1270,44 @@ watch(periodoSelecionado, () => {
     gap: 1.5rem;
   }
 
-  .header-controls {
-    align-items: stretch;
+  .auditoria-tabs {
     width: 100%;
+    justify-content: center;
   }
 
-  .filter-group {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .header-actions {
-    justify-content: space-between;
-  }
-
-  .metricas-rapidas {
+  .summary-cards {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .analise-header {
+  .grafico-content {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
   }
 
-  .auditorias-table {
-    display: block;
-    overflow-x: auto;
+  .chart-container {
+    height: 250px;
   }
 }
 
 @media (max-width: 480px) {
-  .metricas-rapidas {
+  .summary-cards {
     grid-template-columns: 1fr;
   }
 
-  .indicadores-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .insights-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .header-actions {
+  .auditoria-tabs {
     flex-direction: column;
   }
 
-  .action-btn {
+  .tab-btn {
     justify-content: center;
+  }
+
+  .metricas-table {
+    font-size: 0.8rem;
+  }
+
+  .metricas-table th,
+  .metricas-table td {
+    padding: 0.5rem;
   }
 }
 </style>

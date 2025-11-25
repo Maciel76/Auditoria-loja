@@ -46,7 +46,9 @@
               <div class="nav-card-content">
                 <h3>Postagens</h3>
                 <p>Publicações Gerais</p>
-                <span class="nav-card-count">{{ getPostCountByType('postagem') }} items</span>
+                <span class="nav-card-count"
+                  >{{ getPostCountByType("postagem") }} items</span
+                >
               </div>
             </div>
 
@@ -59,7 +61,9 @@
               <div class="nav-card-content">
                 <h3>Sugestões</h3>
                 <p>Sugestões e melhorias</p>
-                <span class="nav-card-count">{{ getSugestoesCount() }} items</span>
+                <span class="nav-card-count"
+                  >{{ getSugestoesCount() }} items</span
+                >
               </div>
             </div>
 
@@ -72,7 +76,9 @@
               <div class="nav-card-content">
                 <h3>Votações</h3>
                 <p>Votações de melhorias</p>
-                <span class="nav-card-count">{{ votacoesPendentes.length }} items</span>
+                <span class="nav-card-count"
+                  >{{ votacoesPendentes.length }} items</span
+                >
               </div>
             </div>
 
@@ -85,12 +91,13 @@
               <div class="nav-card-content">
                 <h3>Implementação</h3>
                 <p>Avisos importantes</p>
-                <span class="nav-card-count">{{ avisosPendentes.length }} items</span>
+                <span class="nav-card-count"
+                  >{{ avisosPendentes.length }} items</span
+                >
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Area #3 - Right -->
@@ -110,129 +117,199 @@
 
           <!-- Postagens Card -->
           <div v-else-if="currentView === 'postagens'" class="content-list">
-            <div
-              v-for="post in getPostsByType('postagem')"
-              :key="post._id"
-              class="content-card postagem-card"
-            >
-              <div class="post-header">
-                <div class="post-meta">
-                  <span class="post-type">📰 POSTAGEM</span>
-                  <span class="post-date">{{ formatDate(post.createdAt) }}</span>
-                  <span class="post-status" :class="post.status">{{ getStatusText(post.status) }}</span>
+            <transition-group name="list-fade" tag="div">
+              <div
+                v-for="post in getPostsByType('postagem')"
+                :key="post._id"
+                class="content-card postagem-card"
+              >
+                <div class="post-header">
+                  <div class="post-meta">
+                    <span class="post-type">📰 POSTAGEM</span>
+                    <span class="post-date">{{
+                      formatDate(post.createdAt)
+                    }}</span>
+                    <span class="post-status" :class="post.status">{{
+                      getStatusText(post.status)
+                    }}</span>
+                  </div>
+                  <div class="post-actions">
+                    <button
+                      @click="updatePostStatus(post._id, 'implementado')"
+                      class="btn-approve"
+                    >
+                      ✅ Aprovar
+                    </button>
+                    <button
+                      @click="updatePostStatus(post._id, 'rejeitado')"
+                      class="btn-reject"
+                    >
+                      ❌ Rejeitar
+                    </button>
+                  </div>
                 </div>
-                <div class="post-actions">
-                  <button @click="updatePostStatus(post._id, 'implementado')" class="btn-approve">✅ Aprovar</button>
-                  <button @click="updatePostStatus(post._id, 'rejeitado')" class="btn-reject">❌ Rejeitar</button>
+                <div class="post-content">
+                  <h3>{{ getPostTitle(post.sugestao) }}</h3>
+                  <p>{{ getPostDescription(post.sugestao) }}</p>
+                  <div v-if="post.nome" class="post-author">
+                    <small>📝 Por: {{ post.nome }}</small>
+                  </div>
                 </div>
               </div>
-              <div class="post-content">
-                <h3>{{ getPostTitle(post.sugestao) }}</h3>
-                <p>{{ getPostDescription(post.sugestao) }}</p>
-                <div v-if="post.nome" class="post-author">
-                  <small>📝 Por: {{ post.nome }}</small>
-                </div>
-              </div>
-            </div>
+            </transition-group>
           </div>
 
           <!-- Sugestões Card -->
           <div v-else-if="currentView === 'sugestoes'" class="content-list">
-            <div
-              v-for="post in getSugestoesList()"
-              :key="post._id"
-              class="content-card sugestao-card"
-            >
-              <div class="post-header">
-                <div class="post-meta">
-                  <span class="post-type">💡 SUGESTÃO</span>
-                  <span class="post-date">{{ formatDate(post.createdAt) }}</span>
-                  <span class="post-status" :class="post.status">{{ getStatusText(post.status) }}</span>
+            <transition-group name="list-fade" tag="div">
+              <div
+                v-for="post in getSugestoesList()"
+                :key="post._id"
+                class="content-card sugestao-card"
+              >
+                <div class="post-header">
+                  <div class="post-meta">
+                    <span class="post-type">💡 SUGESTÃO</span>
+                    <span class="post-date">{{
+                      formatDate(post.createdAt)
+                    }}</span>
+                    <span class="post-status" :class="post.status">{{
+                      getStatusText(post.status)
+                    }}</span>
+                  </div>
+                  <div class="post-actions">
+                    <button
+                      @click="publicarSugestao(post._id)"
+                      class="btn-approve"
+                    >
+                      📢 Publicar como Aviso
+                    </button>
+                    <button
+                      @click="openDeleteModal('sugestao', post._id)"
+                      class="btn-delete"
+                    >
+                      🗑️ Deletar
+                    </button>
+                  </div>
                 </div>
-                <div class="post-actions">
-                  <button @click="publicarSugestao(post._id)" class="btn-approve">📢 Publicar como Aviso</button>
-                  <button @click="deletarSugestao(post._id)" class="btn-delete">🗑️ Deletar</button>
+                <div class="post-content">
+                  <h3>{{ getPostTitle(post.sugestao) }}</h3>
+                  <p>{{ getPostDescription(post.sugestao) }}</p>
+                  <div v-if="post.nome" class="post-author">
+                    <small>💡 Por: {{ post.nome }}</small>
+                  </div>
                 </div>
               </div>
-              <div class="post-content">
-                <h3>{{ getPostTitle(post.sugestao) }}</h3>
-                <p>{{ getPostDescription(post.sugestao) }}</p>
-                <div v-if="post.nome" class="post-author">
-                  <small>💡 Por: {{ post.nome }}</small>
-                </div>
-              </div>
-            </div>
+            </transition-group>
           </div>
 
           <!-- Votações Card -->
           <div v-else-if="currentView === 'votacoes'" class="content-list">
-            <div
-              v-for="votacao in votacoesPendentes"
-              :key="votacao._id"
-              class="content-card votacao-card"
-            >
-              <div class="post-header">
-                <div class="post-meta">
-                  <span class="post-type">🚀 VOTAÇÃO</span>
-                  <span v-if="votacao.autor" class="post-author">📝 {{ votacao.autor }}</span>
-                  <span class="post-date">{{ formatDate(votacao.createdAt) }}</span>
-                  <span class="post-status" :class="votacao.status">{{ getStatusText(votacao.status) }}</span>
+            <transition-group name="list-fade" tag="div">
+              <div
+                v-for="votacao in votacoesPendentes"
+                :key="votacao._id"
+                class="content-card votacao-card"
+              >
+                <div class="post-header">
+                  <div class="post-meta">
+                    <span class="post-type">🚀 VOTAÇÃO</span>
+                    <span v-if="votacao.autor" class="post-author"
+                      >📝 {{ votacao.autor }}</span
+                    >
+                    <span class="post-date">{{
+                      formatDate(votacao.createdAt)
+                    }}</span>
+                    <span class="post-status" :class="votacao.status">{{
+                      getStatusText(votacao.status)
+                    }}</span>
+                  </div>
+                  <div class="post-actions">
+                    <select
+                      @change="
+                        alterarStatusVotacao(votacao._id, $event.target.value)
+                      "
+                      :value="votacao.status"
+                      class="status-selector"
+                    >
+                      <option value="pendente">🟡 Pendente</option>
+                      <option value="aprovado">🟢 Aprovado</option>
+                      <option value="ativo">🔴 Ativo</option>
+                      <option value="finalizado">✅ Finalizado</option>
+                      <option value="rejeitado">❌ Rejeitado</option>
+                    </select>
+                    <button
+                      @click="openDeleteModal('votacao', votacao._id)"
+                      class="btn-delete"
+                      title="Deletar votação"
+                    >
+                      🗑️ Deletar
+                    </button>
+                  </div>
                 </div>
-                <div class="post-actions">
-                  <select @change="alterarStatusVotacao(votacao._id, $event.target.value)"
-                          :value="votacao.status"
-                          class="status-selector">
-                    <option value="pendente">🟡 Pendente</option>
-                    <option value="aprovado">🟢 Aprovado</option>
-                    <option value="ativo">🔴 Ativo</option>
-                    <option value="finalizado">✅ Finalizado</option>
-                    <option value="rejeitado">❌ Rejeitado</option>
-                  </select>
-                  <button @click="deletarVotacao(votacao._id)"
-                          class="btn-delete"
-                          title="Deletar votação">
-                    🗑️ Deletar
-                  </button>
+                <div class="post-content">
+                  <h3>{{ votacao.titulo }}</h3>
+                  <p>{{ votacao.descricao }}</p>
+                  <div v-if="votacao.beneficios" class="votacao-beneficios">
+                    <strong>Benefícios:</strong> {{ votacao.beneficios }}
+                  </div>
                 </div>
               </div>
-              <div class="post-content">
-                <h3>{{ votacao.titulo }}</h3>
-                <p>{{ votacao.descricao }}</p>
-                <div v-if="votacao.beneficios" class="votacao-beneficios">
-                  <strong>Benefícios:</strong> {{ votacao.beneficios }}
-                </div>
-              </div>
-            </div>
+            </transition-group>
           </div>
 
           <!-- Avisos/Implementação Card -->
           <div v-else-if="currentView === 'avisos'" class="content-list">
-            <div
-              v-for="aviso in avisosPendentes"
-              :key="aviso._id"
-              class="content-card aviso-card"
-              :class="`prioridade-${aviso.prioridade}`"
-            >
-              <div class="post-header">
-                <div class="post-meta">
-                  <span class="post-type">📢 AVISO</span>
-                  <span class="post-date">{{ formatDate(aviso.createdAt) }}</span>
-                  <span class="post-status" :class="aviso.status">{{ getStatusText(aviso.status) }}</span>
-                  <span class="aviso-prioridade" :class="aviso.prioridade">{{ getPrioridadeText(aviso.prioridade) }}</span>
+            <transition-group name="list-fade" tag="div">
+              <div
+                v-for="aviso in avisosPendentes"
+                :key="aviso._id"
+                class="content-card aviso-card"
+                :class="`prioridade-${aviso.prioridade}`"
+              >
+                <div class="post-header">
+                  <div class="post-meta">
+                    <span class="post-type">📢 AVISO</span>
+                    <span class="post-date">{{
+                      formatDate(aviso.createdAt)
+                    }}</span>
+                    <span class="post-status" :class="aviso.status">{{
+                      getStatusText(aviso.status)
+                    }}</span>
+                    <span class="aviso-prioridade" :class="aviso.prioridade">{{
+                      getPrioridadeText(aviso.prioridade)
+                    }}</span>
+                  </div>
+                  <div class="post-actions">
+                    <button
+                      @click="aprovarAviso(aviso._id)"
+                      class="btn-approve"
+                    >
+                      ✅ Publicar
+                    </button>
+                    <button
+                      @click="rejeitarAviso(aviso._id)"
+                      class="btn-reject"
+                    >
+                      ❌ Rejeitar
+                    </button>
+                    <button
+                      @click="openDeleteModal('aviso', aviso._id)"
+                      class="btn-delete"
+                    >
+                      🗑️ Excluir
+                    </button>
+                  </div>
                 </div>
-                <div class="post-actions">
-                  <button @click="aprovarAviso(aviso._id)" class="btn-approve">✅ Publicar</button>
-                  <button @click="rejeitarAviso(aviso._id)" class="btn-reject">❌ Rejeitar</button>
+                <div class="post-content">
+                  <h3>{{ aviso.titulo }}</h3>
+                  <p>{{ aviso.conteudo }}</p>
+                  <div v-if="aviso.autor" class="post-author">
+                    <small>📝 Por: {{ aviso.autor }}</small>
+                  </div>
                 </div>
               </div>
-              <div class="post-content">
-                <h3>{{ aviso.titulo }}</h3>
-                <p>{{ aviso.conteudo }}</p>
-                <div v-if="aviso.autor" class="post-author">
-                  <small>📝 Por: {{ aviso.autor }}</small>
-                </div>
-              </div>
-            </div>
+            </transition-group>
           </div>
 
           <!-- Default Posts List (legacy) -->
@@ -387,6 +464,25 @@
         {{ successMessage }}
       </div>
     </transition>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div v-if="showDeleteConfirmModal" class="delete-modal-overlay">
+      <div class="delete-modal-content">
+        <h3>Confirmar Exclusão</h3>
+        <p>
+          Tem certeza que deseja excluir este item? Esta ação não pode ser
+          desfeita.
+        </p>
+        <div class="delete-modal-actions">
+          <button @click="cancelDeletion" class="btn-cancel-delete">
+            Cancelar
+          </button>
+          <button @click="confirmDeletion" class="btn-confirm-delete">
+            Sim, Excluir
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -403,6 +499,10 @@ export default {
     const successMessage = ref("");
     const userIdentifier = ref(`user_${Date.now()}`);
     const typeFilter = ref("");
+
+    // Estados para o modal de exclusão
+    const showDeleteConfirmModal = ref(false);
+    const itemToDelete = ref({ id: null, type: null });
 
     // Tipos de postagem
     const postTypes = ref([
@@ -479,7 +579,7 @@ export default {
     const votacoesPendentes = ref([]);
 
     // Estado para view atual
-    const currentView = ref('postagens');
+    const currentView = ref("postagens");
 
     const filteredPosts = computed(() => {
       let filtered = posts.value;
@@ -519,11 +619,16 @@ export default {
     // Carregar avisos pendentes
     const loadAvisos = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/avisos?status=pendente", {
-          headers: { 'x-loja': '001' }
-        });
+        const response = await axios.get(
+          "http://localhost:3000/api/avisos?status=pendente",
+          {
+            headers: { "x-loja": "001" },
+          }
+        );
         avisosPendentes.value = response.data.avisos || [];
-        console.log(`✅ ${avisosPendentes.value.length} avisos pendentes carregados`);
+        console.log(
+          `✅ ${avisosPendentes.value.length} avisos pendentes carregados`
+        );
       } catch (error) {
         console.error("Erro ao carregar avisos:", error);
       }
@@ -533,7 +638,7 @@ export default {
     const loadVotacoes = async () => {
       try {
         const response = await axios.get("http://localhost:3000/api/votacoes", {
-          headers: { 'x-loja': '001' }
+          headers: { "x-loja": "001" },
         });
         votacoesPendentes.value = response.data.votacoes || [];
         console.log(`✅ ${votacoesPendentes.value.length} votações carregadas`);
@@ -546,8 +651,8 @@ export default {
     const aprovarAviso = async (avisoId) => {
       try {
         await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
-          status: 'aprovado',
-          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 dias
+          status: "aprovado",
+          dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
         });
         showMessage("Aviso aprovado com sucesso!", "success");
         loadAvisos(); // Recarregar lista
@@ -557,11 +662,30 @@ export default {
       }
     };
 
+    // Deletar aviso
+    const deletarAviso = async (avisoId) => {
+      cancelDeletion(); // Fecha o modal
+
+      try {
+        await axios.delete(`http://localhost:3000/api/avisos/${avisoId}`);
+
+        // Remover da lista local
+        avisosPendentes.value = avisosPendentes.value.filter(
+          (a) => a._id !== avisoId
+        );
+
+        showMessage("Aviso excluído com sucesso!", "success");
+      } catch (error) {
+        console.error("Erro ao excluir aviso:", error);
+        showMessage("Erro ao excluir o aviso. Tente novamente.", "error");
+      }
+    };
+
     // Rejeitar aviso
     const rejeitarAviso = async (avisoId) => {
       try {
         await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
-          status: 'rejeitado'
+          status: "rejeitado",
         });
         showMessage("Aviso rejeitado", "success");
         loadAvisos(); // Recarregar lista
@@ -577,11 +701,14 @@ export default {
         const dataInicio = new Date();
         const dataFim = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
 
-        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
-          status: 'ativo',
-          dataInicio: dataInicio.toISOString(),
-          dataFim: dataFim.toISOString()
-        });
+        await axios.put(
+          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          {
+            status: "ativo",
+            dataInicio: dataInicio.toISOString(),
+            dataFim: dataFim.toISOString(),
+          }
+        );
         showMessage("Votação aprovada e iniciada!", "success");
         loadVotacoes(); // Recarregar lista
       } catch (error) {
@@ -593,17 +720,24 @@ export default {
     // Alterar status da votação
     const alterarStatusVotacao = async (votacaoId, novoStatus) => {
       try {
-        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
-          status: novoStatus
-        });
+        await axios.put(
+          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          {
+            status: novoStatus,
+          }
+        );
 
         // Atualizar localmente
-        const votacao = votacoesPendentes.value.find(v => v._id === votacaoId);
+        const votacao = votacoesPendentes.value.find(
+          (v) => v._id === votacaoId
+        );
         if (votacao) {
           votacao.status = novoStatus;
         }
 
-        console.log(`✅ Status da votação ${votacaoId} alterado para ${novoStatus}`);
+        console.log(
+          `✅ Status da votação ${votacaoId} alterado para ${novoStatus}`
+        );
       } catch (error) {
         console.error("Erro ao alterar status da votação:", error);
         alert("Erro ao alterar status da votação");
@@ -612,64 +746,79 @@ export default {
 
     // Deletar votação
     const deletarVotacao = async (votacaoId) => {
-      if (!confirm("Tem certeza que deseja deletar esta votação? Esta ação não pode ser desfeita.")) {
-        return;
-      }
-
+      cancelDeletion(); // Fecha o modal
       try {
         await axios.delete(`http://localhost:3000/api/votacoes/${votacaoId}`);
 
         // Remover da lista local
-        votacoesPendentes.value = votacoesPendentes.value.filter(v => v._id !== votacaoId);
+        votacoesPendentes.value = votacoesPendentes.value.filter(
+          (v) => v._id !== votacaoId
+        );
 
         console.log(`✅ Votação ${votacaoId} deletada com sucesso`);
-        alert("Votação deletada com sucesso!");
+        showMessage("Votação deletada com sucesso!", "success");
       } catch (error) {
         console.error("Erro ao deletar votação:", error);
-        alert("Erro ao deletar votação");
+        showMessage("Erro ao deletar votação", "error");
       }
     };
 
     // Publicar sugestão como aviso
     const publicarSugestao = async (sugestaoId) => {
-      if (!confirm("Tem certeza que deseja publicar esta sugestão como aviso importante?")) {
+      if (
+        !confirm(
+          "Tem certeza que deseja publicar esta sugestão como aviso importante?"
+        )
+      ) {
         return;
       }
 
       try {
         // Encontrar a sugestão
-        const sugestao = posts.value.find(p => p._id === sugestaoId);
+        const sugestao = posts.value.find((p) => p._id === sugestaoId);
         if (!sugestao) {
           alert("Sugestão não encontrada");
           return;
         }
 
         // Criar aviso baseado na sugestão
-        const avisoResponse = await axios.post("http://localhost:3000/api/avisos", {
-          titulo: `Sugestão Implementada: ${getPostTitle(sugestao.sugestao)}`,
-          conteudo: `Baseado na sugestão de ${sugestao.nome || 'usuário'}: ${sugestao.sugestao}`,
-          prioridade: "media",
-          autor: sugestao.nome || "Sistema",
-          status: "pendente"
-        });
+        const avisoResponse = await axios.post(
+          "http://localhost:3000/api/avisos",
+          {
+            titulo: `Sugestão Implementada: ${getPostTitle(sugestao.sugestao)}`,
+            conteudo: `Baseado na sugestão de ${sugestao.nome || "usuário"}: ${
+              sugestao.sugestao
+            }`,
+            prioridade: "media",
+            autor: sugestao.nome || "Sistema",
+            status: "pendente",
+          }
+        );
 
         if (avisoResponse.data) {
           // Aprovar o aviso automaticamente
-          await axios.put(`http://localhost:3000/api/avisos/${avisoResponse.data.id}/status`, {
-            status: 'aprovado'
-          });
+          await axios.put(
+            `http://localhost:3000/api/avisos/${avisoResponse.data.id}/status`,
+            {
+              status: "aprovado",
+            }
+          );
 
           // Deletar a sugestão após publicar
-          await axios.delete(`http://localhost:3000/api/sugestoes/${sugestaoId}`);
+          await axios.delete(
+            `http://localhost:3000/api/sugestoes/${sugestaoId}`
+          );
 
           // Remover da lista local
-          posts.value = posts.value.filter(p => p._id !== sugestaoId);
+          posts.value = posts.value.filter((p) => p._id !== sugestaoId);
 
           // Recarregar avisos
           loadAvisos();
 
           alert("Sugestão publicada como aviso com sucesso!");
-          console.log(`✅ Sugestão ${sugestaoId} publicada como aviso aprovado`);
+          console.log(
+            `✅ Sugestão ${sugestaoId} publicada como aviso aprovado`
+          );
         }
       } catch (error) {
         console.error("Erro ao publicar sugestão:", error);
@@ -679,18 +828,14 @@ export default {
 
     // Deletar sugestão
     const deletarSugestao = async (sugestaoId) => {
-      if (!confirm("Tem certeza que deseja deletar esta sugestão? Esta ação não pode ser desfeita.")) {
-        return;
-      }
-
+      cancelDeletion(); // Fecha o modal
       try {
         await axios.delete(`http://localhost:3000/api/sugestoes/${sugestaoId}`);
 
         // Remover da lista local
-        posts.value = posts.value.filter(p => p._id !== sugestaoId);
+        posts.value = posts.value.filter((p) => p._id !== sugestaoId);
 
-        console.log(`✅ Sugestão ${sugestaoId} deletada com sucesso`);
-        alert("Sugestão deletada com sucesso!");
+        showMessage("Sugestão deletada com sucesso!", "success");
       } catch (error) {
         console.error("Erro ao deletar sugestão:", error);
         alert("Erro ao deletar sugestão");
@@ -700,9 +845,12 @@ export default {
     // Rejeitar votação
     const rejeitarVotacao = async (votacaoId) => {
       try {
-        await axios.put(`http://localhost:3000/api/votacoes/${votacaoId}/status`, {
-          status: 'rejeitado'
-        });
+        await axios.put(
+          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          {
+            status: "rejeitado",
+          }
+        );
         showMessage("Votação rejeitada", "success");
         loadVotacoes(); // Recarregar lista
       } catch (error) {
@@ -963,7 +1111,7 @@ export default {
         postagens: "📰 Gerenciamento de Postagens",
         sugestoes: "💡 Gerenciamento de Sugestões",
         votacoes: "🚀 Gerenciamento de Votações",
-        avisos: "📢 Gerenciamento de Avisos"
+        avisos: "📢 Gerenciamento de Avisos",
       };
       return titles[currentView.value] || "📋 Gerenciamento";
     };
@@ -973,26 +1121,30 @@ export default {
         postagens: "Gerencie todas as postagens criadas pela comunidade",
         sugestoes: "Analise e aprove sugestões de melhorias",
         votacoes: "Aprove e inicie votações de melhorias",
-        avisos: "Publique avisos importantes para implementação"
+        avisos: "Publique avisos importantes para implementação",
       };
       return descriptions[currentView.value] || "Selecione uma categoria";
     };
 
     // Funções para filtrar conteúdo por tipo
     const getPostsByType = (type) => {
-      if (type === 'postagem') {
-        return posts.value.filter(post =>
-          post.sugestao && post.sugestao.includes('POSTAGEM:') &&
-          post.sugestao.includes('AUTOR:')
+      if (type === "postagem") {
+        return posts.value.filter(
+          (post) =>
+            post.sugestao &&
+            post.sugestao.includes("POSTAGEM:") &&
+            post.sugestao.includes("AUTOR:")
         );
       }
-      return posts.value.filter(post => post.tipo === type);
+      return posts.value.filter((post) => post.tipo === type);
     };
 
     const getSugestoesList = () => {
-      return posts.value.filter(post =>
-        post.tipo === 'geral' &&
-        (!post.sugestao.includes('POSTAGEM:') || !post.sugestao.includes('AUTOR:'))
+      return posts.value.filter(
+        (post) =>
+          post.tipo === "geral" &&
+          (!post.sugestao.includes("POSTAGEM:") ||
+            !post.sugestao.includes("AUTOR:"))
       );
     };
 
@@ -1003,21 +1155,51 @@ export default {
     // Função para atualizar status rapidamente
     const updatePostStatus = async (postId, newStatus) => {
       try {
-        const response = await axios.put(`http://localhost:3000/api/sugestoes/${postId}/status`, {
-          status: newStatus
-        });
+        const response = await axios.put(
+          `http://localhost:3000/api/sugestoes/${postId}/status`,
+          {
+            status: newStatus,
+          }
+        );
 
         if (response.data.message) {
           // Atualizar localmente
-          const post = posts.value.find(p => p._id === postId);
+          const post = posts.value.find((p) => p._id === postId);
           if (post) {
             post.status = newStatus;
           }
-          showMessage(`Status atualizado para ${getStatusText(newStatus)}`, "success");
+          showMessage(
+            `Status atualizado para ${getStatusText(newStatus)}`,
+            "success"
+          );
         }
       } catch (error) {
         console.error("Erro ao atualizar status:", error);
         showMessage("Erro ao atualizar status", "error");
+      }
+    };
+
+    // Funções do Modal de Exclusão
+    const openDeleteModal = (type, id) => {
+      itemToDelete.value = { id, type };
+      showDeleteConfirmModal.value = true;
+    };
+
+    const cancelDeletion = () => {
+      showDeleteConfirmModal.value = false;
+      itemToDelete.value = { id: null, type: null };
+    };
+
+    const confirmDeletion = () => {
+      const { id, type } = itemToDelete.value;
+      if (type === "aviso") {
+        deletarAviso(id);
+      } else if (type === "votacao") {
+        deletarVotacao(id);
+      } else if (type === "sugestao") {
+        deletarSugestao(id);
+      } else if (type === "post") {
+        deletePost(id);
       }
     };
 
@@ -1042,6 +1224,7 @@ export default {
       loadVotacoes,
       aprovarAviso,
       rejeitarAviso,
+      deletarAviso,
       aprovarVotacao,
       rejeitarVotacao,
       alterarStatusVotacao,
@@ -1076,6 +1259,10 @@ export default {
       getVotingStatusText,
       voteOnItem,
       getPostsByStatus,
+      showDeleteConfirmModal,
+      openDeleteModal,
+      cancelDeletion,
+      confirmDeletion,
     };
   },
 };
@@ -2282,6 +2469,82 @@ export default {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Animação de lista */
+.list-fade-enter-active,
+.list-fade-leave-active {
+  transition: all 0.5s ease;
+}
+.list-fade-enter-from,
+.list-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.list-fade-leave-active {
+  position: absolute;
+}
+
+/* Modal de Exclusão */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.delete-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.delete-modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #1a202c;
+  font-size: 1.5rem;
+}
+
+.delete-modal-content p {
+  margin-bottom: 2rem;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+.delete-modal-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-cancel-delete,
+.btn-confirm-delete {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 2px solid transparent;
+}
+
+.btn-cancel-delete {
+  background-color: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-confirm-delete {
+  background-color: #ef4444;
+  color: white;
 }
 
 /* Responsive Design */

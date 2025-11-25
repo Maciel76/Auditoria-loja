@@ -93,7 +93,7 @@
                 {{ formatarNomeCorredor(corredor.local) }}
               </h4>
               <div class="corredor-score">
-                {{ getPercentualLeitura(corredor) }}%
+                {{ getPercentualLeitura(corredor).toFixed(2) }}%
               </div>
             </div>
             <div class="corredor-status" :class="getStatusCorredor(corredor)">
@@ -110,10 +110,10 @@
               ></div>
             </div>
             <div class="progress-text">
-              {{ getPercentualLeitura(corredor).toFixed(0) }}% concluído
+              {{ getPercentualLeitura(corredor).toFixed(2) }}% concluído
             </div>
           </div>
-
+          <!--
           <div class="corredor-stats">
             <div class="stat">
               <span class="stat-value">{{ corredor.total }}</span>
@@ -134,26 +134,7 @@
               <span class="stat-label">Colab.</span>
             </div>
           </div>
-
-          <!-- Colaboradores do corredor -->
-          <div
-            v-if="
-              corredor.usuarios && Object.keys(corredor.usuarios).length > 0
-            "
-            class="corredor-colaboradores"
-          >
-            <div class="colaboradores-label">Colaboradores:</div>
-            <div class="colaboradores-list">
-              <span
-                v-for="(quantidade, usuario) in corredor.usuarios"
-                :key="usuario"
-                class="colaborador-tag"
-                :title="`${usuario}: ${quantidade} itens`"
-              >
-                {{ usuario.split(" ")[0] }} ({{ quantidade }})
-              </span>
-            </div>
-          </div>
+          -->
         </div>
       </div>
 
@@ -183,7 +164,7 @@
             <div class="metricas-destaque">
               <div class="metrica-principal">
                 <div class="metrica-valor">
-                  {{ getPercentualLeitura(corredorSelecionado) }}%
+                  {{ getPercentualLeitura(corredorSelecionado).toFixed(2) }}%
                 </div>
                 <div class="metrica-label">Taxa de Conclusão</div>
                 <div class="progress-bar-large">
@@ -264,30 +245,6 @@
                 </div>
               </div>
             </div>
-
-            <div class="acoes-rapidas">
-              <h4>Ações Rápidas</h4>
-              <div class="acoes-grid">
-                <button
-                  class="acao-btn primary"
-                  @click="iniciarAuditoriaCorredor(corredorSelecionado)"
-                >
-                  🎯 Iniciar Auditoria
-                </button>
-                <button
-                  class="acao-btn secondary"
-                  @click="exportarCorredor(corredorSelecionado)"
-                >
-                  📊 Exportar Dados
-                </button>
-                <button
-                  class="acao-btn secondary"
-                  @click="gerarRelatorioCorredor(corredorSelecionado)"
-                >
-                  📋 Gerar Relatório
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -297,7 +254,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useApi } from "@/composables/useApi";
 
 // Estado para controlar o tipo de auditoria atual
 const tipoAuditoriaAtual = ref("etiquetas");
@@ -326,16 +282,35 @@ const erro = ref(null);
 const corredorSelecionado = ref(null);
 
 // Computed para obter dados filtrados pelo tipo de auditoria
+// Computed para obter dados filtrados pelo tipo de auditoria
 const dadosFiltrados = computed(() => {
   const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) return [];
 
-  return Object.entries(auditoriaAtual.locaisLeitura).map(([local, dados]) => {
-    return {
-      local: local,
-      ...dados,
-    };
-  });
+  if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) {
+    console.log(`⚠️ Nenhum dado encontrado para ${tipoAuditoriaAtual.value}`);
+    return [];
+  }
+
+  // Converter o objeto de locais em array
+  const locaisArray = Object.entries(auditoriaAtual.locaisLeitura).map(
+    ([local, dados]) => {
+      return {
+        local: local,
+        total: dados.total || 0,
+        itensValidos: dados.itensValidos || 0,
+        lidos: dados.lidos || 0,
+        percentual: dados.percentual || 0,
+        usuarios: dados.usuarios || {},
+      };
+    }
+  );
+
+  console.log(
+    `📊 Dados filtrados para ${tipoAuditoriaAtual.value}:`,
+    locaisArray.length,
+    "locais"
+  );
+  return locaisArray;
 });
 
 // Computed para estatísticas gerais
@@ -485,88 +460,171 @@ const alterarTipoAuditoria = (tipo) => {
   tipoAuditoriaAtual.value = tipo;
 };
 
-const iniciarAuditoriaCorredor = (corredor) => {
-  console.log("Iniciando auditoria no corredor:", corredor.local);
-  alert(`Auditoria iniciada no ${formatarNomeCorredor(corredor.local)}`);
-};
+// Função para gerar dados fake
+const gerarDadosFake = () => {
+  const corredoresDeAltaPerformance = ["G01", "G02", "FLV", "PAO"];
+  const corredoresDeBaixaPerformance = ["G09", "G10", "I01", "C01"];
+  const corredores = [
+    "G01",
+    "G02",
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08",
+    "G09",
+    "G10",
+    "F01",
+    "F02",
+    "C01",
+    "FLV",
+    "PAO",
+    "SORVETE",
+    "GELO",
+    "I01",
+    "PF01",
+    "PL01",
+  ];
+  const usuarios = [
+    "João Silva",
+    "Maria Santos",
+    "Carlos Lima",
+    "Ana Oliveira",
+    "Pedro Costa",
+  ];
 
-const exportarCorredor = (corredor) => {
-  console.log("Exportando dados do corredor:", corredor.local);
-  alert(`Dados do ${formatarNomeCorredor(corredor.local)} exportados!`);
-};
+  const locaisLeitura = {};
+  let totalItensGeral = 0;
+  const usuariosAtivos = new Set();
 
-const gerarRelatorioCorredor = (corredor) => {
-  console.log("Gerando relatório do corredor:", corredor.local);
-  alert(`Relatório do ${formatarNomeCorredor(corredor.local)} gerado!`);
+  corredores.forEach((corredor) => {
+    const total = Math.floor(Math.random() * 200) + 50;
+    const itensValidos = Math.floor(total * (Math.random() * 0.2 + 0.8)); // 80-100% of total
+
+    let lidos;
+    if (corredoresDeAltaPerformance.includes(corredor)) {
+      // Desempenho alto: 90% a 100%
+      lidos = Math.floor(itensValidos * (Math.random() * 0.1 + 0.9));
+    } else if (corredoresDeBaixaPerformance.includes(corredor)) {
+      // Desempenho baixo: 10% a 40%
+      lidos = Math.floor(itensValidos * (Math.random() * 0.3 + 0.1));
+    } else {
+      // Desempenho médio: 60% a 85%
+      lidos = Math.floor(itensValidos * (Math.random() * 0.25 + 0.6));
+    }
+
+    const usuariosCorredor = {};
+    const numUsuarios = Math.floor(Math.random() * 2) + 1; // 1 ou 2 usuários por corredor
+    for (let i = 0; i < numUsuarios; i++) {
+      const usuario = usuarios[Math.floor(Math.random() * usuarios.length)];
+      usuariosAtivos.add(usuario);
+      const itensUsuario =
+        Math.floor(lidos / numUsuarios) + (i === 0 ? lidos % numUsuarios : 0);
+      usuariosCorredor[usuario] =
+        (usuariosCorredor[usuario] || 0) + itensUsuario;
+    }
+
+    locaisLeitura[corredor] = {
+      total,
+      itensValidos,
+      lidos,
+      usuarios: usuariosCorredor,
+      percentual:
+        itensValidos > 0 ? Math.round((lidos / itensValidos) * 100) : 0,
+    };
+    totalItensGeral += total;
+  });
+
+  return {
+    locaisLeitura,
+    resumo: {
+      totalItens: totalItensGeral,
+      usuariosAtivos: usuariosAtivos.size,
+    },
+  };
 };
 
 // Função para buscar dados da API
+// Função para buscar dados reais da API
 const buscarMetricasLoja = async () => {
   try {
     carregando.value = true;
     erro.value = null;
 
-    const { api } = useApi();
+    // Opção 1: Usar a mesma rota que o MetricasSetor (que está funcionando)
+    const response = await fetch(`/api/metricas/lojas?loja=056`);
 
-    // Usar o novo endpoint específico para corredores
-    const response = await api.get("/api/metricas/loja-daily/locais-completas");
+    // Opção 2: Se a rota acima não funcionar, use esta
+    // const response = await fetch(`/api/lojas/056/metricas-daily`);
 
-    if (response.data) {
-      dadosReais.value = {
-        loja: response.data.loja || "",
-        data: response.data.data || new Date().toISOString(),
-        etiquetas: {
-          locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
-          resumo: response.data.etiquetas?.resumo || {},
-        },
-        rupturas: {
-          locaisLeitura: response.data.rupturas?.locaisLeitura || {},
-          resumo: response.data.rupturas?.resumo || {},
-        },
-        presencas: {
-          locaisLeitura: response.data.presencas?.locaisLeitura || {},
-          resumo: response.data.presencas?.resumo || {},
-        },
-      };
-      console.log("✅ Métricas dos corredores carregadas:", dadosReais.value);
+    if (!response.ok) {
+      throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
     }
-  } catch (error) {
-    console.error("❌ Erro ao buscar métricas dos corredores:", error);
-    erro.value =
-      "Erro ao carregar métricas dos corredores. Tente novamente mais tarde.";
 
-    // Opcional: Tentar carregar dados de demonstração em caso de erro
-    // await carregarDadosDemonstracao();
-  } finally {
-    carregando.value = false;
-  }
-};
-// Função opcional para carregar dados de demonstração
-const carregarDadosDemonstracao = async () => {
-  try {
-    const { api } = useApi();
-    const response = await api.get(
-      "/api/metricas/loja-daily/locais-completas-demo"
-    );
+    // Verificar se a resposta é JSON
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Resposta não é JSON. Verifique a rota da API.");
+    }
+
+    const dadosAPI = await response.json();
+
+    console.log("📊 Dados recebidos da API:", dadosAPI);
+
+    // Verificar se temos os dados de locaisLeitura
+    if (!dadosAPI.etiquetas?.locaisLeitura) {
+      console.warn("⚠️ Dados de locaisLeitura não encontrados na resposta");
+      throw new Error("Estrutura de dados incompleta");
+    }
+
+    // Mapear os dados da API para a estrutura esperada pelo componente
     dadosReais.value = {
-      loja: response.data.loja || "",
-      data: response.data.data || new Date().toISOString(),
+      loja: dadosAPI.lojaNome || "056",
+      data: dadosAPI.data || new Date().toISOString(),
       etiquetas: {
-        locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
-        resumo: response.data.etiquetas?.resumo || {},
+        locaisLeitura: dadosAPI.etiquetas?.locaisLeitura || {},
+        resumo: {
+          totalItens: dadosAPI.etiquetas?.totalItens || 0,
+          usuariosAtivos: dadosAPI.etiquetas?.usuariosAtivos || 0,
+        },
       },
       rupturas: {
-        locaisLeitura: response.data.rupturas?.locaisLeitura || {},
-        resumo: response.data.rupturas?.resumo || {},
+        locaisLeitura: dadosAPI.rupturas?.locaisLeitura || {},
+        resumo: {
+          totalItens: dadosAPI.rupturas?.totalItens || 0,
+          usuariosAtivos: dadosAPI.rupturas?.usuariosAtivos || 0,
+        },
       },
       presencas: {
-        locaisLeitura: response.data.presencas?.locaisLeitura || {},
-        resumo: response.data.presencas?.resumo || {},
+        locaisLeitura: dadosAPI.presencas?.locaisLeitura || {},
+        resumo: {
+          totalItens: dadosAPI.presencas?.totalItens || 0,
+          usuariosAtivos: dadosAPI.presencas?.usuariosAtivos || 0,
+        },
       },
     };
-    console.log("📊 Dados de demonstração carregados");
-  } catch (demoError) {
-    console.error("Erro ao carregar dados de demonstração:", demoError);
+
+    console.log("✅ Dados REAIS processados:", dadosReais.value);
+  } catch (error) {
+    console.error("❌ Erro ao buscar métricas dos corredores:", error);
+    erro.value = `Erro ao carregar métricas: ${error.message}. Usando dados de demonstração.`;
+
+    // Fallback: usar dados fake
+    console.log("🔄 Usando dados fake como fallback...");
+    const dadosEtiquetas = gerarDadosFake();
+    const dadosRupturas = gerarDadosFake();
+    const dadosPresencas = gerarDadosFake();
+
+    dadosReais.value = {
+      loja: "056",
+      data: new Date().toISOString(),
+      etiquetas: dadosEtiquetas,
+      rupturas: dadosRupturas,
+      presencas: dadosPresencas,
+    };
+  } finally {
+    carregando.value = false;
   }
 };
 
@@ -1117,48 +1175,6 @@ onMounted(() => {
 .colaborador-stats .stat {
   font-size: 0.8rem;
   color: #718096;
-}
-
-.acoes-rapidas h4 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.acoes-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-.acao-btn {
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.acao-btn.primary {
-  background: #667eea;
-  color: white;
-}
-
-.acao-btn.primary:hover {
-  background: #5a67d8;
-}
-
-.acao-btn.secondary {
-  background: white;
-  color: #667eea;
-  border: 1px solid #667eea;
-}
-
-.acao-btn.secondary:hover {
-  background: #f8fafc;
 }
 
 /* Responsividade */

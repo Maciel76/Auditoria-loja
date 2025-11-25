@@ -19,383 +19,357 @@
       <div class="metricas-header">
         <h3>📊 Leitura Auditoria Atual Por Classe</h3>
         <div class="metricas-actions">
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
-          @click="alterarTipoAuditoria('etiquetas')"
-        >
-          Etiqueta
-        </button>
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'presencas' }"
-          @click="alterarTipoAuditoria('presencas')"
-        >
-          Presença
-        </button>
-        <button
-          class="action-btn"
-          :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
-          @click="alterarTipoAuditoria('rupturas')"
-        >
-          Ruptura
-        </button>
-      </div>
-    </div>
-
-    <div class="metricas-table-container">
-      <table class="metricas-table">
-        <thead>
-          <tr>
-            <th>Classe Produtos</th>
-            <th>Desempenho</th>
-            <th>Total Itens</th>
-            <th>Itens Lidos</th>
-            <th v-if="tipoAuditoriaAtual === 'rupturas'">Custo Ruptura</th>
-            <th v-else-if="tipoAuditoriaAtual === 'presencas'">Presenças</th>
-            <th v-else>Itens Atualizados</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr
-            v-for="setor in dadosFiltrados"
-            :key="setor.ClasseProduto"
-            :class="getStatusLinha(setor)"
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
+            @click="alterarTipoAuditoria('etiquetas')"
           >
-            <!-- Nome / Ícone -->
-            <td class="setor-cell">
-              <div class="setor-info">
-                <div class="setor-icon">{{ setor.icone }}</div>
-                <span>{{ setor.ClasseProduto }}</span>
-              </div>
-            </td>
-
-            <!-- Desempenho -->
-            <td class="desempenho-cell">
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :style="{ width: getPercentualLeitura(setor) + '%' }"
-                  :class="getClasseDesempenho(getPercentualLeitura(setor))"
-                ></div>
-                <span class="progress-text">
-                  {{ getPercentualLeitura(setor).toFixed(0) }}%
-                </span>
-              </div>
-            </td>
-
-            <!-- Itens totais e lidos -->
-            <td class="meta-cell">{{ setor.totalItens }}</td>
-            <td class="conformidade-cell">{{ setor.itensValidos }}</td>
-
-            <!-- Coluna dinâmica baseada no tipo de auditoria -->
-            <td
-              v-if="tipoAuditoriaAtual === 'rupturas'"
-              class="custo-cell"
-              :class="getClasseCusto(setor)"
-            >
-              R$ {{ formatarMoeda(setor.custoRuptura || 0) }}
-            </td>
-            <td
-              v-else-if="tipoAuditoriaAtual === 'presencas'"
-              class="presenca-cell"
-            >
-              {{ setor.presencasConfirmadas || 0 }}/{{
-                setor.totalItens || setor.itens
-              }}
-            </td>
-            <td v-else class="atualizados-cell">
-              {{ setor.itensLidos || 0 }}
-            </td>
-
-            <!-- Status -->
-            <td class="status-cell">
-              <span class="status-badge" :class="getStatusSetor(setor)">
-                {{ getStatusSetor(setor) }}
-              </span>
-            </td>
-
-            <!-- Ações -->
-            <td class="acoes-cell">
-              <button
-                class="acao-btn"
-                @click="verDetalhesSetor(setor)"
-                title="Ver detalhes"
-              >
-                👁️
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Resumo Estatístico -->
-    <div class="resumo-estatistico">
-      <div class="estatisticas-grid">
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ percentualConclusaoGeral.toFixed(1) }}%</div>
-          <div class="estatistica-label">Conclusão Geral</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ totalItens }}</div>
-          <div class="estatistica-label">Total de Itens</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">{{ itensLidos }}</div>
-          <div class="estatistica-label">Itens Lidos</div>
-        </div>
-        <div class="estatistica-card">
-          <div class="estatistica-valor">👥 {{ totalColaboradores }}</div>
-          <div class="estatistica-label">Colaboradores Envolvidos</div>
-        </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'etiquetas'">
-          <div class="estatistica-valor">{{ itensAtualizados }}</div>
-          <div class="estatistica-label">Itens Atualizados</div>
-        </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'rupturas'">
-          <div class="estatistica-valor">
-            R$ {{ formatarMoeda(custoTotalRuptura) }}
-          </div>
-          <div class="estatistica-label">Custo Total Ruptura</div>
-        </div>
-        <div class="estatistica-card" v-if="tipoAuditoriaAtual === 'presencas'">
-          <div class="estatistica-valor">{{ percentualPresenca.toFixed(1) }}%</div>
-          <div class="estatistica-label">Presenças Confirmadas</div>
+            Etiqueta
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'presencas' }"
+            @click="alterarTipoAuditoria('presencas')"
+          >
+            Presença
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
+            @click="alterarTipoAuditoria('rupturas')"
+          >
+            Ruptura
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Modal de Detalhes do Setor -->
-    <div v-if="setorSelecionado" class="modal-overlay" @click="fecharModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>Detalhes do Setor - {{ getTipoAuditoriaLabel() }}</h3>
-          <button class="modal-close" @click="fecharModal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="setor-detalhes">
-            <div class="detalhe-header">
-              <div class="setor-icone-grande">{{ setorSelecionado.icone }}</div>
-              <div class="setor-info-grande">
-                <h4>{{ setorSelecionado.ClasseProduto }}</h4>
-                <span
-                  class="status-badge"
-                  :class="getStatusSetor(setorSelecionado)"
-                >
-                  {{ getStatusSetor(setorSelecionado) }}
-                </span>
-              </div>
-            </div>
+      <div class="metricas-table-container">
+        <table class="metricas-table">
+          <thead>
+            <tr>
+              <th>Classe Produtos</th>
+              <th>Desempenho</th>
+              <th>Total Itens</th>
+              <th>Itens Lidos</th>
+              <th v-if="tipoAuditoriaAtual === 'rupturas'">Custo Ruptura</th>
+              <th v-else-if="tipoAuditoriaAtual === 'presencas'">Presenças</th>
+              <th v-else>Itens Atualizados</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
 
-            <div class="metricas-grid">
-              <div class="metrica-item">
-                <div class="metrica-label">Desempenho</div>
-                <div class="metrica-valor">
-                  {{ getPercentualLeitura(setorSelecionado).toFixed(1) }}%
+          <tbody>
+            <tr
+              v-for="setor in dadosFiltrados"
+              :key="setor.ClasseProduto"
+              :class="getStatusLinha(setor)"
+            >
+              <!-- Nome / Ícone -->
+              <td class="setor-cell">
+                <div class="setor-info">
+                  <div class="setor-icon">{{ setor.icone }}</div>
+                  <span>{{ setor.ClasseProduto }}</span>
                 </div>
-                <div class="progress-bar-small">
+              </td>
+
+              <!-- Desempenho -->
+              <td class="desempenho-cell">
+                <div class="progress-bar">
                   <div
                     class="progress-fill"
-                    :style="{
-                      width: getPercentualLeitura(setorSelecionado) + '%',
-                    }"
-                    :class="
-                      getClasseDesempenho(
-                        getPercentualLeitura(setorSelecionado)
-                      )
-                    "
+                    :style="{ width: getPercentualLeitura(setor) + '%' }"
+                    :class="getClasseDesempenho(getPercentualLeitura(setor))"
                   ></div>
+                  <span class="progress-text">
+                    {{ getPercentualLeitura(setor).toFixed(0) }}%
+                  </span>
                 </div>
-              </div>
+              </td>
 
-              <div class="metrica-item">
-                <div class="metrica-label">Total de Itens</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.totalItens }}
-                </div>
-              </div>
+              <!-- Itens totais e lidos -->
+              <td class="meta-cell">{{ setor.totalItens }}</td>
+              <td class="conformidade-cell">{{ setor.itensValidos }}</td>
 
-              <div class="metrica-item">
-                <div class="metrica-label">Itens Válidos</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensValidos }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">Itens Lidos</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensLidos }}
-                </div>
-              </div>
-
-              <div class="metrica-item">
-                <div class="metrica-label">👥 Colaboradores</div>
-                <div class="metrica-valor">
-                  {{ colaboradoresSetor.length }}
-                </div>
-              </div>
-
-              <!-- Métricas específicas por tipo de auditoria -->
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'etiquetas'"
-              >
-                <div class="metrica-label">Itens Atualizados</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensAtualizados || 0 }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'etiquetas'"
-              >
-                <div class="metrica-label">Itens Desatualizados</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.itensDesatualizado || 0 }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
+              <!-- Coluna dinâmica baseada no tipo de auditoria -->
+              <td
                 v-if="tipoAuditoriaAtual === 'rupturas'"
+                class="custo-cell"
+                :class="getClasseCusto(setor)"
               >
-                <div class="metrica-label">Custo Ruptura</div>
-                <div class="metrica-valor">
-                  R$ {{ formatarMoeda(setorSelecionado.custoRuptura || 0) }}
-                </div>
-              </div>
-
-              <div
-                class="metrica-item"
-                v-if="tipoAuditoriaAtual === 'presencas'"
+                R$ {{ formatarMoeda(setor.custoRuptura || 0) }}
+              </td>
+              <td
+                v-else-if="tipoAuditoriaAtual === 'presencas'"
+                class="presenca-cell"
               >
-                <div class="metrica-label">Presenças Confirmadas</div>
-                <div class="metrica-valor">
-                  {{ setorSelecionado.presencasConfirmadas || 0 }}
-                </div>
-              </div>
-            </div>
+                {{ setor.presencasConfirmadas || 0 }}/{{
+                  setor.totalItens || setor.itens
+                }}
+              </td>
+              <td v-else class="atualizados-cell">
+                {{ setor.itensLidos || 0 }}
+              </td>
 
-            <!-- Seção: Colaboradores Envolvidos -->
-            <div class="colaboradores-section">
-              <h5>👥 Colaboradores Envolvidos</h5>
-              <div class="colaboradores-grid">
-                <div
-                  v-for="colaborador in colaboradoresSetor"
-                  :key="colaborador.id"
-                  class="colaborador-card"
+              <!-- Status -->
+              <td class="status-cell">
+                <span class="status-badge" :class="getStatusSetor(setor)">
+                  {{ getStatusSetor(setor) }}
+                </span>
+              </td>
+
+              <!-- Ações -->
+              <td class="acoes-cell">
+                <button
+                  class="acao-btn"
+                  @click="verDetalhesSetor(setor)"
+                  title="Ver detalhes"
                 >
-                  <div class="colaborador-avatar">
-                    <img
-                      v-if="colaborador.foto"
-                      :src="colaborador.foto"
-                      :alt="colaborador.nome"
-                      class="colaborador-foto"
-                    />
-                    <span v-else class="colaborador-iniciais">
-                      {{ colaborador.iniciais }}
-                    </span>
-                  </div>
-                  <div class="colaborador-info">
-                    <div class="colaborador-nome">{{ colaborador.nome }}</div>
-                    <div class="colaborador-funcao">
-                      {{ colaborador.funcao }}
-                    </div>
+                  👁️
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-                    <!-- Conquistas e Nível -->
-                    <div class="colaborador-conquistas">
-                      🏆 {{ colaborador.conquistas.totalConquistas }} conquistas
-                      • ⭐ Nv {{ colaborador.conquistas.nivel }}
-                    </div>
-
-                    <!-- Ranking -->
-                    <div class="colaborador-ranking">
-                      📊 Loja: #{{ colaborador.desempenho.posicaoLoja }}
-                      • 🌍 Geral: #{{ colaborador.desempenho.posicaoGeral }}
-                    </div>
-
-                    <div class="colaborador-status" :class="colaborador.status">
-                      {{ colaborador.status }}
-                    </div>
-                  </div>
-                  <div class="colaborador-metricas">
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor">{{
-                        colaborador.itensLidos
-                      }}</span>
-                      <span class="metrica-label">Itens</span>
-                    </div>
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor"
-                        >{{ colaborador.eficiencia }}%</span
-                      >
-                      <span class="metrica-label">Eficiência</span>
-                    </div>
-                    <div class="colaborador-metrica">
-                      <span class="metrica-valor">{{ colaborador.conquistas.xpTotal }}</span>
-                      <span class="metrica-label">XP</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <!-- Resumo Estatístico -->
+      <div class="resumo-estatistico">
+        <div class="estatisticas-grid">
+          <div class="estatistica-card">
+            <div class="estatistica-valor">
+              {{ percentualConclusaoGeral.toFixed(1) }}%
             </div>
+            <div class="estatistica-label">Conclusão Geral</div>
+          </div>
+          <div class="estatistica-card">
+            <div class="estatistica-valor">{{ totalItens }}</div>
+            <div class="estatistica-label">Total de Itens</div>
+          </div>
+          <div class="estatistica-card">
+            <div class="estatistica-valor">{{ itensLidos }}</div>
+            <div class="estatistica-label">Itens Lidos</div>
+          </div>
+          <div class="estatistica-card">
+            <div class="estatistica-valor">👥 {{ totalColaboradores }}</div>
+            <div class="estatistica-label">Colaboradores Envolvidos</div>
+          </div>
+          <div
+            class="estatistica-card"
+            v-if="tipoAuditoriaAtual === 'etiquetas'"
+          >
+            <div class="estatistica-valor">{{ itensAtualizados }}</div>
+            <div class="estatistica-label">Itens Atualizados</div>
+          </div>
+          <div
+            class="estatistica-card"
+            v-if="tipoAuditoriaAtual === 'rupturas'"
+          >
+            <div class="estatistica-valor">
+              R$ {{ formatarMoeda(custoTotalRuptura) }}
+            </div>
+            <div class="estatistica-label">Custo Total Ruptura</div>
+          </div>
+          <div
+            class="estatistica-card"
+            v-if="tipoAuditoriaAtual === 'presencas'"
+          >
+            <div class="estatistica-valor">
+              {{ percentualPresenca.toFixed(1) }}%
+            </div>
+            <div class="estatistica-label">Presenças Confirmadas</div>
+          </div>
+        </div>
+      </div>
 
-            <!-- Informações Detalhadas - COMENTADO (não necessário)
-            <div class="detalhes-adicionais">
-              <h5>Informações Detalhadas</h5>
-              <div class="info-grid">
-                <div class="info-item">
-                  <span class="info-label">Eficiência de Leitura:</span>
+      <!-- Modal de Detalhes do Setor -->
+      <div v-if="setorSelecionado" class="modal-overlay" @click="fecharModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Detalhes do Setor - {{ getTipoAuditoriaLabel() }}</h3>
+            <button class="modal-close" @click="fecharModal">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="setor-detalhes">
+              <div class="detalhe-header">
+                <div class="setor-icone-grande">
+                  {{ setorSelecionado.icone }}
+                </div>
+                <div class="setor-info-grande">
+                  <h4>{{ setorSelecionado.ClasseProduto }}</h4>
                   <span
-                    class="info-value"
-                    :class="
-                      getClasseDesempenho(
-                        getPercentualLeitura(setorSelecionado)
-                      )
-                    "
+                    class="status-badge"
+                    :class="getStatusSetor(setorSelecionado)"
                   >
                     {{ getStatusSetor(setorSelecionado) }}
                   </span>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Tipo de Auditoria:</span>
-                  <span class="info-value">{{ getTipoAuditoriaLabel() }}</span>
+              </div>
+
+              <div class="metricas-grid">
+                <div class="metrica-item">
+                  <div class="metrica-label">Desempenho</div>
+                  <div class="metrica-valor">
+                    {{ getPercentualLeitura(setorSelecionado).toFixed(1) }}%
+                  </div>
+                  <div class="progress-bar-small">
+                    <div
+                      class="progress-fill"
+                      :style="{
+                        width: getPercentualLeitura(setorSelecionado) + '%',
+                      }"
+                      :class="
+                        getClasseDesempenho(
+                          getPercentualLeitura(setorSelecionado)
+                        )
+                      "
+                    ></div>
+                  </div>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">Status de Auditoria:</span>
-                  <span class="info-value">Em Andamento</span>
+
+                <div class="metrica-item">
+                  <div class="metrica-label">Total de Itens</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.totalItens }}
+                  </div>
+                </div>
+
+                <div class="metrica-item">
+                  <div class="metrica-label">Itens Válidos</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.itensValidos }}
+                  </div>
+                </div>
+
+                <div class="metrica-item">
+                  <div class="metrica-label">Itens Lidos</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.itensLidos }}
+                  </div>
+                </div>
+
+                <div class="metrica-item">
+                  <div class="metrica-label">👥 Colaboradores</div>
+                  <div class="metrica-valor">
+                    {{ colaboradoresSetor.length }}
+                  </div>
+                </div>
+
+                <!-- Métricas específicas por tipo de auditoria -->
+                <div
+                  class="metrica-item"
+                  v-if="tipoAuditoriaAtual === 'etiquetas'"
+                >
+                  <div class="metrica-label">Itens Atualizados</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.itensAtualizados || 0 }}
+                  </div>
+                </div>
+
+                <div
+                  class="metrica-item"
+                  v-if="tipoAuditoriaAtual === 'etiquetas'"
+                >
+                  <div class="metrica-label">Itens Desatualizados</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.itensDesatualizado || 0 }}
+                  </div>
+                </div>
+
+                <div
+                  class="metrica-item"
+                  v-if="tipoAuditoriaAtual === 'rupturas'"
+                >
+                  <div class="metrica-label">Custo Ruptura</div>
+                  <div class="metrica-valor">
+                    R$ {{ formatarMoeda(setorSelecionado.custoRuptura || 0) }}
+                  </div>
+                </div>
+
+                <div
+                  class="metrica-item"
+                  v-if="tipoAuditoriaAtual === 'presencas'"
+                >
+                  <div class="metrica-label">Presenças Confirmadas</div>
+                  <div class="metrica-valor">
+                    {{ setorSelecionado.presencasConfirmadas || 0 }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Seção: Colaboradores Envolvidos -->
+              <div class="colaboradores-section">
+                <h5>👥 Colaboradores Envolvidos</h5>
+                <div class="colaboradores-lista">
+                  <div
+                    v-for="colaborador in colaboradoresSetor"
+                    :key="colaborador.id"
+                    class="colaborador-item"
+                  >
+                    <div class="colaborador-avatar">
+                      <img
+                        v-if="colaborador.foto"
+                        :src="colaborador.foto"
+                        :alt="colaborador.nome"
+                        class="colaborador-foto"
+                      />
+                      <span v-else class="colaborador-iniciais">
+                        {{ colaborador.iniciais }}
+                      </span>
+                    </div>
+                    <div class="colaborador-info-principal">
+                      <div class="colaborador-nome-funcao">
+                        <div class="colaborador-nome" :title="colaborador.nome">
+                          {{ encurtarNome(colaborador.nome, 15) }}
+                        </div>
+                        <div class="colaborador-funcao">
+                          {{ colaborador.funcao }}
+                        </div>
+                      </div>
+                      <div class="colaborador-metricas-inline">
+                        <div class="colaborador-metrica">
+                          <span class="metrica-valor">{{
+                            colaborador.itensLidos
+                          }}</span>
+                          <span class="metrica-label">Itens</span>
+                        </div>
+                        <div class="colaborador-metrica">
+                          <span class="metrica-valor"
+                            >{{ colaborador.eficiencia }}%</span
+                          >
+                          <span class="metrica-label">Eficiência</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-            -->
+          </div>
+          <div class="modal-footer">
+            <button class="action-btn secondary" @click="fecharModal">
+              Fechar
+            </button>
+            <button
+              class="action-btn primary"
+              @click="exportarSetor(setorSelecionado)"
+            >
+              Exportar Dados
+            </button>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="action-btn secondary" @click="fecharModal">
-            Fechar
-          </button>
-          <button
-            class="action-btn primary"
-            @click="exportarSetor(setorSelecionado)"
-          >
-            Exportar Dados
-          </button>
-        </div>
       </div>
-    </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import api from "@/composables/useApi";
+import axios from "axios";
+import { useLojaStore } from "@/store/lojaStore";
+
+// Store da loja
+const lojaStore = useLojaStore();
 
 // Estado para controlar o tipo de auditoria atual
 const tipoAuditoriaAtual = ref("etiquetas");
@@ -459,9 +433,6 @@ const dadosReais = ref({
 const carregando = ref(true);
 const erro = ref(null);
 
-// Dados de usuários do endpoint /metricas/usuarios
-const dadosUsuarios = ref([]);
-
 // Ícones para cada classe de produtos
 const iconesClasses = {
   "A CLASSIFICAR": "❓",
@@ -481,229 +452,6 @@ const iconesClasses = {
   "SECA SALGADA 2": "🥫",
 };
 
-// Dados de colaboradores por setor
-const colaboradoresPorSetor = {
-  "A CLASSIFICAR": [
-    {
-      id: 1,
-      nome: "João Silva",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 2,
-      eficiencia: 100,
-      avatar: "👨‍💼",
-    },
-  ],
-  "ALTO GIRO": [
-    {
-      id: 1,
-      nome: "Maria Santos",
-      funcao: "Supervisor",
-      status: "ativo",
-      itensLidos: 54,
-      eficiencia: 95,
-      avatar: "👩‍💼",
-    },
-    {
-      id: 2,
-      nome: "Carlos Lima",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 54,
-      eficiencia: 92,
-      avatar: "👨‍🔧",
-    },
-  ],
-  BAZAR: [
-    {
-      id: 1,
-      nome: "Ana Oliveira",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 71,
-      eficiencia: 88,
-      avatar: "👩‍🎨",
-    },
-    {
-      id: 2,
-      nome: "Pedro Costa",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 71,
-      eficiencia: 85,
-      avatar: "👨‍🎨",
-    },
-  ],
-  DIVERSOS: [
-    {
-      id: 1,
-      nome: "Fernanda Rocha",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 1,
-      eficiencia: 100,
-      avatar: "👩‍💼",
-    },
-  ],
-  DPH: [
-    {
-      id: 1,
-      nome: "Ricardo Alves",
-      funcao: "Supervisor",
-      status: "ativo",
-      itensLidos: 72,
-      eficiencia: 90,
-      avatar: "👨‍💼",
-    },
-    {
-      id: 2,
-      nome: "Patrícia Nunes",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 72,
-      eficiencia: 87,
-      avatar: "👩‍🔧",
-    },
-  ],
-  FLV: [
-    {
-      id: 1,
-      nome: "Roberto Santos",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 3,
-      eficiencia: 100,
-      avatar: "👨‍🌾",
-    },
-  ],
-  "LATICINIOS 1": [
-    {
-      id: 1,
-      nome: "Juliana Costa",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 0,
-      eficiencia: 0,
-      avatar: "👩‍💼",
-    },
-  ],
-  LIQUIDA: [
-    {
-      id: 1,
-      nome: "Marcos Oliveira",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 26,
-      eficiencia: 85,
-      avatar: "👨‍💼",
-    },
-    {
-      id: 2,
-      nome: "Carla Silva",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 26,
-      eficiencia: 82,
-      avatar: "👩‍💼",
-    },
-  ],
-  "PERECIVEL 1": [
-    {
-      id: 1,
-      nome: "Paulo Rodrigues",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 0,
-      eficiencia: 0,
-      avatar: "👨‍🍳",
-    },
-  ],
-  "PERECIVEL 2": [
-    {
-      id: 1,
-      nome: "Amanda Lima",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 1,
-      eficiencia: 100,
-      avatar: "👩‍🍳",
-    },
-  ],
-  "PERECIVEL 2 B": [
-    {
-      id: 1,
-      nome: "Diego Souza",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 0,
-      eficiencia: 0,
-      avatar: "👨‍🍳",
-    },
-  ],
-  "PERECIVEL 3": [
-    {
-      id: 1,
-      nome: "Camila Rocha",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 0,
-      eficiencia: 0,
-      avatar: "👩‍🍳",
-    },
-  ],
-  "SECA DOCE": [
-    {
-      id: 1,
-      nome: "Lucas Almeida",
-      funcao: "Supervisor",
-      status: "ativo",
-      itensLidos: 367,
-      eficiencia: 92,
-      avatar: "👨‍💼",
-    },
-    {
-      id: 2,
-      nome: "Tatiane Pereira",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 368,
-      eficiencia: 90,
-      avatar: "👩‍💼",
-    },
-  ],
-  "SECA SALGADA": [
-    {
-      id: 1,
-      nome: "Gabriel Santos",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 52,
-      eficiencia: 88,
-      avatar: "👨‍💼",
-    },
-    {
-      id: 2,
-      nome: "Renata Oliveira",
-      funcao: "Auxiliar",
-      status: "ativo",
-      itensLidos: 53,
-      eficiencia: 85,
-      avatar: "👩‍💼",
-    },
-  ],
-  "SECA SALGADA 2": [
-    {
-      id: 1,
-      nome: "Felipe Costa",
-      funcao: "Auditor",
-      status: "ativo",
-      itensLidos: 8,
-      eficiencia: 100,
-      avatar: "👨‍💼",
-    },
-  ],
-};
-
 const setorSelecionado = ref(null);
 
 // Computed para obter dados filtrados pelo tipo de auditoria
@@ -721,120 +469,94 @@ const dadosFiltrados = computed(() => {
         itensLidos: dados.lidos || 0,
         itensAtualizados: dados.itensAtualizados || 0,
         itensDesatualizado: dados.itensDesatualizado || 0,
-        custoRuptura: dados.custoRuptura || 0, // O valor real já está disponível em classesLeitura
-        presencasConfirmadas: dados.presencasConfirmadas || 0, // O valor real já está disponível em classesLeitura
+        custoRuptura: dados.custoRuptura || 0,
+        presencasConfirmadas: dados.presencasConfirmadas || 0,
         percentualConclusao: dados.percentual || 0,
+        usuarios: dados.usuarios || {},
       };
     }
   );
 });
 
-// Computed para obter colaboradores do setor selecionado (DADOS REAIS DA API)
+// Computed para obter colaboradores do setor selecionado
 const colaboradoresSetor = computed(() => {
   if (!setorSelecionado.value) return [];
 
-  // Buscar os dados reais da classe no tipo de auditoria atual
-  const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+  const usuariosObj = setorSelecionado.value.usuarios || {};
 
-  const classeAtual = auditoriaAtual.classesLeitura[setorSelecionado.value.ClasseProduto];
-  if (!classeAtual || !classeAtual.usuarios) return [];
+  // Transformar objeto de usuários em array
+  const usuariosArray = Object.entries(usuariosObj).map(
+    ([nome, itensLidos], index) => {
+      // Calcular eficiência
+      const eficiencia =
+        setorSelecionado.value.itensValidos > 0
+          ? Math.round((itensLidos / setorSelecionado.value.itensValidos) * 100)
+          : 0;
 
-  // Transformar o objeto de usuários em array de colaboradores
-  const usuariosArray = Object.entries(classeAtual.usuarios).map(([nome, itensLidos], index) => {
-    // Buscar dados completos do usuário do endpoint /metricas/usuarios
-    const usuarioCompleto = dadosUsuarios.value.find(u => u.nome === nome);
+      // Avatares rotativos
+      const avatares = ["👨‍💼", "👩‍💼", "👨‍🔧", "👩‍🔧", "👨‍🎨", "👩‍🎨", "👨‍🍳", "👩‍🍳"];
+      const avatar = avatares[index % avatares.length];
 
-    // Calcular eficiência baseada na quantidade de itens lidos
-    const eficiencia = classeAtual.itensValidos > 0
-      ? Math.min(Math.round((itensLidos / classeAtual.itensValidos) * 100 * 10), 100)
-      : 0;
+      return {
+        id: index + 1,
+        nome: nome,
+        funcao: "Auditor",
+        status: itensLidos > 0 ? "ativo" : "ausente",
+        itensLidos: itensLidos,
+        eficiencia: eficiencia,
+        avatar: avatar,
+        foto: null,
+        iniciais: nome
+          .split(" ")
+          .map((p) => p[0])
+          .join("")
+          .toUpperCase()
+          .substring(0, 2),
+      };
+    }
+  );
 
-    // Determinar avatar baseado no índice (rotação de emojis)
-    const avatares = ["👨‍💼", "👩‍💼", "👨‍🔧", "👩‍🔧", "👨‍🎨", "👩‍🎨", "👨‍🍳", "👩‍🍳"];
-    const avatar = avatares[index % avatares.length];
-
-    // Determinar status (ativo se leu itens, ausente se não leu)
-    const status = itensLidos > 0 ? "ativo" : "ausente";
-
-    return {
-      id: usuarioCompleto?.id || index + 1,
-      nome: nome,
-      funcao: "Auditor",
-      status: status,
-      itensLidos: itensLidos,
-      eficiencia: eficiencia,
-      avatar: avatar,
-
-      // Dados enriquecidos do endpoint /metricas/usuarios
-      foto: usuarioCompleto?.foto || null,
-      iniciais: usuarioCompleto?.iniciais || nome.split(' ').map(p => p[0]).join('').toUpperCase().substring(0, 2),
-      conquistas: usuarioCompleto?.conquistas || {
-        totalConquistas: 0,
-        nivel: 1,
-        titulo: 'Novato',
-        xpTotal: 0
-      },
-      desempenho: usuarioCompleto?.desempenho || {
-        posicaoLoja: 0,
-        posicaoGeral: 0,
-        pontuacaoTotal: 0
-      },
-      auditoriasPorTipo: usuarioCompleto?.auditoriasPorTipo || {
-        etiquetas: 0,
-        rupturas: 0,
-        presencas: 0
-      }
-    };
-  });
-
-  // Ordenar por quantidade de itens lidos (decrescente)
   return usuariosArray.sort((a, b) => b.itensLidos - a.itensLidos);
 });
 
 // Computed properties para o resumo
 const percentualConclusaoGeral = computed(() => {
   return (
-    dadosReais.value.metricas[tipoAuditoriaAtual.value]?.percentualConclusao || 0
+    dadosReais.value.metricas[tipoAuditoriaAtual.value]?.resumo?.percentualConclusao ||
+    0
   );
 });
 
 const totalItens = computed(() => {
-  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.totalItens || 0;
+  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.resumo?.totalItens || 0;
 });
 
 const itensLidos = computed(() => {
-  // Para etiquetas usar itensValidos, para outros usar itensLidos
-  if (tipoAuditoriaAtual.value === 'etiquetas') {
-    return dadosReais.value.metricas.etiquetas?.itensValidos || 0;
-  }
   return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.itensLidos || 0;
 });
 
 const itensAtualizados = computed(() => {
-  return dadosReais.value.metricas.etiquetas?.itensAtualizados || 0;
+  return dadosReais.value.metricas.etiquetas?.resumo?.itensAtualizados || 0;
 });
 
 const custoTotalRuptura = computed(() => {
-  return dadosReais.value.metricas.rupturas?.custoTotalRuptura || 0;
+  return dadosReais.value.metricas.rupturas?.resumo?.custoTotalRuptura || 0;
 });
 
 const percentualPresenca = computed(() => {
-  return dadosReais.value.metricas.presencas?.percentualPresenca || 0;
+  return dadosReais.value.metricas.presencas?.resumo?.percentualPresenca || 0;
 });
 
-// Computed para calcular total de colaboradores únicos envolvidos
+// Computed para calcular total de colaboradores únicos
 const totalColaboradores = computed(() => {
   const auditoriaAtual = dadosReais.value.metricas[tipoAuditoriaAtual.value];
   if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return 0;
 
-  // Coletar todos os usuários únicos de todas as classes
   const usuariosUnicos = new Set();
 
   Object.values(auditoriaAtual.classesLeitura).forEach((classe) => {
     if (classe.usuarios) {
       Object.keys(classe.usuarios).forEach((usuario) => {
-        // Ignorar "Produto não auditado" da contagem
         if (usuario !== "Produto não auditado") {
           usuariosUnicos.add(usuario);
         }
@@ -845,13 +567,13 @@ const totalColaboradores = computed(() => {
   return usuariosUnicos.size;
 });
 
-
 const getPercentualLeitura = (setor) => {
-  // Use the percentual directly from the backend classesLeitura data
-  if (typeof setor.percentualConclusao !== 'undefined' && setor.percentualConclusao !== null) {
+  if (
+    typeof setor.percentualConclusao !== "undefined" &&
+    setor.percentualConclusao !== null
+  ) {
     return setor.percentualConclusao;
   }
-  // Fallback calculation if percentualConclusao is not available
   if (!setor.itensValidos || setor.itensValidos <= 0) return 0;
   const percentual = (setor.itensLidos / setor.itensValidos) * 100;
   return Math.min(percentual, 100);
@@ -889,6 +611,11 @@ const getTipoAuditoriaLabel = () => {
   return labels[tipoAuditoriaAtual.value] || "Auditoria";
 };
 
+const encurtarNome = (nome, maxLength) => {
+  if (nome.length <= maxLength) return nome;
+  return nome.substring(0, maxLength) + "...";
+};
+
 const formatarMoeda = (valor) => {
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 2,
@@ -921,85 +648,107 @@ const buscarMetricasLoja = async () => {
     carregando.value = true;
     erro.value = null;
 
-    // Buscar métricas completas de todas as auditorias E dados dos usuários em paralelo
-    const [responseClasses, responseUsuarios] = await Promise.all([
-      api.get('/api/metricas/loja-daily/classes-completas'),
-      api.get('/metricas/usuarios')
-    ]);
+    // Verificar se há loja selecionada
+    if (!lojaStore.codigoLojaAtual) {
+      throw new Error("Nenhuma loja selecionada. Por favor, selecione uma loja.");
+    }
 
-    if (responseClasses.data) {
-      // Mapear dados do endpoint classes-completas
+    console.log(`🔍 Buscando métricas para loja: ${lojaStore.codigoLojaAtual}`);
+
+    // Buscar métricas completas de classes
+    const response = await axios.get(
+      "http://localhost:3000/api/metricas/loja-daily/classes-completas",
+      {
+        headers: {
+          "x-loja": lojaStore.codigoLojaAtual,
+        },
+      }
+    );
+
+    if (response.data) {
+      console.log("✅ Dados recebidos do backend:", response.data);
+
+      // Mapear dados do endpoint
       dadosReais.value = {
         usuarioId: "",
-        loja: responseClasses.data.loja || "",
-        lojaNome: responseClasses.data.loja || "",
+        loja: response.data.loja || "",
+        lojaNome: response.data.loja || "",
         metricas: {
-          data: responseClasses.data.data || new Date().toISOString(),
+          data: response.data.data || new Date().toISOString(),
 
           // Etiquetas
           etiquetas: {
-            totalItens: responseClasses.data.etiquetas?.resumo?.totalItens || 0,
-            itensValidos: responseClasses.data.etiquetas?.resumo?.itensValidos || 0,
-            itensLidos: responseClasses.data.etiquetas?.resumo?.itensValidos || 0,
-            itensAtualizados: responseClasses.data.etiquetas?.resumo?.itensAtualizados || 0,
-            itensDesatualizado: responseClasses.data.etiquetas?.resumo?.itensDesatualizado || 0,
-            percentualConclusao: responseClasses.data.etiquetas?.resumo?.percentualConclusao || 0,
-            percentualDesatualizado: responseClasses.data.etiquetas?.resumo?.percentualDesatualizado || 0,
-            classesLeitura: responseClasses.data.etiquetas?.classesLeitura || {},
+            totalItens: response.data.etiquetas?.resumo?.totalItens || 0,
+            itensValidos: response.data.etiquetas?.resumo?.itensValidos || 0,
+            itensLidos: response.data.etiquetas?.resumo?.itensLidos || 0,
+            itensAtualizados:
+              response.data.etiquetas?.resumo?.itensAtualizados || 0,
+            itensDesatualizado:
+              response.data.etiquetas?.resumo?.itensDesatualizado || 0,
+            percentualConclusao:
+              response.data.etiquetas?.resumo?.percentualConclusao || 0,
+            percentualDesatualizado:
+              response.data.etiquetas?.resumo?.percentualDesatualizado || 0,
+            classesLeitura: response.data.etiquetas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Rupturas
           rupturas: {
-            totalItens: responseClasses.data.rupturas?.resumo?.totalItens || 0,
-            itensLidos: responseClasses.data.rupturas?.resumo?.itensLidos || 0,
-            itensAtualizados: responseClasses.data.rupturas?.resumo?.itensLidos || 0,
-            percentualConclusao: responseClasses.data.rupturas?.resumo?.percentualConclusao || 0,
-            custoTotalRuptura: responseClasses.data.rupturas?.resumo?.custoTotalRuptura || 0,
-            classesLeitura: responseClasses.data.rupturas?.classesLeitura || {},
+            totalItens: response.data.rupturas?.resumo?.totalItens || 0,
+            itensLidos: response.data.rupturas?.resumo?.itensLidos || 0,
+            itensAtualizados: response.data.rupturas?.resumo?.itensAtualizados || 0,
+            percentualConclusao:
+              response.data.rupturas?.resumo?.percentualConclusao || 0,
+            custoTotalRuptura:
+              response.data.rupturas?.resumo?.custoTotalRuptura || 0,
+            classesLeitura: response.data.rupturas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Presenças
           presencas: {
-            totalItens: responseClasses.data.presencas?.resumo?.totalItens || 0,
-            itensLidos: responseClasses.data.presencas?.resumo?.itensValidos || 0,
-            itensAtualizados: responseClasses.data.presencas?.resumo?.itensAtualizados || 0,
-            percentualConclusao: responseClasses.data.presencas?.resumo?.percentualConclusao || 0,
-            presencasConfirmadas: responseClasses.data.presencas?.resumo?.presencasConfirmadas || 0,
-            percentualPresenca: responseClasses.data.presencas?.resumo?.percentualConclusao || 0,
-            classesLeitura: responseClasses.data.presencas?.classesLeitura || {},
+            totalItens: response.data.presencas?.resumo?.totalItens || 0,
+            itensLidos: response.data.presencas?.resumo?.itensLidos || 0,
+            itensAtualizados:
+              response.data.presencas?.resumo?.itensAtualizados || 0,
+            percentualConclusao:
+              response.data.presencas?.resumo?.percentualConclusao || 0,
+            presencasConfirmadas:
+              response.data.presencas?.resumo?.presencasConfirmadas || 0,
+            percentualPresenca:
+              response.data.presencas?.resumo?.percentualPresenca || 0,
+            classesLeitura: response.data.presencas?.classesLeitura || {},
             contadorClasses: {},
           },
 
           // Totais consolidados
           totais: {
-            totalItens: responseClasses.data.totais?.totalItens || 0,
+            totalItens: response.data.totais?.totalItens || 0,
             itensLidos: 0,
             itensAtualizados: 0,
-            percentualConclusaoGeral: responseClasses.data.totais?.percentualConclusaoGeral || 0,
+            percentualConclusaoGeral:
+              response.data.totais?.percentualConclusaoGeral || 0,
             pontuacaoTotal: 0,
           },
         },
       };
 
-      console.log("✅ Métricas completas carregadas com sucesso:", dadosReais.value);
-      console.log("📊 Classes de Etiquetas:", Object.keys(dadosReais.value.metricas.etiquetas.classesLeitura).length);
-      console.log("📊 Classes de Rupturas:", Object.keys(dadosReais.value.metricas.rupturas.classesLeitura).length);
-      console.log("📊 Classes de Presenças:", Object.keys(dadosReais.value.metricas.presencas.classesLeitura).length);
+      console.log("✅ Métricas carregadas com sucesso");
+      console.log(`📊 Classes Etiquetas: ${Object.keys(dadosReais.value.metricas.etiquetas.classesLeitura).length}`);
+      console.log(`📊 Classes Rupturas: ${Object.keys(dadosReais.value.metricas.rupturas.classesLeitura).length}`);
+      console.log(`📊 Classes Presenças: ${Object.keys(dadosReais.value.metricas.presencas.classesLeitura).length}`);
     }
-
-    // Armazenar dados dos usuários
-    if (responseUsuarios.data?.usuarios) {
-      dadosUsuarios.value = responseUsuarios.data.usuarios;
-      console.log("✅ Dados de usuários carregados:", dadosUsuarios.value.length, "usuários");
-    }
-
   } catch (error) {
-    console.error("❌ Erro ao buscar métricas da loja:", error);
-    erro.value = "Erro ao carregar métricas. Tente novamente mais tarde.";
+    console.error("❌ Erro ao buscar métricas:", error);
 
-    // Manter dados vazios em caso de erro
+    if (error.response?.status === 400) {
+      erro.value = "Loja não selecionada ou inválida. Por favor, selecione uma loja.";
+    } else if (error.message.includes("loja selecionada")) {
+      erro.value = error.message;
+    } else {
+      erro.value = "Erro ao carregar métricas. Tente novamente mais tarde.";
+    }
   } finally {
     carregando.value = false;
   }
@@ -1007,7 +756,8 @@ const buscarMetricasLoja = async () => {
 
 // Inicialização
 onMounted(() => {
-  console.log("Componente MetricasSetor montado");
+  console.log("📦 Componente MetricasSetor montado");
+  console.log(`🏪 Loja atual: ${lojaStore.codigoLojaAtual || "Nenhuma"}`);
   buscarMetricasLoja();
 });
 </script>
@@ -1466,21 +1216,26 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
-.colaboradores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+.colaboradores-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.colaborador-card {
+.colaborador-item {
   background: white;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
+
   gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.colaborador-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .colaborador-avatar {
@@ -1507,14 +1262,22 @@ onMounted(() => {
   color: #667eea;
 }
 
-.colaborador-info {
+.colaborador-info-principal {
   flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
+.colaborador-nome-funcao {
+  display: flex;
+  flex-direction: column;
+}
 .colaborador-nome {
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 0.25rem;
+  font-size: 0.9rem;
 }
 
 .colaborador-funcao {
@@ -1537,14 +1300,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.colaborador-status {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
-  display: inline-block;
-}
-
 .colaborador-status.ativo {
   background: rgba(76, 175, 80, 0.1);
   color: #4caf50;
@@ -1555,16 +1310,16 @@ onMounted(() => {
   color: #ff9800;
 }
 
-.colaborador-metricas {
+.colaborador-metricas-inline {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  text-align: center;
+  gap: 1rem;
 }
 
 .colaborador-metrica {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
+  text-align: right;
 }
 
 .colaborador-metrica .metrica-valor {
@@ -1675,8 +1430,8 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .colaboradores-grid {
-    grid-template-columns: 1fr;
+  .colaboradores-lista {
+    gap: 0.5rem;
   }
 
   .modal-content {
@@ -1688,9 +1443,14 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .colaborador-card {
-    flex-direction: column;
-    text-align: center;
+  .colaborador-item {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .colaborador-metricas {
+    flex-direction: row;
+    gap: 1rem;
   }
 }
 
