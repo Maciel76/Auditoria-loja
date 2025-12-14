@@ -51,13 +51,6 @@
           >
             Presença
           </button>
-          <button
-            class="action-btn"
-            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
-            @click="alterarTipoAuditoria('rupturas')"
-          >
-            Ruptura
-          </button>
         </div>
       </div>
 
@@ -399,7 +392,6 @@ const getTipoAuditoriaLabel = () => {
   const labels = {
     etiquetas: "Etiquetas",
     presencas: "Presenças",
-    rupturas: "Rupturas",
   };
   return labels[tipoAuditoriaAtual.value] || "Auditoria";
 };
