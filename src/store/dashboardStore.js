@@ -23,7 +23,6 @@ export const useDashboardStore = defineStore("dashboard", {
     realVotingItems: [],
 
     // Conquistas do usuário
-    userAchievements: [],
 
     // Estados de loading
     loading: {
@@ -83,15 +82,13 @@ export const useDashboardStore = defineStore("dashboard", {
     },
 
     // Conquistas desbloqueadas
-    unlockedAchievements: (state) => {
-      return state.userAchievements.filter((achievement) => achievement.unlocked);
+    unlockedAchievements: () => {
+      return [];
     },
 
     // Progresso das conquistas
-    achievementProgress: (state) => {
-      const total = state.userAchievements.length;
-      const unlocked = state.userAchievements.filter((a) => a.unlocked).length;
-      return total > 0 ? Math.round((unlocked / total) * 100) : 0;
+    achievementProgress: () => {
+      return 0;
     },
   },
 
@@ -336,21 +333,9 @@ export const useDashboardStore = defineStore("dashboard", {
 
     // Carregar conquistas do usuário
     async loadUserAchievements(userId = null) {
-      this.loading.achievements = true;
-      try {
-        const response = await axios.get(`/api/dashboard/achievements${userId ? `?user=${userId}` : ""}`);
-
-        if (response.data.success) {
-          this.userAchievements = response.data.achievements;
-        } else {
-          this.loadMockAchievements();
-        }
-      } catch (error) {
-        console.warn("Usando dados mock para conquistas:", error.message);
-        this.loadMockAchievements();
-      } finally {
-        this.loading.achievements = false;
-      }
+      // Feature de conquistas removida
+      this.userAchievements = [];
+      this.loading.achievements = false;
     },
 
     // Submeter sugestão
@@ -572,7 +557,6 @@ export const useDashboardStore = defineStore("dashboard", {
     clearData() {
       this.feedItems = [];
       this.votingItems = [];
-      this.userAchievements = [];
       this.systemStats = {
         activeAudits: 0,
         onlineUsers: 0,

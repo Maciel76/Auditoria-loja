@@ -41,28 +41,28 @@
               :class="{ active: categoryFilter === 'audits' }"
               @click="categoryFilter = 'audits'"
             >
-              📋 Auditorias ({{ getCountByCategory('audits') }})
+              📋 Auditorias ({{ getCountByCategory("audits") }})
             </button>
             <button
               class="filter-btn"
               :class="{ active: categoryFilter === 'performance' }"
               @click="categoryFilter = 'performance'"
             >
-              ⚡ Performance ({{ getCountByCategory('performance') }})
+              ⚡ Performance ({{ getCountByCategory("performance") }})
             </button>
             <button
               class="filter-btn"
               :class="{ active: categoryFilter === 'consistency' }"
               @click="categoryFilter = 'consistency'"
             >
-              📅 Consistência ({{ getCountByCategory('consistency') }})
+              📅 Consistência ({{ getCountByCategory("consistency") }})
             </button>
             <button
               class="filter-btn"
               :class="{ active: categoryFilter === 'participation' }"
               @click="categoryFilter = 'participation'"
             >
-              🤝 Participação ({{ getCountByCategory('participation') }})
+              🤝 Participação ({{ getCountByCategory("participation") }})
             </button>
           </div>
         </div>
@@ -75,15 +75,17 @@
               <span class="stat-label">Total</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value">{{ getCountByDifficulty('easy') }}</span>
+              <span class="stat-value">{{ getCountByDifficulty("easy") }}</span>
               <span class="stat-label">Fáceis</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value">{{ getCountByDifficulty('medium') }}</span>
+              <span class="stat-value">{{
+                getCountByDifficulty("medium")
+              }}</span>
               <span class="stat-label">Médias</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value">{{ getCountByDifficulty('hard') }}</span>
+              <span class="stat-value">{{ getCountByDifficulty("hard") }}</span>
               <span class="stat-label">Difíceis</span>
             </div>
           </div>
@@ -113,13 +115,21 @@
                 <p class="achievement-id">{{ achievement.achievementId }}</p>
               </div>
               <div class="achievement-badges">
-                <span class="badge badge-category" :class="achievement.category">
+                <span
+                  class="badge badge-category"
+                  :class="achievement.category"
+                >
                   {{ getCategoryText(achievement.category) }}
                 </span>
-                <span class="badge badge-difficulty" :class="achievement.difficulty">
+                <span
+                  class="badge badge-difficulty"
+                  :class="achievement.difficulty"
+                >
                   {{ getDifficultyText(achievement.difficulty) }}
                 </span>
-                <span class="badge badge-points">{{ achievement.points }} XP</span>
+                <span class="badge badge-points"
+                  >{{ achievement.points }} XP</span
+                >
               </div>
             </div>
 
@@ -134,29 +144,46 @@
               <div class="criteria-grid">
                 <div class="criteria-item">
                   <span class="criteria-label">Tipo:</span>
-                  <span class="criteria-value">{{ getCriteriaTypeText(achievement.criteria.type) }}</span>
+                  <span class="criteria-value">{{
+                    getCriteriaTypeText(achievement.criteria.type)
+                  }}</span>
                 </div>
                 <div class="criteria-item">
                   <span class="criteria-label">Meta:</span>
-                  <span class="criteria-value">{{ achievement.criteria.target }}</span>
+                  <span class="criteria-value">{{
+                    achievement.criteria.target
+                  }}</span>
                 </div>
                 <div class="criteria-item">
                   <span class="criteria-label">Campo Fonte:</span>
-                  <span class="criteria-value source-field">{{ achievement.sourceField || 'Não definido' }}</span>
+                  <span class="criteria-value source-field">{{
+                    achievement.sourceField || "Não definido"
+                  }}</span>
                 </div>
               </div>
-              <p class="criteria-description">{{ achievement.criteria.description }}</p>
+              <p class="criteria-description">
+                {{ achievement.criteria.description }}
+              </p>
             </div>
 
             <!-- Ações -->
             <div class="achievement-actions">
-              <button @click="editAchievement(achievement)" class="btn-action btn-edit">
+              <button
+                @click="editAchievement(achievement)"
+                class="btn-action btn-edit"
+              >
                 ✏️ Editar
               </button>
-              <button @click="duplicateAchievement(achievement)" class="btn-action btn-duplicate">
+              <button
+                @click="duplicateAchievement(achievement)"
+                class="btn-action btn-duplicate"
+              >
                 📋 Duplicar
               </button>
-              <button @click="deleteAchievement(achievement.achievementId)" class="btn-action btn-delete">
+              <button
+                @click="deleteAchievement(achievement.achievementId)"
+                class="btn-action btn-delete"
+              >
                 🗑️ Deletar
               </button>
             </div>
@@ -181,7 +208,9 @@
         <div class="modal-container" @click.stop>
           <!-- Modal Header -->
           <div class="modal-header">
-            <h2>{{ isEditing ? '✏️ Editar Conquista' : '➕ Nova Conquista' }}</h2>
+            <h2>
+              {{ isEditing ? "✏️ Editar Conquista" : "➕ Nova Conquista" }}
+            </h2>
             <button @click="closeModal" class="btn-close">✖</button>
           </div>
 
@@ -200,7 +229,9 @@
                     :disabled="isEditing"
                     class="form-input"
                   />
-                  <small>Identificador único (apenas letras, números e hífen)</small>
+                  <small
+                    >Identificador único (apenas letras, números e hífen)</small
+                  >
                 </div>
               </div>
 
@@ -316,26 +347,47 @@
                   <label>Selecione o campo que alimenta esta conquista *</label>
                   <select v-model="formData.sourceField" class="form-select">
                     <optgroup label="Auditorias">
-                      <option value="contadoresAuditorias.totalGeral">contadoresAuditorias.totalGeral</option>
-                      <option value="contadoresAuditorias.totalEtiquetas">contadoresAuditorias.totalEtiquetas</option>
-                      <option value="contadoresAuditorias.totalRupturas">contadoresAuditorias.totalRupturas</option>
+                      <option value="contadoresAuditorias.totalGeral">
+                        contadoresAuditorias.totalGeral
+                      </option>
+                      <option value="contadoresAuditorias.totalEtiquetas">
+                        contadoresAuditorias.totalEtiquetas
+                      </option>
+                      <option value="contadoresAuditorias.totalRupturas">
+                        contadoresAuditorias.totalRupturas
+                      </option>
                     </optgroup>
                     <optgroup label="Itens Lidos">
-                      <option value="totaisAcumulados.itensLidosTotal">totaisAcumulados.itensLidosTotal</option>
-                      <option value="totaisAcumulados.itensLidosEtiquetas">totaisAcumulados.itensLidosEtiquetas</option>
+                      <option value="totaisAcumulados.itensLidosTotal">
+                        totaisAcumulados.itensLidosTotal
+                      </option>
+                      <option value="totaisAcumulados.itensLidosEtiquetas">
+                        totaisAcumulados.itensLidosEtiquetas
+                      </option>
                     </optgroup>
                     <optgroup label="Precisão">
-                      <option value="totais.percentualConclusaoGeral">totais.percentualConclusaoGeral</option>
+                      <option value="totais.percentualConclusaoGeral">
+                        totais.percentualConclusaoGeral
+                      </option>
                     </optgroup>
                     <optgroup label="Tendências">
-                      <option value="tendencias.currentStreak">tendencias.currentStreak</option>
-                      <option value="tendencias.weeklyAudits">tendencias.weeklyAudits</option>
+                      <option value="tendencias.currentStreak">
+                        tendencias.currentStreak
+                      </option>
+                      <option value="tendencias.weeklyAudits">
+                        tendencias.weeklyAudits
+                      </option>
                     </optgroup>
                     <optgroup label="Participação">
-                      <option value="ContadorLocais">ContadorLocais (setores únicos)</option>
+                      <option value="ContadorLocais">
+                        ContadorLocais (setores únicos)
+                      </option>
                     </optgroup>
                   </select>
-                  <small class="field-hint">Este campo define de onde vem o valor para comparar com a meta</small>
+                  <small class="field-hint"
+                    >Este campo define de onde vem o valor para comparar com a
+                    meta</small
+                  >
                 </div>
               </div>
             </div>
@@ -345,15 +397,21 @@
               <h3>👁️ Preview</h3>
               <div class="preview-card">
                 <div class="preview-header">
-                  <span class="preview-icon">{{ formData.icon || '🏆' }}</span>
+                  <span class="preview-icon">{{ formData.icon || "🏆" }}</span>
                   <div class="preview-info">
-                    <h4>{{ formData.title || 'Título da Conquista' }}</h4>
-                    <p>{{ formData.description || 'Descrição da conquista' }}</p>
+                    <h4>{{ formData.title || "Título da Conquista" }}</h4>
+                    <p>
+                      {{ formData.description || "Descrição da conquista" }}
+                    </p>
                   </div>
                 </div>
                 <div class="preview-badges">
-                  <span class="badge" :class="formData.category">{{ getCategoryText(formData.category) }}</span>
-                  <span class="badge" :class="formData.difficulty">{{ getDifficultyText(formData.difficulty) }}</span>
+                  <span class="badge" :class="formData.category">{{
+                    getCategoryText(formData.category)
+                  }}</span>
+                  <span class="badge" :class="formData.difficulty">{{
+                    getDifficultyText(formData.difficulty)
+                  }}</span>
                   <span class="badge">{{ formData.points || 0 }} XP</span>
                 </div>
               </div>
@@ -364,7 +422,7 @@
           <div class="modal-footer">
             <button @click="closeModal" class="btn-cancel">Cancelar</button>
             <button @click="saveAchievement" class="btn-save">
-              {{ isEditing ? '💾 Salvar' : '➕ Criar' }}
+              {{ isEditing ? "💾 Salvar" : "➕ Criar" }}
             </button>
           </div>
         </div>
@@ -373,7 +431,11 @@
 
     <!-- Notificação -->
     <transition name="fade">
-      <div v-if="notification.show" class="notification" :class="notification.type">
+      <div
+        v-if="notification.show"
+        class="notification"
+        :class="notification.type"
+      >
         {{ notification.message }}
       </div>
     </transition>
@@ -381,11 +443,11 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
-import { useConquistasStore } from '../store/conquistasStore';
+import { ref, computed, onMounted } from "vue";
+import { useConquistasStore } from "../../store/conquistasStore";
 
 export default {
-  name: 'AchievementsManager',
+  name: "AchievementsManager",
   setup() {
     // Store
     const conquistasStore = useConquistasStore();
@@ -393,7 +455,7 @@ export default {
     // Estados
     const showModal = ref(false);
     const isEditing = ref(false);
-    const categoryFilter = ref('');
+    const categoryFilter = ref("");
     const currentEditId = ref(null);
 
     // Usar conquistas da store
@@ -401,81 +463,84 @@ export default {
 
     const notification = ref({
       show: false,
-      message: '',
-      type: 'success'
+      message: "",
+      type: "success",
     });
 
     // Formulário
     const formData = ref({
-      achievementId: '',
-      title: '',
-      description: '',
-      icon: '🏆',
-      category: 'audits',
-      difficulty: 'easy',
+      achievementId: "",
+      title: "",
+      description: "",
+      icon: "🏆",
+      category: "audits",
+      difficulty: "easy",
       points: 10,
       criteria: {
-        type: 'count',
+        type: "count",
         target: 1,
-        description: ''
+        description: "",
       },
-      sourceField: 'contadoresAuditorias.totalGeral'
+      sourceField: "contadoresAuditorias.totalGeral",
     });
 
     // Computed
     const filteredAchievements = computed(() => {
       if (!categoryFilter.value) return achievements.value;
-      return achievements.value.filter(a => a.category === categoryFilter.value);
+      return achievements.value.filter(
+        (a) => a.category === categoryFilter.value
+      );
     });
 
     // Métodos
     const loadAchievements = async () => {
       try {
         await conquistasStore.carregarConquistas();
-        showNotification('Conquistas atualizadas!', 'success');
+        showNotification("Conquistas atualizadas!", "success");
       } catch (error) {
-        showNotification('Erro ao atualizar conquistas', 'error');
+        showNotification("Erro ao atualizar conquistas", "error");
       }
     };
 
     const getCountByCategory = (category) => {
-      return achievements.value.filter(a => a.category === category).length;
+      return achievements.value.filter((a) => a.category === category).length;
     };
 
     const getCountByDifficulty = (difficulty) => {
-      return achievements.value.filter(a => a.difficulty === difficulty).length;
+      return achievements.value.filter((a) => a.difficulty === difficulty)
+        .length;
     };
 
     const getCategoryText = (category) => {
       const texts = {
-        audits: 'Auditorias',
-        performance: 'Performance',
-        consistency: 'Consistência',
-        participation: 'Participação'
+        audits: "Auditorias",
+        performance: "Performance",
+        consistency: "Consistência",
+        participation: "Participação",
       };
       return texts[category] || category;
     };
 
     const getDifficultyText = (difficulty) => {
       const texts = {
-        easy: 'Fácil',
-        medium: 'Média',
-        hard: 'Difícil'
+        easy: "Fácil",
+        medium: "Média",
+        hard: "Difícil",
       };
       return texts[difficulty] || difficulty;
     };
 
     const getCriteriaTypeText = (type) => {
       const texts = {
-        count: 'Contagem',
-        percentage: 'Percentual',
-        streak: 'Sequência'
+        count: "Contagem",
+        percentage: "Percentual",
+        streak: "Sequência",
       };
       return texts[type] || type;
     };
 
     const getFilterTitle = () => {
-      if (!categoryFilter.value) return '🏆 Todas as Conquistas';
+      if (!categoryFilter.value) return "🏆 Todas as Conquistas";
       return `${getCategoryText(categoryFilter.value)}`;
     };
 
@@ -492,26 +557,29 @@ export default {
 
     const resetForm = () => {
       formData.value = {
-        achievementId: '',
-        title: '',
-        description: '',
-        icon: '🏆',
-        category: 'audits',
-        difficulty: 'easy',
+        achievementId: "",
+        title: "",
+        description: "",
+        icon: "🏆",
+        category: "audits",
+        difficulty: "easy",
         points: 10,
         criteria: {
-          type: 'count',
+          type: "count",
           target: 1,
-          description: ''
+          description: "",
         },
-        sourceField: 'contadoresAuditorias.totalGeral'
+        sourceField: "contadoresAuditorias.totalGeral",
       };
     };
 
     const editAchievement = (achievement) => {
       isEditing.value = true;
       currentEditId.value = achievement._id || achievement.achievementId;
-      formData.value = { ...achievement, criteria: { ...achievement.criteria } };
+      formData.value = {
+        ...achievement,
+        criteria: { ...achievement.criteria },
+      };
       showModal.value = true;
     };
 
@@ -523,46 +591,50 @@ export default {
         _id: undefined,
         achievementId: `${achievement.achievementId}-copy`,
         title: `${achievement.title} (Cópia)`,
-        criteria: { ...achievement.criteria }
+        criteria: { ...achievement.criteria },
       };
       showModal.value = true;
     };
 
     const saveAchievement = async () => {
       if (!formData.value.achievementId || !formData.value.title) {
-        showNotification('Preencha os campos obrigatórios!', 'error');
+        showNotification("Preencha os campos obrigatórios!", "error");
         return;
       }
 
       try {
         if (isEditing.value) {
           // Atualizar conquista existente
-          await conquistasStore.atualizarConquista(currentEditId.value, formData.value);
-          showNotification('Conquista atualizada com sucesso!', 'success');
+          await conquistasStore.atualizarConquista(
+            currentEditId.value,
+            formData.value
+          );
+          showNotification("Conquista atualizada com sucesso!", "success");
         } else {
           // Criar nova conquista
           await conquistasStore.criarConquista(formData.value);
-          showNotification('Conquista criada com sucesso!', 'success');
+          showNotification("Conquista criada com sucesso!", "success");
         }
         closeModal();
       } catch (error) {
-        const mensagem = error.response?.data?.erro || 'Erro ao salvar conquista';
-        showNotification(mensagem, 'error');
+        const mensagem =
+          error.response?.data?.erro || "Erro ao salvar conquista";
+        showNotification(mensagem, "error");
       }
     };
 
     const deleteAchievement = async (achievementId) => {
-      if (confirm('Tem certeza que deseja deletar esta conquista?')) {
+      if (confirm("Tem certeza que deseja deletar esta conquista?")) {
         try {
           await conquistasStore.deletarConquista(achievementId, false); // Soft delete
-          showNotification('Conquista desativada com sucesso!', 'success');
+          showNotification("Conquista desativada com sucesso!", "success");
         } catch (error) {
-          showNotification('Erro ao deletar conquista', 'error');
+          showNotification("Erro ao deletar conquista", "error");
         }
       }
     };
 
-    const showNotification = (message, type = 'success') => {
+    const showNotification = (message, type = "success") => {
       notification.value = { show: true, message, type };
       setTimeout(() => {
         notification.value.show = false;
@@ -597,7 +669,7 @@ export default {
       deleteAchievement,
       loading: computed(() => conquistasStore.loading),
     };
-  }
+  },
 };
 </script>
 
@@ -612,8 +684,8 @@ export default {
 
 /* Header */
 .achievements-header {
-  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 24px 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
@@ -674,7 +746,7 @@ export default {
 
 .btn-create {
   background: white;
-  color: #ea580c;
+  color: #667eea;
 }
 
 .btn-create:hover {
@@ -736,12 +808,12 @@ export default {
 }
 
 .filter-btn:hover {
-  border-color: #f59e0b;
-  background: #fff8f0;
+  border-color: #667eea;
+  background: #f0f4ff;
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border-color: #f59e0b;
 }
@@ -764,8 +836,8 @@ export default {
 .stat-value {
   display: block;
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #f59e0b;
+  font-weight: 600;
+  color: #667eea;
 }
 
 .stat-label {
@@ -853,7 +925,7 @@ export default {
   margin: 0;
   font-size: 0.75rem;
   color: #6c757d;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
 }
 
 .achievement-badges {
@@ -906,7 +978,7 @@ export default {
 }
 
 .badge-points {
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
 }
 
@@ -960,7 +1032,7 @@ export default {
 }
 
 .criteria-value.source-field {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   color: #059669;
   font-size: 0.8rem;
 }
@@ -1180,8 +1252,8 @@ export default {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-input:disabled {
@@ -1204,8 +1276,8 @@ export default {
   display: block;
   margin-top: 6px;
   padding: 8px;
-  background: #fef3c7;
-  border-left: 3px solid #f59e0b;
+  background: #eef2ff;
+  border-left: 3px solid #667eea;
   border-radius: 4px;
   font-size: 0.75rem;
   color: #92400e;
@@ -1286,7 +1358,7 @@ export default {
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
 }
 

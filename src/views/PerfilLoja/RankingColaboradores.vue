@@ -907,7 +907,7 @@ const buscarDados = async () => {
       url += `?${params.toString()}`;
     }
 
-    console.log(`🔄 Buscando dados do ${modeloUsado}:`, url);
+    console.log(`🔄 Buscando dados do ${modeloUsado}: ${url}`);
 
     const response = await axios.get(url, {
       headers: {

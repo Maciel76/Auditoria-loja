@@ -246,6 +246,20 @@
           </router-link>
 
           <router-link
+            to="/corredores"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Corredores' : ''"
+          >
+            <img
+              src="../assets/svg/list.svg"
+              alt="Corredores"
+              class="nav-icon"
+            />
+            <span class="nav-text" v-if="!sidebarCollapsed">Corredores</span>
+          </router-link>
+
+          <router-link
             to="/usuarios"
             class="nav-item"
             @click="closeSubmenus"

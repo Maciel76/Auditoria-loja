@@ -33,7 +33,8 @@
         :variacao="8"
       />
       <!-- Cards de Estatísticas -->
-      <EstatisticaCard />
+      <!-- <EstatisticaCard /> -->
+      <InsightsLoja :loja="loja" :metricas="metricas" :insights="insights" />
       <MetricasSetor />
 
       <!-- Mapa de Performance -->
@@ -50,11 +51,11 @@
       />
 
       <!-- Timeline de Atividades Recentes -->
-      <TimelineAtividades
+      <!-- <TimelineAtividades
         :atividades="atividadesRecentes"
         titulo="Atividades Recentes"
         v-if="atividadesRecentes.length > 0"
-      />
+      /> -->
 
       <!-- Métricas por Tipo de Auditoria -->
       <MetricasAuditoria
@@ -63,20 +64,19 @@
       />
 
       <!-- Insights e Recomendações -->
-      <InsightsLoja :loja="loja" :metricas="metricas" :insights="insights" />
 
       <!-- Gráficos de Performance -->
-      <GraficosPerformance
+      <!-- <GraficosPerformance
         :dadosGraficos="dadosGraficos"
         v-if="dadosGraficos.length > 0"
-      />
+      /> -->
 
       <!-- Botões de Ação -->
-      <BotoesAcao
+      <!-- <BotoesAcao
         @exportarRelatorio="exportarRelatorio"
         @gerarQRCode="gerarQRCode"
         @compartilharPerfil="compartilharPerfil"
-      />
+      /> -->
     </div>
   </div>
 </template>
@@ -147,14 +147,18 @@ export default {
       console.log(`🏪 Selecionando loja ${props.codigo} no store...`);
 
       // Buscar loja completa da lista do store
-      const lojaCompleta = lojaStore.lojas.find(l => l.codigo === props.codigo);
+      const lojaCompleta = lojaStore.lojas.find(
+        (l) => l.codigo === props.codigo
+      );
 
       if (lojaCompleta) {
         // Selecionar loja no store (isso configura o header x-loja)
         await lojaStore.selecionarLoja(lojaCompleta);
         console.log(`✅ Loja ${props.codigo} selecionada no store`);
       } else {
-        console.warn(`⚠️ Loja ${props.codigo} não encontrada na lista do store`);
+        console.warn(
+          `⚠️ Loja ${props.codigo} não encontrada na lista do store`
+        );
       }
 
       await carregarDadosLoja(props.codigo);

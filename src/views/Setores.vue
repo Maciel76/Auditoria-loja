@@ -204,6 +204,57 @@
         </div>
       </div>
 
+      <!-- Mapa de Calor dos Corredores -->
+      <div class="heatmap-section">
+        <h2 class="section-title">Mapa de Calor por Corredor</h2>
+        <div class="heatmap-grid">
+          <div
+            v-for="local in locaisComEstatisticas"
+            :key="local.nome"
+            :class="['heatmap-item', getHeatmapClass(local.percentualLidos)]"
+            @click="filtroLocal = local.nome"
+            :aria-label="`${local.nome}: ${local.percentualLidos}% de itens lidos. Clique para filtrar por este local.`"
+            tabindex="0"
+            @keyup.enter="filtroLocal = local.nome"
+            @keyup.space="filtroLocal = local.nome"
+          >
+            <div class="heatmap-header">
+              <span class="heatmap-title">{{ local.nome }}</span>
+              <span class="heatmap-percentage"
+                >{{ local.percentualLidos }}%</span
+              >
+            </div>
+            <div class="heatmap-progress">
+              <div
+                class="heatmap-progress-bar"
+                :style="{ width: local.percentualLidos + '%' }"
+              ></div>
+            </div>
+            <div class="heatmap-stats">
+              <span>{{ local.lidos }}/{{ local.total }} itens</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controles de Visualização -->
+      <div class="view-controls">
+        <button
+          @click="viewMode = 'grid'"
+          :class="{ active: viewMode === 'grid' }"
+          aria-label="Visualizar em grade"
+        >
+          <i class="fas fa-th-large"></i> Grid
+        </button>
+        <button
+          @click="viewMode = 'list'"
+          :class="{ active: viewMode === 'list' }"
+          aria-label="Visualizar em lista"
+        >
+          <i class="fas fa-list"></i> Lista
+        </button>
+      </div>
+
       <!-- Tabs de Visualização -->
       <div class="tabs-section">
         <div class="tabs-header" role="tablist">
@@ -282,14 +333,18 @@
                 >Tente ajustar os filtros aplicados.</span
               >
             </p>
-            <div v-else class="itens-grid">
+            <div
+              v-else
+              :class="viewMode === 'grid' ? 'itens-grid' : 'itens-list'"
+            >
               <div
-                v-for="item in itensFiltrados"
+                v-for="item in itensVisiveis"
                 :key="item.Código"
                 :class="[
                   'item-card',
                   { 'nao-lido': item.Situacao !== 'Atualizado' },
                 ]"
+                @click="abrirModal(item)"
               >
                 <div class="item-header">
                   <span class="item-codigo">{{ item.Código }}</span>
@@ -310,7 +365,7 @@
                     class="item-nome"
                     v-html="destacarTermo(item.Produto, filtroProduto)"
                   ></h4>
-                  <div class="item-details">
+                  <div v-if="viewMode === 'grid'" class="item-details">
                     <div class="detail">
                       <span class="icon" aria-hidden="true">📦</span>
                       <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
@@ -319,34 +374,24 @@
                       <span class="icon" aria-hidden="true">👤</span>
                       <span>{{ item.Usuario || "N/A" }}</span>
                     </div>
+                  </div>
+                  <div v-else class="item-details-list">
                     <div class="detail">
-                      <span class="icon" aria-hidden="true">📅</span>
+                      <span class="icon" aria-hidden="true">📦</span>
                       <span
-                        >Última compra:
-                        {{ formatarData(item["Última compra"]) }}</span
+                        >Estoque:
+                        <strong>{{ item["Estoque atual"] || 0 }}</strong></span
                       >
+                    </div>
+                    <div class="detail">
+                      <span class="icon" aria-hidden="true">👤</span>
+                      <span>{{ item.Usuario || "N/A" }}</span>
                     </div>
                   </div>
                 </div>
-
-                <div class="item-actions">
-                  <button
-                    v-if="item.Situacao !== 'Atualizado'"
-                    class="action-btn primary"
-                    aria-label="Marcar item como lido"
-                  >
-                    <span class="icon" aria-hidden="true">✏️</span> Marcar como
-                    Lido
-                  </button>
-                  <button
-                    class="action-btn secondary"
-                    aria-label="Ver detalhes do item"
-                  >
-                    <span class="icon" aria-hidden="true">📊</span> Detalhes
-                  </button>
-                </div>
               </div>
             </div>
+            <div ref="sentinel" class="sentinel"></div>
           </div>
 
           <div
@@ -360,11 +405,15 @@
             <p v-if="itensLidosFiltrados.length === 0" class="no-results">
               Nenhum item lido encontrado para os filtros selecionados.
             </p>
-            <div v-else class="itens-grid">
+            <div
+              v-else
+              :class="viewMode === 'grid' ? 'itens-grid' : 'itens-list'"
+            >
               <div
-                v-for="item in itensLidosFiltrados"
+                v-for="item in itensVisiveis"
                 :key="item.Código"
                 class="item-card"
+                @click="abrirModal(item)"
               >
                 <!-- Conteúdo similar ao tab todos, mas apenas para itens lidos -->
                 <div class="item-header">
@@ -376,34 +425,29 @@
                     class="item-nome"
                     v-html="destacarTermo(item.Produto, filtroProduto)"
                   ></h4>
-                  <div class="item-details">
+                  <div v-if="viewMode === 'grid'" class="item-details">
                     <div class="detail">
                       <span class="icon" aria-hidden="true">📦</span>
                       <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
                     </div>
                     <div class="detail">
-                      <span class="icon" aria-hidden="true">👤</span>
-                      <span>{{ item.Usuario || "N/A" }}</span>
+                      <span class="icon" aria-hidden="true">👤</span
+                      ><span>{{ item.Usuario || "N/A" }}</span>
                     </div>
+                  </div>
+                  <div v-else class="item-details-list">
                     <div class="detail">
-                      <span class="icon" aria-hidden="true">📅</span>
+                      <span class="icon" aria-hidden="true"></span>
                       <span
-                        >Última compra:
-                        {{ formatarData(item["Última compra"]) }}</span
+                        >Estoque:
+                        <strong>{{ item["Estoque atual"] || 0 }}</strong></span
                       >
                     </div>
                   </div>
                 </div>
-                <div class="item-actions">
-                  <button
-                    class="action-btn secondary"
-                    aria-label="Ver detalhes do item"
-                  >
-                    <span class="icon" aria-hidden="true">📊</span> Detalhes
-                  </button>
-                </div>
               </div>
             </div>
+            <div ref="sentinel" class="sentinel"></div>
           </div>
 
           <div
@@ -417,11 +461,15 @@
             <p v-if="itensNaoLidosFiltrados.length === 0" class="no-results">
               Nenhum item não lido encontrado para os filtros selecionados.
             </p>
-            <div v-else class="itens-grid">
+            <div
+              v-else
+              :class="viewMode === 'grid' ? 'itens-grid' : 'itens-list'"
+            >
               <div
-                v-for="item in itensNaoLidosFiltrados"
+                v-for="item in itensVisiveis"
                 :key="item.Código"
                 class="item-card nao-lido"
+                @click="abrirModal(item)"
               >
                 <!-- Conteúdo similar ao tab todos, mas apenas para itens não lidos -->
                 <div class="item-header">
@@ -433,74 +481,104 @@
                     class="item-nome"
                     v-html="destacarTermo(item.Produto, filtroProduto)"
                   ></h4>
-                  <div class="item-details">
+                  <div v-if="viewMode === 'grid'" class="item-details">
                     <div class="detail">
                       <span class="icon" aria-hidden="true">📦</span>
                       <span>Estoque: {{ item["Estoque atual"] || 0 }}</span>
                     </div>
                     <div class="detail">
+                      <span class="icon" aria-hidden="true">👤</span
+                      ><span>{{ item.Usuario || "N/A" }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="item-details-list">
+                    <div class="detail">
                       <span class="icon" aria-hidden="true">👤</span>
                       <span>{{ item.Usuario || "N/A" }}</span>
                     </div>
                     <div class="detail">
-                      <span class="icon" aria-hidden="true">📅</span>
+                      <span class="icon" aria-hidden="true"></span>
                       <span
-                        >Última compra:
-                        {{ formatarData(item["Última compra"]) }}</span
+                        >Estoque:
+                        <strong>{{ item["Estoque atual"] || 0 }}</strong></span
                       >
                     </div>
                   </div>
                 </div>
-                <div class="item-actions">
-                  <button
-                    class="action-btn primary"
-                    aria-label="Marcar item como lido"
-                  >
-                    <span class="icon" aria-hidden="true">✏️</span> Marcar como
-                    Lido
-                  </button>
-                  <button
-                    class="action-btn secondary"
-                    aria-label="Ver detalhes do item"
-                  >
-                    <span class="icon" aria-hidden="true">📊</span> Detalhes
-                  </button>
-                </div>
               </div>
             </div>
+            <div ref="sentinel" class="sentinel"></div>
           </div>
         </div>
       </div>
 
-      <!-- Mapa de Calor dos Corredores -->
-      <div class="heatmap-section">
-        <h2 class="section-title">Mapa de Calor por Corredor</h2>
-        <div class="heatmap-grid">
-          <div
-            v-for="local in locaisComEstatisticas"
-            :key="local.nome"
-            :class="['heatmap-item', getHeatmapClass(local.percentualLidos)]"
-            @click="filtroLocal = local.nome"
-            :aria-label="`${local.nome}: ${local.percentualLidos}% de itens lidos. Clique para filtrar por este local.`"
-            tabindex="0"
-            @keyup.enter="filtroLocal = local.nome"
-            @keyup.space="filtroLocal = local.nome"
-          >
-            <div class="heatmap-header">
-              <span class="heatmap-title">{{ local.nome }}</span>
-              <span class="heatmap-percentage"
-                >{{ local.percentualLidos }}%</span
+      <!-- Modal de Detalhes do Item -->
+      <div v-if="itemSelecionado" class="modal-overlay" @click="fecharModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3 class="modal-title">Detalhes do Item</h3>
+            <button
+              @click="fecharModal"
+              class="modal-close-btn"
+              aria-label="Fechar modal"
+            >
+              &times;
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-item-header">
+              <h4 class="modal-item-name">{{ itemSelecionado.Produto }}</h4>
+              <span
+                :class="[
+                  'item-status',
+                  itemSelecionado.Situacao === 'Atualizado'
+                    ? 'lido'
+                    : 'nao-lido',
+                ]"
               >
+                {{
+                  itemSelecionado.Situacao === "Atualizado"
+                    ? "✅ Lido"
+                    : "⏳ Não Lido"
+                }}
+              </span>
             </div>
-            <div class="heatmap-progress">
-              <div
-                class="heatmap-progress-bar"
-                :style="{ width: local.percentualLidos + '%' }"
-              ></div>
-            </div>
-            <div class="heatmap-stats">
-              <span>{{ local.lidos }}/{{ local.total }} itens</span>
-            </div>
+            <ul class="modal-details-list">
+              <li>
+                <strong>Código:</strong>
+                <span>{{ itemSelecionado.Código }}</span>
+              </li>
+              <li>
+                <strong>Local:</strong>
+                <span>{{ itemSelecionado.Local }}</span>
+              </li>
+              <li>
+                <strong>Estoque Atual:</strong>
+                <span>{{ itemSelecionado["Estoque atual"] || 0 }}</span>
+              </li>
+              <li>
+                <strong>Usuário:</strong>
+                <span>{{ itemSelecionado.Usuario || "N/A" }}</span>
+              </li>
+              <li>
+                <strong>Última Compra:</strong>
+                <span>{{
+                  formatarData(itemSelecionado["Última compra"])
+                }}</span>
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button
+              v-if="itemSelecionado.Situacao !== 'Atualizado'"
+              class="action-btn primary"
+              aria-label="Marcar item como lido"
+            >
+              <span class="icon" aria-hidden="true">✏️</span> Marcar como Lido
+            </button>
+            <button @click="fecharModal" class="action-btn secondary">
+              Fechar
+            </button>
           </div>
         </div>
       </div>
@@ -539,6 +617,11 @@ export default {
       carregando: true,
       carregandoData: false,
       buscandoProduto: false,
+      itensVisiveis: [],
+      limiteItensVisiveis: 30,
+      observer: null,
+      viewMode: "grid", // 'grid' ou 'list'
+      itemSelecionado: null,
       erro: "",
     };
   },
@@ -548,20 +631,42 @@ export default {
       return locais.filter((local) => local).sort();
     },
 
-    // Filtros otimizados com memoização
+    // Otimização: Uma única propriedade computada para filtrar os dados.
+    // As outras computadas (lidos/não lidos) derivam desta, evitando re-filtragem.
     itensFiltrados() {
-      return this.aplicarFiltros(this.dadosPlanilha);
+      let itens = this.dadosPlanilha;
+
+      if (this.filtroLocal) {
+        itens = itens.filter((item) => item.Local === this.filtroLocal);
+      }
+
+      if (this.filtroStatus) {
+        if (this.filtroStatus === "Atualizado") {
+          itens = itens.filter((item) => item.Situacao === "Atualizado");
+        } else {
+          itens = itens.filter((item) => item.Situacao !== "Atualizado");
+        }
+      }
+
+      if (this.filtroProduto) {
+        const termo = this.filtroProduto.toLowerCase();
+        itens = itens.filter(
+          (item) => item.Produto && item.Produto.toLowerCase().includes(termo)
+        );
+      }
+
+      return itens;
     },
 
     itensLidosFiltrados() {
-      return this.aplicarFiltros(
-        this.dadosPlanilha.filter((item) => item.Situacao === "Atualizado")
+      return this.itensFiltrados.filter(
+        (item) => item.Situacao === "Atualizado"
       );
     },
 
     itensNaoLidosFiltrados() {
-      return this.aplicarFiltros(
-        this.dadosPlanilha.filter((item) => item.Situacao !== "Atualizado")
+      return this.itensFiltrados.filter(
+        (item) => item.Situacao !== "Atualizado"
       );
     },
 
@@ -658,34 +763,72 @@ export default {
         this.buscandoProduto = false;
       }, 300);
     }, 500),
+
+    itensFiltrados() {
+      this.resetarItensVisiveis();
+    },
+    itensLidosFiltrados() {
+      this.resetarItensVisiveis();
+    },
+    itensNaoLidosFiltrados() {
+      this.resetarItensVisiveis();
+    },
+    abaAtiva() {
+      this.resetarItensVisiveis();
+    },
   },
   methods: {
-    // Método otimizado para aplicar filtros
-    aplicarFiltros(itens) {
-      let filtrados = itens;
+    abrirModal(item) {
+      this.itemSelecionado = item;
+    },
 
-      if (this.filtroLocal) {
-        filtrados = filtrados.filter((item) => item.Local === this.filtroLocal);
+    fecharModal() {
+      this.itemSelecionado = null;
+    },
+
+    getListaAtiva() {
+      switch (this.abaAtiva) {
+        case "lidos":
+          return this.itensLidosFiltrados;
+        case "naoLidos":
+          return this.itensNaoLidosFiltrados;
+        default:
+          return this.itensFiltrados;
       }
+    },
 
-      if (this.filtroStatus) {
-        filtrados = filtrados.filter((item) => {
-          if (this.filtroStatus === "Atualizado") {
-            return item.Situacao === "Atualizado";
-          } else {
-            return item.Situacao !== "Atualizado";
+    resetarItensVisiveis() {
+      this.limiteItensVisiveis = 30;
+      this.itensVisiveis = this.getListaAtiva().slice(
+        0,
+        this.limiteItensVisiveis
+      );
+    },
+
+    carregarMaisItens() {
+      const listaCompleta = this.getListaAtiva();
+      if (this.itensVisiveis.length >= listaCompleta.length) {
+        return; // Todos os itens já foram carregados
+      }
+      this.limiteItensVisiveis += 30;
+      this.itensVisiveis = listaCompleta.slice(0, this.limiteItensVisiveis);
+    },
+
+    inicializarObserver() {
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            this.carregarMaisItens();
           }
-        });
-      }
+        },
+        { threshold: 1.0 }
+      );
 
-      if (this.filtroProduto) {
-        const termo = this.filtroProduto.toLowerCase();
-        filtrados = filtrados.filter(
-          (item) => item.Produto && item.Produto.toLowerCase().includes(termo)
-        );
-      }
-
-      return filtrados;
+      this.$nextTick(() => {
+        if (this.$refs.sentinel) {
+          this.observer.observe(this.$refs.sentinel);
+        }
+      });
     },
 
     destacarTermo(texto, termo) {
@@ -748,7 +891,71 @@ export default {
       }
     },
 
+    gerarDadosFake() {
+      const locais = [
+        "C01 - Mercearia",
+        "C02 - Bebidas",
+        "C03 - Frios",
+        "C04 - Limpeza",
+        "C05 - Padaria",
+        "C06 - Açougue",
+        "FLV - Hortifruti",
+      ];
+      const produtos = [
+        "ARROZ TIPO 1",
+        "FEIJÃO CARIOCA",
+        "ÓLEO DE SOJA",
+        "CAFÉ EM PÓ",
+        "AÇÚCAR REFINADO",
+        "REFRIGERANTE COLA 2L",
+        "CERVEJA LATA 350ML",
+        "SABÃO EM PÓ",
+        "DETERGENTE LÍQUIDO",
+        "PÃO FRANCÊS",
+        "QUEIJO MUÇARELA",
+        "PRESUNTO COZIDO",
+        "MAÇÃ GALA KG",
+        "BANANA NANICA KG",
+      ];
+      const usuarios = [
+        "3285030 (MARLUCIA OLIVEIRA)",
+        "3285031 (JOÃO SILVA)",
+        "3285032 (MARIA SANTOS)",
+        "3285033 (PEDRO ALMEIDA)",
+      ];
+      const dados = [];
+
+      for (let i = 0; i < 150; i++) {
+        const lido = Math.random() > 0.3; // 70% de chance de ser lido
+        dados.push({
+          Código: (1000000 + i).toString(),
+          Produto:
+            produtos[Math.floor(Math.random() * produtos.length)] + ` ${i}`,
+          Local: locais[Math.floor(Math.random() * locais.length)],
+          Usuario: lido
+            ? usuarios[Math.floor(Math.random() * usuarios.length)]
+            : "N/A",
+          Situacao: lido ? "Atualizado" : "Não lido",
+          "Estoque atual": Math.floor(Math.random() * 100).toString(),
+          "Última compra": new Date(
+            Date.now() - Math.floor(Math.random() * 30) * 86400000
+          ).toLocaleDateString("pt-BR"),
+        });
+      }
+      return dados;
+    },
+
     async carregarDados() {
+      // --- INÍCIO: DADOS FAKE PARA TESTE ---
+      this.carregando = true;
+      this.erro = "";
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simula delay da rede
+      this.dadosPlanilha = this.gerarDadosFake();
+      this.resetarItensVisiveis();
+      this.carregando = false;
+      // --- FIM: DADOS FAKE PARA TESTE ---
+
+      /* --- INÍCIO: CÓDIGO ORIGINAL (COMENTADO) ---
       try {
         this.carregando = true;
         this.erro = "";
@@ -766,6 +973,7 @@ export default {
             Situacao: item.Situacao || item.Situação || "Não lido",
             Local: item.Local || "Não especificado",
           }));
+          this.resetarItensVisiveis();
         } else {
           this.erro = "Formato de dados inválido";
         }
@@ -805,6 +1013,7 @@ export default {
       } finally {
         this.carregando = false;
       }
+      --- FIM: CÓDIGO ORIGINAL (COMENTADO) --- */
     },
 
     formatarData(data) {
@@ -863,11 +1072,20 @@ export default {
   async mounted() {
     await this.carregarDatasAuditoria();
     await this.carregarDados();
+    this.inicializarObserver();
+  },
+  beforeUnmount() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   },
 };
 </script>
 
 <style scoped>
+.sentinel {
+  height: 50px;
+}
 .loading-container {
   text-align: center;
   padding: 60px 20px;
@@ -1434,5 +1652,197 @@ date-selector {
 .icon {
   font-size: 1.2em;
   vertical-align: middle;
+}
+
+/* Controles de Visualização */
+.view-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.view-controls button {
+  background: #fff;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 8px 15px;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-controls button.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+/* Estilos para Visualização em Lista */
+.itens-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.itens-list .item-card {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  gap: 20px;
+}
+
+.itens-list .item-card:hover {
+  transform: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.itens-list .item-header {
+  flex-basis: 150px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.itens-list .item-body {
+  flex-grow: 2;
+}
+
+.itens-list .item-details {
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.itens-list .item-card {
+  cursor: pointer;
+}
+
+.itens-grid .item-card {
+  cursor: pointer;
+}
+
+.itens-list .item-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.itens-list .item-nome {
+  flex-grow: 1;
+  margin: 0;
+  padding: 0 15px;
+}
+
+.itens-list .item-details-list {
+  flex-shrink: 0;
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #7f8c8d;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.modal-item-header {
+  margin-bottom: 20px;
+}
+
+.modal-item-name {
+  font-size: 1.4rem;
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+}
+
+.modal-details-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modal-details-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.modal-footer {
+  padding: 15px 25px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
 }
 </style>

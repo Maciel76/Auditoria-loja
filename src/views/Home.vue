@@ -23,7 +23,6 @@
           @vote-submitted="handleVoteSubmit"
           @reaction-submitted="handleVotingReaction"
         />
-        <UserAchievements :achievements="dashboardStore.userAchievements" />
         <SystemSummary :stats="dashboardStore.systemStats" />
         <!-- <OnlineUsersList /> -->
       </div>
@@ -42,7 +41,6 @@ import HeroSection from "@/components/HomeComponents/HeroSection.vue";
 // import OnlineUsersList from "@/components/HomeComponents/OnlineUsersList.vue";
 import CommunityFeed from "@/components/HomeComponents/CommunityFeed.vue";
 import ImprovementsVoting from "@/components/HomeComponents/ImprovementsVoting.vue";
-import UserAchievements from "@/components/HomeComponents/UserAchievements.vue";
 import SystemSummary from "@/components/HomeComponents/SystemSummary.vue";
 import QuickSuggestion from "@/components/HomeComponents/QuickSuggestion.vue";
 import PostCreator from "@/components/HomeComponents/PostCreator.vue";

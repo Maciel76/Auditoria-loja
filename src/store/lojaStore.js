@@ -130,7 +130,7 @@ export const useLojaStore = defineStore("loja", {
           // Configurar axios para sempre enviar o header
           this.configurarAxiosHeader(lojaCompleta.codigo);
 
-          console.log(`✅ Loja selecionada: ${lojaCompleta.nome}`);
+          console.log(`✅ Loja selecionada: ${lojaCompleta.nome || 'Nome Indisponível'}`);
           return true;
         }
       } catch (error) {
@@ -142,20 +142,29 @@ export const useLojaStore = defineStore("loja", {
       }
     },
 
-    // Carregar loja do localStorage
+    // Carregar loja do localStorage com validação
     carregarLoja() {
       try {
-        const lojaSalva = localStorage.getItem("lojaSelecionada");
+        const lojaSalvaJSON = localStorage.getItem("lojaSelecionada");
 
-        if (lojaSalva) {
-          const loja = JSON.parse(lojaSalva);
-          this.lojaSelecionada = loja;
-          this.configurarAxiosHeader(loja.codigo);
-          console.log(`🔄 Loja carregada: ${loja.nome}`);
+        if (lojaSalvaJSON) {
+          const lojaSalva = JSON.parse(lojaSalvaJSON);
+
+          // Validar se a loja salva ainda existe na nossa lista de lojas
+          const lojaValida = this.lojas.find(l => l.codigo === lojaSalva.codigo);
+
+          if (lojaValida) {
+            this.lojaSelecionada = lojaValida;
+            this.configurarAxiosHeader(lojaValida.codigo);
+            console.log(`🔄 Loja carregada: ${lojaValida.nome}`);
+          } else {
+            console.warn(`⚠️ Loja salva (${lojaSalva.codigo}) não é mais válida. Limpando seleção.`);
+            this.limparLoja();
+          }
         }
       } catch (error) {
-        console.error("❌ Erro ao carregar loja:", error);
-        localStorage.removeItem("lojaSelecionada");
+        console.error("❌ Erro ao carregar e validar loja do localStorage:", error);
+        this.limparLoja(); // Limpa em caso de erro de parsing ou outro problema
       }
     },
 
@@ -181,7 +190,7 @@ export const useLojaStore = defineStore("loja", {
       // Só atualiza e faz log se o valor realmente mudar
       if (axios.defaults.headers.common["x-loja"] !== codigo) {
         axios.defaults.headers.common["x-loja"] = codigo;
-        console.log(`🔧 Header configurado: x-loja = ${codigo}`);
+        console.log(`🔧 x-loja=${codigo || 'Código Indisponível'}`);
       }
     },
 

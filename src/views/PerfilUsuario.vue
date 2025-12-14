@@ -1,9 +1,9 @@
 <template>
   <div class="perfil-usuario-container">
     <!-- Botão Voltar -->
-    <div class="navigation-section">
+    <div v-if="!carregando" class="navigation-section">
       <button class="back-btn" @click="voltarParaLista">
-        <span class="icon">←</span> Voltar para Lista
+        <i class="fas fa-arrow-left"></i> Voltar para Lista
       </button>
     </div>
 
@@ -25,36 +25,60 @@
 
     <div v-else>
       <!-- Header do Perfil -->
-      <PerfilHeader
-        :usuario="usuario"
-        :corredoresUnicos="corredoresUnicos"
-        :percentualConcluido="percentualConcluido"
-        :posicaoRanking="posicaoRanking"
-        :mediaDesempenho="mediaDesempenho"
-      />
+      <div class="perfil-header-card">
+        <div class="avatar-section">
+          <div class="avatar-wrapper">
+            <img :src="usuario.foto" :alt="usuario.nome" class="avatar-img" />
+            <div class="level-badge">Nível {{ usuario.nivel }}</div>
+          </div>
+        </div>
+        <div class="info-section">
+          <h1 class="nome-usuario">{{ usuario.nome }}</h1>
+          <p class="titulo-usuario">{{ usuario.titulo }}</p>
+          <div class="xp-bar">
+            <div
+              class="xp-fill"
+              :style="{ width: usuario.progressoXp + '%' }"
+            ></div>
+            <span class="xp-text"
+              >{{ usuario.xpAtual }} / {{ usuario.xpParaProximoNivel }} XP</span
+            >
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stat-item">
+            <span class="stat-value">{{ conquistasDesbloqueadas.length }}</span>
+            <span class="stat-label">Conquistas</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">#{{ posicaoRanking }}</span>
+            <span class="stat-label">Ranking</span>
+          </div>
+        </div>
+      </div>
 
-      <!-- Selos e Conquistas -->
-      <SelosConquistas
-        :usuario="usuario"
-        :corredoresUnicos="corredoresUnicos"
-        :itensFaltantes="itensFaltantes"
-        :atividadesRecentes="atividadesRecentes"
-      />
-      <ConquistasTimeline
-        :usuario="usuario"
-        :corredoresUnicos="corredoresUnicos"
-        :itensFaltantes="itensFaltantes"
-        :atividadesRecentes="atividadesRecentes"
-      />
-
-      <!-- QR Code da Matrícula -->
-      <QrCodeMatricula :usuario="usuario" />
-
-      <!-- Timeline de Atividades -->
-      <TimelineAtividades
-        :atividadesRecentes="atividadesRecentes"
-        v-if="atividadesRecentes.length > 0"
-      />
+      <!-- Galeria de Conquistas -->
+      <div class="conquistas-gallery">
+        <h2>
+          Galeria de Conquistas ({{ conquistasDesbloqueadas.length }} /
+          {{ todasConquistas.length }})
+        </h2>
+        <div class="conquistas-grid">
+          <div
+            v-for="conquista in todasConquistas"
+            :key="conquista.achievementId"
+            class="conquista-card"
+            :class="{ desbloqueada: conquista.desbloqueada }"
+          >
+            <div class="conquista-icon">
+              {{ conquista.desbloqueada ? conquista.icon : "🔒" }}
+            </div>
+            <h4 class="conquista-titulo">{{ conquista.title }}</h4>
+            <p class="conquista-descricao">{{ conquista.description }}</p>
+            <span class="conquista-xp">{{ conquista.points }} XP</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -62,21 +86,13 @@
 <script>
 import { useRouter } from "vue-router";
 import { useNivelStore } from "@/store/nivelStore";
+import { useConquistasStore } from "@/store/conquistasStore";
 import { useLojaStore } from "@/store/lojaStore";
-import PerfilHeader from "./Perfiltemplate/PerfilHeader.vue";
-import SelosConquistas from "./Perfiltemplate/SelosConquistas.vue";
-import TimelineAtividades from "./Perfiltemplate/TimelineAtividades.vue";
-import QrCodeMatricula from "./Perfiltemplate/QrCodeMatricula.vue";
-import ConquistasTimeline from "./Perfiltemplate/ConquistasTimeline.vue";
 
 export default {
   name: "PerfilUsuario",
   components: {
-    PerfilHeader,
-    SelosConquistas,
-    TimelineAtividades,
-    QrCodeMatricula,
-    ConquistasTimeline,
+    // Componentes externos foram removidos para focar na nova estrutura
   },
   props: {
     id: {
@@ -87,6 +103,7 @@ export default {
   setup() {
     const router = useRouter();
     const lojaStore = useLojaStore();
+    const nivelStore = useNivelStore();
 
     const voltarParaLista = () => {
       // Verificar se veio de uma rota específica ou usar rota padrão
@@ -100,6 +117,7 @@ export default {
     return {
       voltarParaLista,
       lojaStore,
+      nivelStore,
     };
   },
   data() {
@@ -108,215 +126,96 @@ export default {
         id: "",
         nome: "",
         contador: 0,
+        foto: "",
         iniciais: "",
-        foto: null,
         xpConquistas: 0,
         totalAuditorias: 0,
+        nivel: 0,
+        titulo: "",
+        xpAtual: 0,
+        xpParaProximoNivel: 100,
+        progressoXp: 0,
+        conquistas: [], // IDs das conquistas desbloqueadas
       },
       carregando: true,
-      mediaGeral: 85,
-      atividadesRecentes: [],
-      dadosUsuario: [],
-      nivelStore: null,
+      todasConquistas: [],
     };
   },
   async mounted() {
     try {
-      this.nivelStore = useNivelStore();
-      // Carregar usuários em background (não bloquear a interface)
-      this.nivelStore.carregarUsuarios().catch(console.error);
-      // Carregar o usuário específico
+      // Carregar todas as conquistas do sistema
+      const conquistasStore = useConquistasStore();
+      await conquistasStore.carregarConquistas();
+      this.todasConquistas = conquistasStore.conquistas;
+
+      // Carregar dados do usuário específico
       await this.carregarUsuarioPorId(this.id);
     } catch (error) {
       console.error("Erro ao inicializar perfil:", error);
+    } finally {
       this.carregando = false;
     }
   },
   computed: {
-    percentualConcluido() {
-      return Math.min(100, Math.round((this.usuario.contador / 500) * 100));
-    },
-
-    progressStyle() {
-      return {
-        "--progress": `${this.percentualConcluido}%`,
-      };
-    },
-
-    diferencaMedia() {
-      return this.usuario.contador - this.mediaGeral;
-    },
-
-    corredoresUnicos() {
-      const corredores = new Set();
-      this.dadosUsuario.forEach((item) => {
-        if (item.Local) corredores.add(item.Local);
-      });
-      return Array.from(corredores);
-    },
-
-    corredoresComContagem() {
-      const contagem = {};
-
-      this.dadosUsuario.forEach((item) => {
-        if (item.Local) {
-          contagem[item.Local] = (contagem[item.Local] || 0) + 1;
-        }
-      });
-
-      const total = Object.values(contagem).reduce(
-        (sum, count) => sum + count,
-        0
-      );
-
-      return Object.entries(contagem)
-        .map(([nome, contagem]) => ({
-          nome,
-          contagem,
-          percentual: total > 0 ? Math.round((contagem / total) * 100) : 0,
-        }))
-        .sort((a, b) => b.contagem - a.contagem);
-    },
-
-    itensFaltantes() {
-      return this.dadosUsuario.filter((item) => {
-        const estoque = parseInt(item["Estoque atual"]) || 0;
-        return estoque < 10;
-      });
-    },
-
     posicaoRanking() {
-      if (!this.nivelStore || !this.usuario.id) return 1;
+      if (!this.usuario.id) return "-";
       try {
         return this.nivelStore.calcularPosicaoRanking(this.usuario.id);
       } catch (error) {
         console.warn("Erro ao calcular posição ranking:", error);
-        return 1;
+        return "-";
       }
     },
 
-    mediaDesempenho() {
-      if (!this.nivelStore || !this.usuario.id) return 0;
-      try {
-        return this.nivelStore.calcularMediaDesempenho(this.usuario.id);
-      } catch (error) {
-        console.warn("Erro ao calcular média desempenho:", error);
-        return Math.floor(Math.random() * 100); // Fallback com valor simulado
+    conquistasDesbloqueadas() {
+      if (!this.usuario.conquistas || this.usuario.conquistas.length === 0) {
+        return [];
       }
+      return this.todasConquistas.filter((c) =>
+        this.usuario.conquistas.includes(c.achievementId)
+      );
     },
   },
   methods: {
     async carregarUsuarioPorId(usuarioId) {
       try {
         this.carregando = true;
-        // Busca usuário pelo backend com header da loja
-        const response = await fetch(`http://localhost:3000/usuarios`, {
-          headers: {
-            "x-loja": this.getLojaAtual(),
-          },
-        });
-        if (response.ok) {
-          const usuarios = await response.json();
-          // Busca pelo id ou _id
-          const usuarioEncontrado = Array.isArray(usuarios)
-            ? usuarios.find((u) => u.id === usuarioId || u._id === usuarioId)
-            : usuarios.id === usuarioId || usuarios._id === usuarioId
-            ? usuarios
-            : null;
-          if (usuarioEncontrado) {
-            this.usuario = {
-              ...usuarioEncontrado,
-              iniciais: this.obterIniciais(usuarioEncontrado.nome),
-              xpConquistas:
-                this.nivelStore?.calcularXpConquistas(usuarioEncontrado) || 0,
-            };
-            await this.carregarDadosDetalhados(
-              usuarioEncontrado.id || usuarioEncontrado._id
+        await this.nivelStore.carregarUsuarios(); // Garante que a lista de usuários está carregada
+        const usuarioEncontrado = this.nivelStore.getUsuarioById(usuarioId);
+
+        if (usuarioEncontrado) {
+          const xpTotal =
+            (usuarioEncontrado.contador || 0) +
+            (this.nivelStore.calcularXpConquistas(usuarioEncontrado) || 0);
+          const nivelInfo = this.nivelStore.calcularNivelEProgresso(xpTotal);
+
+          this.usuario = {
+            ...usuarioEncontrado,
+            foto: this.getFotoUrl(usuarioEncontrado),
+            iniciais: this.obterIniciais(usuarioEncontrado.nome),
+            nivel: nivelInfo.nivel,
+            titulo: this.nivelStore.obterTitulo(nivelInfo.nivel),
+            xpAtual: xpTotal,
+            xpParaProximoNivel: nivelInfo.xpParaProximoNivel,
+            progressoXp: nivelInfo.progressoPercentual,
+            conquistas: usuarioEncontrado.conquistas || [],
+          };
+
+          // Marcar quais conquistas estão desbloqueadas
+          this.todasConquistas.forEach((conquista) => {
+            conquista.desbloqueada = this.usuario.conquistas.includes(
+              conquista.achievementId
             );
-          } else {
-            console.error("Usuário não encontrado:", usuarioId);
-            // Criar usuário mock se não encontrado para demonstração
-            this.usuario = {
-              id: usuarioId,
-              nome: `Usuário ${usuarioId}`,
-              contador: Math.floor(Math.random() * 800) + 100,
-              iniciais: this.obterIniciais(`Usuário ${usuarioId}`),
-              xpConquistas: 0,
-              totalAuditorias: Math.floor(Math.random() * 20) + 1,
-            };
-            await this.carregarDadosDetalhados(usuarioId);
-          }
+          });
         } else {
-          console.error("Erro ao carregar usuário:", response.status);
+          console.error("Usuário não encontrado:", usuarioId);
+          this.usuario = {}; // Limpa o usuário para mostrar a tela de erro
         }
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
       } finally {
         this.carregando = false;
       }
-    },
-
-    carregarDadosUsuario(usuario) {
-      this.usuario = { ...usuario };
-      this.usuario.iniciais = this.obterIniciais(usuario.nome);
-      this.carregarDadosDetalhados(usuario.id);
-    },
-
-    async carregarDadosDetalhados(usuarioId) {
-      // Simular dados de auditoria já que o endpoint específico não existe ainda
-      try {
-        // Por enquanto, vamos simular alguns dados de auditoria
-        const dadosSimulados = this.simularDadosAuditoria(usuarioId);
-        this.dadosUsuario = dadosSimulados;
-        this.processarTimeline();
-        this.verificarConquistas();
-      } catch (error) {
-        console.error("Erro ao carregar dados detalhados:", error);
-      }
-    },
-
-    simularDadosAuditoria(usuarioId) {
-      // Simular dados baseados no contador do usuário
-      const contador = this.usuario.contador || 0;
-      const dados = [];
-
-      for (let i = 0; i < Math.min(contador, 100); i++) {
-        dados.push({
-          Produto: `Produto ${i + 1}`,
-          Local: `Corredor ${Math.floor(Math.random() * 10) + 1}`,
-          "Estoque atual": Math.floor(Math.random() * 50),
-          Situacao: Math.random() > 0.3 ? "Atualizado" : "Pendente",
-        });
-      }
-
-      return dados;
-    },
-
-    processarTimeline() {
-      // Criar timeline a partir dos dados reais (últimos 5 itens)
-      this.atividadesRecentes = this.dadosUsuario
-        .slice(-5)
-        .map((item) => {
-          let descricao = "";
-          let detalhes = "";
-
-          if (item.Situacao === "Atualizado") {
-            descricao = "Item verificado";
-            detalhes = `${item.Produto} - Local: ${item.Local}`;
-          } else {
-            descricao = "Item identificado";
-            detalhes = `${item.Produto} - Estoque: ${
-              item["Estoque atual"] || 0
-            }`;
-          }
-
-          return {
-            descricao,
-            detalhes,
-            timestamp: new Date(), // Em produção, usar data real da planilha
-          };
-        })
-        .reverse();
     },
 
     obterIniciais(nome) {
@@ -329,84 +228,14 @@ export default {
         .substring(0, 2);
     },
 
-    verificarConquistas() {
-      // Sistema de conquistas agora é gerenciado pelos componentes modulares
-      // Atualizar XP com base nas conquistas disponíveis
-      if (this.nivelStore) {
-        const conquistasDisponiveis =
-          this.nivelStore.verificarConquistasDisponiveis(this.usuario, {
-            corredoresUnicos: this.corredoresUnicos,
-            itensFaltantes: this.itensFaltantes,
-            atividadesRecentes: this.atividadesRecentes,
-          });
-
-        // Calcular XP total das conquistas
-        this.usuario.xpConquistas = conquistasDisponiveis.reduce(
-          (total, conquista) => {
-            return total + conquista.xp;
-          },
-          0
-        );
+    getFotoUrl(usuario) {
+      if (usuario.foto) {
+        return usuario.foto;
       }
-    },
-
-    calcularLarguraBarra(valor) {
-      const maxValor = Math.max(this.usuario.contador, this.mediaGeral, 1);
-      return `${(valor / maxValor) * 100}%`;
-    },
-
-    formatarTempo(timestamp) {
-      const agora = new Date();
-      const diferenca = agora - timestamp;
-      const horas = Math.floor(diferenca / (1000 * 60 * 60));
-
-      if (horas < 1) return "Há poucos minutos";
-      if (horas === 1) return "Há 1 hora";
-      if (horas < 24) return `Há ${horas} horas`;
-
-      const dias = Math.floor(horas / 24);
-      if (dias === 1) return "Há 1 dia";
-      return `Há ${dias} dias`;
-    },
-
-    exportarRelatorio() {
-      const relatorioData = {
-        Nome: this.usuario.nome,
-        Matrícula: this.usuario.id,
-        "Itens Lidos": this.usuario.contador,
-        "Meta (500)": `${this.percentualConcluido}% concluído`,
-        "Corredores Cobertos": this.corredoresUnicos.length,
-        "Média Geral": this.mediaGeral,
-        Desempenho:
-          this.diferencaMedia > 0
-            ? `+${this.diferencaMedia} acima`
-            : `${this.diferencaMedia} abaixo`,
-        "Itens com Baixo Estoque": this.itensFaltantes.length,
-      };
-
-      const csvContent = [
-        "Item,Valor",
-        ...Object.entries(relatorioData).map(
-          ([key, value]) => `"${key}","${value}"`
-        ),
-      ].join("\n");
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `perfil_${this.usuario.nome}_${
-          new Date().toISOString().split("T")[0]
-        }.csv`
-      );
-      link.style.visibility = "hidden";
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const initials = this.obterIniciais(usuario.nome);
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        usuario.nome
+      )}&background=667eea&color=fff&font-size=0.45`;
     },
 
     compartilharPerfil() {
@@ -433,24 +262,21 @@ export default {
         window.location.href = "/usuarios";
       }
     },
-
-    getLojaAtual() {
-      return this.lojaStore.codigoLojaAtual || "056"; // fallback para loja padrão
-    },
   },
 };
 </script>
 
 <style scoped>
 .perfil-usuario-container {
-  max-width: auto;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2px;
+  padding: 2rem;
   font-family: "Poppins", sans-serif;
+  background: #f8f9fa;
 }
 
 .navigation-section {
-  display: flex;
+  display: block;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -460,7 +286,7 @@ export default {
   color: white;
   border: none;
   border-radius: 25px;
-  padding: 12px 28px;
+  padding: 10px 24px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -477,46 +303,14 @@ export default {
   transform: translateY(-2px);
 }
 
+.back-btn i {
+  margin-right: 8px;
+}
+
 .loading-container,
 .error-container {
   text-align: center;
-  padding: 40px;
-}
-
-.loading-container .spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
-}
-stats-qr-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 25px;
-  margin-bottom: 30px;
-}
-
-.stats-section {
-  grid-column: 1;
-}
-
-.qr-section {
-  grid-column: 2;
-}
-
-@media (max-width: 1024px) {
-  .stats-qr-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .stats-section,
-  .qr-section {
-    grid-column: 1;
-  }
+  padding: 60px 20px;
 }
 
 @keyframes spin {
@@ -526,6 +320,16 @@ stats-qr-container {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.loading-container .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
 }
 
 .error-container .error-icon {
@@ -551,5 +355,184 @@ stats-qr-container {
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+}
+
+/* Novo Header */
+.perfil-header-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.avatar-section {
+  flex-shrink: 0;
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.avatar-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid white;
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+}
+
+.level-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid white;
+}
+
+.info-section {
+  flex: 1;
+}
+
+.nome-usuario {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.titulo-usuario {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #667eea;
+  margin: 0 0 1rem 0;
+}
+
+.xp-bar {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.xp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.stats-section {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+/* Galeria de Conquistas */
+.conquistas-gallery {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.conquistas-gallery h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.conquistas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.conquista-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  opacity: 0.5;
+  filter: grayscale(80%);
+}
+
+.conquista-card.desbloqueada {
+  opacity: 1;
+  filter: grayscale(0%);
+  background: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.conquista-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.conquista-titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.conquista-descricao {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  min-height: 40px;
+}
+
+.conquista-xp {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 </style>

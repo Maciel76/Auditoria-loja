@@ -1,41 +1,23 @@
 <template>
-  <div class="metricas-corredor-container">
+  <div class="desempenho-corredores-container">
     <!-- Indicador de carregamento -->
     <div v-if="carregando" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Carregando métricas dos corredores...</p>
+      <p>Carregando desempenho por corredor...</p>
     </div>
 
     <!-- Mensagem de erro -->
     <div v-else-if="erro" class="erro-container">
       <p class="erro-mensagem">{{ erro }}</p>
-      <button class="action-btn" @click="buscarMetricasLoja">
+      <button class="action-btn" @click="buscarDadosCorredores">
         Tentar Novamente
-      </button>
-    </div>
-
-    <!-- Mensagem quando não há dados -->
-    <div v-else-if="!temDados" class="erro-container">
-      <p class="erro-mensagem">
-        📊 Nenhum dado de corredor encontrado para exibir.
-      </p>
-      <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem">
-        Isso pode acontecer se ainda não foram processadas auditorias para esta
-        loja.
-      </p>
-      <button
-        class="action-btn"
-        @click="buscarMetricasLoja"
-        style="margin-top: 1rem"
-      >
-        Atualizar Dados
       </button>
     </div>
 
     <!-- Conteúdo principal -->
     <div v-else>
       <div class="metricas-header">
-        <h3>🗺️ Mapa de Desempenho por Corredor</h3>
+        <h3>🗺️ Desempenho por Corredor</h3>
         <div class="metricas-actions">
           <button
             class="action-btn"
@@ -249,24 +231,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
-import { useLojaStore } from "@/store/lojaStore";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
+import { useLojaStore } from "@/store/lojaStore";
 
-// Store da loja
 const lojaStore = useLojaStore();
 
 // Estado para controlar o tipo de auditoria atual
 const tipoAuditoriaAtual = ref("etiquetas");
 
-// Estrutura de dados inicial robusta, similar ao MetricasSetor
+// Estado para armazenar dados carregados da API
 const dadosReais = ref({
   loja: "",
-  lojaNome: "",
   data: new Date().toISOString(),
-  etiquetas: { locaisLeitura: {}, resumo: {} },
-  rupturas: { locaisLeitura: {}, resumo: {} },
-  presencas: { locaisLeitura: {}, resumo: {} },
+  etiquetas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
+  rupturas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
+  presencas: {
+    locaisLeitura: {},
+    resumo: {},
+  },
 });
 
 // Estado de carregamento e erro
@@ -274,88 +263,98 @@ const carregando = ref(true);
 const erro = ref(null);
 const corredorSelecionado = ref(null);
 
-// Computed para verificar se existem dados para exibir
-const temDados = computed(() => {
-  const filtrados = dadosFiltrados.value;
-  return filtrados && filtrados.length > 0;
-});
-
-// Computed para obter dados filtrados, agora para LOCAIS
+// Computed para obter dados filtrados pelo tipo de auditoria
 const dadosFiltrados = computed(() => {
   const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+
   if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) {
+    console.log(`⚠️ Nenhum dado encontrado para ${tipoAuditoriaAtual.value}`);
     return [];
   }
 
-  const locaisLeitura = auditoriaAtual.locaisLeitura;
-  if (typeof locaisLeitura !== "object" || locaisLeitura === null) {
-    return [];
-  }
+  // Converter o objeto de locais em array
+  const locaisArray = Object.entries(auditoriaAtual.locaisLeitura).map(
+    ([local, dados]) => {
+      return {
+        local: local,
+        total: dados.total || 0,
+        itensValidos: dados.itensValidos || 0,
+        lidos: dados.lidos || 0,
+        percentual: dados.percentual || 0,
+        usuarios: dados.usuarios || {},
+      };
+    }
+  );
 
-  return Object.entries(locaisLeitura)
-    .map(([local, dados]) => ({
-      local: local,
-      total: dados.total || 0,
-      itensValidos: dados.itensValidos || 0,
-      lidos: dados.lidos || 0,
-      percentual: dados.percentual || 0,
-      usuarios: dados.usuarios || {},
-    }))
-    .filter((corredor) => corredor.total > 0) // Apenas corredores com itens
-    .sort((a, b) => (b.percentual || 0) - (a.percentual || 0));
+  console.log(
+    `📊 Dados filtrados para ${tipoAuditoriaAtual.value}:`,
+    locaisArray.length,
+    "locais"
+  );
+  return locaisArray;
 });
 
 // Computed para estatísticas gerais
 const desempenhoMedio = computed(() => {
-  if (!dadosFiltrados.value || dadosFiltrados.value.length === 0) return 0;
-  const total = dadosFiltrados.value.reduce(
-    (sum, corredor) => sum + (corredor.percentual || 0),
-    0
-  );
+  if (dadosFiltrados.value.length === 0) return 0;
+  const total = dadosFiltrados.value.reduce((sum, corredor) => {
+    return (
+      sum +
+      (corredor.itensValidos > 0
+        ? (corredor.lidos / corredor.itensValidos) * 100
+        : 0)
+    );
+  }, 0);
   return Math.round(total / dadosFiltrados.value.length);
 });
 
 const totalItens = computed(() => {
-  return dadosFiltrados.value.reduce(
-    (sum, corredor) => sum + corredor.total,
-    0
-  );
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.totalItens || 0;
 });
 
 const totalColaboradores = computed(() => {
-  const usuariosUnicos = new Set();
-  dadosFiltrados.value.forEach((corredor) => {
-    if (corredor.usuarios) {
-      Object.keys(corredor.usuarios).forEach((usuario) =>
-        usuariosUnicos.add(usuario)
-      );
-    }
-  });
-  return usuariosUnicos.size;
+  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
+  return auditoriaAtual?.resumo?.usuariosAtivos || 0;
 });
 
 const corredorDestaque = computed(() => {
-  if (!dadosFiltrados.value || dadosFiltrados.value.length === 0)
-    return { nome: "-", pontuacao: 0 };
-  const melhor = dadosFiltrados.value.reduce((prev, current) =>
-    (prev.percentual || 0) > (current.percentual || 0) ? prev : current
-  );
+  if (dadosFiltrados.value.length === 0) return { nome: "-", pontuacao: 0 };
+
+  const melhor = dadosFiltrados.value.reduce((prev, current) => {
+    const prevScore =
+      prev.itensValidos > 0 ? (prev.lidos / prev.itensValidos) * 100 : 0;
+    const currentScore =
+      current.itensValidos > 0
+        ? (current.lidos / current.itensValidos) * 100
+        : 0;
+    return prevScore > currentScore ? prev : current;
+  });
+
   return {
     nome: formatarNomeCorredor(melhor.local),
-    pontuacao: Math.round(melhor.percentual || 0),
+    pontuacao: Math.round((melhor.lidos / melhor.itensValidos) * 100),
   };
 });
 
 // Funções auxiliares
-const getPercentualLeitura = (corredor) => corredor.percentual || 0;
+const getPercentualLeitura = (corredor) => {
+  if (!corredor.itensValidos || corredor.itensValidos <= 0) return 0;
+  const percentual = (corredor.lidos / corredor.itensValidos) * 100;
+  return Math.min(percentual, 100);
+};
+
 const getClasseDesempenho = (valor) => {
   if (valor >= 90) return "excelente";
   if (valor >= 80) return "bom";
   if (valor >= 70) return "medio";
   return "baixo";
 };
-const getStatusCorredor = (corredor) =>
-  getClasseDesempenho(getPercentualLeitura(corredor));
+
+const getStatusCorredor = (corredor) => {
+  return getClasseDesempenho(getPercentualLeitura(corredor));
+};
+
 const getStatusLabel = (valor) => {
   if (valor >= 90) return "Excelente";
   if (valor >= 80) return "Bom";
@@ -365,316 +364,176 @@ const getStatusLabel = (valor) => {
 
 const getIconeCorredor = (local) => {
   const icones = {
-    G: "🛒",
-    F: "🥶",
-    C: "📦",
-    FLV: "🎃",
+    G01: "🛒",
+    G02: "🛒",
+    G03: "🛒",
+    G04: "🛒",
+    G05: "🛒",
+    G06: "🛒",
+    G07: "🛒",
+    G08: "🛒",
+    G09: "🛒",
+    G10: "🛒",
+    G11: "🛒",
+    G12: "🛒",
+    G13: "🛒",
+    G14: "🛒",
+    G15: "🛒",
+    G16: "🛒",
+    G17: "🛒",
+    G18: "🛒",
+    G19: "🛒",
+    G20: "🛒",
+    G21: "🛒",
+    G22: "🛒",
+    F01: "🥶",
+    F02: "🥶",
+    C01: "📦",
+    CS01: "📦",
+    FLV: "🍎",
     PAO: "🥖",
     SORVETE: "🍦",
     GELO: "🧊",
-    I: "🏢",
-    PA: "📦",
-    PF: "🥩",
-    PL: "🧴",
+    I01: "🏢",
+    PA01: "📦",
+    PF01: "🥩",
+    PF02: "🥩",
+    PF03: "🥩",
+    PL01: "🧴",
+    PL02: "🧴",
   };
-  const prefixo = local.substring(0, 3).replace(/\d/g, "");
-  return icones[prefixo] || "📍";
+
+  for (const [key, icone] of Object.entries(icones)) {
+    if (local.includes(key)) return icone;
+  }
+
+  return "📍";
 };
 
 const formatarNomeCorredor = (local) => {
-  return local.split(" - ")[0];
+  // Remove duplicatas como "G01A - G01A" para "G01A"
+  const partes = local.split(" - ");
+  if (partes[0] === partes[1]) {
+    return partes[0];
+  }
+  return local;
+};
+
+const getTipoAuditoriaLabel = () => {
+  const labels = {
+    etiquetas: "Auditoria de Etiquetas",
+    presencas: "Auditoria de Presenças",
+    rupturas: "Auditoria de Rupturas",
+  };
+  return labels[tipoAuditoriaAtual.value] || "Auditoria";
 };
 
 // Funções para o modal e ações
 const verDetalhesCorredor = (corredor) => {
   corredorSelecionado.value = corredor;
 };
+
 const fecharModal = () => {
   corredorSelecionado.value = null;
 };
+
 const alterarTipoAuditoria = (tipo) => {
   tipoAuditoriaAtual.value = tipo;
 };
-const getTipoAuditoriaLabel = () => {
-  const labels = {
-    etiquetas: "Etiquetas",
-    presencas: "Presenças",
-    rupturas: "Rupturas",
-  };
-  return labels[tipoAuditoriaAtual.value] || "Auditoria";
-};
 
-// Função para buscar dados da API, unificada com MetricasSetor
-const buscarMetricasLoja = async () => {
-  carregando.value = true;
-  erro.value = null;
+// Função para buscar dados reais da API
+const buscarDadosCorredores = async () => {
   try {
+    carregando.value = true;
+    erro.value = null;
+
+    // Verificar se há loja selecionada
     if (!lojaStore.codigoLojaAtual) {
-      throw new Error("Nenhuma loja selecionada.");
+      throw new Error("Nenhuma loja selecionada. Por favor, selecione uma loja.");
     }
+
+    console.log(`🔍 Buscando desempenho por corredor para loja: ${lojaStore.codigoLojaAtual}`);
+
+    // Buscar métricas de desempenho por corredor (locais)
     const response = await axios.get(
-      "http://localhost:3000/api/metricas/loja-daily/classes-completas",
-      { headers: { "x-loja": lojaStore.codigoLojaAtual } }
+      "http://localhost:3000/api/metricas/loja-daily/locais-completas",
+      {
+        headers: {
+          "x-loja": lojaStore.codigoLojaAtual,
+        },
+      }
     );
+
     if (response.data) {
-      // Mapeamento seguro e detalhado, igual ao do MetricasSetor.vue
+      console.log("📊 Dados recebidos da API:", response.data);
+
+      // O endpoint atual retorna dados por classes, mas precisamos converter para locais (corredores)
+      // A estrutura esperada pelo componente é locaisLeitura, mas o endpoint retorna classesLeitura
+      // Vamos verificar se o backend tem os dados estruturados corretamente
+
       dadosReais.value = {
-        loja: response.data.loja || "",
-        lojaNome: response.data.lojaNome || "",
+        loja: response.data.lojaNome || "056",
         data: response.data.data || new Date().toISOString(),
         etiquetas: {
-          ...response.data.etiquetas,
-          locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
+          locaisLeitura: response.data.etiquetas?.locaisLeitura || {}, // Usando diretamente do backend se disponível
+          resumo: {
+            totalItens: response.data.etiquetas?.resumo?.totalItens || 0,
+            usuariosAtivos: response.data.etiquetas?.resumo?.usuariosAtivos || 0,
+          },
         },
         rupturas: {
-          ...response.data.rupturas,
-          locaisLeitura: response.data.rupturas?.locaisLeitura || {},
+          locaisLeitura: response.data.rupturas?.locaisLeitura || {}, // Usando diretamente do backend se disponível
+          resumo: {
+            totalItens: response.data.rupturas?.resumo?.totalItens || 0,
+            usuariosAtivos: response.data.rupturas?.resumo?.usuariosAtivos || 0,
+          },
         },
         presencas: {
-          ...response.data.presencas,
-          locaisLeitura: response.data.presencas?.locaisLeitura || {},
+          locaisLeitura: response.data.presencas?.locaisLeitura || {}, // Usando diretamente do backend se disponível
+          resumo: {
+            totalItens: response.data.presencas?.resumo?.totalItens || 0,
+            usuariosAtivos: response.data.presencas?.resumo?.usuariosAtivos || 0,
+          },
         },
       };
+
+      console.log("✅ Dados processados:", dadosReais.value);
+
+      // Verificar se há dados de locais, caso contrário informar ao usuário
+      const totalLocais = Object.keys(dadosReais.value.etiquetas.locaisLeitura).length +
+                         Object.keys(dadosReais.value.rupturas.locaisLeitura).length +
+                         Object.keys(dadosReais.value.presencas.locaisLeitura).length;
+
+      if (totalLocais === 0) {
+        console.log("⚠️ Nenhum dado de locais encontrado, verifique se o backend tem os dados corretos");
+      }
     }
-  } catch (err) {
-    console.error("❌ Erro ao buscar métricas de corredores:", err);
-    erro.value = "Falha ao carregar os dados. Tente novamente.";
-    if (err.response?.status === 404) {
-      erro.value = "Nenhuma métrica diária encontrada para esta loja.";
+  } catch (error) {
+    console.error("❌ Erro ao buscar desempenho por corredor:", error);
+
+    if (error.response?.status === 400) {
+      erro.value = "Loja não selecionada ou inválida. Por favor, selecione uma loja.";
+    } else if (error.response?.status === 404) {
+      erro.value = "Nenhuma métrica encontrada para a loja e data especificadas.";
+    } else if (error.message.includes("loja selecionada")) {
+      erro.value = error.message;
+    } else {
+      erro.value = `Erro ao carregar métricas: ${error.message}`;
     }
   } finally {
     carregando.value = false;
   }
 };
 
-// Observar mudanças na loja selecionada para recarregar
-watch(
-  () => lojaStore.codigoLojaAtual,
-  (novaLoja) => {
-    if (novaLoja) buscarMetricasLoja();
-  }
-);
-
-// Inicialização ao montar o componente
+// Inicialização
 onMounted(() => {
-  if (lojaStore.codigoLojaAtual) {
-    buscarMetricasLoja();
-  } else {
-    erro.value = "Por favor, selecione uma loja.";
-    carregando.value = false;
-  }
+  console.log("📦 Componente DesempenhoCorredores montado");
+  buscarDadosCorredores();
 });
 </script>
 
 <style scoped>
-/* ... (mantém todos os estilos originais) ... */
-.metricas-corredor-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin: 1rem 0;
-}
-
-.loading-container,
-.erro-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  min-height: 300px;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.erro-container {
-  color: #f44336;
-}
-
-.erro-mensagem {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.metricas-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.metricas-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.metricas-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.5rem 1rem;
-  background: #e2e8f0;
-  border: none;
-  border-radius: 6px;
-  color: #4a5568;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  border: 2px solid transparent;
-}
-
-.action-btn:hover {
-  background: #cbd5e0;
-  transform: translateY(-1px);
-}
-
-.action-btn.active {
-  background: #667eea;
-  color: white;
-  border-color: #5a6fd8;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.resumo-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #f8fafc;
-}
-
-.resumo-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.resumo-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.resumo-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.resumo-label {
-  font-size: 0.8rem;
-  color: #718096;
-  font-weight: 500;
-}
-
-.corredores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-}
-
-.corredor-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
-}
-
-.corredor-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.corredor-card.excelente {
-  border-left-color: #48bb78;
-}
-.corredor-card.bom {
-  border-left-color: #4299e1;
-}
-.corredor-card.medio {
-  border-left-color: #ed8936;
-}
-.corredor-card.baixo {
-  border-left-color: #f56565;
-}
-
-.corredor-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.corredor-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.corredor-info {
-  flex: 1;
-}
-
-.corredor-nome {
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-.corredor-score {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.corredor-card.excelente .corredor-score {
-  color: #48bb78;
-}
-.corredor-card.bom .corredor-score {
-  color: #4299e1;
-}
-.corredor-card.medio .corredor-score {
-  color: #ed8936;
-}
-.corredor-card.baixo .corredor-score {
-  color: #f56565;
-}
-
-.metricas-corredor-container {
+.desempenho-corredores-container {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -956,61 +815,6 @@ onMounted(() => {
   font-size: 0.8rem;
   color: #718096;
   text-align: center;
-}
-
-.corredor-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-weight: 700;
-  color: #2c3e50;
-  font-size: 1.1rem;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  color: #718096;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.corredor-colaboradores {
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.colaboradores-label {
-  font-size: 0.8rem;
-  color: #718096;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.colaboradores-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.colaborador-tag {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
-  color: #4a5568;
-  cursor: help;
 }
 
 /* Modal Styles */

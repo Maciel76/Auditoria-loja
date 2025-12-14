@@ -220,11 +220,26 @@ export default {
       return Math.round((contador / maxContador.value) * 100);
     };
 
-    const getRankingClass = (index) => {
-      if (index === 0) return "gold";
-      if (index === 1) return "silver";
-      if (index === 2) return "bronze";
-      if (index < 10) return "top-ten";
+    const getRankingClass = (displayIndex) => {
+      // Calcular o índice real do usuário com base no modo de visualização
+      let actualUserIndex;
+      if (props.viewMode === 'podium') {
+        actualUserIndex = displayIndex - 3;
+      } else {
+        actualUserIndex = displayIndex;
+      }
+
+      // Verificar se o índice é válido
+      if (actualUserIndex < 0 || actualUserIndex >= props.usuariosFiltradosOrdenados.length) {
+        return "standard";
+      }
+
+      const usuario = props.usuariosFiltradosOrdenados[actualUserIndex];
+
+      if (displayIndex === 0) return "gold";
+      if (displayIndex === 1) return "silver";
+      if (displayIndex === 2) return "bronze";
+      if (usuario && usuario.contador >= 500) return "top-ten";
       return "standard";
     };
 
@@ -235,10 +250,26 @@ export default {
       return "standard";
     };
 
-    const getBadgeClass = (index) => {
-      if (index === 0) return "gold";
-      if (index === 1) return "silver";
-      if (index === 2) return "bronze";
+    const getBadgeClass = (displayIndex) => {
+      // Calcular o índice real do usuário com base no modo de visualização
+      let actualUserIndex;
+      if (props.viewMode === 'podium') {
+        actualUserIndex = displayIndex - 3;
+      } else {
+        actualUserIndex = displayIndex;
+      }
+
+      // Verificar se o índice é válido
+      if (actualUserIndex < 0 || actualUserIndex >= props.usuariosFiltradosOrdenados.length) {
+        return "standard";
+      }
+
+      const usuario = props.usuariosFiltradosOrdenados[actualUserIndex];
+
+      if (displayIndex === 0) return "gold";
+      if (displayIndex === 1) return "silver";
+      if (displayIndex === 2) return "bronze";
+      if (usuario && usuario.contador >= 500) return "top-ten";
       return "standard";
     };
 
@@ -285,11 +316,26 @@ export default {
       return icons[index % icons.length];
     };
 
-    const getRankingIcon = (index) => {
-      if (index === 0) return "👑";
-      if (index === 1) return "🥈";
-      if (index === 2) return "🥉";
-      if (index < 10) return "⭐";
+    const getRankingIcon = (displayIndex) => {
+      // Calcular o índice real do usuário com base no modo de visualização
+      let actualUserIndex;
+      if (props.viewMode === 'podium') {
+        actualUserIndex = displayIndex - 3;
+      } else {
+        actualUserIndex = displayIndex;
+      }
+
+      // Verificar se o índice é válido
+      if (actualUserIndex < 0 || actualUserIndex >= props.usuariosFiltradosOrdenados.length) {
+        return "🔸";
+      }
+
+      const usuario = props.usuariosFiltradosOrdenados[actualUserIndex];
+
+      if (displayIndex === 0) return "👑";
+      if (displayIndex === 1) return "🥈";
+      if (displayIndex === 2) return "🥉";
+      if (usuario && usuario.contador >= 500) return "⭐";
       return "🔸";
     };
 
