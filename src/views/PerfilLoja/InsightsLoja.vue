@@ -27,33 +27,29 @@
         </div>
       </div>
       <div class="header-controls">
-        <div class="filter-group">
-          <label for="periodo">Período</label>
-          <select
-            v-model="periodoSelecionado"
-            id="periodo"
-            class="filtro-select"
+        <div class="insights-actions">
+          <button
+            class="action-btn"
+            :class="{ active: tipoInsightAtual === 'etiqueta' }"
+            @click="alterarTipoInsight('etiqueta')"
           >
-            <option value="semana">Esta Semana</option>
-            <option value="mes">Este Mês</option>
-            <option value="trimestre">Este Trimestre</option>
-          </select>
+            Etiqueta
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoInsightAtual === 'presenca' }"
+            @click="alterarTipoInsight('presenca')"
+          >
+            Presença
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoInsightAtual === 'ruptura' }"
+            @click="alterarTipoInsight('ruptura')"
+          >
+            Ruptura
+          </button>
         </div>
-        <button class="refresh-btn" @click="atualizarInsights">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z"
-              fill="currentColor"
-            />
-          </svg>
-          Atualizar
-        </button>
       </div>
     </div>
 
@@ -70,14 +66,14 @@
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
+                d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM10.5 17.5L8 15L9.41 13.59L10.5 14.67L13.59 11.59L15 13L10.5 17.5Z"
                 fill="currentColor"
               />
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">+15%</span>
-            <span class="stat-label">Crescimento</span>
+            <span class="stat-value">{{ itensAuditados }}</span>
+            <span class="stat-label">Itens Auditados</span>
           </div>
         </div>
 
@@ -97,8 +93,8 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">3</span>
-            <span class="stat-label">Alertas</span>
+            <span class="stat-value">{{ valorRuptura }}</span>
+            <span class="stat-label">Ruptura</span>
           </div>
         </div>
 
@@ -118,8 +114,8 @@
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">8</span>
-            <span class="stat-label">Concluídos</span>
+            <span class="stat-value">{{ aderencia }}</span>
+            <span class="stat-label">Aderência</span>
           </div>
         </div>
 
@@ -133,14 +129,14 @@
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M11 7H13V9H11V7ZM11 11H13V17H11V11ZM12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
+                d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
                 fill="currentColor"
               />
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">94%</span>
-            <span class="stat-label">Performance</span>
+            <span class="stat-value">{{ itensPorColaborador }}</span>
+            <span class="stat-label">Itens / Colaborador</span>
           </div>
         </div>
       </div>
@@ -330,6 +326,23 @@
               <div class="trend-content">
                 <span class="trend-title">Clientes Fiéis</span>
                 <span class="trend-value">+8% retenção</span>
+              </div>
+            </div>
+            <div class="trend-item">
+              <div class="trend-indicator positive">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                </svg>
+              </div>
+              <div class="trend-content">
+                <span class="trend-title">Auditorias de Presença</span>
+                <span class="trend-value">+25% aumento</span>
               </div>
             </div>
             <div class="trend-item">
@@ -582,16 +595,53 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 
-const periodoSelecionado = ref("semana");
+const tipoInsightAtual = ref("etiqueta");
 const carregando = ref(true);
+
+// Estrutura de dados para os insights dinâmicos
+const insightsData = {
+  etiqueta: {
+    itensAuditados: "1.2k",
+    rupturaValor: "R$ 250",
+    aderencia: "98%",
+    itensPorColaborador: "120",
+  },
+  presenca: {
+    itensAuditados: "850",
+    rupturaValor: "R$ 180",
+    aderencia: "95%",
+    itensPorColaborador: "95",
+  },
+  ruptura: {
+    itensAuditados: "300",
+    rupturaValor: "R$ 1.5k",
+    aderencia: "99%",
+    itensPorColaborador: "40",
+  },
+};
+
+// Propriedades computadas para exibir os dados do insight atual
+const currentInsights = computed(() => insightsData[tipoInsightAtual.value]);
+
+const itensAuditados = computed(() => currentInsights.value.itensAuditados);
+const valorRuptura = computed(() => currentInsights.value.rupturaValor);
+const aderencia = computed(() => currentInsights.value.aderencia);
+const itensPorColaborador = computed(
+  () => currentInsights.value.itensPorColaborador
+);
 
 const atualizarInsights = () => {
   carregando.value = true;
   setTimeout(() => {
     carregando.value = false;
   }, 1000);
+};
+
+const alterarTipoInsight = (tipo) => {
+  tipoInsightAtual.value = tipo;
+  atualizarInsights();
 };
 
 onMounted(() => {
@@ -672,6 +722,13 @@ onMounted(() => {
   gap: 1.5rem;
   align-items: flex-end;
 }
+.header-controls .insights-actions {
+  display: flex;
+  gap: 0.5rem;
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  padding: 0.3rem;
+}
 
 .filter-group {
   display: flex;
@@ -717,6 +774,28 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+}
+
+.header-controls .action-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.header-controls .action-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.header-controls .action-btn.active {
+  background-color: #fff;
+  color: #6366f1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .refresh-btn:hover {
