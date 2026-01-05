@@ -662,6 +662,12 @@ const lojasDisponiveis = ref([
     cidade: "Araguaina",
     imagem: "/images/lojas/347.jpeg",
   },
+  {
+    codigo: "348",
+    nome: "Loja 348 - Aparecida",
+    cidade: "Aparecida",
+    imagem: "/images/lojas/348.jpg",
+  },
 ]);
 const filtro = ref("");
 const carregando = ref(false);

@@ -94,6 +94,7 @@ const imagensLojas = {
   310: "/images/lojas/310.jpg",
   320: "/images/lojas/320.jpg",
   347: "/images/lojas/347.jpeg",
+  348: "/images/lojas/348.jpg",
 };
 
 // Fallback para imagens padrão caso as locais não existam
@@ -154,6 +155,11 @@ const lojas = ref([
     codigo: "347",
     nome: "Araguaina",
     cidade: "Araguaina",
+  },
+  {
+    codigo: "348",
+    nome: "Aparecida",
+    cidade: "Aparecida",
   },
 ]);
 

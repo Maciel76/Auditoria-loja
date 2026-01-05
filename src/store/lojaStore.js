@@ -72,6 +72,12 @@ export const useLojaStore = defineStore("loja", {
         cidade: "Araguaina",
         imagem: "/images/lojas/347.jpeg",
       },
+      {
+        codigo: "348",
+        nome: "Loja 348 - Aparecida",
+        cidade: "Aparecida",
+        imagem: "/images/lojas/348.jpg",
+      },
     ],
     loading: false,
     error: null,
