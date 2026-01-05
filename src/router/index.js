@@ -18,6 +18,16 @@ import TesteMetricas from "@/views/PerfilLoja/TesteMetricas.vue";
 import { useLojaStore } from "../store/lojaStore";
 import Login from "@/views/Login.vue";
 
+// InfoSite components
+import CentralAjuda from "@/views/InfoSite/CentralAjuda.vue";
+import Changelog from "@/views/InfoSite/Changelog.vue";
+import Contato from "@/views/InfoSite/Contato.vue";
+import Documentacao from "@/views/InfoSite/Documentacao.vue";
+import RoadMap from "@/views/InfoSite/RoadMap.vue";
+import Sugestao from "@/views/InfoSite/Sugestao.vue";
+import Tutorias from "@/views/InfoSite/Tutorias.vue";
+import Votacao from "@/views/InfoSite/Votacao.vue";
+
 const routes = [
   // Rota principal - Seleção de Loja (SEM Layout do App.vue)
   {
@@ -130,6 +140,56 @@ const routes = [
     name: "TesteMetricas",
     component: TesteMetricas,
     meta: { requiresLoja: true },
+  },
+
+  // InfoSite routes
+  {
+    path: "/info/central-ajuda",
+    name: "CentralAjuda",
+    component: CentralAjuda,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/changelog",
+    name: "Changelog",
+    component: Changelog,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/contato",
+    name: "Contato",
+    component: Contato,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/documentacao",
+    name: "Documentacao",
+    component: Documentacao,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/roadmap",
+    name: "RoadMap",
+    component: RoadMap,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/sugestao",
+    name: "Sugestao",
+    component: Sugestao,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/tutorias",
+    name: "Tutorias",
+    component: Tutorias,
+    meta: { requiresLoja: false },
+  },
+  {
+    path: "/info/votacao",
+    name: "Votacao",
+    component: Votacao,
+    meta: { requiresLoja: false },
   },
 ];
 

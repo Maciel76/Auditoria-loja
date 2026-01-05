@@ -93,6 +93,7 @@ const imagensLojas = {
   194: "/images/lojas/194.jpg",
   310: "/images/lojas/310.jpg",
   320: "/images/lojas/320.jpg",
+  347: "/images/lojas/347.jpeg",
 };
 
 // Fallback para imagens padrão caso as locais não existam
@@ -148,6 +149,11 @@ const lojas = ref([
     codigo: "320",
     nome: "Palmas Cesamar",
     cidade: "Palmas",
+  },
+  {
+    codigo: "347",
+    nome: "Araguaina",
+    cidade: "Araguaina",
   },
 ]);
 

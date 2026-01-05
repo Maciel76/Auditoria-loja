@@ -656,6 +656,12 @@ const lojasDisponiveis = ref([
     cidade: "Palmas",
     imagem: "/images/lojas/320.jpg",
   },
+  {
+    codigo: "347",
+    nome: "Loja 347 - Araguaina",
+    cidade: "Araguaina",
+    imagem: "/images/lojas/347.jpeg",
+  },
 ]);
 const filtro = ref("");
 const carregando = ref(false);

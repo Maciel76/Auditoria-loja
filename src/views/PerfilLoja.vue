@@ -161,10 +161,10 @@ export default {
         );
       }
 
-      await carregarDadosLoja(props.codigo);
+      await carregarDadosLoja(props.codigo, lojaCompleta);
     });
 
-    const carregarDadosLoja = async (codigoLoja) => {
+    const carregarDadosLoja = async (codigoLoja, lojaCompleta) => {
       try {
         carregando.value = true;
 
@@ -178,7 +178,9 @@ export default {
           cidade: "Cidade Exemplo",
           endereco: "Rua Exemplo, 123",
           telefone: "(11) 99999-9999",
-          imagem: `/images/lojas/${codigoLoja}.jpg`,
+          imagem: lojaCompleta
+            ? lojaCompleta.imagem
+            : `/images/lojas/${codigoLoja}.jpg`,
           horarioFuncionamento: "08:00 - 22:00",
           dataInauguracao: "2023-01-15",
           tamanho: "500m²",

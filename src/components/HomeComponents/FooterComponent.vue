@@ -10,21 +10,21 @@
     <div class="footer-content">
       <div class="footer-section">
         <h4>Product</h4>
-        <a href="#">Roadmap</a>
-        <a href="#">Changelog</a>
-        <a href="#">Documentação</a>
+        <a href="/info/roadmap">Roadmap</a>
+        <a href="/info/changelog">Changelog</a>
+        <a href="/info/documentacao">Documentação</a>
       </div>
       <div class="footer-section">
         <h4>Comunidade</h4>
-        <a href="#">Sugestões</a>
+        <a href="/info/sugestao">Sugestões</a>
         <a href="#">Votações</a>
         <a href="#">Ranking</a>
       </div>
       <div class="footer-section">
         <h4>Suporte</h4>
-        <a href="#">Central de Ajuda</a>
-        <a href="#">Contato</a>
-        <a href="#">Tutoriais</a>
+        <a href="/central-ajuda">Central de Ajuda</a>
+        <a href="/info/contato">Contato</a>
+        <a href="/info/tutorias">Tutoriais</a>
       </div>
       <div class="footer-section">
         <h4>Desenvolvido com 💚 pela equipe AuditPro</h4>

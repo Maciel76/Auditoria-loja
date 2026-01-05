@@ -170,8 +170,8 @@
           <div class="metric-list">
             <div class="metric-item">
               <div class="metric-info">
-                <span class="metric-label">Setor Top</span>
-                <span class="metric-value">Eletrônicos</span>
+                <span class="metric-label">Setor Destaque</span>
+                <span class="metric-value">{{ setorDestaque.nome }}</span>
               </div>
               <div class="metric-badge positive">
                 <svg
@@ -183,15 +183,15 @@
                 >
                   <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
                 </svg>
-                +15%
+                {{ setorDestaque.valor }}
               </div>
             </div>
             <div class="metric-item">
               <div class="metric-info">
-                <span class="metric-label">Maior Evolução</span>
-                <span class="metric-value">Moda</span>
+                <span class="metric-label">Setor Crítico</span>
+                <span class="metric-value">{{ setorCritico.nome }}</span>
               </div>
-              <div class="metric-badge positive">
+              <div class="metric-badge negative">
                 <svg
                   width="12"
                   height="12"
@@ -199,19 +199,19 @@
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                  <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
                 </svg>
-                +12%
+                {{ setorCritico.valor }}
               </div>
             </div>
           </div>
-          <div class="progress-section">
+           <div class="progress-section">
             <div class="progress-header">
-              <span class="progress-label">Meta Geral</span>
-              <span class="progress-value">85%</span>
+              <span class="progress-label">Aderência Geral</span>
+              <span class="progress-value">{{ aderencia }}</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" style="width: 85%"></div>
+              <div class="progress-fill" :style="{ width: aderencia }"></div>
             </div>
           </div>
         </div>
@@ -241,31 +241,27 @@
         </div>
         <div class="card-content">
           <div class="alert-list">
-            <div class="alert-item critical">
+            <div class="alert-item critical" v-if="setorCritico.nome !== 'N/A'">
               <div class="alert-indicator"></div>
               <div class="alert-content">
-                <span class="alert-title">Setor Alimentos</span>
-                <span class="alert-description">-5% abaixo da meta</span>
+                <span class="alert-title">Baixo Desempenho</span>
+                <span class="alert-description">O {{ setorCritico.nome }} está com {{ setorCritico.valor }} de aderência.</span>
               </div>
             </div>
-            <div class="alert-item medium">
+            <div class="alert-item medium" v-if="valorRuptura !== 'R$ 0,00'">
               <div class="alert-indicator"></div>
               <div class="alert-content">
-                <span class="alert-title">Alta Ruptura</span>
-                <span class="alert-description"
-                  >Produtos em falta no setor Limpeza</span
-                >
+                <span class="alert-title">Valor de Ruptura</span>
+                <span class="alert-description">Total de {{ valorRuptura }} em produtos de ruptura.</span>
               </div>
             </div>
-            <div class="alert-item low">
-              <div class="alert-indicator"></div>
-              <div class="alert-content">
-                <span class="alert-title">Estoque Baixo</span>
-                <span class="alert-description"
-                  >Eletrodomésticos com poucas unidades</span
-                >
+             <div v-if="setorCritico.nome === 'N/A' && valorRuptura === 'R$ 0,00'" class="alert-item low">
+                <div class="alert-indicator"></div>
+                <div class="alert-content">
+                  <span class="alert-title">Tudo Certo!</span>
+                  <span class="alert-description">Nenhum alerta crítico para hoje.</span>
+                </div>
               </div>
-            </div>
           </div>
         </div>
       </div>
@@ -295,7 +291,7 @@
         <div class="card-content">
           <div class="trend-list">
             <div class="trend-item">
-              <div class="trend-indicator positive">
+               <div class="trend-indicator" :class="variacaoAuditorias >= 0 ? 'positive' : 'negative'">
                 <svg
                   width="16"
                   height="16"
@@ -303,70 +299,19 @@
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
+                  <path :d="variacaoAuditorias >= 0 ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
                 </svg>
               </div>
               <div class="trend-content">
-                <span class="trend-title">Vendas Online</span>
-                <span class="trend-value">+18% crescimento</span>
-              </div>
-            </div>
-            <div class="trend-item">
-              <div class="trend-indicator positive">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-                </svg>
-              </div>
-              <div class="trend-content">
-                <span class="trend-title">Clientes Fiéis</span>
-                <span class="trend-value">+8% retenção</span>
-              </div>
-            </div>
-            <div class="trend-item">
-              <div class="trend-indicator positive">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-                </svg>
-              </div>
-              <div class="trend-content">
-                <span class="trend-title">Auditorias de Presença</span>
-                <span class="trend-value">+25% aumento</span>
-              </div>
-            </div>
-            <div class="trend-item">
-              <div class="trend-indicator negative">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
-                </svg>
-              </div>
-              <div class="trend-content">
-                <span class="trend-title">Setor Livros</span>
-                <span class="trend-value">-3% desempenho</span>
+                <span class="trend-title">Variação de Auditorias</span>
+                <span class="trend-value">{{ variacaoAuditorias }}% em relação ao período anterior</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Recomendações -->
+      <!-- Recomendações (ainda estático) -->
       <div class="insight-card recomendacoes">
         <div class="card-header">
           <div class="card-icon">
@@ -393,7 +338,7 @@
             <div class="recommendation-item">
               <div class="recommendation-content">
                 <span class="recommendation-text"
-                  >Reforçar equipe no caixa durante pico</span
+                  >Reforçar o time no setor {{ setorCritico.nome }}</span
                 >
                 <span class="recommendation-priority">Alta prioridade</span>
               </div>
@@ -411,33 +356,6 @@
                   />
                 </svg>
                 Aplicar
-              </button>
-            </div>
-            <div class="recommendation-item">
-              <div class="recommendation-content">
-                <span class="recommendation-text"
-                  >Treinamento para setor de vendas</span
-                >
-                <span class="recommendation-priority">Média prioridade</span>
-              </div>
-              <button class="action-btn secondary">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.59 7.58 4 12 4C16.42 4 20 7.59 20 12C20 16.42 16.42 20 12 20Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M12.5 7H11V13L16.25 16.15L17 15.08L12.5 12.25V7Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                Agendar
               </button>
             </div>
           </div>
@@ -468,17 +386,18 @@
         </div>
         <div class="card-content">
           <div class="recognition-list">
-            <div class="recognition-item">
+            <div class="recognition-item" v-if="colaboradorDestaque.nome !== 'N/A'">
               <div class="employee-avatar">
+                <!-- Avatar pode ser implementado no futuro -->
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80"
-                  alt="Maria Silva"
+                  :src="`https://ui-avatars.com/api/?name=${colaboradorDestaque.nome}&background=random`"
+                  :alt="colaboradorDestaque.nome"
                 />
               </div>
               <div class="employee-info">
-                <span class="employee-name">Maria Silva</span>
-                <span class="employee-role">Supervisora de Vendas</span>
-                <span class="achievement">Meta superada em 25%</span>
+                <span class="employee-name">{{ colaboradorDestaque.nome }}</span>
+                <span class="employee-role">Colaborador Destaque</span>
+                <span class="achievement">{{ colaboradorDestaque.conquista }}</span>
               </div>
               <div class="achievement-badge">
                 <svg
@@ -495,38 +414,16 @@
                 </svg>
               </div>
             </div>
-            <div class="recognition-item">
-              <div class="employee-avatar">
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80"
-                  alt="João Santos"
-                />
-              </div>
-              <div class="employee-info">
-                <span class="employee-name">João Santos</span>
-                <span class="employee-role">Atendimento</span>
-                <span class="achievement">Melhor avaliação de clientes</span>
-              </div>
-              <div class="achievement-badge">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
+             <div v-else class="recognition-item">
+                <div class="employee-info">
+                    <span class="employee-name">Sem destaques hoje.</span>
+                </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Auditorias -->
+      <!-- Auditorias (ainda estático) -->
       <div class="insight-card auditorias">
         <div class="card-header">
           <div class="card-icon">
@@ -595,59 +492,53 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useInsightsStore } from "@/stores/insightsStore";
+import { useRoute } from "vue-router";
 
-const tipoInsightAtual = ref("etiqueta");
-const carregando = ref(true);
+const tipoInsightAtual = ref("etiqueta"); // Mantido para controle de UI, pode ser usado no futuro
+const insightsStore = useInsightsStore();
+const route = useRoute();
 
-// Estrutura de dados para os insights dinâmicos
-const insightsData = {
-  etiqueta: {
-    itensAuditados: "1.2k",
-    rupturaValor: "R$ 250",
-    aderencia: "98%",
-    itensPorColaborador: "120",
-  },
-  presenca: {
-    itensAuditados: "850",
-    rupturaValor: "R$ 180",
-    aderencia: "95%",
-    itensPorColaborador: "95",
-  },
-  ruptura: {
-    itensAuditados: "300",
-    rupturaValor: "R$ 1.5k",
-    aderencia: "99%",
-    itensPorColaborador: "40",
-  },
-};
+// O código da loja é pego da rota
+const lojaCodigo = computed(() => route.params.codigo);
 
-// Propriedades computadas para exibir os dados do insight atual
-const currentInsights = computed(() => insightsData[tipoInsightAtual.value]);
+// Conecta as propriedades do template aos getters e ao state da store
+const carregando = computed(() => insightsStore.loading);
+const error = computed(() => insightsStore.error);
+const loja = computed(() => insightsStore.loja);
 
-const itensAuditados = computed(() => currentInsights.value.itensAuditados);
-const valorRuptura = computed(() => currentInsights.value.rupturaValor);
-const aderencia = computed(() => currentInsights.value.aderencia);
-const itensPorColaborador = computed(
-  () => currentInsights.value.itensPorColaborador
-);
+// Cards de resumo
+const itensAuditados = computed(() => insightsStore.itensAuditados);
+const valorRuptura = computed(() => insightsStore.valorRuptura);
+const aderencia = computed(() => insightsStore.aderencia);
+const itensPorColaborador = computed(() => insightsStore.itensPorColaborador);
 
-const atualizarInsights = () => {
-  carregando.value = true;
-  setTimeout(() => {
-    carregando.value = false;
-  }, 1000);
-};
+// Cards de insights
+const setorDestaque = computed(() => insightsStore.setorDestaque);
+const setorCritico = computed(() => insightsStore.setorCritico);
+const colaboradorDestaque = computed(() => insightsStore.colaboradorDestaque);
+const variacaoAuditorias = computed(() => insightsStore.metricasAgregadas?.variacaoAuditorias || 0);
+
+// TODO: Adicionar mais getters para os outros cards (Tendências, Recomendações)
 
 const alterarTipoInsight = (tipo) => {
   tipoInsightAtual.value = tipo;
-  atualizarInsights();
+  // No futuro, isso pode filtrar os dados exibidos, mas por agora os dados são carregados de uma vez
 };
 
+// Carrega os dados quando o componente é montado ou quando o código da loja na rota muda
 onMounted(() => {
-  setTimeout(() => {
-    carregando.value = false;
-  }, 1500);
+  console.log('[InsightsLoja] Componente montado. Código da loja:', lojaCodigo.value);
+  if (lojaCodigo.value) {
+    insightsStore.fetchInsights(lojaCodigo.value);
+  }
+});
+
+watch(lojaCodigo, (newCodigo) => {
+  if (newCodigo) {
+    insightsStore.fetchInsights(newCodigo);
+  }
 });
 </script>
 

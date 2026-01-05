@@ -66,6 +66,12 @@ export const useLojaStore = defineStore("loja", {
         cidade: "Palmas",
         imagem: "/images/lojas/320.jpg",
       },
+      {
+        codigo: "347",
+        nome: "Loja 347 - Araguaina",
+        cidade: "Araguaina",
+        imagem: "/images/lojas/347.jpeg",
+      },
     ],
     loading: false,
     error: null,
@@ -130,7 +136,9 @@ export const useLojaStore = defineStore("loja", {
           // Configurar axios para sempre enviar o header
           this.configurarAxiosHeader(lojaCompleta.codigo);
 
-          console.log(`✅ Loja selecionada: ${lojaCompleta.nome || 'Nome Indisponível'}`);
+          console.log(
+            `✅ Loja selecionada: ${lojaCompleta.nome || "Nome Indisponível"}`
+          );
           return true;
         }
       } catch (error) {
@@ -151,19 +159,26 @@ export const useLojaStore = defineStore("loja", {
           const lojaSalva = JSON.parse(lojaSalvaJSON);
 
           // Validar se a loja salva ainda existe na nossa lista de lojas
-          const lojaValida = this.lojas.find(l => l.codigo === lojaSalva.codigo);
+          const lojaValida = this.lojas.find(
+            (l) => l.codigo === lojaSalva.codigo
+          );
 
           if (lojaValida) {
             this.lojaSelecionada = lojaValida;
             this.configurarAxiosHeader(lojaValida.codigo);
             console.log(`🔄 Loja carregada: ${lojaValida.nome}`);
           } else {
-            console.warn(`⚠️ Loja salva (${lojaSalva.codigo}) não é mais válida. Limpando seleção.`);
+            console.warn(
+              `⚠️ Loja salva (${lojaSalva.codigo}) não é mais válida. Limpando seleção.`
+            );
             this.limparLoja();
           }
         }
       } catch (error) {
-        console.error("❌ Erro ao carregar e validar loja do localStorage:", error);
+        console.error(
+          "❌ Erro ao carregar e validar loja do localStorage:",
+          error
+        );
         this.limparLoja(); // Limpa em caso de erro de parsing ou outro problema
       }
     },
@@ -190,7 +205,7 @@ export const useLojaStore = defineStore("loja", {
       // Só atualiza e faz log se o valor realmente mudar
       if (axios.defaults.headers.common["x-loja"] !== codigo) {
         axios.defaults.headers.common["x-loja"] = codigo;
-        console.log(`🔧 x-loja=${codigo || 'Código Indisponível'}`);
+        console.log(`🔧 x-loja=${codigo || "Código Indisponível"}`);
       }
     },
 

@@ -304,6 +304,179 @@
             >
           </router-link>
 
+          <!-- Informações Menu com Dropdown -->
+          <div class="nav-item-container">
+            <div
+              class="nav-item main-nav-item"
+              :class="{
+                'router-link-active': isInfoActive,
+                'dropdown-open': showInfoSubmenu && !sidebarCollapsed,
+              }"
+              @click="handleMenuClick('info')"
+              :title="sidebarCollapsed ? 'Informações' : ''"
+            >
+              <img
+                src="../assets/svg/info.svg"
+                alt="Informações"
+                class="nav-icon"
+              />
+              <span class="nav-text" v-if="!sidebarCollapsed">Informações</span>
+              <span
+                class="dropdown-arrow"
+                v-if="!sidebarCollapsed"
+                :class="{ rotated: showInfoSubmenu }"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style="display: inline; vertical-align: middle"
+                >
+                  <path
+                    d="M7 5l5 5-5 5"
+                    stroke="#667eea"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </div>
+
+            <!-- Dropdown do Informações -->
+            <transition name="dropdown">
+              <div
+                v-if="showInfoSubmenu && !sidebarCollapsed"
+                class="dropdown-menu"
+              >
+                <router-link
+                  to="/info/central-ajuda"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Central de Ajuda</span>
+                </router-link>
+                <router-link
+                  to="/info/changelog"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Changelog</span>
+                </router-link>
+                <router-link
+                  to="/info/contato"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Contato</span>
+                </router-link>
+                <router-link
+                  to="/info/documentacao"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Documentação</span>
+                </router-link>
+                <router-link
+                  to="/info/roadmap"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Roadmap</span>
+                </router-link>
+                <router-link
+                  to="/info/sugestao"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Sugestão</span>
+                </router-link>
+                <router-link
+                  to="/info/tutorias"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Tutorias</span>
+                </router-link>
+                <router-link
+                  to="/info/votacao"
+                  class="dropdown-item"
+                  @click="closeSubmenus"
+                >
+                  <span class="dropdown-text">Votação</span>
+                </router-link>
+              </div>
+            </transition>
+
+            <!-- Tooltip para modo colapsado -->
+            <div
+              v-if="sidebarCollapsed && showInfoSubmenu"
+              class="tooltip-menu"
+            >
+              <div class="tooltip-content">
+                <div class="tooltip-header">Informações</div>
+                <router-link
+                  to="/info/central-ajuda"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Central de Ajuda
+                </router-link>
+                <router-link
+                  to="/info/changelog"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Changelog
+                </router-link>
+                <router-link
+                  to="/info/contato"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Contato
+                </router-link>
+                <router-link
+                  to="/info/documentacao"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Documentação
+                </router-link>
+                <router-link
+                  to="/info/roadmap"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Roadmap
+                </router-link>
+                <router-link
+                  to="/info/sugestao"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Sugestão
+                </router-link>
+                <router-link
+                  to="/info/tutorias"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Tutorias
+                </router-link>
+                <router-link
+                  to="/info/votacao"
+                  class="tooltip-item"
+                  @click="closeSubmenus"
+                >
+                  Votação
+                </router-link>
+              </div>
+            </div>
+          </div>
+
           <!-- <router-link
             to="/setores"
             class="nav-item"
@@ -443,6 +616,7 @@ const lojaStore = useLojaStore();
 
 // Estados do componente
 const showUploadSubmenu = ref(false);
+const showInfoSubmenu = ref(false);
 const sidebarOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const mostrarTrocaLoja = ref(false);
@@ -450,6 +624,7 @@ const lojaAtual = ref(null);
 
 // Computed
 const isUploadActive = computed(() => route.path.startsWith("/upload/"));
+const isInfoActive = computed(() => route.path.startsWith("/info/"));
 
 // Verificação de loja obrigatória
 const verificarLojaSelecionada = () => {
@@ -516,22 +691,34 @@ function toggleUploadSubmenu() {
   showUploadSubmenu.value = !showUploadSubmenu.value;
 }
 
+function toggleInfoSubmenu() {
+  if (sidebarCollapsed.value) return;
+  showInfoSubmenu.value = !showInfoSubmenu.value;
+}
+
 function handleMenuClick(menuType) {
   if (sidebarCollapsed.value) {
     // No modo colapsado, mostra tooltip
     if (menuType === "upload") {
       showUploadSubmenu.value = !showUploadSubmenu.value;
+      showInfoSubmenu.value = false;
+    } else if (menuType === "info") {
+      showInfoSubmenu.value = !showInfoSubmenu.value;
+      showUploadSubmenu.value = false;
     }
   } else {
     // No modo expandido, comportamento normal
     if (menuType === "upload") {
       toggleUploadSubmenu();
+    } else if (menuType === "info") {
+      toggleInfoSubmenu();
     }
   }
 }
 
 function closeSubmenus() {
   showUploadSubmenu.value = false;
+  showInfoSubmenu.value = false;
   mostrarTrocaLoja.value = false;
 }
 

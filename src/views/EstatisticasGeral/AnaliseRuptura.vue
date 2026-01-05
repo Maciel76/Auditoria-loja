@@ -123,6 +123,7 @@ export default {
         { codigo: "194", nome: "Anápolis" },
         { codigo: "310", nome: "Portugal" },
         { codigo: "320", nome: "Palmas Cesamar" },
+        { codigo: "347", nome: "Araguaina" },
       ];
 
       for (let i = 0; i < 250; i++) {
