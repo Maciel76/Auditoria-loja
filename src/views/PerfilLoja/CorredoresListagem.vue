@@ -83,7 +83,7 @@
               v-model="filtroStatus" 
               type="radio" 
               value="baixo"
-            /> Baixo (<70%)
+            /> Baixo (&lt;70%)
           </label>
         </div>
       </div>

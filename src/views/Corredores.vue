@@ -1,8 +1,11 @@
 <template>
   <div class="product-browser-container">
     <header class="browser-header">
-      <h1>Vitrine de Produtos por Corredor</h1>
-      <p>Navegue, filtre e analise os produtos em tempo real.</p>
+      <h1>Dashboard de Auditoria de Produtos</h1>
+      <p>
+        Explore, filtre e monitore o status dos produtos por corredor com
+        insights em tempo real.
+      </p>
     </header>
 
     <!-- Filtros -->
@@ -88,6 +91,36 @@
               </option>
             </select>
           </div>
+
+          <div class="filter-item">
+            <label for="dias-sem-venda-filter" class="filter-label"
+              >Dias sem Venda</label
+            >
+            <select
+              id="dias-sem-venda-filter"
+              v-model="diasSemVendaFiltro"
+              :disabled="tipoAuditoria !== 'etiqueta'"
+            >
+              <option value="todos">Todos</option>
+              <option value="1-5">1-5 dias</option>
+              <option value="6-9">6-9 dias</option>
+              <option value="10+">10+ dias</option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label for="usuario-filter" class="filter-label">Usuário</label>
+            <select id="usuario-filter" v-model="usuarioFiltro">
+              <option value="todos">Todos os Usuários</option>
+              <option
+                v-for="usuario in usuarios"
+                :key="usuario"
+                :value="usuario"
+              >
+                {{ usuario }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -97,7 +130,7 @@
         >
         <div class="footer-actions">
           <button class="action-btn share-btn" @click="compartilhar">
-            Compartilhar
+            Baixar Relatório
           </button>
           <button class="action-btn clear-btn" @click="limparFiltros">
             Limpar Filtros
@@ -124,7 +157,8 @@
       >
         <div class="card-header">
           <span class="product-name">{{ produto.nome }}</span>
-          <span class="product-ean">{{ produto.ean }}</span>
+          <span class="product-codigo">{{ produto.ean }}</span>
+          <span class="product-quantidade">Qtd: {{ produto.quantidade }}</span>
         </div>
         <div class="card-body">
           <div class="product-details">
@@ -138,9 +172,7 @@
             </div>
           </div>
           <div class="audit-info">
-            <p class="audit-label">
-              Status {{ tipoAuditoriaFormatado }}:
-            </p>
+            <p class="audit-label">{{ tipoAuditoriaFormatado }}:</p>
             <span
               class="audit-status"
               :class="getAuditStatusClass(produto.auditorias[tipoAuditoria])"
@@ -161,6 +193,9 @@
               ).toLocaleDateString()
             }}
           </span>
+          <span class="user-info" v-if="produto.lido">
+            Usuário: {{ produto.auditorias[tipoAuditoria]?.usuario || "N/A" }}
+          </span>
         </div>
       </div>
     </div>
@@ -174,17 +209,20 @@
         <thead>
           <tr>
             <th>Produto</th>
-            <th>EAN</th>
+            <th>Código do Produto</th>
+            <th>Quantidade</th>
             <th>Corredor</th>
             <th>Classe</th>
             <th>Status Leitura</th>
-            <th>Status {{ tipoAuditoriaFormatado }}</th>
+            <th>Usuário</th>
+            <th>{{ tipoAuditoriaFormatado }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="produto in filteredProducts" :key="`list-${produto.id}`">
             <td>{{ produto.nome }}</td>
             <td>{{ produto.ean }}</td>
+            <td>{{ produto.quantidade }}</td>
             <td>{{ produto.corredor }}</td>
             <td>{{ produto.classe }}</td>
             <td>
@@ -192,6 +230,11 @@
                 :class="['read-status', produto.lido ? 'lido' : 'nao-lido']"
               >
                 {{ produto.lido ? "Lido" : "Não Lido" }}
+              </span>
+            </td>
+            <td>
+              <span class="user-info" v-if="produto.lido">
+                {{ produto.auditorias[tipoAuditoria]?.usuario || "N/A" }}
               </span>
             </td>
             <td>
@@ -211,6 +254,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import jsPDF from "jspdf";
 
 // --- STATE ---
 const loading = ref(true);
@@ -221,13 +265,13 @@ const visualizacao = ref("card"); // 'card', 'lista'
 const statusLeitura = ref("todos"); // 'todos', 'lido', 'nao_lido'
 const classeSelecionada = ref("todas");
 const corredorSelecionado = ref("todos");
+const diasSemVendaFiltro = ref("todos"); // 'todos', '1-5', '6-9', '10+'
+const usuarioFiltro = ref("todos"); // 'todos' ou nome do usuário
 
 const produtos = ref([]);
 
 // --- COMPUTED ---
-const tipoAuditoriaFormatado = computed(
-  () => tipoAuditoria.value.charAt(0).toUpperCase() + tipoAuditoria.value.slice(1)
-);
+const tipoAuditoriaFormatado = computed(() => "Dias sem venda");
 
 const corredores = computed(() =>
   [...new Set(produtos.value.map((p) => p.corredor))].sort()
@@ -235,33 +279,82 @@ const corredores = computed(() =>
 const classes = computed(() =>
   [...new Set(produtos.value.map((p) => p.classe))].sort()
 );
+const usuarios = computed(() =>
+  [
+    ...new Set(
+      produtos.value
+        .filter((p) => p.lido)
+        .map((p) => p.auditorias[tipoAuditoria.value]?.usuario)
+        .filter((u) => u)
+    ),
+  ].sort()
+);
 
 const filteredProducts = computed(() => {
   if (loading.value) return [];
   return produtos.value.filter((produto) => {
+    // Se um usuário específico for selecionado, apenas produtos lidos
     const leituraOk =
-      statusLeitura.value === "todos" ||
-      (statusLeitura.value === "lido" && produto.lido) ||
-      (statusLeitura.value === "nao_lido" && !produto.lido);
+      usuarioFiltro.value !== "todos"
+        ? produto.lido
+        : statusLeitura.value === "todos" ||
+          (statusLeitura.value === "lido" && produto.lido) ||
+          (statusLeitura.value === "nao_lido" && !produto.lido);
     const classeOk =
       classeSelecionada.value === "todas" ||
       produto.classe === classeSelecionada.value;
     const corredorOk =
       corredorSelecionado.value === "todos" ||
       produto.corredor === corredorSelecionado.value;
-    return leituraOk && classeOk && corredorOk;
+    const diasOk = (() => {
+      if (diasSemVendaFiltro.value === "todos") return true;
+      const dias = produto.auditorias[tipoAuditoria.value].status;
+      if (diasSemVendaFiltro.value === "1-5") return dias >= 1 && dias <= 5;
+      if (diasSemVendaFiltro.value === "6-9") return dias >= 6 && dias <= 9;
+      if (diasSemVendaFiltro.value === "10+") return dias >= 10;
+      return true;
+    })();
+    const usuarioOk =
+      usuarioFiltro.value === "todos" ||
+      produto.auditorias[tipoAuditoria.value]?.usuario === usuarioFiltro.value;
+    return leituraOk && classeOk && corredorOk && diasOk && usuarioOk;
   });
 });
 
 // --- METHODS ---
 const gerarMockData = () => {
-  const nomes = ["Maçã", "Arroz", "Feijão", "Biscoito", "Leite", "Café", "Açucar", "Sal", "Óleo", "Sabonete"];
+  const nomes = [
+    "Maçã",
+    "Arroz",
+    "Feijão",
+    "Biscoito",
+    "Leite",
+    "Café",
+    "Açucar",
+    "Sal",
+    "Óleo",
+    "Sabonete",
+  ];
   const corredoresMock = ["C-01", "C-02", "C-03", "H-01", "H-02"];
-  const classesMock = ["SECA DOCE", "SECA SALGADA", "PERECIVEL 1", "FLV", "DPH", "BAZAR"];
+  const classesMock = [
+    "SECA DOCE",
+    "SECA SALGADA",
+    "PERECIVEL 1",
+    "FLV",
+    "DPH",
+    "BAZAR",
+  ];
+  const usuariosMock = [
+    "João Silva",
+    "Maria Santos",
+    "Pedro Oliveira",
+    "Ana Costa",
+    "Carlos Pereira",
+  ];
   const auditStatus = {
-    etiqueta: ["ok", "divergente", "sem_etiqueta"],
-    presenca: ["presente", "ausente"],
-    ruptura: ["ok", "ruptura"],
+    etiqueta: () => Math.floor(Math.random() * 20) + 1, // Dias sem venda: 1-20
+    presenca: () => Math.floor(Math.random() * 20) + 1, // Dias sem venda: 1-20
+    ruptura: () => Math.floor(Math.random() * 20) + 1, // Dias sem venda: 1-20
   };
 
   const data = [];
@@ -270,13 +363,26 @@ const gerarMockData = () => {
       id: i,
       nome: `${nomes[i % nomes.length]} #${i}`,
       ean: `789000000000${i}`.slice(-13),
+      quantidade: Math.floor(Math.random() * 50) + 1, // Quantidade: 1-50
       corredor: corredoresMock[i % corredoresMock.length],
       classe: classesMock[i % classesMock.length],
       lido: Math.random() > 0.4,
       auditorias: {
-        etiqueta: { status: auditStatus.etiqueta[i % auditStatus.etiqueta.length], data: new Date(2025, 11, 15 - (i % 5)).toISOString() },
-        presenca: { status: auditStatus.presenca[i % auditStatus.presenca.length], data: new Date(2025, 11, 15 - (i % 5)).toISOString() },
-        ruptura: { status: auditStatus.ruptura[i % auditStatus.ruptura.length], data: new Date(2025, 11, 15 - (i % 5)).toISOString() },
+        etiqueta: {
+          status: auditStatus.etiqueta(),
+          data: new Date(2025, 11, 15 - (i % 5)).toISOString(),
+          usuario: usuariosMock[i % usuariosMock.length],
+        },
+        presenca: {
+          status: auditStatus.presenca(),
+          data: new Date(2025, 11, 15 - (i % 5)).toISOString(),
+          usuario: usuariosMock[i % usuariosMock.length],
+        },
+        ruptura: {
+          status: auditStatus.ruptura(),
+          data: new Date(2025, 11, 15 - (i % 5)).toISOString(),
+          usuario: usuariosMock[i % usuariosMock.length],
+        },
       },
     });
   }
@@ -286,14 +392,24 @@ const gerarMockData = () => {
 
 const formatAuditStatus = (audit) => {
   if (!audit) return "N/A";
+  // Para etiqueta, mostrar dias sem venda
+  if (typeof audit.status === "number") return `${audit.status} dias`;
   return audit.status.replace(/_/g, " ").toUpperCase();
 };
 
 const getAuditStatusClass = (audit) => {
   if (!audit) return "status-default";
   const status = audit.status;
+  // Para etiqueta (dias sem venda)
+  if (typeof status === "number") {
+    if (status <= 5) return "status-ok"; // Verde
+    if (status <= 9) return "status-warn"; // Amarelo
+    return "status-error"; // Vermelho
+  }
+  // Para outros tipos
   if (status === "ok" || status === "presente") return "status-ok";
-  if (status === "ruptura" || status === "ausente" || status === "sem_etiqueta") return "status-error";
+  if (status === "ruptura" || status === "ausente" || status === "sem_etiqueta")
+    return "status-error";
   if (status === "divergente") return "status-warn";
   return "status-default";
 };
@@ -302,13 +418,141 @@ const limparFiltros = () => {
   statusLeitura.value = "todos";
   classeSelecionada.value = "todas";
   corredorSelecionado.value = "todos";
+  diasSemVendaFiltro.value = "todos";
+  usuarioFiltro.value = "todos";
   tipoAuditoria.value = "etiqueta";
   visualizacao.value = "card";
 };
 
 const compartilhar = () => {
-  console.log("Ação de compartilhar acionada!");
-  alert("Função de compartilhamento a ser implementada.");
+  const doc = new jsPDF();
+  const produtosFiltrados = filteredProducts.value;
+
+  // Configurações iniciais
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(40, 40, 40);
+  doc.text("Relatório de Produto", 20, 25);
+
+  // Data do relatório
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100);
+  doc.text(
+    `Gerado em: ${new Date().toLocaleDateString(
+      "pt-BR"
+    )} às ${new Date().toLocaleTimeString("pt-BR")}`,
+    20,
+    35
+  );
+
+  // Filtros aplicados
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  let y = 50;
+  doc.setFont("helvetica", "bold");
+  doc.text("Filtros Aplicados:", 20, y);
+  y += 8;
+  doc.setFont("helvetica", "normal");
+  doc.text(`• Tipo de Auditoria: ${tipoAuditoriaFormatado.value}`, 25, y);
+  y += 6;
+  doc.text(`• Status Leitura: ${statusLeitura.value}`, 25, y);
+  y += 6;
+  doc.text(`• Classe: ${classeSelecionada.value}`, 25, y);
+  y += 6;
+  doc.text(`• Corredor: ${corredorSelecionado.value}`, 25, y);
+  y += 6;
+  doc.text(`• Dias sem Venda: ${diasSemVendaFiltro.value}`, 25, y);
+  y += 6;
+  doc.text(`• Usuário: ${usuarioFiltro.value}`, 25, y);
+  y += 15;
+
+  // Total de produtos
+  doc.setFont("helvetica", "bold");
+  doc.text(`Total de Produtos: ${produtosFiltrados.length}`, 20, y);
+  y += 15;
+
+  // Cabeçalhos da tabela
+  doc.setFillColor(240, 240, 240);
+  doc.rect(20, y - 5, 170, 10, "F"); // Fundo cinza para cabeçalho
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Produto", 25, y + 2);
+  doc.text("Código", 75, y + 2);
+  doc.text("Qtd", 105, y + 2);
+  doc.text("Corredor", 125, y + 2);
+  doc.text("Classe", 155, y + 2);
+  doc.text("Status", 185, y + 2);
+  y += 10;
+
+  // Linha separadora
+  doc.setDrawColor(200, 200, 200);
+  doc.line(20, y, 190, y);
+  y += 5;
+
+  // Produtos
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  let linha = 0;
+  produtosFiltrados.forEach((produto) => {
+    if (y > 270) {
+      // Nova página se necessário
+      doc.addPage();
+      y = 20;
+      // Recolocar cabeçalhos na nova página
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, y - 5, 170, 10, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("Produto", 25, y + 2);
+      doc.text("Código", 75, y + 2);
+      doc.text("Qtd", 105, y + 2);
+      doc.text("Qtd", 105, y + 2);
+      doc.text("Corredor", 125, y + 2);
+      doc.text("Classe", 155, y + 2);
+      doc.text("Status", 185, y + 2);
+      y += 10;
+      doc.line(20, y, 190, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+    }
+
+    // Fundo alternado para linhas
+    if (linha % 2 === 0) {
+      doc.setFillColor(240, 248, 255); // Azul claro
+      doc.rect(20, y - 3, 170, 8, "F");
+    } else {
+      doc.setFillColor(255, 255, 255); // Branco
+      doc.rect(20, y - 3, 170, 8, "F");
+    }
+
+    doc.text(produto.nome.substring(0, 20), 25, y + 2);
+    doc.text(produto.ean, 75, y + 2);
+    doc.text(produto.quantidade.toString(), 105, y + 2);
+    doc.text(produto.corredor, 125, y + 2);
+    doc.text(produto.classe.substring(0, 10), 155, y + 2);
+    doc.text(
+      formatAuditStatus(produto.auditorias[tipoAuditoria.value]).substring(
+        0,
+        10
+      ),
+      185,
+      y + 2
+    );
+    y += 8;
+    linha++;
+  });
+
+  // Rodapé
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text("Sistema de Auditoria - Relatório Automatizado", 20, 285);
+
+  // Salvar o PDF
+  doc.save("relatorio-produtos.pdf");
 };
 
 // --- LIFECYCLE ---
@@ -466,7 +710,6 @@ gerarMockData();
   background-color: #c53030;
 }
 
-
 .loading-indicator,
 .no-results {
   text-align: center;
@@ -488,12 +731,12 @@ gerarMockData();
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
@@ -506,16 +749,23 @@ gerarMockData();
   font-weight: 700;
   color: #2c3e50;
 }
-.product-ean {
+.product-codigo {
   font-size: 0.8rem;
   color: #718096;
   font-family: monospace;
+}
+.product-quantidade {
+  font-size: 0.8rem;
+  color: #4a5568;
+  font-weight: 500;
+  margin-left: 0.5rem;
 }
 .card-body {
   padding: 1.25rem;
   gap: 1rem;
 }
-.product-details, .audit-info {
+.product-details,
+.audit-info {
   margin-bottom: 1rem;
 }
 .detail-item {
@@ -524,11 +774,21 @@ gerarMockData();
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
-.detail-label { color: #718096; }
-.detail-value { color: #2d3748; font-weight: 600; }
-.audit-label { font-size: 0.9rem; color: #718096; margin-bottom: 0.25rem; }
+.detail-label {
+  color: #718096;
+}
+.detail-value {
+  color: #2d3748;
+  font-weight: 600;
+}
+.audit-label {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-bottom: 0.25rem;
+}
 
-.audit-status, .read-status {
+.audit-status,
+.read-status {
   display: inline-block;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -536,10 +796,22 @@ gerarMockData();
   font-size: 0.8rem;
   text-transform: uppercase;
 }
-.status-ok { background-color: #ebf8f2; color: #38a169; }
-.status-error { background-color: #fff5f5; color: #c53030; }
-.status-warn { background-color: #fffaf0; color: #dd6b20; }
-.status-default { background-color: #edf2f7; color: #4a5568; }
+.status-ok {
+  background-color: #ebf8f2;
+  color: #38a169;
+}
+.status-error {
+  background-color: #fff5f5;
+  color: #c53030;
+}
+.status-warn {
+  background-color: #fffaf0;
+  color: #dd6b20;
+}
+.status-default {
+  background-color: #edf2f7;
+  color: #4a5568;
+}
 
 .card-footer {
   padding: 1rem 1.25rem;
@@ -550,45 +822,59 @@ gerarMockData();
   align-items: center;
   font-size: 0.8rem;
 }
-.read-status.lido { color: #38a169; }
-.read-status.nao-lido { color: #e53e3e; }
-.audit-date { color: #718096; }
-
+.read-status.lido {
+  color: #38a169;
+}
+.read-status.nao-lido {
+  color: #e53e3e;
+}
+.audit-date {
+  color: #718096;
+}
+.user-info {
+  color: #4a5568;
+  font-weight: 500;
+}
 
 /* Visualização em Lista */
 .products-list-container {
-    background-color: #ffffff;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e2e8f0;
-    overflow-x: auto;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
 }
 .products-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
 }
 .products-table th {
-    padding: 1rem 1.25rem;
-    background-color: #f8fafc;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #4a5568;
-    text-transform: uppercase;
-    border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  background-color: #f8fafc;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a5568;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
 }
 .products-table td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
-    color: #2d3748;
-    font-size: 0.9rem;
-    white-space: nowrap;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #2d3748;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 .products-table tbody tr:last-child td {
-    border-bottom: none;
+  border-bottom: none;
+}
+.products-table tbody tr:nth-child(even) {
+  background-color: #f0f8ff; /* Azul claro */
+}
+.products-table tbody tr:nth-child(odd) {
+  background-color: #ffffff; /* Branco */
 }
 .products-table tbody tr:hover {
-    background-color: #f8fafc;
+  background-color: #e6f3ff;
 }
-
 </style>

@@ -135,6 +135,14 @@ const routes = [
     props: true,
     meta: { requiresLoja: false },
   },
+  // Rota para IDs diretos de usuário (ex: /2692473 -> /perfil/2692473)
+  {
+    path: "/:id(\\d+)", // Apenas números
+    name: "PerfilDireto",
+    component: PerfilUsuario,
+    props: true,
+    meta: { requiresLoja: false },
+  },
   {
     path: "/teste-metricas",
     name: "TesteMetricas",

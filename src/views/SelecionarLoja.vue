@@ -53,7 +53,14 @@
           ✓
         </div>
       </div>
-      <button class="AddLoja" alt="Adciona Nova loja">+</button>
+      <button class="AddLoja" @click="mostrarMensagem = !mostrarMensagem" alt="Adciona Nova loja">+</button>
+    </div>
+
+    <!-- Mensagem de aviso sobre a funcionalidade indisponível -->
+    <div v-if="mostrarMensagem" class="mensagem-aviso">
+      <i class="fas fa-exclamation-circle icone-aviso"></i>
+      Funcionalidade de adicionar lojas ainda não está disponível. Qualquer dúvida entre em
+      <RouterLink to="/info/contato" class="link-contato">contato</RouterLink>.
     </div>
 
     <button
@@ -76,7 +83,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useLojaStore } from "../store/lojaStore";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 
 const router = useRouter();
 const lojaStore = useLojaStore();
@@ -164,6 +171,7 @@ const lojas = ref([
 ]);
 
 const lojaSelecionada = ref(null);
+const mostrarMensagem = ref(false);
 
 function getImagemLoja(codigo) {
   // Padroniza para 3 dígitos (ex: 56 -> 056)
@@ -386,6 +394,44 @@ h3 {
   border-color: #3372d1;
   transform: translateY(-5px);
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.mensagem-aviso {
+  background: #ffecb3; /* Amarelo claro para alerta */
+  color: #e66a0c; /* Laranja escuro para contraste */
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 4px solid #ffc107; /* Borda esquerda em amarelo */
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+.icone-aviso {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.link-contato {
+  color: #e66a0c; /* Laranja escuro para consistência */
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.link-contato:hover {
+  color: #c25a0a; /* Tom mais escuro no hover */
+  text-decoration: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .btn-continuar:hover:not(:disabled) {

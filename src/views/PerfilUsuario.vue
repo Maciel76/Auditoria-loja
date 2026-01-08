@@ -181,23 +181,28 @@ export default {
       try {
         this.carregando = true;
         await this.nivelStore.carregarUsuarios(); // Garante que a lista de usuários está carregada
-        const usuarioEncontrado = this.nivelStore.getUsuarioById(usuarioId);
+
+        // Encontrar usuário no array de usuários
+        const usuarioEncontrado = this.nivelStore.usuarios.find(user => user.id === usuarioId);
 
         if (usuarioEncontrado) {
-          const xpTotal =
-            (usuarioEncontrado.contador || 0) +
-            (this.nivelStore.calcularXpConquistas(usuarioEncontrado) || 0);
-          const nivelInfo = this.nivelStore.calcularNivelEProgresso(xpTotal);
+          // Calcular XP total
+          const xpTotal = (usuarioEncontrado.contador || 0) + (usuarioEncontrado.xpConquistas || 0);
+
+          // Calcular nível e progresso
+          const nivel = this.nivelStore.calcularNivel(xpTotal);
+          const xpParaProximoNivel = this.nivelStore.calcularXpRestante(xpTotal);
+          const progressoXp = ((xpTotal % 100) / 100) * 100; // Porcentagem do XP atual para o próximo nível
 
           this.usuario = {
             ...usuarioEncontrado,
             foto: this.getFotoUrl(usuarioEncontrado),
             iniciais: this.obterIniciais(usuarioEncontrado.nome),
-            nivel: nivelInfo.nivel,
-            titulo: this.nivelStore.obterTitulo(nivelInfo.nivel),
+            nivel: nivel,
+            titulo: this.nivelStore.obterTitulo(nivel),
             xpAtual: xpTotal,
-            xpParaProximoNivel: nivelInfo.xpParaProximoNivel,
-            progressoXp: nivelInfo.progressoPercentual,
+            xpParaProximoNivel: xpParaProximoNivel,
+            progressoXp: progressoXp,
             conquistas: usuarioEncontrado.conquistas || [],
           };
 
