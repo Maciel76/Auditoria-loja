@@ -15,7 +15,9 @@ import Ruptura from "../views/uploadview/Ruptura.vue";
 import SelecionarLoja from "../views/SelecionarLoja.vue";
 import PerfilLoja from "@/views/PerfilLoja.vue";
 import TesteMetricas from "@/views/PerfilLoja/TesteMetricas.vue";
+import AdminLogin from "@/views/AdminLogin.vue";
 import { useLojaStore } from "../store/lojaStore";
+import { useAuthStore } from "../store/authStore";
 import Login from "@/views/Login.vue";
 
 // InfoSite components
@@ -35,6 +37,12 @@ const routes = [
     name: "Login",
     component: Login,
     meta: { requiresLoja: false },
+  },
+  {
+    path: "/admin/login",
+    name: "AdminLogin",
+    component: AdminLogin,
+    meta: { requiresLoja: false, requiresAuth: false },
   },
   {
     path: "/",
@@ -93,7 +101,7 @@ const routes = [
     path: "/dashboard",
     name: "Dashboard",
     component: Dashboard,
-    meta: { requiresLoja: true },
+    meta: { requiresLoja: true, requiresAuth: true }, // Requer autenticação admin
   },
   {
     path: "/corredores",
@@ -147,7 +155,7 @@ const routes = [
     path: "/teste-metricas",
     name: "TesteMetricas",
     component: TesteMetricas,
-    meta: { requiresLoja: true },
+    meta: { requiresLoja: true }, // Apenas requer loja, sem autenticação
   },
 
   // InfoSite routes
@@ -206,9 +214,19 @@ const router = createRouter({
   routes,
 });
 
-// Navigation Guard para verificar se a loja foi selecionada
+// Navigation Guard para verificar se a loja foi selecionada e autenticação admin
 router.beforeEach((to, from, next) => {
   const lojaStore = useLojaStore();
+  const authStore = useAuthStore();
+
+  // NÃO verificar sessão salva - sempre requer login
+
+  // Verificar se a rota requer autenticação admin
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    // Redirecionar para login admin se não estiver autenticado
+    next("/admin/login");
+    return;
+  }
 
   // Se a rota requer loja mas não está selecionada, redireciona para seleção
   if (to.meta.requiresLoja && !lojaStore.lojaSelecionada) {

@@ -143,10 +143,40 @@
       </div>
     </div>
 
+    <!-- Filtros Ativos -->
+    <div v-if="filtrosAtivos.length > 0" class="active-filters">
+      <span class="active-filters-label">Filtros ativos:</span>
+      <div class="filters-tags">
+        <span
+          v-for="filtro in filtrosAtivos"
+          :key="filtro.key"
+          class="filter-tag"
+        >
+          <span class="tag-label">{{ filtro.label }}: {{ filtro.value }}</span>
+          <button
+            class="tag-remove"
+            @click="removerFiltro(filtro.key)"
+            :title="`Remover filtro ${filtro.label}`"
+          >
+            ✕
+          </button>
+        </span>
+      </div>
+    </div>
+
     <!-- Indicadores -->
     <div v-if="loading" class="loading-indicator">Carregando produtos...</div>
     <div v-if="!loading && filteredProducts.length === 0" class="no-results">
-      Nenhum produto encontrado com os filtros aplicados.
+      <div class="no-results-icon">📦</div>
+      <h3>Nenhum produto encontrado</h3>
+      <p>Não há produtos que correspondam aos filtros aplicados.</p>
+      <p class="suggestion">
+        Tente ajustar os filtros ou faça o upload de uma nova planilha de
+        auditoria.
+      </p>
+      <router-link to="/selecionar-auditoria" class="upload-link">
+        <button class="upload-btn">📤 Fazer Upload de Planilha</button>
+      </router-link>
     </div>
 
     <!-- Tabela de Produtos (Lista) -->
@@ -159,7 +189,20 @@
           <tr>
             <th>Produto</th>
             <th>Código do Produto</th>
-            <th>Quantidade</th>
+            <th class="sortable-header" @click="alternarOrdenacaoQuantidade">
+              <div class="header-content">
+                <span>Quantidade</span>
+                <span class="sort-indicator">
+                  <span v-if="ordenacaoQuantidade === 'desc'" class="arrow"
+                    >↓</span
+                  >
+                  <span v-else-if="ordenacaoQuantidade === 'asc'" class="arrow"
+                    >↑</span
+                  >
+                  <span v-else class="arrow-neutral">⇅</span>
+                </span>
+              </div>
+            </th>
             <th>Corredor</th>
             <th>Classe</th>
             <th>Status Leitura</th>
@@ -234,6 +277,7 @@ const classeSelecionada = ref("todas");
 const corredorSelecionado = ref("todos");
 const diasSemVendaFiltro = ref("todos"); // 'todos', '1-5', '6-9', '10+'
 const usuarioFiltro = ref("todos"); // 'todos' ou nome do usuário
+const ordenacaoQuantidade = ref(null); // null, 'asc', 'desc'
 
 const produtos = ref([]);
 
@@ -268,10 +312,59 @@ const usuarios = computed(() =>
   ].sort()
 );
 
+const filtrosAtivos = computed(() => {
+  const filtros = [];
+
+  if (statusLeitura.value !== "todos") {
+    filtros.push({
+      key: "statusLeitura",
+      label: "Status Leitura",
+      value: statusLeitura.value === "lido" ? "Lidos" : "Não Lidos",
+    });
+  }
+
+  if (classeSelecionada.value !== "todas") {
+    filtros.push({
+      key: "classe",
+      label: "Classe",
+      value: classeSelecionada.value,
+    });
+  }
+
+  if (corredorSelecionado.value !== "todos") {
+    filtros.push({
+      key: "corredor",
+      label: "Corredor",
+      value: corredorSelecionado.value,
+    });
+  }
+
+  if (
+    diasSemVendaFiltro.value !== "todos" &&
+    tipoAuditoria.value === "etiqueta"
+  ) {
+    filtros.push({
+      key: "diasSemVenda",
+      label: "Dias sem Venda",
+      value: diasSemVendaFiltro.value + " dias",
+    });
+  }
+
+  if (usuarioFiltro.value !== "todos") {
+    filtros.push({
+      key: "usuario",
+      label: "Usuário",
+      value: usuarioFiltro.value,
+    });
+  }
+
+  return filtros;
+});
+
 const filteredProducts = computed(() => {
   if (loading.value) return [];
 
-  return produtos.value.filter((produto) => {
+  let produtosFiltrados = produtos.value.filter((produto) => {
     // Verificar se o produto tem dados do tipo de auditoria selecionado
     const audit = produto.auditorias[tipoAuditoria.value];
 
@@ -321,6 +414,15 @@ const filteredProducts = computed(() => {
 
     return leituraOk && classeOk && corredorOk && diasOk && usuarioOk;
   });
+
+  // Aplicar ordenação por quantidade se selecionada
+  if (ordenacaoQuantidade.value === "asc") {
+    produtosFiltrados.sort((a, b) => a.quantidade - b.quantidade);
+  } else if (ordenacaoQuantidade.value === "desc") {
+    produtosFiltrados.sort((a, b) => b.quantidade - a.quantidade);
+  }
+
+  return produtosFiltrados;
 });
 
 // --- METHODS ---
@@ -427,6 +529,39 @@ const getAuditStatusClass = (audit) => {
   return "status-default";
 };
 
+const alternarOrdenacaoQuantidade = () => {
+  if (ordenacaoQuantidade.value === null) {
+    ordenacaoQuantidade.value = "desc"; // Primeiro clique: maior para menor
+  } else if (ordenacaoQuantidade.value === "desc") {
+    ordenacaoQuantidade.value = "asc"; // Segundo clique: menor para maior
+  } else {
+    ordenacaoQuantidade.value = null; // Terceiro clique: sem ordenação
+  }
+};
+
+const removerFiltro = (key) => {
+  switch (key) {
+    case "tipoAuditoria":
+      tipoAuditoria.value = "etiqueta";
+      break;
+    case "statusLeitura":
+      statusLeitura.value = "todos";
+      break;
+    case "classe":
+      classeSelecionada.value = "todas";
+      break;
+    case "corredor":
+      corredorSelecionado.value = "todos";
+      break;
+    case "diasSemVenda":
+      diasSemVendaFiltro.value = "todos";
+      break;
+    case "usuario":
+      usuarioFiltro.value = "todos";
+      break;
+  }
+};
+
 const limparFiltros = () => {
   statusLeitura.value = "todos";
   classeSelecionada.value = "todas";
@@ -434,6 +569,7 @@ const limparFiltros = () => {
   diasSemVendaFiltro.value = "todos";
   usuarioFiltro.value = "todos";
   tipoAuditoria.value = "etiqueta";
+  ordenacaoQuantidade.value = null;
 };
 
 const compartilhar = () => {
@@ -989,12 +1125,194 @@ onMounted(() => {
   background-color: #c53030;
 }
 
-.loading-indicator,
-.no-results {
+/* Filtros Ativos */
+.active-filters {
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.active-filters-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
+.filters-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  transition: all 0.2s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.filter-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tag-label {
+  line-height: 1;
+}
+
+.tag-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.tag-remove:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.tag-remove:active {
+  transform: scale(0.9) rotate(90deg);
+}
+
+.loading-indicator {
   text-align: center;
   padding: 4rem 0;
   font-size: 1.25rem;
   color: #718096;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 2px dashed #cbd5e0;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.no-results-icon {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.no-results h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+}
+
+.no-results p {
+  font-size: 1.05rem;
+  color: #718096;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.no-results .suggestion {
+  color: #4a5568;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.upload-link {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.upload-btn {
+  position: relative;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  overflow: hidden;
+}
+
+.upload-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.upload-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+}
+
+.upload-btn:hover::before {
+  left: 100%;
+}
+
+.upload-btn:active {
+  transform: translateY(-1px) scale(0.98);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
 .audit-status,
@@ -1044,6 +1362,54 @@ onMounted(() => {
   color: #4a5568;
   text-transform: uppercase;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sortable-header:hover {
+  background-color: #e6f3ff;
+}
+
+.sortable-header .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sort-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.sort-indicator .arrow {
+  color: #667eea;
+  font-size: 1.2rem;
+  animation: sortPulse 0.3s ease;
+}
+
+.sort-indicator .arrow-neutral {
+  color: #cbd5e0;
+  font-size: 1rem;
+}
+
+@keyframes sortPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 .products-table td {
   padding: 1rem 1.25rem;

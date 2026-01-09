@@ -57,17 +57,16 @@
 
       <div class="hero-visual">
         <div class="floating-card card-1">
-          <i class="fas fa-chart-line"></i>
-          <span>Media Entre Lojas +16%</span>
+          <i class="fas fa-rocket"></i>
+          <span>✨ Transforme Dados em Resultados</span>
         </div>
         <div class="floating-card card-2">
-          <i class="fas fa-users"></i>
-          <span>Loja em destaque</span>
-          <img src="../../assets/svg/grafico.svg" alt="" />
+          <i class="fas fa-lightbulb"></i>
+          <span>💡 Sua Ideia Pode Mudar Tudo</span>
         </div>
         <div class="floating-card card-3">
-          <i class="fas fa-trophy"></i>
-          <span>Colaborador em Destaque</span>
+          <i class="fas fa-star"></i>
+          <span>🌟 Juntos Somos Mais Fortes</span>
         </div>
       </div>
     </div>
