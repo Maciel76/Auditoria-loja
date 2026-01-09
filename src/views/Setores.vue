@@ -79,6 +79,17 @@
       <!-- Filtros -->
       <div class="filters-section">
         <div class="filter-group">
+          <label class="filter-label" for="filtro-tipo-auditoria">
+            <span class="icon" aria-hidden="true">📋</span> Tipo de Auditoria:
+          </label>
+          <select id="filtro-tipo-auditoria" v-model="filtroTipoAuditoria" class="filter-select">
+            <option value="etiqueta">Etiqueta</option>
+            <option value="presenca">Presença</option>
+            <option value="ruptura">Ruptura</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
           <label class="filter-label" for="filtro-local">
             <span class="icon" aria-hidden="true">📍</span> Filtrar por
             Local/Corredor:
@@ -613,6 +624,7 @@ export default {
       filtroStatus: "",
       filtroProduto: "",
       filtroProdutoInput: "",
+      filtroTipoAuditoria: "etiqueta", // Novo campo para tipo de auditoria
       abaAtiva: "todos",
       carregando: true,
       carregandoData: false,
@@ -763,6 +775,13 @@ export default {
         this.buscandoProduto = false;
       }, 300);
     }, 500),
+
+    filtroTipoAuditoria: {
+      handler() {
+        this.carregarDados();
+      },
+      immediate: false
+    },
 
     itensFiltrados() {
       this.resetarItensVisiveis();
@@ -946,33 +965,38 @@ export default {
     },
 
     async carregarDados() {
-      // --- INÍCIO: DADOS FAKE PARA TESTE ---
-      this.carregando = true;
-      this.erro = "";
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simula delay da rede
-      this.dadosPlanilha = this.gerarDadosFake();
-      this.resetarItensVisiveis();
-      this.carregando = false;
-      // --- FIM: DADOS FAKE PARA TESTE ---
-
-      /* --- INÍCIO: CÓDIGO ORIGINAL (COMENTADO) ---
       try {
         this.carregando = true;
         this.erro = "";
-        const params = this.dataSelecionada
-          ? { data: this.dataSelecionada }
-          : {};
+
+        // Usar o tipo de auditoria selecionado no filtro
+        const tipoAuditoria = this.filtroTipoAuditoria;
+
+        // Fazer a requisição para o novo endpoint de produtos de auditoria
         const response = await axios.get(
-          "http://localhost:3000/dados-setores",
-          { params }
+          `http://localhost:3000/api/audit-products/produtos/${this.$store.state.lojaSelecionada.codigo}/${tipoAuditoria}`
         );
 
-        if (response.data && Array.isArray(response.data)) {
-          this.dadosPlanilha = response.data.map((item) => ({
-            ...item,
-            Situacao: item.Situacao || item.Situação || "Não lido",
-            Local: item.Local || "Não especificado",
+        if (response.data && response.data.success) {
+          // Transformar os dados recebidos para o formato esperado pelo componente
+          this.dadosPlanilha = response.data.produtos.map((produto) => ({
+            Código: produto.codigo,
+            Produto: produto.nome,
+            Local: produto.local,
+            Usuario: produto.usuario || "N/A",
+            Situacao: produto.situacao || "Não lido",
+            "Estoque atual": produto.estoque,
+            "Última compra": produto.ultimaCompra,
+            Classe: produto.classe,
+            AuditadoDia: produto.auditadoDia,
+            AuditadoHora: produto.auditadoHora,
+            Fornecedor: produto.fornecedor,
+            Setor: produto.setor,
+            CustoRuptura: produto.custoRuptura,
+            DiasSemVenda: produto.diasSemVenda,
+            Residuo: produto.residuo,
           }));
+
           this.resetarItensVisiveis();
         } else {
           this.erro = "Formato de dados inválido";
@@ -980,6 +1004,7 @@ export default {
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         this.erro = "Falha ao carregar dados da planilha";
+
         // Dados de exemplo para demonstração
         this.dadosPlanilha = [
           {
@@ -1013,7 +1038,6 @@ export default {
       } finally {
         this.carregando = false;
       }
-      --- FIM: CÓDIGO ORIGINAL (COMENTADO) --- */
     },
 
     formatarData(data) {

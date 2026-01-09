@@ -252,7 +252,7 @@
             :title="sidebarCollapsed ? 'Corredores' : ''"
           >
             <img
-              src="../assets/svg/list.svg"
+              src="../assets/svg/corredor.svg"
               alt="Corredores"
               class="nav-icon"
             />

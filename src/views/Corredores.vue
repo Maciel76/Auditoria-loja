@@ -1,7 +1,7 @@
 <template>
   <div class="product-browser-container">
     <header class="browser-header">
-      <h1>Dashboard de Auditoria de Produtos</h1>
+      <h1>Status Auditoria Loja {{ lojaSelecionada?.codigo || "" }}</h1>
       <p>
         Explore, filtre e monitore o status dos produtos por corredor com
         insights em tempo real.
@@ -20,36 +20,22 @@
                 :class="{ active: tipoAuditoria === 'etiqueta' }"
                 @click="tipoAuditoria = 'etiqueta'"
               >
-                🏷️ Etiqueta
+                <img :src="EtiquetaSvg" alt="Etiqueta" class="btn-icon" />
+                Etiqueta
               </button>
               <button
                 :class="{ active: tipoAuditoria === 'presenca' }"
                 @click="tipoAuditoria = 'presenca'"
               >
-                🕵️ Presença
+                <img :src="PresencaSvg" alt="Presença" class="btn-icon" />
+                Presença
               </button>
               <button
                 :class="{ active: tipoAuditoria === 'ruptura' }"
                 @click="tipoAuditoria = 'ruptura'"
               >
-                🚫 Ruptura
-              </button>
-            </div>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Tipo de Visualização</label>
-            <div class="segmented-control">
-              <button
-                :class="{ active: visualizacao === 'card' }"
-                @click="visualizacao = 'card'"
-              >
-                🎴 Cards
-              </button>
-              <button
-                :class="{ active: visualizacao === 'lista' }"
-                @click="visualizacao = 'lista'"
-              >
-                📄 Lista
+                <img :src="RupturaSvg" alt="Ruptura" class="btn-icon" />
+                Ruptura
               </button>
             </div>
           </div>
@@ -125,10 +111,28 @@
       </div>
 
       <div class="filters-footer">
-        <span class="results-count"
-          >{{ filteredProducts.length }} produtos encontrados</span
-        >
+        <div class="footer-left">
+          <span class="results-count"
+            >{{ filteredProducts.length }} produtos encontrados</span
+          >
+          <span
+            v-if="infoCache"
+            class="cache-info"
+            :class="{ expired: !infoCache.valido }"
+          >
+            📦 Cache: {{ infoCache.idade }}
+            {{ infoCache.valido ? "✅" : "⚠️" }}
+          </span>
+        </div>
         <div class="footer-actions">
+          <button
+            class="action-btn refresh-btn"
+            @click="forcarAtualizacao"
+            :disabled="loading"
+          >
+            <span v-if="!loading">🔄 Atualizar</span>
+            <span v-else>⏳ Carregando...</span>
+          </button>
           <button class="action-btn share-btn" @click="compartilhar">
             Baixar Relatório
           </button>
@@ -145,64 +149,9 @@
       Nenhum produto encontrado com os filtros aplicados.
     </div>
 
-    <!-- Grelha de Produtos (Cards) -->
-    <div
-      v-if="!loading && visualizacao === 'card' && filteredProducts.length > 0"
-      class="products-grid"
-    >
-      <div
-        v-for="produto in filteredProducts"
-        :key="produto.id"
-        class="product-card"
-      >
-        <div class="card-header">
-          <span class="product-name">{{ produto.nome }}</span>
-          <span class="product-codigo">{{ produto.ean }}</span>
-          <span class="product-quantidade">Qtd: {{ produto.quantidade }}</span>
-        </div>
-        <div class="card-body">
-          <div class="product-details">
-            <div class="detail-item">
-              <span class="detail-label">Corredor:</span>
-              <span class="detail-value">{{ produto.corredor }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Classe:</span>
-              <span class="detail-value">{{ produto.classe }}</span>
-            </div>
-          </div>
-          <div class="audit-info">
-            <p class="audit-label">{{ tipoAuditoriaFormatado }}:</p>
-            <span
-              class="audit-status"
-              :class="getAuditStatusClass(produto.auditorias[tipoAuditoria])"
-            >
-              {{ formatAuditStatus(produto.auditorias[tipoAuditoria]) }}
-            </span>
-          </div>
-        </div>
-        <div class="card-footer">
-          <span :class="['read-status', produto.lido ? 'lido' : 'nao-lido']">
-            {{ produto.lido ? "✔️ Lido" : "❌ Não Lido" }}
-          </span>
-          <span class="audit-date">
-            Auditado em:
-            {{
-              new Date(
-                produto.auditorias[tipoAuditoria].data
-              ).toLocaleDateString()
-            }}
-          </span>
-          <span class="user-info" v-if="produto.lido">
-            Usuário: {{ produto.auditorias[tipoAuditoria]?.usuario || "N/A" }}
-          </span>
-        </div>
-      </div>
-    </div>
-
     <!-- Tabela de Produtos (Lista) -->
     <div
-      v-if="!loading && visualizacao === 'lista' && filteredProducts.length > 0"
+      v-if="!loading && filteredProducts.length > 0"
       class="products-list-container"
     >
       <table class="products-table">
@@ -220,7 +169,9 @@
         </thead>
         <tbody>
           <tr v-for="produto in filteredProducts" :key="`list-${produto.id}`">
-            <td>{{ produto.nome }}</td>
+            <td :title="produto.nomeOriginal || produto.nome">
+              {{ produto.nome }}
+            </td>
             <td>{{ produto.ean }}</td>
             <td>{{ produto.quantidade }}</td>
             <td>{{ produto.corredor }}</td>
@@ -234,7 +185,13 @@
             </td>
             <td>
               <span class="user-info" v-if="produto.lido">
-                {{ produto.auditorias[tipoAuditoria]?.usuario || "N/A" }}
+                {{
+                  produto.auditorias[tipoAuditoria]?.usuario ||
+                  produto.auditorias[tipoAuditoria]?.usuarioNome ||
+                  produto.usuario ||
+                  produto.usuarioNome ||
+                  "N/A"
+                }}
               </span>
             </td>
             <td>
@@ -253,15 +210,25 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import jsPDF from "jspdf";
+import EtiquetaSvg from "@/assets/svg/Etiqueta.svg";
+import PresencaSvg from "@/assets/svg/Presenca.svg";
+import RupturaSvg from "@/assets/svg/Ruptura.svg";
+import { useLojaStore } from "@/store/lojaStore";
+import { storeToRefs } from "pinia";
+
+// --- STORE ---
+const lojaStore = useLojaStore();
+const { lojaSelecionada } = storeToRefs(lojaStore);
 
 // --- STATE ---
 const loading = ref(true);
+const ultimaAtualizacao = ref(null);
+const infoCache = ref(null);
 
 // Filtros
 const tipoAuditoria = ref("etiqueta"); // 'etiqueta', 'presenca', 'ruptura'
-const visualizacao = ref("card"); // 'card', 'lista'
 const statusLeitura = ref("todos"); // 'todos', 'lido', 'nao_lido'
 const classeSelecionada = ref("todas");
 const corredorSelecionado = ref("todos");
@@ -271,7 +238,12 @@ const usuarioFiltro = ref("todos"); // 'todos' ou nome do usuário
 const produtos = ref([]);
 
 // --- COMPUTED ---
-const tipoAuditoriaFormatado = computed(() => "Dias sem venda");
+const tipoAuditoriaFormatado = computed(() => {
+  if (tipoAuditoria.value === "etiqueta") return "Dias sem Venda";
+  if (tipoAuditoria.value === "presenca") return "Presença";
+  if (tipoAuditoria.value === "ruptura") return "Situação";
+  return "Status";
+});
 
 const corredores = computed(() =>
   [...new Set(produtos.value.map((p) => p.corredor))].sort()
@@ -284,7 +256,13 @@ const usuarios = computed(() =>
     ...new Set(
       produtos.value
         .filter((p) => p.lido)
-        .map((p) => p.auditorias[tipoAuditoria.value]?.usuario)
+        .map((p) => {
+          // Obter o usuário do tipo de auditoria atual
+          const audit = p.auditorias[tipoAuditoria.value];
+          return (
+            audit?.usuario || audit?.usuarioNome || p.usuario || p.usuarioNome
+          );
+        })
         .filter((u) => u)
     ),
   ].sort()
@@ -292,7 +270,23 @@ const usuarios = computed(() =>
 
 const filteredProducts = computed(() => {
   if (loading.value) return [];
+
   return produtos.value.filter((produto) => {
+    // Verificar se o produto tem dados do tipo de auditoria selecionado
+    const audit = produto.auditorias[tipoAuditoria.value];
+
+    // Verificar se tem dados válidos para o tipo selecionado
+    if (!audit || audit.status === "N/A") {
+      return false;
+    }
+
+    // Para etiqueta, aceitar status 0 ou maior (dias sem venda pode ser 0)
+    if (tipoAuditoria.value === "etiqueta") {
+      if (typeof audit.status !== "number" && !audit.diasSemVenda) {
+        return false;
+      }
+    }
+
     // Se um usuário específico for selecionado, apenas produtos lidos
     const leituraOk =
       usuarioFiltro.value !== "todos"
@@ -300,23 +294,31 @@ const filteredProducts = computed(() => {
         : statusLeitura.value === "todos" ||
           (statusLeitura.value === "lido" && produto.lido) ||
           (statusLeitura.value === "nao_lido" && !produto.lido);
+
     const classeOk =
       classeSelecionada.value === "todas" ||
       produto.classe === classeSelecionada.value;
+
     const corredorOk =
       corredorSelecionado.value === "todos" ||
       produto.corredor === corredorSelecionado.value;
+
     const diasOk = (() => {
+      if (tipoAuditoria.value !== "etiqueta") return true; // Filtro só para etiqueta
       if (diasSemVendaFiltro.value === "todos") return true;
-      const dias = produto.auditorias[tipoAuditoria.value].status;
+
+      const dias = audit?.diasSemVenda || audit?.status || 0;
+      if (typeof dias !== "number") return true;
+
       if (diasSemVendaFiltro.value === "1-5") return dias >= 1 && dias <= 5;
       if (diasSemVendaFiltro.value === "6-9") return dias >= 6 && dias <= 9;
       if (diasSemVendaFiltro.value === "10+") return dias >= 10;
       return true;
     })();
+
     const usuarioOk =
-      usuarioFiltro.value === "todos" ||
-      produto.auditorias[tipoAuditoria.value]?.usuario === usuarioFiltro.value;
+      usuarioFiltro.value === "todos" || audit?.usuario === usuarioFiltro.value;
+
     return leituraOk && classeOk && corredorOk && diasOk && usuarioOk;
   });
 });
@@ -392,25 +394,36 @@ const gerarMockData = () => {
 
 const formatAuditStatus = (audit) => {
   if (!audit) return "N/A";
-  // Para etiqueta, mostrar dias sem venda
+  // Para etiqueta, mostrar dias sem venda se for número
   if (typeof audit.status === "number") return `${audit.status} dias`;
-  return audit.status.replace(/_/g, " ").toUpperCase();
+  // Para situação real do produto, retornar o status diretamente
+  if (audit.status) return audit.status.replace(/_/g, " ").toUpperCase();
+  // Caso contrário, tentar usar a situação do produto
+  return audit.situacao || audit.status || "N/A";
 };
 
 const getAuditStatusClass = (audit) => {
   if (!audit) return "status-default";
-  const status = audit.status;
+  // Usar a situação real do produto se disponível
+  const status = audit.situacao || audit.status;
   // Para etiqueta (dias sem venda)
   if (typeof status === "number") {
     if (status <= 5) return "status-ok"; // Verde
     if (status <= 9) return "status-warn"; // Amarelo
     return "status-error"; // Vermelho
   }
-  // Para outros tipos
-  if (status === "ok" || status === "presente") return "status-ok";
-  if (status === "ruptura" || status === "ausente" || status === "sem_etiqueta")
+  // Para outros tipos - usando os valores reais da situação
+  if (status === "ok" || status === "presente" || status === "Atualizado")
+    return "status-ok";
+  if (
+    status === "ruptura" ||
+    status === "ausente" ||
+    status === "Sem Presença e Com Estoque" ||
+    status === "Não lido"
+  )
     return "status-error";
-  if (status === "divergente") return "status-warn";
+  if (status === "divergente" || status === "Desatualizado")
+    return "status-warn";
   return "status-default";
 };
 
@@ -421,7 +434,6 @@ const limparFiltros = () => {
   diasSemVendaFiltro.value = "todos";
   usuarioFiltro.value = "todos";
   tipoAuditoria.value = "etiqueta";
-  visualizacao.value = "card";
 };
 
 const compartilhar = () => {
@@ -556,7 +568,234 @@ const compartilhar = () => {
 };
 
 // --- LIFECYCLE ---
-gerarMockData();
+// Função para carregar dados reais da API
+const carregarDadosReais = async (forcarRecarregar = false) => {
+  try {
+    loading.value = true;
+
+    // Obter o ID da loja - usar o ObjectId da loja
+    const lojaId =
+      lojaSelecionada.value?._id || lojaSelecionada.value?.codigo || "105";
+
+    console.log("🔄 Carregando dados para loja:", lojaId);
+    console.log("📋 Loja selecionada:", lojaSelecionada.value);
+
+    // Usar cache do Pinia
+    const produtosPorTipo = await lojaStore.obterProdutosAuditoria(
+      lojaId,
+      forcarRecarregar
+    );
+
+    // Atualizar info do cache
+    infoCache.value = lojaStore.getInfoCache(lojaId);
+    ultimaAtualizacao.value = new Date();
+
+    console.log("📊 Produtos por tipo (do cache):", {
+      etiqueta: produtosPorTipo.etiqueta?.length || 0,
+      presenca: produtosPorTipo.presenca?.length || 0,
+      ruptura: produtosPorTipo.ruptura?.length || 0,
+    });
+
+    // Processar os dados recebidos para o formato esperado pelo componente
+    const processarProdutos = (produtosArray, tipo) => {
+      if (!produtosArray || !Array.isArray(produtosArray)) return [];
+
+      return produtosArray.map((produto, index) => {
+        // Nome do produto
+        const nomeProduto = produto.nome || `Produto ${index + 1}`;
+        const nomeFormatado =
+          nomeProduto.length > 30
+            ? nomeProduto.substring(0, 30) + "..."
+            : nomeProduto;
+
+        // Código do produto
+        const codigoProduto = produto.codigo || `COD${index + 1}`;
+
+        // Quantidade (estoque)
+        const quantidadeProduto =
+          parseInt(produto.estoque) ||
+          parseInt(produto.estoqueAtual) ||
+          parseInt(produto.estoqueLeitura) ||
+          0;
+
+        // Local/Corredor
+        const localProduto = produto.local || "N/A";
+
+        // Classe do produto
+        const classeProduto =
+          produto.classe ||
+          produto.classeProduto ||
+          produto.classeProdutoRaiz ||
+          "N/A";
+
+        // Determinar se o produto foi lido (auditado)
+        const situacaoProduto =
+          produto.situacao || produto.situacaoAuditoria || "Não lido";
+        const produtoLido =
+          situacaoProduto === "Atualizado" ||
+          (produto.auditadoDia && produto.auditadoDia !== "");
+
+        // Usuário que auditou
+        const usuarioAuditoria =
+          produto.usuario || produto.usuarioNome || "N/A";
+
+        // Data da auditoria
+        const dataAuditoria =
+          produto.auditadoDia ||
+          produto.dataAuditoria ||
+          new Date().toISOString();
+
+        return {
+          id: `${tipo}-${codigoProduto}-${index}`,
+          nome: nomeFormatado,
+          nomeOriginal: nomeProduto,
+          ean: codigoProduto,
+          quantidade: quantidadeProduto,
+          corredor: localProduto,
+          classe: classeProduto,
+          lido: produtoLido,
+          auditorias: {
+            etiqueta:
+              tipo === "etiqueta"
+                ? {
+                    status: produto.diasSemVenda || 0,
+                    diasSemVenda: produto.diasSemVenda || 0,
+                    data: dataAuditoria,
+                    usuario: usuarioAuditoria,
+                    situacao: situacaoProduto,
+                  }
+                : { status: "N/A" },
+            presenca:
+              tipo === "presenca"
+                ? {
+                    status: produto.presenca ? "presente" : "ausente",
+                    presenca: produto.presenca,
+                    data: dataAuditoria,
+                    usuario: usuarioAuditoria,
+                    situacao: situacaoProduto,
+                  }
+                : { status: "N/A" },
+            ruptura:
+              tipo === "ruptura"
+                ? {
+                    status:
+                      produto.situacao === "Sem Presença e Com Estoque"
+                        ? "ruptura"
+                        : "ok",
+                    data: dataAuditoria,
+                    usuario: usuarioAuditoria,
+                    situacao: situacaoProduto,
+                  }
+                : { status: "N/A" },
+          },
+        };
+      });
+    };
+
+    // Processar dados de cada tipo
+    const dadosEtiqueta = processarProdutos(
+      produtosPorTipo.etiqueta || [],
+      "etiqueta"
+    );
+    const dadosPresenca = processarProdutos(
+      produtosPorTipo.presenca || [],
+      "presenca"
+    );
+    const dadosRuptura = processarProdutos(
+      produtosPorTipo.ruptura || [],
+      "ruptura"
+    );
+
+    console.log("✅ Dados processados:", {
+      etiqueta: dadosEtiqueta.length,
+      presenca: dadosPresenca.length,
+      ruptura: dadosRuptura.length,
+    });
+
+    // Combinar e deduplicar produtos por código
+    const mapaProdutos = new Map();
+
+    [...dadosEtiqueta, ...dadosPresenca, ...dadosRuptura].forEach((produto) => {
+      const chave = produto.ean;
+
+      if (!mapaProdutos.has(chave)) {
+        mapaProdutos.set(chave, produto);
+      } else {
+        // Produto já existe, mesclar informações de auditorias
+        const produtoExistente = mapaProdutos.get(chave);
+
+        // Mesclar auditorias mantendo os dados específicos de cada tipo
+        Object.keys(produto.auditorias).forEach((tipoAudit) => {
+          if (
+            produto.auditorias[tipoAudit].status !== 0 &&
+            produto.auditorias[tipoAudit].status !== "N/A"
+          ) {
+            produtoExistente.auditorias[tipoAudit] =
+              produto.auditorias[tipoAudit];
+          }
+        });
+
+        // Atualizar lido se qualquer auditoria foi feita
+        if (produto.lido) {
+          produtoExistente.lido = true;
+        }
+
+        // Usar quantidade maior
+        if (produto.quantidade > produtoExistente.quantidade) {
+          produtoExistente.quantidade = produto.quantidade;
+        }
+
+        // Atualizar informações vazias
+        if (produtoExistente.corredor === "N/A" && produto.corredor !== "N/A") {
+          produtoExistente.corredor = produto.corredor;
+        }
+        if (produtoExistente.classe === "N/A" && produto.classe !== "N/A") {
+          produtoExistente.classe = produto.classe;
+        }
+      }
+    });
+
+    produtos.value = Array.from(mapaProdutos.values());
+
+    console.log("🎉 Total de produtos únicos:", produtos.value.length);
+
+    // Mensagem informativa se não houver produtos
+    if (produtos.value.length === 0) {
+      console.log(
+        "ℹ️ Nenhuma auditoria encontrada nos últimos 30 dias para esta loja"
+      );
+    }
+  } catch (error) {
+    console.error("❌ Erro ao carregar dados da API:", error);
+    // Em caso de erro, usar dados mock como fallback
+    gerarMockData();
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Forçar recarregamento (ignora cache)
+const forcarAtualizacao = async () => {
+  console.log("🔄 Forçando atualização dos dados...");
+  await carregarDadosReais(true);
+};
+
+// Observar mudanças na loja selecionada
+watch(
+  () => lojaSelecionada.value,
+  (novaLoja, lojaAnterior) => {
+    // Só recarrega se realmente mudou de loja
+    if (novaLoja && novaLoja.codigo !== lojaAnterior?.codigo) {
+      console.log("🏪 Loja mudou, carregando dados...");
+      carregarDadosReais();
+    }
+  }
+);
+
+// Carregar dados ao montar componente
+onMounted(() => {
+  carregarDadosReais();
+});
 </script>
 
 <style scoped>
@@ -641,6 +880,13 @@ gerarMockData();
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
 .secondary-filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -676,8 +922,28 @@ gerarMockData();
   color: #718096;
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .results-count {
   font-weight: 600;
+}
+
+.cache-info {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  background-color: #e6f3ff;
+  border-radius: 0.375rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.cache-info.expired {
+  background-color: #fff5e6;
+  color: #d97706;
 }
 
 .footer-actions {
@@ -692,6 +958,19 @@ gerarMockData();
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-btn {
+  background-color: #10b981;
+  color: white;
+}
+.refresh-btn:hover:not(:disabled) {
+  background-color: #059669;
 }
 
 .share-btn {
@@ -718,75 +997,6 @@ gerarMockData();
   color: #718096;
 }
 
-/* Visualização em Cards */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.product-card {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-}
-
-.card-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.product-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-.product-codigo {
-  font-size: 0.8rem;
-  color: #718096;
-  font-family: monospace;
-}
-.product-quantidade {
-  font-size: 0.8rem;
-  color: #4a5568;
-  font-weight: 500;
-  margin-left: 0.5rem;
-}
-.card-body {
-  padding: 1.25rem;
-  gap: 1rem;
-}
-.product-details,
-.audit-info {
-  margin-bottom: 1rem;
-}
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-.detail-label {
-  color: #718096;
-}
-.detail-value {
-  color: #2d3748;
-  font-weight: 600;
-}
-.audit-label {
-  font-size: 0.9rem;
-  color: #718096;
-  margin-bottom: 0.25rem;
-}
-
 .audit-status,
 .read-status {
   display: inline-block;
@@ -811,29 +1021,6 @@ gerarMockData();
 .status-default {
   background-color: #edf2f7;
   color: #4a5568;
-}
-
-.card-footer {
-  padding: 1rem 1.25rem;
-  background-color: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-}
-.read-status.lido {
-  color: #38a169;
-}
-.read-status.nao-lido {
-  color: #e53e3e;
-}
-.audit-date {
-  color: #718096;
-}
-.user-info {
-  color: #4a5568;
-  font-weight: 500;
 }
 
 /* Visualização em Lista */
@@ -876,5 +1063,16 @@ gerarMockData();
 }
 .products-table tbody tr:hover {
   background-color: #e6f3ff;
+}
+
+.read-status.lido {
+  color: #38a169;
+}
+.read-status.nao-lido {
+  color: #e53e3e;
+}
+.user-info {
+  color: #4a5568;
+  font-weight: 500;
 }
 </style>

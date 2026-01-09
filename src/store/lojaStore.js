@@ -5,6 +5,9 @@ import axios from "axios";
 export const useLojaStore = defineStore("loja", {
   state: () => ({
     lojaSelecionada: null,
+    // Cache de produtos de auditoria por loja
+    produtosCache: {}, // { lojaId: { data: produtos[], timestamp: Date, filtros: {} } }
+    cacheTTL: 5 * 60 * 1000, // 5 minutos em milissegundos
     lojas: [
       {
         codigo: "056",
@@ -227,6 +230,116 @@ export const useLojaStore = defineStore("loja", {
         this.limparLoja();
         return false;
       }
+    },
+
+    // ============ CACHE DE PRODUTOS DE AUDITORIA ============
+
+    // Obter produtos do cache ou buscar do servidor
+    async obterProdutosAuditoria(lojaId, forcarRecarregar = false) {
+      const cacheKey =
+        lojaId || this.lojaSelecionada?._id || this.lojaSelecionada?.codigo;
+
+      if (!cacheKey) {
+        throw new Error("ID da loja não disponível");
+      }
+
+      // Verificar cache válido
+      if (!forcarRecarregar && this.produtosCache[cacheKey]) {
+        const cache = this.produtosCache[cacheKey];
+        const agora = Date.now();
+        const cacheValido = agora - cache.timestamp < this.cacheTTL;
+
+        if (cacheValido) {
+          console.log(
+            `✅ Usando cache de produtos (${cache.data.length} itens)`
+          );
+          return cache.data;
+        } else {
+          console.log("⏰ Cache expirado, recarregando...");
+        }
+      }
+
+      // Buscar do servidor
+      console.log(`🔄 Carregando produtos do servidor para loja: ${cacheKey}`);
+
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/audit-products/produtos-auditorias/${cacheKey}`
+        );
+
+        if (!response.data.success) {
+          throw new Error(response.data.message || "Erro ao carregar produtos");
+        }
+
+        const produtos = response.data.produtos;
+
+        // Armazenar no cache
+        this.produtosCache[cacheKey] = {
+          data: produtos,
+          timestamp: Date.now(),
+        };
+
+        console.log(
+          `✅ Cache atualizado (${produtos.etiqueta?.length || 0} etiquetas, ${
+            produtos.presenca?.length || 0
+          } presenças, ${produtos.ruptura?.length || 0} rupturas)`
+        );
+
+        return produtos;
+      } catch (error) {
+        console.error("❌ Erro ao carregar produtos:", error);
+        throw error;
+      }
+    },
+
+    // Limpar cache de uma loja específica ou de todas
+    limparCacheProdutos(lojaId = null) {
+      if (lojaId) {
+        delete this.produtosCache[lojaId];
+        console.log(`🗑️ Cache limpo para loja: ${lojaId}`);
+      } else {
+        this.produtosCache = {};
+        console.log("🗑️ Cache completo de produtos limpo");
+      }
+    },
+
+    // Verificar se tem cache válido
+    temCacheValido(lojaId) {
+      const cacheKey =
+        lojaId || this.lojaSelecionada?._id || this.lojaSelecionada?.codigo;
+
+      if (!cacheKey || !this.produtosCache[cacheKey]) {
+        return false;
+      }
+
+      const cache = this.produtosCache[cacheKey];
+      const agora = Date.now();
+      return agora - cache.timestamp < this.cacheTTL;
+    },
+
+    // Obter informações do cache
+    getInfoCache(lojaId) {
+      const cacheKey =
+        lojaId || this.lojaSelecionada?._id || this.lojaSelecionada?.codigo;
+
+      if (!cacheKey || !this.produtosCache[cacheKey]) {
+        return null;
+      }
+
+      const cache = this.produtosCache[cacheKey];
+      const agora = Date.now();
+      const idade = Math.floor((agora - cache.timestamp) / 1000); // em segundos
+      const valido = agora - cache.timestamp < this.cacheTTL;
+
+      return {
+        timestamp: cache.timestamp,
+        idade: `${idade}s`,
+        valido,
+        totalProdutos: Object.values(cache.data).reduce(
+          (acc, arr) => acc + (arr?.length || 0),
+          0
+        ),
+      };
     },
   },
 });
