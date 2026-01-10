@@ -341,5 +341,17 @@ export const useLojaStore = defineStore("loja", {
         ),
       };
     },
+
+    // Atualizar o coverId da loja selecionada
+    atualizarCoverDaLojaSelecionada(novoCoverId) {
+      if (this.lojaSelecionada) {
+        this.lojaSelecionada.coverId = novoCoverId;
+
+        // Atualizar no localStorage também
+        localStorage.setItem("lojaSelecionada", JSON.stringify(this.lojaSelecionada));
+
+        console.log(`Cover atualizado para a loja ${this.lojaSelecionada.codigo}: ${novoCoverId}`);
+      }
+    },
   },
 });

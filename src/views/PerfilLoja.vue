@@ -85,6 +85,7 @@
 import { useRouter } from "vue-router";
 import { useLojaStore } from "../store/lojaStore";
 import { computed, ref, onMounted } from "vue";
+import axios from "axios";
 
 // Componentes
 import PerfilHeader from "./PerfilLoja/PerfilHeader.vue";
@@ -168,123 +169,47 @@ export default {
       try {
         carregando.value = true;
 
-        // Simulação de carregamento de dados
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Buscar dados reais da API usando axios
+        const response = await axios.get(`http://localhost:3000/api/perfil-loja/${codigoLoja}`);
 
-        // Dados mockados - futuramente virão da API
+        const data = response.data;
+
+        // Atualizar os dados com os retornados pela API
+        loja.value = {
+          ...data.loja,
+          nome: data.loja.nome,
+          cidade: data.loja.cidade,
+          endereco: data.loja.endereco || "Endereço não informado",
+          telefone: data.loja.metadata?.telefone || "(00) 00000-0000",
+          gerente: data.loja.metadata?.gerente || "Não informado",
+          // Use image from store if available, otherwise use from API
+          imagem: lojaCompleta?.imagem || data.loja.imagem,
+          coverId: data.loja.coverId, // Certificar que o coverId seja incluído
+          iniciais: data.loja.nome ? data.loja.nome.substring(0, 2).toUpperCase() : "NL",
+        };
+
+        metricas.value = data.metricas;
+        metricasSetores.value = data.metricasSetores;
+        colaboradores.value = data.colaboradores;
+        atividadesRecentes.value = data.atividadesRecentes;
+        metricasAuditoria.value = data.metricasAuditoria;
+        insights.value = data.insights;
+        dadosGraficos.value = data.dadosGraficos;
+      } catch (error) {
+        console.error("Erro ao carregar dados da loja:", error);
+
+        // Em caso de erro, manter dados básicos para evitar falhas na UI
         loja.value = {
           codigo: codigoLoja,
           nome: `Loja ${codigoLoja}`,
           cidade: "Cidade Exemplo",
-          endereco: "Rua Exemplo, 123",
-          telefone: "(11) 99999-9999",
-          imagem: lojaCompleta
-            ? lojaCompleta.imagem
-            : `/images/lojas/${codigoLoja}.jpg`,
-          horarioFuncionamento: "08:00 - 22:00",
-          dataInauguracao: "2023-01-15",
-          tamanho: "500m²",
-          categoria: "Supermercado",
+          endereco: "Erro ao carregar dados",
+          telefone: "(00) 00000-0000",
+          gerente: "Não informado",
+          imagem: null,
+          coverId: "gradient-1", // Valor padrão em caso de erro
+          iniciais: codigoLoja.substring(0, 2).toUpperCase(),
         };
-
-        metricas.value = {
-          totalAuditorias: 156,
-          itensVerificados: 12450,
-          taxaAcerto: 92,
-          colaboradoresAtivos: 8,
-          mediaDiaria: 87,
-          variacaoSemanal: 5.2,
-        };
-
-        metricasSetores.value = [
-          { nome: "Hortifruti", performance: 95, itens: 450 },
-          { nome: "Açougue", performance: 88, itens: 320 },
-          { nome: "Padaria", performance: 91, itens: 280 },
-          { nome: "Laticínios", performance: 94, itens: 380 },
-          { nome: "Mercearia", performance: 89, itens: 620 },
-        ];
-
-        colaboradores.value = [
-          { nome: "João Silva", performance: 96, auditorias: 45 },
-          { nome: "Maria Santos", performance: 94, auditorias: 42 },
-          { nome: "Pedro Costa", performance: 91, auditorias: 38 },
-          { nome: "Ana Oliveira", performance: 89, auditorias: 35 },
-          { nome: "Carlos Souza", performance: 87, auditorias: 32 },
-        ];
-
-        atividadesRecentes.value = [
-          {
-            tipo: "auditoria",
-            descricao: "Auditoria de etiquetas concluída",
-            detalhes: "Setor: Mercearia - 125 itens verificados",
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-            usuario: "João Silva",
-          },
-          {
-            tipo: "ruptura",
-            descricao: "Identificação de ruptura",
-            detalhes: "Produto: Arroz Tipo 1 - Estoque: 0",
-            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-            usuario: "Maria Santos",
-          },
-          {
-            tipo: "presenca",
-            descricao: "Verificação de presença",
-            detalhes: "Setor: Padaria - 98% de presença",
-            timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-            usuario: "Pedro Costa",
-          },
-        ];
-
-        metricasAuditoria.value = {
-          etiqueta: { total: 85, concluidas: 80, performance: 94 },
-          presenca: { total: 45, concluidas: 42, performance: 93 },
-          ruptura: { total: 26, concluidas: 24, performance: 92 },
-        };
-
-        insights.value = [
-          {
-            tipo: "destaque",
-            titulo: "Alta Performance em Hortifruti",
-            descricao: "Setor com melhor performance (95%)",
-            icone: "🎯",
-          },
-          {
-            tipo: "alerta",
-            titulo: "Oportunidade em Açougue",
-            descricao: "Performance 7% abaixo da média",
-            icone: "⚠️",
-          },
-          {
-            tipo: "sugestao",
-            titulo: "Treinamento Recomendado",
-            descricao: "Capacitação em identificação de rupturas",
-            icone: "📚",
-          },
-        ];
-
-        dadosGraficos.value = [
-          {
-            tipo: "linha",
-            titulo: "Performance Semanal",
-            dados: [85, 88, 90, 87, 92, 94, 91],
-            labels: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
-          },
-          {
-            tipo: "barra",
-            titulo: "Itens por Setor",
-            dados: [450, 320, 280, 380, 620],
-            labels: [
-              "Hortifruti",
-              "Açougue",
-              "Padaria",
-              "Laticínios",
-              "Mercearia",
-            ],
-          },
-        ];
-      } catch (error) {
-        console.error("Erro ao carregar dados da loja:", error);
       } finally {
         carregando.value = false;
       }

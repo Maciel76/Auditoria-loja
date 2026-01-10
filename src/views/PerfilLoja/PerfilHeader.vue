@@ -1,8 +1,15 @@
 <template>
   <div class="perfil-header">
-    <div class="perfil-cover">
+    <div class="perfil-cover" :style="coverStyle">
       <div class="cover-pattern"></div>
       <div class="cover-overlay">
+        <button
+          class="btn-edit-cover"
+          @click="showCoverSelector = true"
+          title="Alterar Cover"
+        >
+          <i class="fas fa-pencil-alt"></i>
+        </button>
         <div class="loja-status" :class="statusAuditoria.classe">
           <i class="fas" :class="statusAuditoria.icone"></i>
           {{ statusAuditoria.texto }}
@@ -15,6 +22,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Seleção de Cover -->
+    <CoverSelector
+      v-model="showCoverSelector"
+      :current-cover="loja.coverId"
+      :loja-codigo="loja.codigo"
+      @cover-selected="handleCoverSelected"
+      @info-updated="handleInfoUpdated"
+    />
 
     <div class="perfil-info">
       <div class="avatar-container">
@@ -106,8 +122,15 @@
 </template>
 
 <script>
+import CoverSelector from "@/components/CoverSelector.vue";
+import axios from "axios";
+import { useLojaStore } from "@/store/lojaStore.js";
+
 export default {
   name: "PerfilHeaderLoja",
+  components: {
+    CoverSelector,
+  },
   props: {
     loja: {
       type: Object,
@@ -128,11 +151,13 @@ export default {
         totalAuditorias: 0,
         setoresAtivos: 0,
         percentualDesempenho: 0,
+        coverId: null,
       }),
     },
   },
   data() {
     return {
+      showCoverSelector: false,
       statusAuditoria: {
         texto: "Verificando status...",
         classe: "verificando",
@@ -148,6 +173,75 @@ export default {
     };
   },
   computed: {
+    coverStyle() {
+      const coverId = this.loja.coverId || "gradient-1";
+
+      // Check if coverId is a URL (starts with http)
+      if (coverId.startsWith("http")) {
+        return {
+          backgroundImage: `url('${coverId}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        };
+      }
+
+      // Check if coverId is a pattern
+      if (coverId.startsWith("pattern-")) {
+        // Define pattern mappings matching CoverSelector.vue
+        const patterns = {
+          "pattern-1": {
+            backgroundImage:
+              "repeating-linear-gradient(45deg, #667eea, #667eea 20px, #764ba2 20px, #764ba2 40px)",
+          },
+          "pattern-2": {
+            backgroundImage:
+              "repeating-linear-gradient(0deg, #15b638, #15b638 20px, #0575E6 20px, #0575E6 40px)",
+          },
+          "pattern-3": {
+            backgroundImage:
+              "linear-gradient(45deg, #fa709a 25%, transparent 25%, transparent 75%, #fa709a 75%), linear-gradient(45deg, #fa709a 25%, transparent 25%, transparent 75%, #fa709a 75%) 40px 40px, linear-gradient(to bottom, #fee140, #fee140)",
+            backgroundSize: "80px 80px",
+          },
+          "pattern-4": {
+            backgroundImage:
+              "radial-gradient(circle, #4facfe 3px, transparent 3px)",
+            backgroundSize: "30px 30px",
+            backgroundColor: "#f0f9ff",
+          },
+          "pattern-5": {
+            backgroundImage:
+              "repeating-linear-gradient(90deg, #43e97b 0px, #43e97b 20px, #38f9d7 20px, #38f9d7 40px)",
+          },
+          "pattern-6": {
+            backgroundImage:
+              "repeating-linear-gradient(60deg, #4e54c8 0px, #4e54c8 20px, #8f94fb 20px, #8f94fb 40px)",
+          },
+        };
+
+        return patterns[coverId] || patterns["pattern-1"];
+      }
+
+      // Otherwise, treat as gradient
+      const coverMap = {
+        "gradient-1": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "gradient-2": "linear-gradient(135deg, #15b638 0%, #0575E6 100%)",
+        "gradient-3": "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+        "gradient-4": "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+        "gradient-5": "linear-gradient(135deg, #f83600 0%, #f9d423 100%)",
+        "gradient-6": "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+        "gradient-7": "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+        "gradient-8": "linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%)",
+        "gradient-9": "linear-gradient(135deg, #757F9A 0%, #D7DDE8 100%)",
+        "gradient-10": "linear-gradient(135deg, #00d2ff 0%, #3a47d5 100%)",
+        "gradient-11": "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
+        "gradient-12": "linear-gradient(135deg, #134e5e 0%, #71b280 100%)",
+      };
+
+      return {
+        background: coverMap[coverId] || coverMap["gradient-1"],
+      };
+    },
     horariosAuditoria() {
       return {
         1: { nome: "Segunda-feira", inicio: "11:00", fim: "17:00" },
@@ -294,6 +388,147 @@ export default {
 
       this.proximaAuditoria = "";
     },
+
+    async handleCoverSelected(coverData) {
+      console.log("Cover selecionado:", coverData);
+
+      try {
+        // Atualizar no backend
+        const response = await this.updateCoverOnBackend(coverData.coverId);
+
+        if (response.success) {
+          // Atualizar a loja no componente local
+          this.loja.coverId = coverData.coverId;
+
+          // Atualizar a loja na store se estiver selecionada
+          const lojaStore = useLojaStore();
+          if (
+            lojaStore.lojaSelecionada &&
+            lojaStore.lojaSelecionada.codigo === this.loja.codigo
+          ) {
+            // Usar método do store para atualizar o coverId
+            lojaStore.atualizarCoverDaLojaSelecionada(coverData.coverId);
+          }
+
+          // Emitir evento para atualizar o coverId na loja
+          this.$emit("cover-updated", coverData.coverId);
+
+          console.log("Cover atualizado com sucesso:", coverData.coverId);
+        } else {
+          console.error(
+            "Erro ao atualizar cover no backend:",
+            response.message
+          );
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar cover:", error);
+        // Em caso de erro, poderíamos mostrar uma mensagem ao usuário
+        alert("Erro ao atualizar o cover. Por favor, tente novamente.");
+      }
+    },
+
+    async updateCoverOnBackend(coverId) {
+      try {
+        // Atualizar diretamente usando o código da loja
+        const response = await axios.patch(
+          `http://localhost:3000/api/stores/${this.loja.codigo}/cover`,
+          {
+            coverId: coverId,
+          }
+        );
+
+        return { success: true, data: response.data };
+      } catch (error) {
+        console.error("Erro ao atualizar cover no backend:", error);
+        return {
+          success: false,
+          message: error.response?.data?.error || error.message,
+        };
+      }
+    },
+
+    async handleInfoUpdated(info) {
+      try {
+        // Update store information in the backend
+        const response = await this.updateStoreInfoOnBackend(info);
+
+        if (response.success) {
+          // Update the local component state
+          Object.assign(this.loja, info);
+
+          // Update the store in the store if it's the selected one
+          const lojaStore = useLojaStore();
+          if (
+            lojaStore.lojaSelecionada &&
+            lojaStore.lojaSelecionada.codigo === this.loja.codigo
+          ) {
+            Object.assign(lojaStore.lojaSelecionada, info);
+
+            // Update in localStorage as well
+            localStorage.setItem(
+              "lojaSelecionada",
+              JSON.stringify(lojaStore.lojaSelecionada)
+            );
+          }
+
+          console.log("Informações da loja atualizadas com sucesso:", info);
+        } else {
+          console.error(
+            "Erro ao atualizar informações da loja no backend:",
+            response.message
+          );
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar informações da loja:", error);
+        alert(
+          "Erro ao atualizar as informações da loja. Por favor, tente novamente."
+        );
+      }
+    },
+
+    async updateStoreInfoOnBackend(info) {
+      try {
+        // First, get the store to get its ID
+        const lojasResponse = await axios.get(
+          "http://localhost:3000/api/stores"
+        );
+        const loja = lojasResponse.data.find(
+          (l) => l.codigo === this.loja.codigo
+        );
+
+        if (!loja) {
+          throw new Error("Loja não encontrada");
+        }
+
+        // Update the store with the new information
+        const response = await axios.put(
+          `http://localhost:3000/api/stores/${loja._id}`,
+          {
+            ...loja,
+            nome: info.nome || loja.nome,
+            endereco: info.endereco || loja.endereco,
+            cidade: info.cidade || loja.cidade,
+            metadata: {
+              ...loja.metadata,
+              telefone: info.telefone || loja.metadata?.telefone,
+              gerente: info.gerente || loja.metadata?.gerente,
+            },
+            regiao: info.regiao || loja.regiao,
+          }
+        );
+
+        return { success: true, data: response.data };
+      } catch (error) {
+        console.error(
+          "Erro ao atualizar informações da loja no backend:",
+          error
+        );
+        return {
+          success: false,
+          message: error.response?.data?.error || error.message,
+        };
+      }
+    },
   },
   mounted() {
     this.atualizarStatusAuditoria();
@@ -321,9 +556,44 @@ export default {
 }
 
 .perfil-cover {
-  height: 180px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 250px;
   position: relative;
+  transition: background 0.5s ease;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.btn-edit-cover {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.95rem;
+  color: #667eea;
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.btn-edit-cover:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: white;
+  color: #764ba2;
+}
+
+.btn-edit-cover i {
+  transition: transform 0.3s ease;
+}
+
+.btn-edit-cover:hover i {
+  transform: scale(1.15);
 }
 
 .cover-pattern {
@@ -346,7 +616,11 @@ export default {
 .cover-overlay {
   position: absolute;
   top: 20px;
+  left: 20px;
   right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .loja-status {
