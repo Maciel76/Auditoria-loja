@@ -3,12 +3,9 @@
     <div class="perfil-cover" :style="coverStyle">
       <div class="cover-pattern"></div>
       <div class="cover-overlay">
-        <button
-          class="btn-edit-cover"
-          @click="showCoverSelector = true"
-          title="Alterar Cover"
-        >
+        <button class="btn-edit-cover" @click="showCoverSelector = true">
           <i class="fas fa-pencil-alt"></i>
+          <span class="btn-tooltip">Editar Capa e Informações</span>
         </button>
         <div class="loja-status" :class="statusAuditoria.classe">
           <i class="fas" :class="statusAuditoria.icone"></i>
@@ -92,29 +89,20 @@
         </div>
       </div>
 
-      <div class="perfil-stats">
-        <div class="stat-item">
-          <span class="stat-number">
-            <template v-if="auditoriaRolando">Auditoria ativa</template>
-            <template v-else-if="auditoriaHoje">Auditoria de hoje</template>
-            <template v-else>Próx. auditoria</template>
-          </span>
-          <span class="stat-label">
-            <template v-if="auditoriaRolando || auditoriaHoje">
-              {{ auditoriaNome }}
-            </template>
-            <template v-else>
-              {{ proximaAuditoriaNome }}
-            </template>
-          </span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">2%</span>
-          <span class="stat-label">Meta</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ progressoAtual }}%</span>
-          <span class="stat-label">Progresso atual</span>
+      <!-- Badges Section -->
+      <div
+        v-if="loja.selectedBadges && loja.selectedBadges.length > 0"
+        class="badges-section"
+      >
+        <div class="badges-container">
+          <div
+            v-for="badgeId in loja.selectedBadges"
+            :key="badgeId"
+            class="badge-item"
+            :title="getBadgeDescription(badgeId)"
+          >
+            <span class="badge-icon">{{ getBadgeIcon(badgeId) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -171,6 +159,12 @@ export default {
       proximaHorario: { inicio: "", fim: "" },
       intervalo: null,
     };
+  },
+  created() {
+    // Initialize selectedBadges if not present
+    if (!this.loja.selectedBadges) {
+      this.loja.selectedBadges = [];
+    }
   },
   computed: {
     coverStyle() {
@@ -389,41 +383,80 @@ export default {
       this.proximaAuditoria = "";
     },
 
-    async handleCoverSelected(coverData) {
-      console.log("Cover selecionado:", coverData);
+    async handleCoverSelected(payload) {
+      console.log("Dados selecionados:", payload);
 
       try {
-        // Atualizar no backend
-        const response = await this.updateCoverOnBackend(coverData.coverId);
+        if (payload.coverType === "badges") {
+          // Handle badge selection
+          this.loja.selectedBadges = payload.selectedBadges;
 
-        if (response.success) {
-          // Atualizar a loja no componente local
-          this.loja.coverId = coverData.coverId;
+          // Update in backend
+          const response = await this.updateBadgesOnBackend(
+            payload.selectedBadges
+          );
 
-          // Atualizar a loja na store se estiver selecionada
+          if (response.success) {
+            console.log(
+              "Selos atualizados com sucesso:",
+              payload.selectedBadges
+            );
+          } else {
+            console.error(
+              "Erro ao atualizar selos no backend:",
+              response.message
+            );
+          }
+
+          // Update the store if it's the selected one
           const lojaStore = useLojaStore();
           if (
             lojaStore.lojaSelecionada &&
             lojaStore.lojaSelecionada.codigo === this.loja.codigo
           ) {
-            // Usar método do store para atualizar o coverId
-            lojaStore.atualizarCoverDaLojaSelecionada(coverData.coverId);
+            lojaStore.lojaSelecionada.selectedBadges = [
+              ...payload.selectedBadges,
+            ];
+
+            // Update in localStorage as well
+            localStorage.setItem(
+              "lojaSelecionada",
+              JSON.stringify(lojaStore.lojaSelecionada)
+            );
           }
-
-          // Emitir evento para atualizar o coverId na loja
-          this.$emit("cover-updated", coverData.coverId);
-
-          console.log("Cover atualizado com sucesso:", coverData.coverId);
         } else {
-          console.error(
-            "Erro ao atualizar cover no backend:",
-            response.message
-          );
+          // Handle cover selection (gradients, patterns, images)
+          const response = await this.updateCoverOnBackend(payload.coverId);
+
+          if (response.success) {
+            // Atualizar a loja no componente local
+            this.loja.coverId = payload.coverId;
+
+            // Atualizar a loja na store se estiver selecionada
+            const lojaStore = useLojaStore();
+            if (
+              lojaStore.lojaSelecionada &&
+              lojaStore.lojaSelecionada.codigo === this.loja.codigo
+            ) {
+              // Usar método do store para atualizar o coverId
+              lojaStore.atualizarCoverDaLojaSelecionada(payload.coverId);
+            }
+
+            // Emitir evento para atualizar o coverId na loja
+            this.$emit("cover-updated", payload.coverId);
+
+            console.log("Cover atualizado com sucesso:", payload.coverId);
+          } else {
+            console.error(
+              "Erro ao atualizar cover no backend:",
+              response.message
+            );
+          }
         }
       } catch (error) {
-        console.error("Erro ao atualizar cover:", error);
+        console.error("Erro ao atualizar:", error);
         // Em caso de erro, poderíamos mostrar uma mensagem ao usuário
-        alert("Erro ao atualizar o cover. Por favor, tente novamente.");
+        alert("Erro ao atualizar. Por favor, tente novamente.");
       }
     },
 
@@ -440,6 +473,26 @@ export default {
         return { success: true, data: response.data };
       } catch (error) {
         console.error("Erro ao atualizar cover no backend:", error);
+        return {
+          success: false,
+          message: error.response?.data?.error || error.message,
+        };
+      }
+    },
+
+    async updateBadgesOnBackend(selectedBadges) {
+      try {
+        // Atualizar os selos diretamente usando o código da loja
+        const response = await axios.patch(
+          `http://localhost:3000/api/stores/${this.loja.codigo}/badges`,
+          {
+            selectedBadges: selectedBadges,
+          }
+        );
+
+        return { success: true, data: response.data };
+      } catch (error) {
+        console.error("Erro ao atualizar selos no backend:", error);
         return {
           success: false,
           message: error.response?.data?.error || error.message,
@@ -529,6 +582,39 @@ export default {
         };
       }
     },
+
+    // Methods to handle badges
+    getBadgeIcon(badgeId) {
+      const badgeMap = {
+        "badge-destaque": "🏆",
+        "badge-ouro": "🥇",
+        "badge-prata": "🥈",
+        "badge-bronze": "🥉",
+        "badge-qualidade": "⭐",
+        "badge-desempenho": "⚡",
+        "badge-inovacao": "💡",
+        "badge-sustentavel": "🌱",
+        "badge-cliente": "❤️",
+        "badge-seguranca": "🛡️",
+      };
+      return badgeMap[badgeId] || "❓";
+    },
+
+    getBadgeDescription(badgeId) {
+      const badgeMap = {
+        "badge-destaque": "Destaque",
+        "badge-ouro": "Ouro",
+        "badge-prata": "Prata",
+        "badge-bronze": "Bronze",
+        "badge-qualidade": "Qualidade",
+        "badge-desempenho": "Desempenho",
+        "badge-inovacao": "Inovação",
+        "badge-sustentavel": "Sustentável",
+        "badge-cliente": "Cliente",
+        "badge-seguranca": "Segurança",
+      };
+      return badgeMap[badgeId] || "Desconhecido";
+    },
   },
   mounted() {
     this.atualizarStatusAuditoria();
@@ -546,6 +632,8 @@ export default {
 </script>
 
 <style scoped>
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
 .perfil-header {
   background: rgb(255, 255, 255);
   border-radius: 20px;
@@ -579,6 +667,7 @@ export default {
   color: #667eea;
   opacity: 1;
   flex-shrink: 0;
+  position: relative;
 }
 
 .btn-edit-cover:hover {
@@ -594,6 +683,58 @@ export default {
 
 .btn-edit-cover:hover i {
   transform: scale(1.15);
+}
+
+.btn-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-10px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  z-index: 1000;
+  letter-spacing: 0.3px;
+}
+
+.btn-tooltip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: #667eea;
+}
+
+.btn-edit-cover:hover .btn-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+  animation: tooltipSlideIn 0.5s ease-out;
+}
+
+@keyframes tooltipSlideIn {
+  0% {
+    transform: translateY(-50%) translateX(-10px) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-50%) translateX(5px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-50%) translateX(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .cover-pattern {
@@ -971,6 +1112,44 @@ export default {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.badges-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  min-width: 180px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.badges-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge-item {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.badge-item:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.badge-icon {
+  font-size: 1.2rem;
 }
 
 /* Responsividade */

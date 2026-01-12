@@ -185,6 +185,7 @@ export default {
           // Use image from store if available, otherwise use from API
           imagem: lojaCompleta?.imagem || data.loja.imagem,
           coverId: data.loja.coverId, // Certificar que o coverId seja incluído
+          selectedBadges: data.loja.selectedBadges || [], // Carregar os selos selecionados
           iniciais: data.loja.nome ? data.loja.nome.substring(0, 2).toUpperCase() : "NL",
         };
 

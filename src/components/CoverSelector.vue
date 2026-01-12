@@ -5,7 +5,7 @@
         <div class="modal-header">
           <h2>
             <i class="fas fa-images"></i>
-            Escolha um Cover para sua Loja
+            Escolha o background da sua loja e edite suas informações
           </h2>
           <button class="btn-close" @click="closeModal">
             <i class="fas fa-times"></i>
@@ -42,6 +42,13 @@
             >
               <i class="fas fa-edit"></i>
               Editar Info
+            </button>
+            <button
+              :class="['tab-button', { active: activeTab === 'badges' }]"
+              @click="activeTab = 'badges'"
+            >
+              <i class="fas fa-certificate"></i>
+              Selos
             </button>
           </div>
 
@@ -122,6 +129,44 @@
                 <option value="contain">Contido</option>
                 <option value="stretch">Esticar</option>
               </select>
+            </div>
+          </div>
+
+          <!-- Badges tab -->
+          <div v-show="activeTab === 'badges'" class="badges-tab">
+            <p class="tab-description">
+              Selecione até {{ maxBadges }} selos para sua loja:
+            </p>
+            <div class="badges-grid">
+              <div
+                v-for="badge in badges"
+                :key="badge.id"
+                class="badge-item"
+                :class="{
+                  selected: isSelected(badge.id),
+                  disabled: isDisabled(badge.id),
+                }"
+                @click="toggleBadge(badge.id)"
+              >
+                <div class="badge-content">
+                  <span class="badge-icon">{{ badge.icon }}</span>
+                  <h4 class="badge-name">{{ badge.name }}</h4>
+                  <p class="badge-description">{{ badge.description }}</p>
+                </div>
+                <div class="badge-selection">
+                  <i
+                    v-if="isSelected(badge.id)"
+                    class="fas fa-check-circle selected-icon"
+                  ></i>
+                  <i v-else class="fas fa-plus-circle unselected-icon"></i>
+                </div>
+              </div>
+            </div>
+            <div class="selected-badges-summary">
+              <p>
+                Selos selecionados:
+                <strong>{{ selectedBadges.length }}/{{ maxBadges }}</strong>
+              </p>
             </div>
           </div>
 
@@ -208,7 +253,7 @@
             :disabled="!selectedCover || saving"
           >
             <i class="fas fa-check"></i>
-            {{ saving ? "Salvando..." : "Salvar Cover" }}
+            {{ saving ? "Salvando..." : "Salvar " }}
           </button>
         </div>
       </div>
@@ -251,6 +296,70 @@ export default {
         regiao: "",
       },
       isEditing: false, // Flag to track if we're in edit mode
+      selectedBadges: [], // Selected badges
+      maxBadges: 3, // Maximum number of badges that can be selected
+      badges: [
+        {
+          id: "badge-destaque",
+          name: "Destaque",
+          icon: "🏆",
+          description: "Loja em destaque",
+        },
+        {
+          id: "badge-ouro",
+          name: "Ouro",
+          icon: "🥇",
+          description: "Nível ouro",
+        },
+        {
+          id: "badge-prata",
+          name: "Prata",
+          icon: "🥈",
+          description: "Nível prata",
+        },
+        {
+          id: "badge-bronze",
+          name: "Bronze",
+          icon: "🥉",
+          description: "Nível bronze",
+        },
+        {
+          id: "badge-qualidade",
+          name: "Qualidade",
+          icon: "⭐",
+          description: "Excelência em qualidade",
+        },
+        {
+          id: "badge-desempenho",
+          name: "Desempenho",
+          icon: "⚡",
+          description: "Alto desempenho",
+        },
+        {
+          id: "badge-inovacao",
+          name: "Inovação",
+          icon: "💡",
+          description: "Inovação contínua",
+        },
+        {
+          id: "badge-sustentavel",
+          name: "Sustentável",
+          icon: "🌱",
+          description: "Práticas sustentáveis",
+        },
+        {
+          id: "badge-cliente",
+          name: "Cliente",
+          icon: "❤️",
+          description: "Excelência no atendimento",
+        },
+        {
+          id: "badge-seguranca",
+          name: "Segurança",
+          icon: "🛡️",
+          description: "Alta segurança",
+        },
+      ],
       gradients: [
         {
           id: "gradient-1",
@@ -439,10 +548,10 @@ export default {
           url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1470&auto=format&fit=crop",
         },
         {
-          id: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
-          name: "Equipe Negócios",
+          id: "https://cdn.80.lv/api/upload/meta/14046/images/5f627dc3d4ae6/contain_1200x630.png",
+          name: "Tema exclusivo loja 347",
           type: "image",
-          url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
+          url: "https://cdn.80.lv/api/upload/meta/14046/images/5f627dc3d4ae6/contain_1200x630.png",
         },
         {
           id: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1471&auto=format&fit=crop",
@@ -457,16 +566,16 @@ export default {
           url: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=1632&auto=format&fit=crop",
         },
         {
-          id: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1470&auto=format&fit=crop",
-          name: "Código Programação",
+          id: "https://plus.unsplash.com/premium_photo-1661886226212-7389947aaaa7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          name: "Avião nas Nuvens",
           type: "image",
-          url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1470&auto=format&fit=crop",
+          url: "https://plus.unsplash.com/premium_photo-1661886226212-7389947aaaa7?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         },
         {
-          id: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1472&auto=format&fit=crop",
-          name: "Workspace Moderno",
+          id: "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          name: "Por do Sol Águas Turquesa",
           type: "image",
-          url: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1472&auto=format&fit=crop",
+          url: "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         },
         {
           id: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1470&auto=format&fit=crop",
@@ -567,36 +676,56 @@ export default {
       this.$emit("update:modelValue", false);
     },
     saveSelection() {
-      if (!this.selectedCover) return;
+      if (!this.selectedCover && this.activeTab !== "badges") return;
 
       this.saving = true;
       try {
-        // Prepare cover data based on the selected tab
-        let coverData;
-        if (this.activeTab === "gradients") {
-          coverData = this.gradients.find((c) => c.id === this.selectedCover);
-        } else if (this.activeTab === "patterns") {
-          coverData = this.patterns.find((c) => c.id === this.selectedCover);
-        } else if (this.activeTab === "images") {
-          coverData = this.images.find((c) => c.id === this.selectedCover);
+        let payload = {
+          coverType: this.activeTab,
+          imagePosition: null,
+          imageScale: null,
+          selectedBadges: [],
+        };
+
+        if (
+          this.activeTab === "gradients" ||
+          this.activeTab === "patterns" ||
+          this.activeTab === "images"
+        ) {
+          // Prepare cover data based on the selected tab
+          let coverData;
+          if (this.activeTab === "gradients") {
+            coverData = this.gradients.find((c) => c.id === this.selectedCover);
+          } else if (this.activeTab === "patterns") {
+            coverData = this.patterns.find((c) => c.id === this.selectedCover);
+          } else if (this.activeTab === "images") {
+            coverData = this.images.find((c) => c.id === this.selectedCover);
+          }
+
+          payload.coverId = this.selectedCover;
+          payload.coverData = coverData;
+          payload.imagePosition =
+            this.activeTab === "images" ? this.imagePosition : null;
+          payload.imageScale =
+            this.activeTab === "images" ? this.imageScale : null;
+        } else if (this.activeTab === "badges") {
+          // Handle badge selection
+          payload.selectedBadges = [...this.selectedBadges]; // Copy the array
         }
 
-        this.$emit("cover-selected", {
-          coverId: this.selectedCover,
-          coverType: this.activeTab,
-          coverData: coverData,
-          imagePosition:
-            this.activeTab === "images" ? this.imagePosition : null,
-          imageScale: this.activeTab === "images" ? this.imageScale : null,
-        });
+        this.$emit("cover-selected", payload);
 
         this.closeModal();
 
         // Mostrar mensagem de sucesso
-        this.$toast?.success("Cover selecionado com sucesso!");
+        this.$toast?.success(
+          this.activeTab === "badges"
+            ? "Selos selecionados com sucesso!"
+            : "Cover selecionado com sucesso!"
+        );
       } catch (error) {
-        console.error("Erro ao selecionar cover:", error);
-        this.$toast?.error("Erro ao selecionar cover. Tente novamente.");
+        console.error("Erro ao selecionar:", error);
+        this.$toast?.error("Erro ao selecionar. Tente novamente.");
       } finally {
         this.saving = false;
       }
@@ -669,6 +798,30 @@ export default {
           gerente: "",
           regiao: "",
         };
+      }
+    },
+
+    // Badge selection methods
+    isSelected(badgeId) {
+      return this.selectedBadges.includes(badgeId);
+    },
+
+    isDisabled(badgeId) {
+      return (
+        !this.isSelected(badgeId) &&
+        this.selectedBadges.length >= this.maxBadges
+      );
+    },
+
+    toggleBadge(badgeId) {
+      if (this.isSelected(badgeId)) {
+        // Remove badge if already selected
+        this.selectedBadges = this.selectedBadges.filter(
+          (id) => id !== badgeId
+        );
+      } else if (this.selectedBadges.length < this.maxBadges) {
+        // Add badge if not selected and we haven't reached the limit
+        this.selectedBadges.push(badgeId);
       }
     },
   },
@@ -865,6 +1018,100 @@ export default {
   gap: 12px;
   margin-top: 20px;
   justify-content: flex-end;
+}
+
+.tab-description {
+  margin-bottom: 15px;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.badge-item {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+}
+
+.badge-item:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.badge-item.selected {
+  border-color: #667eea;
+  background: #f8f9ff;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.badge-item.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8f9fa;
+}
+
+.badge-content {
+  flex: 1;
+}
+
+.badge-icon {
+  font-size: 2rem;
+  display: block;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.badge-name {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.badge-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.badge-selection {
+  margin-left: 10px;
+}
+
+.selected-icon {
+  color: #667eea;
+  font-size: 1.5rem;
+}
+
+.unselected-icon {
+  color: #bdc3c7;
+  font-size: 1.5rem;
+}
+
+.selected-badges-summary {
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
 .cover-item {
