@@ -25,19 +25,27 @@
         </div>
         <div class="loja-info">
           <div class="loja-codigo">{{ topLojas[1]?.codigo }}</div>
-          <div class="loja-nome">{{ topLojas[1]?.nome || 'Loja ' + topLojas[1]?.codigo }}</div>
+          <div class="loja-nome">
+            {{ topLojas[1]?.nome || "Loja " + topLojas[1]?.codigo }}
+          </div>
         </div>
         <div class="podium-stats">
           <div class="stat">
-            <span class="stat-value">{{ topLojas[1]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">📊 Itens</span>
+            <span class="stat-value"
+              >{{ calcularRestoEficiencia(topLojas[1]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">🎯 Meta</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ formatarEficiencia(topLojas[1]?.eficiencia) }}%</span>
-            <span class="stat-label">⚡ Eficiência</span>
+            <span class="stat-value"
+              >{{ formatarEficiencia(topLojas[1]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">⚡ Conclusão</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
-            <span class="stat-value">{{ topLojas[1]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-value"
+              >{{ topLojas[1]?.presencas?.percentualPresenca || 0 }}%</span
+            >
             <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
@@ -63,19 +71,27 @@
         </div>
         <div class="loja-info">
           <div class="loja-codigo">{{ topLojas[0]?.codigo }}</div>
-          <div class="loja-nome">{{ topLojas[0]?.nome || 'Loja ' + topLojas[0]?.codigo }}</div>
+          <div class="loja-nome">
+            {{ topLojas[0]?.nome || "Loja " + topLojas[0]?.codigo }}
+          </div>
         </div>
         <div class="podium-stats">
           <div class="stat">
-            <span class="stat-value">{{ topLojas[0]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">📊 Itens</span>
+            <span class="stat-value"
+              >{{ calcularRestoEficiencia(topLojas[0]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">🎯 Meta</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ formatarEficiencia(topLojas[0]?.eficiencia) }}%</span>
-            <span class="stat-label">⚡ Eficiência</span>
+            <span class="stat-value"
+              >{{ formatarEficiencia(topLojas[0]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">⚡ Conclusão</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
-            <span class="stat-value">{{ topLojas[0]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-value"
+              >{{ topLojas[0]?.presencas?.percentualPresenca || 0 }}%</span
+            >
             <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
@@ -102,19 +118,27 @@
         </div>
         <div class="loja-info">
           <div class="loja-codigo">{{ topLojas[2]?.codigo }}</div>
-          <div class="loja-nome">{{ topLojas[2]?.nome || 'Loja ' + topLojas[2]?.codigo }}</div>
+          <div class="loja-nome">
+            {{ topLojas[2]?.nome || "Loja " + topLojas[2]?.codigo }}
+          </div>
         </div>
         <div class="podium-stats">
           <div class="stat">
-            <span class="stat-value">{{ topLojas[2]?.itensAuditados?.toLocaleString() || 0 }}</span>
-            <span class="stat-label">📊 Itens</span>
+            <span class="stat-value"
+              >{{ calcularRestoEficiencia(topLojas[2]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">🎯 Meta</span>
           </div>
           <div class="stat">
-            <span class="stat-value">{{ formatarEficiencia(topLojas[2]?.eficiencia) }}%</span>
-            <span class="stat-label">⚡ Eficiência</span>
+            <span class="stat-value"
+              >{{ formatarEficiencia(topLojas[2]?.eficiencia) }}%</span
+            >
+            <span class="stat-label">⚡ Conclusão</span>
           </div>
           <div class="stat" v-if="tipoAuditoria === 'presenca'">
-            <span class="stat-value">{{ topLojas[2]?.presencas?.percentualPresenca || 0 }}%</span>
+            <span class="stat-value"
+              >{{ topLojas[2]?.presencas?.percentualPresenca || 0 }}%</span
+            >
             <span class="stat-label">⚡ Presença</span>
           </div>
         </div>
@@ -124,41 +148,41 @@
 </template>
 
 <script setup>
-import { useLojaStore } from '@/store/lojaStore.js';
+import { useLojaStore } from "@/store/lojaStore.js";
 
 const props = defineProps({
   topLojas: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   tipoAuditoria: {
     type: String,
-    default: 'todos'
-  }
+    default: "todos",
+  },
 });
 
 const lojaStore = useLojaStore();
 
 const getTitlePodium = () => {
-  const today = new Date().toLocaleDateString('pt-BR')
+  const today = new Date().toLocaleDateString("pt-BR");
 
-  if (props.tipoAuditoria === 'etiqueta') {
-    return `🏷️ Top 3 Etiquetas - ${today}`
-  } else if (props.tipoAuditoria === 'ruptura') {
-    return `🚫 Top 3 Rupturas - ${today}`
-  } else if (props.tipoAuditoria === 'presenca') {
-    return `✅ Top 3 Presenças - ${today}`
+  if (props.tipoAuditoria === "etiqueta") {
+    return `🏷️ Top 3 Etiquetas - ${today}`;
+  } else if (props.tipoAuditoria === "ruptura") {
+    return `🚫 Top 3 Rupturas - ${today}`;
+  } else if (props.tipoAuditoria === "presenca") {
+    return `✅ Top 3 Presenças - ${today}`;
   }
 
-  return `🏷️ Top 3 Etiquetas - ${today}` // padrão agora é etiquetas
-}
+  return `🏷️ Top 3 Etiquetas - ${today}`; // padrão agora é etiquetas
+};
 
 // Métodos para avatar das lojas (iguais ao RankingCards)
 const getLojaImagePath = (codigo) => {
   if (!codigo) return null;
 
   // Buscar a loja no store
-  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === codigo);
+  const lojaDoStore = lojaStore.lojas.find((l) => l.codigo === codigo);
 
   if (lojaDoStore && lojaDoStore.imagem) {
     return lojaDoStore.imagem;
@@ -170,27 +194,26 @@ const getLojaImagePath = (codigo) => {
 };
 
 const getLojaInitials = (loja) => {
-  if (!loja) return '??';
+  if (!loja) return "??";
 
   // Primeiro tentar pegar o nome do store
-  const lojaDoStore = lojaStore.lojas.find(l => l.codigo === loja.codigo);
+  const lojaDoStore = lojaStore.lojas.find((l) => l.codigo === loja.codigo);
   const nomeCompleto = lojaDoStore?.nome || loja.nome;
 
   if (nomeCompleto && nomeCompleto.trim()) {
     // Pegar iniciais do nome da loja
-    const palavras = nomeCompleto.trim().split(' ');
+    const palavras = nomeCompleto.trim().split(" ");
 
     // Se tem "Loja" no início, pular ela
-    const palavrasLimpas = palavras.filter(palavra =>
-      palavra.toLowerCase() !== 'loja' &&
-      !palavra.match(/^\d+$/) // Também pular números puros
+    const palavrasLimpas = palavras.filter(
+      (palavra) => palavra.toLowerCase() !== "loja" && !palavra.match(/^\d+$/) // Também pular números puros
     );
 
     if (palavrasLimpas.length > 0) {
       return palavrasLimpas
         .slice(0, 2)
-        .map(word => word.charAt(0).toUpperCase())
-        .join('');
+        .map((word) => word.charAt(0).toUpperCase())
+        .join("");
     }
   }
 
@@ -200,10 +223,10 @@ const getLojaInitials = (loja) => {
 
 const handleImageError = (event) => {
   // Se a imagem falhar ao carregar, esconder ela para mostrar as iniciais
-  event.target.style.display = 'none';
+  event.target.style.display = "none";
   const nextElement = event.target.nextElementSibling;
   if (nextElement) {
-    nextElement.style.display = 'flex';
+    nextElement.style.display = "flex";
   }
 };
 
@@ -211,6 +234,13 @@ const handleImageError = (event) => {
 const formatarEficiencia = (eficiencia) => {
   if (eficiencia === undefined || eficiencia === null) return 0;
   return parseFloat(eficiencia.toFixed(2));
+};
+
+const calcularRestoEficiencia = (eficiencia) => {
+  if (eficiencia === undefined || eficiencia === null) return 100;
+  const eficienciaFormatada = formatarEficiencia(eficiencia);
+  const resto = 100 - eficienciaFormatada;
+  return parseFloat(Math.max(resto, 0).toFixed(2));
 };
 </script>
 
@@ -247,12 +277,14 @@ const formatarEficiencia = (eficiencia) => {
   position: relative;
   transition: all 0.3s ease;
   min-width: 200px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .podium-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   border-color: #e0e7ff;
 }
 

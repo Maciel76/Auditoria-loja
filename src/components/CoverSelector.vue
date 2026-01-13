@@ -87,18 +87,46 @@
             </div>
 
             <!-- Images tab -->
-            <div v-show="activeTab === 'images'" class="covers-grid">
-              <div
-                v-for="cover in images"
-                :key="cover.id"
-                class="cover-item"
-                :class="{ selected: selectedCover === cover.id }"
-                @click="selectCover(cover.id)"
-              >
-                <div class="cover-preview" :style="getCoverStyle(cover)">
-                  <div class="cover-overlay"></div>
+            <div v-show="activeTab === 'images'">
+              <!-- Custom image URL input -->
+              <div class="custom-image-input">
+                <div class="input-group">
+                  <input
+                    v-model="customImageUrl"
+                    type="url"
+                    placeholder="Cole o link da sua imagem aqui (ex: https://...)"
+                    class="form-control"
+                    @keyup.enter="addCustomImage"
+                  />
+                  <button
+                    class="btn btn-add"
+                    @click="addCustomImage"
+                    :disabled="!customImageUrl"
+                  >
+                    <i class="fas fa-plus"></i>
+                    Adicionar
+                  </button>
                 </div>
-                <p class="cover-name">{{ cover.name }}</p>
+                <p class="input-hint">
+                  <i class="fas fa-info-circle"></i>
+                  Cole o link de uma imagem da internet para usar como capa
+                  personalizada
+                </p>
+              </div>
+
+              <div class="covers-grid">
+                <div
+                  v-for="cover in images"
+                  :key="cover.id"
+                  class="cover-item"
+                  :class="{ selected: selectedCover === cover.id }"
+                  @click="selectCover(cover.id)"
+                >
+                  <div class="cover-preview" :style="getCoverStyle(cover)">
+                    <div class="cover-overlay"></div>
+                  </div>
+                  <p class="cover-name">{{ cover.name }}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -286,6 +314,7 @@ export default {
       activeTab: "gradients", // Default to gradients tab
       imagePosition: "center", // Default image position
       imageScale: "cover", // Default image scale
+      customImageUrl: "", // Custom image URL input
       // Editable store info
       editInfo: {
         nome: "",
@@ -824,6 +853,41 @@ export default {
         this.selectedBadges.push(badgeId);
       }
     },
+
+    addCustomImage() {
+      if (!this.customImageUrl) return;
+
+      // Validate URL format
+      try {
+        new URL(this.customImageUrl);
+      } catch (e) {
+        this.$toast?.error("URL inválida. Por favor, insira um link válido.");
+        return;
+      }
+
+      // Check if this URL already exists in the images array
+      const existingImage = this.images.find(
+        (img) => img.id === this.customImageUrl
+      );
+
+      if (!existingImage) {
+        // Add the new custom image to the beginning of the images array
+        this.images.unshift({
+          id: this.customImageUrl,
+          name: "Imagem Personalizada",
+          type: "image",
+          url: this.customImageUrl,
+        });
+
+        this.$toast?.success("Imagem personalizada adicionada!");
+      }
+
+      // Select the custom image
+      this.selectedCover = this.customImageUrl;
+
+      // Clear the input
+      this.customImageUrl = "";
+    },
   },
 };
 </script>
@@ -1112,6 +1176,62 @@ export default {
   text-align: center;
   font-weight: 600;
   color: #2c3e50;
+}
+
+.custom-image-input {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 2px dashed #667eea;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.input-group .form-control {
+  flex: 1;
+}
+
+.btn-add {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-add:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-hint i {
+  color: #667eea;
 }
 
 .cover-item {

@@ -38,17 +38,13 @@
       <MetricasSetor />
 
       <!-- Mapa de Performance -->
-      <PerformanceMap
-        :loja="loja"
-        :metricasSetores="metricasSetores"
-        v-if="metricasSetores.length > 0"
-      />
+      <PerformanceMap />
 
       <!-- Ranking de Colaboradores -->
-      <RankingColaboradores
-        :colaboradores="colaboradores"
-        v-if="colaboradores.length > 0"
-      />
+      <RankingColaboradores />
+
+      <!-- Métricas Detalhadas de Auditoria -->
+      <TesteMetricas />
 
       <!-- Timeline de Atividades Recentes -->
       <!-- <TimelineAtividades
@@ -99,6 +95,7 @@ import MetricasAuditoria from "./PerfilLoja/MetricasAuditoria.vue";
 import InsightsLoja from "./PerfilLoja/InsightsLoja.vue";
 import GraficosPerformance from "./PerfilLoja/GraficosPerformance.vue";
 import BotoesAcao from "./PerfilLoja/BotoesAcao.vue";
+import TesteMetricas from "./PerfilLoja/TesteMetricas.vue";
 
 export default {
   name: "PerfilLoja",
@@ -114,6 +111,7 @@ export default {
     BotoesAcao,
     SummaryCards,
     MetricasSetor,
+    TesteMetricas,
   },
   props: {
     codigo: {
@@ -170,7 +168,9 @@ export default {
         carregando.value = true;
 
         // Buscar dados reais da API usando axios
-        const response = await axios.get(`http://localhost:3000/api/perfil-loja/${codigoLoja}`);
+        const response = await axios.get(
+          `http://localhost:3000/api/perfil-loja/${codigoLoja}`
+        );
 
         const data = response.data;
 
@@ -186,7 +186,9 @@ export default {
           imagem: lojaCompleta?.imagem || data.loja.imagem,
           coverId: data.loja.coverId, // Certificar que o coverId seja incluído
           selectedBadges: data.loja.selectedBadges || [], // Carregar os selos selecionados
-          iniciais: data.loja.nome ? data.loja.nome.substring(0, 2).toUpperCase() : "NL",
+          iniciais: data.loja.nome
+            ? data.loja.nome.substring(0, 2).toUpperCase()
+            : "NL",
         };
 
         metricas.value = data.metricas;

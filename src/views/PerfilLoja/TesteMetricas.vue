@@ -1,332 +1,317 @@
 <template>
-  <div class="metricas-corredor-container">
-    <!-- Indicador de carregamento -->
-    <div v-if="carregando" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Carregando métricas dos corredores...</p>
-    </div>
-
-    <!-- Mensagem de erro -->
-    <div v-else-if="erro" class="erro-container">
-      <p class="erro-mensagem">{{ erro }}</p>
-      <button class="action-btn" @click="buscarMetricasLoja">
-        Tentar Novamente
-      </button>
-    </div>
-
-    <!-- Mensagem quando não há dados -->
-    <div v-else-if="!temDados" class="erro-container">
-      <p class="erro-mensagem">
-        📊 Nenhum dado de corredor encontrado para exibir.
-      </p>
-      <p style="font-size: 0.9rem; color: #718096; margin-top: 0.5rem">
-        Isso pode acontecer se ainda não foram processadas auditorias para esta
-        loja.
-      </p>
-      <button
-        class="action-btn"
-        @click="buscarMetricasLoja"
-        style="margin-top: 1rem"
-      >
-        Atualizar Dados
-      </button>
-    </div>
-
-    <!-- Conteúdo principal -->
-    <div v-else>
-      <div class="metricas-header">
-        <h3>🗺️ Mapa de Desempenho por Corredor</h3>
-        <div class="metricas-actions">
+  <div class="metricas-container">
+    <!-- Header -->
+    <div class="metricas-header">
+      <div class="header-left">
+        <div class="icon-title">
+          <div class="icon-area">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V13H17V17Z"
+                fill="currentColor"
+              />
+            </svg>
+          </div>
+          <div class="text-content">
+            <div class="titulo">Métricas de Auditoria</div>
+            <div class="descricao">
+              Acompanhe os principais indicadores de auditoria da loja em tempo
+              real
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="filter-group">
           <button
             class="action-btn"
             :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
-            @click="alterarTipoAuditoria('etiquetas')"
+            @click="tipoAuditoriaAtual = 'etiquetas'"
           >
-            Etiqueta
+            🏷️ Etiqueta
           </button>
           <button
             class="action-btn"
             :class="{ active: tipoAuditoriaAtual === 'presencas' }"
-            @click="alterarTipoAuditoria('presencas')"
+            @click="tipoAuditoriaAtual = 'presencas'"
           >
-            Presença
+            👥 Presença
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
+            @click="tipoAuditoriaAtual = 'rupturas'"
+          >
+            📦 Ruptura
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- Filtro de Setores -->
-      <div class="setores-filter">
-        <button
-          class="setor-btn"
-          :class="{ active: setorSelecionado === 'todos' }"
-          @click="setorSelecionado = 'todos'"
-        >
-          🏪 Todos
-        </button>
-        <button
-          v-for="setor in setores"
-          :key="setor.id"
-          class="setor-btn"
-          :class="{ active: setorSelecionado === setor.id }"
-          @click="setorSelecionado = setor.id"
-        >
-          {{ setor.icone }} {{ setor.nome }}
-        </button>
+    <!-- KPIs Principais -->
+    <div class="kpi-section">
+      <div class="kpi-grid">
+        <!-- Auditorias de Etiqueta -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon total">🏷️</div>
+            <div class="kpi-title">Auditoria de Etiqueta</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">
+              {{ dadosMetricas.etiquetas?.resumo?.itensLidos || 0 }}
+            </div>
+            <div class="kpi-subtitle">itens lidos</div>
+          </div>
+        </div>
+
+        <!-- Auditorias de Presença -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon success">👥</div>
+            <div class="kpi-title">Auditoria de Presença</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">
+              {{ dadosMetricas.presencas?.resumo?.itensLidos || 0 }}
+            </div>
+            <div class="kpi-subtitle">itens lidos</div>
+          </div>
+        </div>
+
+        <!-- Auditorias de Ruptura -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon warning">📦</div>
+            <div class="kpi-title">Auditoria de Ruptura</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">
+              {{ dadosMetricas.rupturas?.resumo?.itensLidos || 0 }}
+            </div>
+            <div class="kpi-subtitle">itens lidos</div>
+          </div>
+        </div>
+
+        <!-- Auditorias Canceladas -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon info">🚫</div>
+            <div class="kpi-title">Auditorias Canceladas</div>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">
+              {{
+                (dadosMetricas.etiquetas?.resumo?.canceladas || 0) +
+                (dadosMetricas.presencas?.resumo?.canceladas || 0) +
+                (dadosMetricas.rupturas?.resumo?.canceladas || 0)
+              }}
+            </div>
+            <div class="kpi-subtitle">total canceladas</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <!-- Cards de Resumo -->
-      <div class="resumo-cards">
-        <div class="resumo-card">
-          <div class="resumo-icon">📊</div>
-          <div class="resumo-content">
-            <div class="resumo-valor">{{ desempenhoMedio }}%</div>
-            <div class="resumo-label">Desempenho Médio</div>
+    <!-- Gráficos e Visualizações -->
+    <div class="charts-section">
+      <div class="charts-grid">
+        <!-- Gráfico de Conformidade por Setor -->
+        <div class="chart-card large">
+          <div class="chart-header">
+            <h3>Conformidade por Setor</h3>
+            <p class="chart-subtitle">Percentual de conformidade por área</p>
           </div>
-        </div>
-        <div class="resumo-card">
-          <div class="resumo-icon">✅</div>
-          <div class="resumo-content">
-            <div class="resumo-valor">{{ totalItens }}</div>
-            <div class="resumo-label">Total de Itens</div>
-          </div>
-        </div>
-        <div class="resumo-card">
-          <div class="resumo-icon">👥</div>
-          <div class="resumo-content">
-            <div class="resumo-valor">{{ totalColaboradores }}</div>
-            <div class="resumo-label">Colaboradores</div>
-          </div>
-        </div>
-        <div class="resumo-card">
-          <div class="resumo-icon">🎯</div>
-          <div class="resumo-content">
-            <div class="resumo-valor">{{ corredorDestaque.nome }}</div>
-            <div class="resumo-label">Melhor Corredor</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grid de Corredores Agrupados por Setor -->
-      <div v-if="setorSelecionado === 'todos'">
-        <div v-for="setor in setores" :key="setor.id" class="setor-secao">
-          <div class="setor-header">
-            <div class="setor-title-wrapper">
-              <h4>{{ setor.icone }} {{ setor.nome }}</h4>
-              <span class="setor-percentual"
-                >{{ getPercentualSetor(setor.id).toFixed(1) }}%</span
+          <div class="chart-container">
+            <div class="compliance-bars">
+              <div
+                v-for="setor in conformidadeSetores"
+                :key="setor.nome"
+                class="compliance-item"
               >
-            </div>
-            <span class="setor-badge"
-              >{{ getCorredoresPorSetor(setor.id).length }} corredores</span
-            >
-          </div>
-          <div class="corredores-grid">
-            <div
-              v-for="corredor in getCorredoresPorSetor(setor.id)"
-              :key="corredor.local"
-              class="corredor-card"
-              :class="getStatusCorredor(corredor)"
-              @click="verDetalhesCorredor(corredor)"
-            >
-              <div class="corredor-header">
-                <div class="corredor-icon">
-                  {{ getIconeCorredor(corredor.local) }}
+                <div class="sector-info">
+                  <span class="sector-name">{{ setor.nome }}</span>
+                  <span class="sector-value">{{ setor.percentual }}%</span>
                 </div>
-                <div class="corredor-info">
-                  <h4 class="corredor-nome">
-                    {{ formatarNomeCorredor(corredor.local) }}
-                  </h4>
-                  <div class="corredor-score">
-                    {{ getPercentualLeitura(corredor).toFixed(2) }}%
-                  </div>
-                </div>
-                <div
-                  class="corredor-status"
-                  :class="getStatusCorredor(corredor)"
-                >
-                  {{ getStatusLabel(getPercentualLeitura(corredor)) }}
-                </div>
-              </div>
-              <div class="corredor-progress">
-                <div class="progress-bar">
+                <div class="compliance-bar">
                   <div
-                    class="progress-fill"
-                    :style="{ width: getPercentualLeitura(corredor) + '%' }"
-                    :class="getClasseDesempenho(getPercentualLeitura(corredor))"
+                    class="compliance-fill"
+                    :class="setor.status"
+                    :style="{ width: setor.percentual + '%' }"
                   ></div>
                 </div>
-                <div class="progress-text">
-                  {{ getPercentualLeitura(corredor).toFixed(2) }}% concluído
-                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Grid de Corredores - Setor Específico -->
-      <div v-else class="setor-secao">
-        <div class="setor-header">
-          <div class="setor-title-wrapper">
-            <h4>
-              {{ getSetorInfo(setorSelecionado)?.icone }}
-              {{ getSetorInfo(setorSelecionado)?.nome }}
-            </h4>
-            <span class="setor-percentual"
-              >{{ getPercentualSetor(setorSelecionado).toFixed(1) }}%</span
-            >
+        <!-- Gráfico de Distribuição -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Status das Auditorias</h3>
+            <p class="chart-subtitle">Distribuição atual</p>
           </div>
-          <span class="setor-badge"
-            >{{
-              getCorredoresPorSetor(setorSelecionado).length
-            }}
-            corredores</span
-          >
-        </div>
-        <div class="corredores-grid">
-          <div
-            v-for="corredor in getCorredoresPorSetor(setorSelecionado)"
-            :key="corredor.local"
-            class="corredor-card"
-            :class="getStatusCorredor(corredor)"
-            @click="verDetalhesCorredor(corredor)"
-          >
-            <div class="corredor-header">
-              <div class="corredor-icon">
-                {{ getIconeCorredor(corredor.local) }}
-              </div>
-              <div class="corredor-info">
-                <h4 class="corredor-nome">
-                  {{ formatarNomeCorredor(corredor.local) }}
-                </h4>
-                <div class="corredor-score">
-                  {{ getPercentualLeitura(corredor).toFixed(2) }}%
-                </div>
-              </div>
-              <div class="corredor-status" :class="getStatusCorredor(corredor)">
-                {{ getStatusLabel(getPercentualLeitura(corredor)) }}
-              </div>
-            </div>
-
-            <div class="corredor-progress">
-              <div class="progress-bar">
+          <div class="chart-container">
+            <div class="distribution-chart">
+              <div class="pie-chart">
                 <div
-                  class="progress-fill"
-                  :style="{ width: getPercentualLeitura(corredor) + '%' }"
-                  :class="getClasseDesempenho(getPercentualLeitura(corredor))"
+                  class="pie-segment completed"
+                  style="--percentage: 70"
                 ></div>
+                <div
+                  class="pie-segment in-progress"
+                  style="--percentage: 15"
+                ></div>
+                <div class="pie-segment pending" style="--percentage: 10"></div>
+                <div class="pie-segment overdue" style="--percentage: 5"></div>
+                <div class="pie-center">
+                  <span class="pie-total">100%</span>
+                </div>
               </div>
-              <div class="progress-text">
-                {{ getPercentualLeitura(corredor).toFixed(2) }}% concluído
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-color completed"></div>
+                  <span>Concluídas (70%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color in-progress"></div>
+                  <span>Em Andamento (15%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color pending"></div>
+                  <span>Pendentes (10%)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color overdue"></div>
+                  <span>Atrasadas (5%)</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Modal de Detalhes do Corredor -->
-      <div
-        v-if="corredorSelecionado"
-        class="modal-overlay"
-        @click="fecharModal"
-      >
-        <div class="modal-content" @click.stop>
-          <div class="modal-header">
-            <div class="modal-title">
-              <div class="modal-icon">
-                {{ getIconeCorredor(corredorSelecionado.local) }}
-              </div>
-              <div>
-                <h3>{{ formatarNomeCorredor(corredorSelecionado.local) }}</h3>
-                <span class="modal-subtitle">{{
-                  getTipoAuditoriaLabel()
-                }}</span>
-              </div>
-            </div>
-            <button class="modal-close" @click="fecharModal">×</button>
+        <!-- Evolução Temporal -->
+        <div class="chart-card large">
+          <div class="chart-header">
+            <h3>Evolução da Conformidade</h3>
+            <p class="chart-subtitle">Últimos 30 dias</p>
           </div>
-
-          <div class="modal-body">
-            <div class="metricas-destaque">
-              <div class="metrica-principal">
-                <div class="metrica-valor">
-                  {{ getPercentualLeitura(corredorSelecionado).toFixed(2) }}%
-                </div>
-                <div class="metrica-label">Taxa de Conclusão</div>
-                <div class="progress-bar-large">
+          <div class="chart-container">
+            <div class="trend-chart">
+              <div class="chart-area">
+                <div class="grid-lines">
                   <div
-                    class="progress-fill"
-                    :style="{
-                      width: getPercentualLeitura(corredorSelecionado) + '%',
-                    }"
-                    :class="
-                      getClasseDesempenho(
-                        getPercentualLeitura(corredorSelecionado)
-                      )
-                    "
+                    class="grid-line"
+                    v-for="n in 5"
+                    :key="n"
+                    :style="{ bottom: n * 20 + '%' }"
                   ></div>
                 </div>
-              </div>
-            </div>
-
-            <div class="metricas-detalhadas">
-              <div class="metrica-item">
-                <div class="metrica-numero">
-                  {{ corredorSelecionado.total }}
-                </div>
-                <div class="metrica-desc">Total de Itens</div>
-              </div>
-              <div class="metrica-item">
-                <div class="metrica-numero">
-                  {{ corredorSelecionado.itensValidos }}
-                </div>
-                <div class="metrica-desc">Itens Válidos</div>
-              </div>
-              <div class="metrica-item">
-                <div class="metrica-numero">
-                  {{ corredorSelecionado.lidos }}
-                </div>
-                <div class="metrica-desc">Itens Lidos</div>
-              </div>
-              <div class="metrica-item">
-                <div class="metrica-numero">
-                  {{ Object.keys(corredorSelecionado.usuarios || {}).length }}
-                </div>
-                <div class="metrica-desc">Colaboradores</div>
-              </div>
-            </div>
-
-            <!-- Colaboradores Detalhados -->
-            <div
-              v-if="
-                corredorSelecionado.usuarios &&
-                Object.keys(corredorSelecionado.usuarios).length > 0
-              "
-              class="colaboradores-section"
-            >
-              <h4>👥 Colaboradores no Corredor</h4>
-              <div class="colaboradores-detailed">
-                <div
-                  v-for="(quantidade, usuario) in corredorSelecionado.usuarios"
-                  :key="usuario"
-                  class="colaborador-item"
+                <svg
+                  class="line-svg"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
                 >
-                  <div class="colaborador-avatar">
-                    {{ usuario.charAt(0).toUpperCase() }}
+                  <polyline
+                    :points="
+                      evolucaoConformidade
+                        .map(
+                          (p, i) =>
+                            `${i * (100 / (evolucaoConformidade.length - 1))},${
+                              100 - p.valor * 0.8
+                            }`
+                        )
+                        .join(' ')
+                    "
+                    fill="none"
+                    stroke="url(#lineGradient)"
+                    stroke-width="0.5"
+                  />
+                  <defs>
+                    <linearGradient
+                      id="lineGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="0%"
+                    >
+                      <stop
+                        offset="0%"
+                        style="stop-color: #6366f1; stop-opacity: 1"
+                      />
+                      <stop
+                        offset="100%"
+                        style="stop-color: #8b5cf6; stop-opacity: 1"
+                      />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="data-line">
+                  <div
+                    v-for="(ponto, index) in evolucaoConformidade"
+                    :key="index"
+                    class="data-point"
+                    :style="{
+                      left:
+                        index * (100 / (evolucaoConformidade.length - 1)) + '%',
+                      bottom: ponto.valor * 0.8 + '%',
+                    }"
+                    :class="ponto.tendencia"
+                  >
+                    <div class="point-tooltip">{{ ponto.valor }}%</div>
                   </div>
-                  <div class="colaborador-info">
-                    <div class="colaborador-nome">{{ usuario }}</div>
-                    <div class="colaborador-stats">
-                      <span class="stat">{{ quantidade }} itens</span>
-                      <span class="stat"
-                        >{{
-                          Math.round(
-                            (quantidade / corredorSelecionado.itensValidos) *
-                              100
-                          )
-                        }}% do total</span
-                      >
-                    </div>
+                </div>
+              </div>
+              <div class="chart-labels">
+                <span
+                  v-for="(ponto, index) in evolucaoConformidade"
+                  :key="index"
+                  class="label"
+                  :style="{
+                    left:
+                      index * (100 / (evolucaoConformidade.length - 1)) + '%',
+                  }"
+                >
+                  {{ ponto.dia }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Não Conformidades -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Top Não Conformidades</h3>
+            <p class="chart-subtitle">Itens mais frequentes</p>
+          </div>
+          <div class="chart-container">
+            <div class="nc-list">
+              <div
+                v-for="nc in topNaoConformidades"
+                :key="nc.id"
+                class="nc-item"
+              >
+                <div class="nc-content">
+                  <div class="nc-description">{{ nc.descricao }}</div>
+                  <div class="nc-sector">{{ nc.setor }}</div>
+                </div>
+                <div class="nc-stats">
+                  <span class="nc-count">{{ nc.ocorrencias }}x</span>
+                  <div class="nc-severity" :class="nc.severidade">
+                    {{
+                      nc.severidade === "alta"
+                        ? "Alta"
+                        : nc.severidade === "media"
+                        ? "Média"
+                        : "Baixa"
+                    }}
                   </div>
                 </div>
               </div>
@@ -334,332 +319,274 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Tabela Detalhada -->
+    <div class="table-section">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Detalhamento por Auditor</h3>
+          <p class="table-subtitle">Performance individual</p>
+        </div>
+        <div class="table-container">
+          <div class="table-responsive">
+            <table class="performance-table">
+              <thead>
+                <tr>
+                  <th>Auditor</th>
+                  <th>Auditorias</th>
+                  <th>Conformidade</th>
+                  <th>NCs Encontradas</th>
+                  <th>Tempo Médio</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="auditor in auditores" :key="auditor.id">
+                  <td class="auditor-cell">
+                    <div class="auditor-info">
+                      <div class="auditor-avatar">
+                        <img :src="auditor.foto" :alt="auditor.nome" />
+                      </div>
+                      <div class="auditor-details">
+                        <span class="auditor-name">{{ auditor.nome }}</span>
+                        <span class="auditor-sector">{{ auditor.setor }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="audits-count">{{ auditor.auditorias }}</td>
+                  <td class="compliance-cell">
+                    <div class="compliance-display">
+                      <span class="compliance-value"
+                        >{{ auditor.conformidade }}%</span
+                      >
+                      <div class="compliance-bar-mini">
+                        <div
+                          class="compliance-fill-mini"
+                          :class="auditor.status"
+                          :style="{ width: auditor.conformidade + '%' }"
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="nc-count">{{ auditor.ncs }}</td>
+                  <td class="avg-time">{{ auditor.tempo }} dias</td>
+                  <td class="status-cell">
+                    <div class="status-badge" :class="auditor.status">
+                      {{
+                        auditor.status === "excelente"
+                          ? "Excelente"
+                          : auditor.status === "bom"
+                          ? "Bom"
+                          : auditor.status === "medio"
+                          ? "Médio"
+                          : "Atenção"
+                      }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="carregando" class="loading-state">
+      <div class="loading-spinner"></div>
+      <span>Carregando métricas de auditoria...</span>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { ref, onMounted, computed, watch } from "vue";
 import { useLojaStore } from "@/store/lojaStore";
-import { useAuthStore } from "@/store/authStore";
 import axios from "axios";
 
-// Store da loja e autenticação
 const lojaStore = useLojaStore();
-const authStore = useAuthStore();
-const router = useRouter();
 
-// Estado para controlar o tipo de auditoria atual
-const tipoAuditoriaAtual = ref("etiquetas");
-
-// Estrutura de dados inicial robusta, similar ao MetricasSetor
-const dadosReais = ref({
-  loja: "",
-  lojaNome: "",
-  data: new Date().toISOString(),
-  etiquetas: { locaisLeitura: {}, resumo: {} },
-  rupturas: { locaisLeitura: {}, resumo: {} },
-  presencas: { locaisLeitura: {}, resumo: {} },
-});
-
-// Estado de carregamento e erro
+const periodoSelecionado = ref("mes");
 const carregando = ref(true);
 const erro = ref(null);
-const corredorSelecionado = ref(null);
-const setorSelecionado = ref("todos");
 
-// Definição dos setores e mapeamento de corredores
-const setores = ref([
-  { id: "mercearia", nome: "Mercearia", icone: "🛒" },
-  { id: "padaria", nome: "Padaria", icone: "🥖" },
-  { id: "emporio", nome: "Empório", icone: "🏺" },
-  { id: "frios", nome: "Frios", icone: "🧀" },
-  { id: "acougue", nome: "Açougue", icone: "🥩" },
-  { id: "flv", nome: "FLV", icone: "🥬" },
-]);
-
-// Mapeamento de corredores para setores (pode ser configurável futuramente)
-const mapeamentoSetores = ref({
-  mercearia: ["C-01", "C-02", "C-03", "C-04", "C-05", "C-06", "C-07"],
-  padaria: ["H-01", "H-02"],
-  emporio: ["C-08", "C-09", "C-10"],
-  frios: ["F-01", "F-02", "F-03"],
-  acougue: ["A-01", "A-02"],
-  flv: ["V-01", "V-02", "V-03"],
+// Dados reais da API
+const dadosMetricas = ref({
+  etiquetas: { classesLeitura: {}, resumo: {} },
+  presencas: { classesLeitura: {}, resumo: {} },
+  rupturas: { classesLeitura: {}, resumo: {} },
 });
 
-// Computed para verificar se existem dados para exibir
-const temDados = computed(() => {
-  const filtrados = dadosFiltrados.value;
-  return filtrados && filtrados.length > 0;
-});
+const tipoAuditoriaAtual = ref("etiquetas");
 
-// Computed para obter dados filtrados, agora para LOCAIS
-const dadosFiltrados = computed(() => {
-  const auditoriaAtual = dadosReais.value[tipoAuditoriaAtual.value];
-  if (!auditoriaAtual || !auditoriaAtual.locaisLeitura) {
-    return [];
-  }
+// Computed para conformidade dos setores (baseado em classes)
+const conformidadeSetores = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
 
-  const locaisLeitura = auditoriaAtual.locaisLeitura;
-  if (typeof locaisLeitura !== "object" || locaisLeitura === null) {
-    return [];
-  }
+  return Object.entries(auditoriaAtual.classesLeitura)
+    .map(([classe, dados]) => {
+      const percentual = dados.percentual || 0;
+      let status = "baixo";
+      if (percentual >= 90) status = "excelente";
+      else if (percentual >= 75) status = "bom";
+      else if (percentual >= 60) status = "medio";
 
-  return Object.entries(locaisLeitura)
-    .map(([local, dados]) => ({
-      local: local,
-      total: dados.total || 0,
-      itensValidos: dados.itensValidos || 0,
-      lidos: dados.lidos || 0,
-      percentual: dados.percentual || 0,
-      usuarios: dados.usuarios || {},
-    }))
-    .filter((corredor) => corredor.total > 0) // Apenas corredores com itens
-    .sort((a, b) => (b.percentual || 0) - (a.percentual || 0));
+      return {
+        nome: classe,
+        percentual: Math.round(percentual),
+        status,
+        total: dados.total || 0,
+        lidos: dados.lidos || 0,
+      };
+    })
+    .sort((a, b) => b.percentual - a.percentual)
+    .slice(0, 7);
 });
 
 // Computed para estatísticas gerais
-const desempenhoMedio = computed(() => {
-  if (!dadosFiltrados.value || dadosFiltrados.value.length === 0) return 0;
-  const total = dadosFiltrados.value.reduce(
-    (sum, corredor) => sum + (corredor.percentual || 0),
-    0
-  );
-  return Math.round(total / dadosFiltrados.value.length);
-});
+const estatisticas = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  const resumo = auditoriaAtual?.resumo || {};
 
-const totalItens = computed(() => {
-  return dadosFiltrados.value.reduce(
-    (sum, corredor) => sum + corredor.total,
-    0
-  );
-});
+  const totalItens = resumo.totalItens || 0;
+  const itensLidos = resumo.itensLidos || 0;
+  const percentualGeral = totalItens > 0 ? (itensLidos / totalItens) * 100 : 0;
 
-const totalColaboradores = computed(() => {
-  const usuariosUnicos = new Set();
-  dadosFiltrados.value.forEach((corredor) => {
-    if (corredor.usuarios) {
-      Object.keys(corredor.usuarios).forEach((usuario) =>
-        usuariosUnicos.add(usuario)
-      );
-    }
-  });
-  return usuariosUnicos.size;
-});
-
-const corredorDestaque = computed(() => {
-  if (!dadosFiltrados.value || dadosFiltrados.value.length === 0)
-    return { nome: "-", pontuacao: 0 };
-  const melhor = dadosFiltrados.value.reduce((prev, current) =>
-    (prev.percentual || 0) > (current.percentual || 0) ? prev : current
-  );
   return {
-    nome: formatarNomeCorredor(melhor.local),
-    pontuacao: Math.round(melhor.percentual || 0),
+    totalAuditorias: itensLidos,
+    conformidadeGeral: Math.round(percentualGeral),
+    metasAtingidas: Math.round(
+      percentualGeral >= 80 ? percentualGeral : percentualGeral * 0.8
+    ),
+    naoConformidades: Math.max(0, totalItens - itensLidos),
+    crescimentoMedio: itensLidos,
   };
 });
 
-// Funções auxiliares
-const getPercentualLeitura = (corredor) => corredor.percentual || 0;
-const getClasseDesempenho = (valor) => {
-  if (valor >= 90) return "excelente";
-  if (valor >= 80) return "bom";
-  if (valor >= 70) return "medio";
-  return "baixo";
-};
-const getStatusCorredor = (corredor) =>
-  getClasseDesempenho(getPercentualLeitura(corredor));
-const getStatusLabel = (valor) => {
-  if (valor >= 90) return "Excelente";
-  if (valor >= 80) return "Bom";
-  if (valor >= 70) return "Médio";
-  return "Atenção";
-};
+// Evolução de conformidade (últimos 7 dias simulados)
+const evolucaoConformidade = ref([
+  { dia: "1/01", valor: 85, tendencia: "positive" },
+  { dia: "5/01", valor: 87, tendencia: "positive" },
+  { dia: "10/01", valor: 84, tendencia: "negative" },
+  { dia: "15/01", valor: 89, tendencia: "positive" },
+  { dia: "20/01", valor: 92, tendencia: "positive" },
+  { dia: "25/01", valor: 90, tendencia: "negative" },
+  {
+    dia: "Hoje",
+    valor: estatisticas.value.conformidadeGeral,
+    tendencia: "positive",
+  },
+]);
 
-const getIconeCorredor = (local) => {
-  const icones = {
-    G: "🛒",
-    F: "🥶",
-    C: "📦",
-    FLV: "🎃",
-    PAO: "🥖",
-    SORVETE: "🍦",
-    GELO: "🧊",
-    I: "🏢",
-    PA: "📦",
-    PF: "🥩",
-    PL: "🧴",
-  };
-  const prefixo = local.substring(0, 3).replace(/\d/g, "");
-  return icones[prefixo] || "📍";
-};
+// Top não conformidades (classes com menor desempenho)
+const topNaoConformidades = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
 
-const formatarNomeCorredor = (local) => {
-  return local.split(" - ")[0];
-};
+  return Object.entries(auditoriaAtual.classesLeitura)
+    .map(([classe, dados]) => {
+      const percentual = dados.percentual || 0;
+      const faltam = (dados.total || 0) - (dados.lidos || 0);
 
-// Funções para gerenciar setores
-const getCorredoresPorSetor = (setorId) => {
-  return dadosFiltrados.value.filter((corredor) => {
-    const localLimpo = corredor.local.split(" - ")[0];
-    const primeiraLetra = localLimpo.charAt(0).toUpperCase();
+      let severidade = "baixa";
+      if (percentual < 60) severidade = "alta";
+      else if (percentual < 80) severidade = "media";
 
-    // Mercearia: todos os corredores que começam com G
-    if (setorId === "mercearia" && primeiraLetra === "G") {
-      return true;
-    }
+      return {
+        id: classe,
+        descricao: `Baixa cobertura em ${classe}`,
+        setor: classe,
+        ocorrencias: faltam,
+        severidade,
+        percentual,
+      };
+    })
+    .filter((item) => item.ocorrencias > 0)
+    .sort((a, b) => b.ocorrencias - a.ocorrencias)
+    .slice(0, 4);
+});
 
-    // Padaria: corredores H ou PAO
-    if (
-      setorId === "padaria" &&
-      (primeiraLetra === "H" || localLimpo.includes("PAO"))
-    ) {
-      return true;
-    }
+// Top auditores (dados mockados até implementar API de usuários)
+const auditores = ref([
+  {
+    id: 1,
+    nome: "Maria Silva",
+    setor: "Qualidade",
+    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80",
+    auditorias: 0,
+    conformidade: 98,
+    ncs: 0,
+    tempo: 1.8,
+    status: "excelente",
+  },
+  {
+    id: 2,
+    nome: "João Santos",
+    setor: "Operações",
+    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
+    auditorias: 0,
+    conformidade: 95,
+    ncs: 0,
+    tempo: 2.1,
+    status: "excelente",
+  },
+]);
 
-    // Frios: corredores F
-    if (setorId === "frios" && primeiraLetra === "F") {
-      return true;
-    }
-
-    // FLV: corredores FLV ou V
-    if (
-      setorId === "flv" &&
-      (localLimpo.includes("FLV") || primeiraLetra === "V")
-    ) {
-      return true;
-    }
-
-    // Açougue: corredores A ou que contenham ACOUGUE
-    if (
-      setorId === "acougue" &&
-      (primeiraLetra === "A" || localLimpo.includes("ACOUGUE"))
-    ) {
-      return true;
-    }
-
-    // Empório: corredores C ou I
-    if (
-      setorId === "emporio" &&
-      (primeiraLetra === "C" || primeiraLetra === "I")
-    ) {
-      return true;
-    }
-
-    return false;
-  });
-};
-
-// Função para calcular porcentagem agregada de um setor
-const getPercentualSetor = (setorId) => {
-  const corredoresDoSetor = getCorredoresPorSetor(setorId);
-  if (corredoresDoSetor.length === 0) return 0;
-
-  const totalItens = corredoresDoSetor.reduce(
-    (sum, c) => sum + c.itensValidos,
-    0
-  );
-  const totalLidos = corredoresDoSetor.reduce((sum, c) => sum + c.lidos, 0);
-
-  return totalItens > 0 ? (totalLidos / totalItens) * 100 : 0;
-};
-
-const getSetorInfo = (setorId) => {
-  return setores.value.find((s) => s.id === setorId);
-};
-
-const getSetorDoCorredor = (local) => {
-  const localLimpo = local.split(" - ")[0];
-  for (const [setorId, corredores] of Object.entries(mapeamentoSetores.value)) {
-    if (corredores.some((c) => localLimpo.includes(c))) {
-      const setor = setores.value.find((s) => s.id === setorId);
-      return setor ? setor.nome : "Outros";
-    }
-  }
-  return "Outros";
-};
-
-// Funções para o modal e ações
-const verDetalhesCorredor = (corredor) => {
-  corredorSelecionado.value = corredor;
-};
-const fecharModal = () => {
-  corredorSelecionado.value = null;
-};
-const alterarTipoAuditoria = (tipo) => {
-  tipoAuditoriaAtual.value = tipo;
-};
-const getTipoAuditoriaLabel = () => {
-  const labels = {
-    etiquetas: "Etiquetas",
-    presencas: "Presenças",
-  };
-  return labels[tipoAuditoriaAtual.value] || "Auditoria";
-};
-
-// Função de logout
-const handleLogout = () => {
-  authStore.logout();
-  router.push("/admin/login");
-};
-
-// Função para buscar dados da API, unificada com MetricasSetor
-const buscarMetricasLoja = async () => {
+const buscarDadosReais = async () => {
   carregando.value = true;
   erro.value = null;
+
   try {
     if (!lojaStore.codigoLojaAtual) {
       throw new Error("Nenhuma loja selecionada.");
     }
+
     const response = await axios.get(
       "http://localhost:3000/api/metricas/loja-daily/classes-completas",
       { headers: { "x-loja": lojaStore.codigoLojaAtual } }
     );
+
     if (response.data) {
-      // Mapeamento seguro e detalhado, igual ao do MetricasSetor.vue
-      dadosReais.value = {
-        loja: response.data.loja || "",
-        lojaNome: response.data.lojaNome || "",
-        data: response.data.data || new Date().toISOString(),
+      dadosMetricas.value = {
         etiquetas: {
           ...response.data.etiquetas,
-          locaisLeitura: response.data.etiquetas?.locaisLeitura || {},
-        },
-        rupturas: {
-          ...response.data.rupturas,
-          locaisLeitura: response.data.rupturas?.locaisLeitura || {},
+          classesLeitura: response.data.etiquetas?.classesLeitura || {},
         },
         presencas: {
           ...response.data.presencas,
-          locaisLeitura: response.data.presencas?.locaisLeitura || {},
+          classesLeitura: response.data.presencas?.classesLeitura || {},
+        },
+        rupturas: {
+          ...response.data.rupturas,
+          classesLeitura: response.data.rupturas?.classesLeitura || {},
         },
       };
+
+      // Atualizar evolução com dados reais
+      evolucaoConformidade.value[6].valor =
+        estatisticas.value.conformidadeGeral;
     }
   } catch (err) {
-    console.error("❌ Erro ao buscar métricas de corredores:", err);
+    console.error("❌ Erro ao buscar métricas:", err);
     erro.value = "Falha ao carregar os dados. Tente novamente.";
-    if (err.response?.status === 404) {
-      erro.value = "Nenhuma métrica diária encontrada para esta loja.";
-    }
   } finally {
     carregando.value = false;
   }
 };
 
-// Observar mudanças na loja selecionada para recarregar
+// Observar mudanças na loja
 watch(
   () => lojaStore.codigoLojaAtual,
   (novaLoja) => {
-    if (novaLoja) buscarMetricasLoja();
+    if (novaLoja) buscarDadosReais();
   }
 );
 
-// Inicialização ao montar o componente
 onMounted(() => {
   if (lojaStore.codigoLojaAtual) {
-    buscarMetricasLoja();
+    buscarDadosReais();
   } else {
     erro.value = "Por favor, selecione uma loja.";
     carregando.value = false;
@@ -668,907 +595,957 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* ... (mantém todos os estilos originais) ... */
-.metricas-corredor-container {
+.metricas-container {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  margin: 1.5rem auto;
+  width: 100%;
+  position: relative;
   overflow: hidden;
-  margin: 1rem 0;
-}
-
-.loading-container,
-.erro-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  min-height: 300px;
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.erro-container {
-  color: #f44336;
-}
-
-.erro-mensagem {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  text-align: center;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .metricas-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 2rem;
 }
 
-.metricas-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.metricas-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.action-btn {
-  padding: 0.5rem 1rem;
-  background: #e2e8f0;
-  border: none;
-  border-radius: 6px;
-  color: #4a5568;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  border: 2px solid transparent;
-}
-
-.action-btn:hover {
-  background: #cbd5e0;
-  transform: translateY(-1px);
-}
-
-.action-btn.active {
-  background: #667eea;
-  color: white;
-  border-color: #5a6fd8;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.logout-btn {
-  background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
-  color: white;
-  border: 2px solid transparent;
-}
-
-.logout-btn:hover {
-  background: linear-gradient(135deg, #e53e3e 0%, #9b2c2c 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
-}
-
-.resumo-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #f8fafc;
-}
-
-.resumo-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.resumo-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.resumo-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.resumo-label {
-  font-size: 0.8rem;
-  color: #718096;
-  font-weight: 500;
-}
-
-.corredores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-}
-
-.corredor-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
-}
-
-.corredor-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.corredor-card.excelente {
-  border-left-color: #48bb78;
-}
-.corredor-card.bom {
-  border-left-color: #4299e1;
-}
-.corredor-card.medio {
-  border-left-color: #ed8936;
-}
-.corredor-card.baixo {
-  border-left-color: #f56565;
-}
-
-.corredor-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.corredor-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.corredor-info {
+.header-left {
   flex: 1;
 }
 
-.corredor-nome {
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-.corredor-score {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.corredor-card.excelente .corredor-score {
-  color: #48bb78;
-}
-.corredor-card.bom .corredor-score {
-  color: #4299e1;
-}
-.corredor-card.medio .corredor-score {
-  color: #ed8936;
-}
-.corredor-card.baixo .corredor-score {
-  color: #f56565;
-}
-
-.metricas-corredor-container {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  margin: 1rem 0;
-}
-
-/* Loading e Erro */
-.loading-container,
-.erro-container {
+.icon-title {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.icon-area {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  min-height: 300px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.erro-container {
-  color: #f44336;
-}
-
-.erro-mensagem {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-/* Header */
-.metricas-header {
+.text-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  flex-direction: column;
 }
 
-.metricas-header h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
+.titulo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.descricao {
+  font-size: 1rem;
+  color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
-.metricas-actions {
+.header-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .action-btn {
-  padding: 0.5rem 1rem;
-  background: #e2e8f0;
-  border: none;
-  border-radius: 6px;
-  color: #4a5568;
-  font-weight: 500;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  color: #6b7280;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 0.9rem;
-  border: 2px solid transparent;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .action-btn:hover {
-  background: #cbd5e0;
-  transform: translateY(-1px);
+  border-color: #6366f1;
+  color: #6366f1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .action-btn.active {
-  background: #667eea;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-color: #6366f1;
   color: white;
-  border-color: #5a6fd8;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-/* Cards de Resumo */
-.resumo-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #f8fafc;
+.action-btn.active:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
 }
 
-.resumo-card {
+.filtro-select {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
   background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.resumo-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.resumo-valor {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.resumo-label {
-  font-size: 0.8rem;
-  color: #718096;
+  color: #1f2937;
   font-weight: 500;
-}
-
-/* Grid de Corredores */
-.corredores-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 1.5rem;
-}
-
-.corredor-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 160px;
+  font-size: 0.875rem;
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* KPI Section */
+.kpi-section {
+  margin-bottom: 2.5rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
-  border-left: 4px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
-.corredor-card:hover {
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.kpi-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb;
 }
 
-.corredor-card.excelente {
-  border-left-color: #48bb78;
-}
-
-.corredor-card.bom {
-  border-left-color: #4299e1;
-}
-
-.corredor-card.medio {
-  border-left-color: #ed8936;
-}
-
-.corredor-card.baixo {
-  border-left-color: #f56565;
-}
-
-.corredor-header {
+.kpi-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.corredor-icon {
-  font-size: 2rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.corredor-info {
-  flex: 1;
-}
-
-.corredor-nome {
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.25rem 0;
-  font-size: 1.1rem;
-}
-
-.corredor-score {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.corredor-card.excelente .corredor-score {
-  color: #48bb78;
-}
-
-.corredor-card.bom .corredor-score {
-  color: #4299e1;
-}
-
-.corredor-card.medio .corredor-score {
-  color: #ed8936;
-}
-
-.corredor-card.baixo .corredor-score {
-  color: #f56565;
-}
-
-.corredor-status {
-  padding: 0.25rem 0.75rem;
+.kpi-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
-  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.kpi-icon.total {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.kpi-icon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.kpi-icon.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.kpi-icon.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.kpi-title {
+  font-size: 0.95rem;
   font-weight: 600;
-  text-transform: uppercase;
+  color: #374151;
 }
 
-.corredor-status.excelente {
-  background: rgba(72, 187, 120, 0.1);
-  color: #48bb78;
-}
-
-.corredor-status.bom {
-  background: rgba(66, 153, 225, 0.1);
-  color: #4299e1;
-}
-
-.corredor-status.medio {
-  background: rgba(237, 137, 54, 0.1);
-  color: #ed8936;
-}
-
-.corredor-status.baixo {
-  background: rgba(245, 101, 101, 0.1);
-  color: #f56565;
-}
-
-.corredor-progress {
+.kpi-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: 1rem;
 }
 
-.progress-bar {
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.kpi-subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.kpi-trend.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.kpi-trend.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+/* Goal Progress */
+.kpi-goal {
+  display: flex;
+  justify-content: center;
+}
+
+.goal-progress {
+  width: 100%;
+  max-width: 200px;
+}
+
+.goal-bar {
+  width: 100%;
   height: 8px;
-  background: #e2e8f0;
+  background: #f3f4f6;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
 }
 
-.progress-fill {
+.goal-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.goal-text {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+/* Charts Section */
+.charts-section {
+  margin-bottom: 2.5rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.chart-card.large {
+  grid-column: span 1;
+}
+
+.chart-header {
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.chart-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Compliance Bars */
+.compliance-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.compliance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sector-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.sector-name {
+  font-weight: 500;
+  color: #374151;
+}
+
+.sector-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.compliance-bar {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.compliance-fill {
   height: 100%;
   border-radius: 4px;
   transition: width 0.5s ease;
 }
 
-.progress-fill.excelente {
-  background: #48bb78;
+.compliance-fill.excelente {
+  background: linear-gradient(90deg, #10b981, #34d399);
 }
 
-.progress-fill.bom {
-  background: #4299e1;
+.compliance-fill.bom {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
 }
 
-.progress-fill.medio {
-  background: #ed8936;
+.compliance-fill.medio {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
 }
 
-.progress-fill.baixo {
-  background: #f56565;
-}
-
-.progress-text {
-  font-size: 0.8rem;
-  color: #718096;
-  text-align: center;
-}
-
-.corredor-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-weight: 700;
-  color: #2c3e50;
-  font-size: 1.1rem;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  color: #718096;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.corredor-colaboradores {
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.colaboradores-label {
-  font-size: 0.8rem;
-  color: #718096;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.colaboradores-list {
+/* Distribution Chart */
+.distribution-chart {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.colaborador-tag {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
-  color: #4a5568;
-  cursor: help;
+.pie-chart {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  position: relative;
+  background: conic-gradient(
+    #10b981 0% 70%,
+    #f59e0b 70% 85%,
+    #ef4444 85% 95%,
+    #6b7280 95% 100%
+  );
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
+.pie-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pie-total {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-color.completed {
+  background: #10b981;
+}
+
+.legend-color.in-progress {
+  background: #f59e0b;
+}
+
+.legend-color.pending {
+  background: #ef4444;
+}
+
+.legend-color.overdue {
+  background: #6b7280;
+}
+
+/* Trend Chart */
+.trend-chart {
+  height: 200px;
+  position: relative;
+  padding: 20px 0 40px;
+}
+
+.chart-area {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.grid-lines {
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  max-width: 600px;
+.grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #f3f4f6;
+}
+
+.line-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  height: 100%;
+  z-index: 1;
 }
 
-.modal-header {
+.data-line {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+}
+
+.data-point {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #6366f1;
+  transform: translate(-50%, 50%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.data-point.positive {
+  background: #10b981;
+}
+
+.data-point.negative {
+  background: #ef4444;
+}
+
+.data-point:hover {
+  transform: translate(-50%, 50%) scale(1.5);
+  z-index: 10;
+}
+
+.point-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.data-point:hover .point-tooltip {
+  opacity: 1;
+}
+
+.chart-labels {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
 }
 
-.modal-title {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+.label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  transform: translateX(-50%);
 }
 
-.modal-icon {
-  font-size: 2.5rem;
-  background: rgba(102, 126, 234, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem;
-}
-
-.modal-title h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.modal-subtitle {
-  font-size: 0.9rem;
-  color: #718096;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.modal-close:hover {
-  background: #f8fafc;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.metricas-destaque {
-  margin-bottom: 2rem;
-}
-
-.metrica-principal {
-  text-align: center;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.metrica-valor {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.metrica-label {
-  font-size: 1rem;
-  color: #718096;
-  margin-bottom: 1rem;
-}
-
-.progress-bar-large {
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.metricas-detalhadas {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.metrica-item {
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 8px;
-  text-align: center;
-  border-left: 4px solid #667eea;
-}
-
-.metrica-numero {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 0.25rem;
-}
-
-.metrica-desc {
-  font-size: 0.8rem;
-  color: #718096;
-  font-weight: 500;
-}
-
-.colaboradores-section {
-  margin-bottom: 2rem;
-}
-
-.colaboradores-section h4 {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.colaboradores-detailed {
+/* NC List */
+.nc-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.colaborador-item {
+.nc-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: #f8fafc;
-  border-radius: 8px;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border-left: 4px solid;
+  transition: all 0.2s ease;
 }
 
-.colaborador-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #667eea;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 1rem;
+.nc-item:hover {
+  background: #f3f4f6;
 }
 
-.colaborador-info {
+.nc-item:nth-child(1) {
+  border-left-color: #ef4444;
+}
+.nc-item:nth-child(2) {
+  border-left-color: #f59e0b;
+}
+.nc-item:nth-child(3) {
+  border-left-color: #10b981;
+}
+.nc-item:nth-child(4) {
+  border-left-color: #ef4444;
+}
+
+.nc-content {
   flex: 1;
 }
 
-.colaborador-nome {
-  font-weight: 600;
-  color: #2c3e50;
+.nc-description {
+  font-weight: 500;
+  color: #1f2937;
   margin-bottom: 0.25rem;
 }
 
-.colaborador-stats {
-  display: flex;
-  gap: 1rem;
+.nc-sector {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
-.colaborador-stats .stat {
-  font-size: 0.8rem;
-  color: #718096;
+.nc-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nc-count {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 1.1rem;
+}
+
+.nc-severity {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.nc-severity.alta {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+.nc-severity.media {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.nc-severity.baixa {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+/* Table Section */
+.table-section {
+  margin-bottom: 1rem;
+}
+
+.table-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.table-header {
+  margin-bottom: 1.5rem;
+}
+
+.table-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.table-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.performance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.performance-table th {
+  background: #f9fafb;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.performance-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.875rem;
+}
+
+.auditor-cell {
+  white-space: nowrap;
+}
+
+.auditor-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auditor-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #f3f4f6;
+}
+
+.auditor-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auditor-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.auditor-name {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.auditor-sector {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.audits-count,
+.nc-count,
+.avg-time {
+  text-align: center;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.compliance-cell {
+  min-width: 120px;
+}
+
+.compliance-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.compliance-value {
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 40px;
+}
+
+.compliance-bar-mini {
+  width: 80px;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.compliance-fill-mini {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.compliance-fill-mini.excelente {
+  background: #10b981;
+}
+
+.compliance-fill-mini.bom {
+  background: #3b82f6;
+}
+
+.compliance-fill-mini.medio {
+  background: #f59e0b;
+}
+
+.status-cell {
+  text-align: center;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  display: inline-block;
+}
+
+.status-badge.excelente {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.status-badge.bom {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+.status-badge.medio {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+/* Loading State */
+.loading-state {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border-radius: 20px;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsividade */
+@media (max-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card.large {
+    grid-column: span 1;
+  }
+}
+
 @media (max-width: 768px) {
+  .metricas-container {
+    padding: 1.5rem;
+    margin: 1rem;
+    border-radius: 16px;
+  }
+
   .metricas-header {
     flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    gap: 1.5rem;
   }
 
-  .metricas-actions {
-    justify-content: center;
-  }
-
-  .resumo-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .corredores-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .metricas-detalhadas {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-content {
-    margin: 1rem;
-    max-width: calc(100% - 2rem);
-  }
-
-  .colaborador-stats {
+  .header-controls {
+    width: 100%;
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filtro-select {
+    width: 100%;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .performance-table {
+    font-size: 0.8rem;
+  }
+
+  .performance-table th,
+  .performance-table td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .auditor-info {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .compliance-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .compliance-bar-mini {
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .resumo-cards {
-    grid-template-columns: 1fr;
+  .kpi-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
-  .metricas-actions {
+  .kpi-trend {
+    align-self: flex-start;
+  }
+
+  .kpi-alerts {
     flex-direction: column;
   }
 
-  .action-btn {
-    text-align: center;
-  }
-
-  .setores-filter {
+  .nc-item {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
-  .setor-btn {
-    text-align: center;
+  .nc-stats {
+    align-self: flex-end;
   }
-}
-
-/* Estilos para filtro de setores */
-.setores-filter {
-  display: flex;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: white;
-  border-bottom: 2px solid #e2e8f0;
-  overflow-x: auto;
-  flex-wrap: wrap;
-}
-
-.setor-btn {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 0.75rem;
-  color: #4a5568;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.setor-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
-}
-
-.setor-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-/* Estilos para seção de setor */
-.setor-secao {
-  margin-bottom: 2.5rem;
-}
-
-.setor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-  border-radius: 0.75rem;
-  margin-bottom: 1rem;
-  border-left: 4px solid #667eea;
-}
-
-.setor-header h4 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.setor-title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.setor-percentual {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.setor-badge {
-  padding: 0.35rem 0.85rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 </style>

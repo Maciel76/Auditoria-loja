@@ -74,10 +74,20 @@
         <!-- Estatísticas -->
         <div class="loja-stats">
           <div class="stat-item">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-data">
+              <span class="stat-value"
+                >{{ calcularRestoEficiencia(loja) }}%</span
+              >
+              <span class="stat-label">Meta</span>
+            </div>
+          </div>
+
+          <div class="stat-item">
             <div class="stat-icon">⚡</div>
             <div class="stat-data">
               <span class="stat-value">{{ calcularEficiencia(loja) }}%</span>
-              <span class="stat-label">Eficiência</span>
+              <span class="stat-label">Conclusão</span>
             </div>
           </div>
 
@@ -174,6 +184,12 @@ const calcularEficiencia = (loja) => {
   // Normalizar para uma escala de 0-100 (considerando 1000 itens como 100%)
   const eficiencia = Math.min((mediaPorUsuario / 1000) * 100, 100);
   return parseFloat(eficiencia.toFixed(2));
+};
+
+const calcularRestoEficiencia = (loja) => {
+  const eficiencia = calcularEficiencia(loja);
+  const resto = 100 - eficiencia;
+  return parseFloat(Math.max(resto, 0).toFixed(2));
 };
 
 const calcularMediaPorUsuario = (loja) => {
@@ -499,7 +515,7 @@ const handleImageError = (event) => {
 
 .loja-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
 }
 

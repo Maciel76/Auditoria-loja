@@ -29,17 +29,27 @@
       </div>
       <div class="header-controls">
         <div class="filter-group">
-          <label for="periodo">Período</label>
-          <select
-            v-model="periodoSelecionado"
-            id="periodo"
-            class="filtro-select"
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'etiquetas' }"
+            @click="tipoAuditoriaAtual = 'etiquetas'"
           >
-            <option value="hoje">Hoje</option>
-            <option value="semana">Esta Semana</option>
-            <option value="mes">Este Mês</option>
-            <option value="trimestre">Este Trimestre</option>
-          </select>
+            🏷️ Etiqueta
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'presencas' }"
+            @click="tipoAuditoriaAtual = 'presencas'"
+          >
+            👥 Presença
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: tipoAuditoriaAtual === 'rupturas' }"
+            @click="tipoAuditoriaAtual = 'rupturas'"
+          >
+            📦 Ruptura
+          </button>
         </div>
         <button class="export-btn" @click="exportarDados">
           <svg
@@ -79,7 +89,7 @@
                 />
               </svg>
             </div>
-            <div class="kpi-title">Total de Auditorias</div>
+            <div class="kpi-title">Itens Lidos</div>
           </div>
           <div class="kpi-content">
             <div class="kpi-value">42</div>
@@ -494,71 +504,123 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useLojaStore } from "@/store/lojaStore";
+import axios from "axios";
+
+const lojaStore = useLojaStore();
 
 const periodoSelecionado = ref("mes");
 const carregando = ref(true);
+const erro = ref(null);
 
-const conformidadeSetores = ref([
-  { nome: "Limpeza", percentual: 100, status: "excelente" },
-  { nome: "Atendimento", percentual: 96, status: "excelente" },
-  { nome: "Caixas", percentual: 94, status: "excelente" },
-  { nome: "Estoque", percentual: 89, status: "bom" },
-  { nome: "Segurança", percentual: 87, status: "bom" },
-  { nome: "Alimentos", percentual: 82, status: "medio" },
-  { nome: "Vestuário", percentual: 78, status: "medio" },
-]);
+// Dados reais da API
+const dadosMetricas = ref({
+  etiquetas: { classesLeitura: {}, resumo: {} },
+  presencas: { classesLeitura: {}, resumo: {} },
+  rupturas: { classesLeitura: {}, resumo: {} },
+});
 
+const tipoAuditoriaAtual = ref("etiquetas");
+
+// Computed para conformidade dos setores (baseado em classes)
+const conformidadeSetores = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+
+  return Object.entries(auditoriaAtual.classesLeitura)
+    .map(([classe, dados]) => {
+      const percentual = dados.percentual || 0;
+      let status = "baixo";
+      if (percentual >= 90) status = "excelente";
+      else if (percentual >= 75) status = "bom";
+      else if (percentual >= 60) status = "medio";
+
+      return {
+        nome: classe,
+        percentual: Math.round(percentual),
+        status,
+        total: dados.total || 0,
+        lidos: dados.lidos || 0,
+      };
+    })
+    .sort((a, b) => b.percentual - a.percentual)
+    .slice(0, 7);
+});
+
+// Computed para estatísticas gerais
+const estatisticas = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  const resumo = auditoriaAtual?.resumo || {};
+
+  const totalItens = resumo.totalItens || 0;
+  const itensLidos = resumo.itensLidos || 0;
+  const percentualGeral = totalItens > 0 ? (itensLidos / totalItens) * 100 : 0;
+
+  return {
+    totalAuditorias: itensLidos,
+    conformidadeGeral: Math.round(percentualGeral),
+    metasAtingidas: Math.round(
+      percentualGeral >= 80 ? percentualGeral : percentualGeral * 0.8
+    ),
+    naoConformidades: Math.max(0, totalItens - itensLidos),
+    crescimentoMedio: itensLidos,
+  };
+});
+
+// Evolução de conformidade (últimos 7 dias simulados)
 const evolucaoConformidade = ref([
-  { dia: "1/10", valor: 85, tendencia: "positive" },
-  { dia: "5/10", valor: 87, tendencia: "positive" },
-  { dia: "10/10", valor: 84, tendencia: "negative" },
-  { dia: "15/10", valor: 89, tendencia: "positive" },
-  { dia: "20/10", valor: 92, tendencia: "positive" },
-  { dia: "25/10", valor: 90, tendencia: "negative" },
-  { dia: "30/10", valor: 94, tendencia: "positive" },
-]);
-
-const topNaoConformidades = ref([
+  { dia: "1/01", valor: 85, tendencia: "positive" },
+  { dia: "5/01", valor: 87, tendencia: "positive" },
+  { dia: "10/01", valor: 84, tendencia: "negative" },
+  { dia: "15/01", valor: 89, tendencia: "positive" },
+  { dia: "20/01", valor: 92, tendencia: "positive" },
+  { dia: "25/01", valor: 90, tendencia: "negative" },
   {
-    id: 1,
-    descricao: "Produto fora de posição",
-    setor: "Estoque",
-    ocorrencias: 12,
-    severidade: "media",
-  },
-  {
-    id: 2,
-    descricao: "Preço não atualizado",
-    setor: "Caixas",
-    ocorrencias: 8,
-    severidade: "alta",
-  },
-  {
-    id: 3,
-    descricao: "Limpeza inadequada",
-    setor: "Limpeza",
-    ocorrencias: 6,
-    severidade: "baixa",
-  },
-  {
-    id: 4,
-    descricao: "Falta de EPI",
-    setor: "Segurança",
-    ocorrencias: 5,
-    severidade: "alta",
+    dia: "Hoje",
+    valor: estatisticas.value.conformidadeGeral,
+    tendencia: "positive",
   },
 ]);
 
+// Top não conformidades (classes com menor desempenho)
+const topNaoConformidades = computed(() => {
+  const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
+  if (!auditoriaAtual || !auditoriaAtual.classesLeitura) return [];
+
+  return Object.entries(auditoriaAtual.classesLeitura)
+    .map(([classe, dados]) => {
+      const percentual = dados.percentual || 0;
+      const faltam = (dados.total || 0) - (dados.lidos || 0);
+
+      let severidade = "baixa";
+      if (percentual < 60) severidade = "alta";
+      else if (percentual < 80) severidade = "media";
+
+      return {
+        id: classe,
+        descricao: `Baixa cobertura em ${classe}`,
+        setor: classe,
+        ocorrencias: faltam,
+        severidade,
+        percentual,
+      };
+    })
+    .filter((item) => item.ocorrencias > 0)
+    .sort((a, b) => b.ocorrencias - a.ocorrencias)
+    .slice(0, 4);
+});
+
+// Top auditores (dados mockados até implementar API de usuários)
 const auditores = ref([
   {
     id: 1,
     nome: "Maria Silva",
     setor: "Qualidade",
     foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80",
-    auditorias: 15,
+    auditorias: 0,
     conformidade: 98,
-    ncs: 3,
+    ncs: 0,
     tempo: 1.8,
     status: "excelente",
   },
@@ -567,59 +629,90 @@ const auditores = ref([
     nome: "João Santos",
     setor: "Operações",
     foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    auditorias: 12,
+    auditorias: 0,
     conformidade: 95,
-    ncs: 5,
+    ncs: 0,
     tempo: 2.1,
-    status: "excelente",
-  },
-  {
-    id: 3,
-    nome: "Ana Oliveira",
-    setor: "Qualidade",
-    foto: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    auditorias: 8,
-    conformidade: 88,
-    ncs: 8,
-    tempo: 2.5,
-    status: "bom",
-  },
-  {
-    id: 4,
-    nome: "Pedro Costa",
-    setor: "Operações",
-    foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    auditorias: 6,
-    conformidade: 82,
-    ncs: 10,
-    tempo: 3.2,
-    status: "medio",
-  },
-  {
-    id: 5,
-    nome: "Carla Lima",
-    setor: "Qualidade",
-    foto: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    auditorias: 10,
-    conformidade: 91,
-    ncs: 6,
-    tempo: 2.0,
     status: "excelente",
   },
 ]);
 
-const exportarDados = () => {
+const buscarDadosReais = async () => {
   carregando.value = true;
-  setTimeout(() => {
+  erro.value = null;
+
+  try {
+    if (!lojaStore.codigoLojaAtual) {
+      throw new Error("Nenhuma loja selecionada.");
+    }
+
+    const response = await axios.get(
+      "http://localhost:3000/api/metricas/loja-daily/classes-completas",
+      { headers: { "x-loja": lojaStore.codigoLojaAtual } }
+    );
+
+    if (response.data) {
+      dadosMetricas.value = {
+        etiquetas: {
+          ...response.data.etiquetas,
+          classesLeitura: response.data.etiquetas?.classesLeitura || {},
+        },
+        presencas: {
+          ...response.data.presencas,
+          classesLeitura: response.data.presencas?.classesLeitura || {},
+        },
+        rupturas: {
+          ...response.data.rupturas,
+          classesLeitura: response.data.rupturas?.classesLeitura || {},
+        },
+      };
+
+      // Atualizar evolução com dados reais
+      evolucaoConformidade.value[6].valor =
+        estatisticas.value.conformidadeGeral;
+    }
+  } catch (err) {
+    console.error("❌ Erro ao buscar métricas:", err);
+    erro.value = "Falha ao carregar os dados. Tente novamente.";
+  } finally {
     carregando.value = false;
-    alert("Dados exportados com sucesso!");
-  }, 1000);
+  }
 };
 
+const exportarDados = () => {
+  const dados = {
+    loja: lojaStore.codigoLojaAtual,
+    tipo: tipoAuditoriaAtual.value,
+    estatisticas: estatisticas.value,
+    conformidadeSetores: conformidadeSetores.value,
+    data: new Date().toISOString(),
+  };
+
+  const jsonStr = JSON.stringify(dados, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `metricas_${lojaStore.codigoLojaAtual}_${Date.now()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+// Observar mudanças na loja
+watch(
+  () => lojaStore.codigoLojaAtual,
+  (novaLoja) => {
+    if (novaLoja) buscarDadosReais();
+  }
+);
+
 onMounted(() => {
-  setTimeout(() => {
+  if (lojaStore.codigoLojaAtual) {
+    buscarDadosReais();
+  } else {
+    erro.value = "Por favor, selecione uma loja.";
     carregando.value = false;
-  }, 2000);
+  }
 });
 </script>
 
