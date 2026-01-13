@@ -229,8 +229,10 @@
             <td>
               <span class="user-info" v-if="produto.lido">
                 {{
+                  produto.auditorias[tipoAuditoria]?.usuarioLeitura ||
                   produto.auditorias[tipoAuditoria]?.usuario ||
                   produto.auditorias[tipoAuditoria]?.usuarioNome ||
+                  produto.usuarioLeitura ||
                   produto.usuario ||
                   produto.usuarioNome ||
                   "N/A"
@@ -304,7 +306,12 @@ const usuarios = computed(() =>
           // Obter o usuário do tipo de auditoria atual
           const audit = p.auditorias[tipoAuditoria.value];
           return (
-            audit?.usuario || audit?.usuarioNome || p.usuario || p.usuarioNome
+            audit?.usuarioLeitura ||
+            audit?.usuario ||
+            audit?.usuarioNome ||
+            p.usuarioLeitura ||
+            p.usuario ||
+            p.usuarioNome
           );
         })
         .filter((u) => u)
@@ -410,7 +417,10 @@ const filteredProducts = computed(() => {
     })();
 
     const usuarioOk =
-      usuarioFiltro.value === "todos" || audit?.usuario === usuarioFiltro.value;
+      usuarioFiltro.value === "todos" ||
+      audit?.usuarioLeitura === usuarioFiltro.value ||
+      audit?.usuario === usuarioFiltro.value ||
+      audit?.usuarioNome === usuarioFiltro.value;
 
     return leituraOk && classeOk && corredorOk && diasOk && usuarioOk;
   });
@@ -773,7 +783,7 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
 
         // Usuário que auditou
         const usuarioAuditoria =
-          produto.usuario || produto.usuarioNome || "N/A";
+          produto.usuarioLeitura || produto.usuario || produto.usuarioNome || "N/A";
 
         // Data da auditoria
         const dataAuditoria =
@@ -798,6 +808,8 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
                     diasSemVenda: produto.diasSemVenda || 0,
                     data: dataAuditoria,
                     usuario: usuarioAuditoria,
+                    usuarioLeitura: produto.usuarioLeitura || usuarioAuditoria,
+                    usuarioNome: produto.usuarioNome || usuarioAuditoria,
                     situacao: situacaoProduto,
                   }
                 : { status: "N/A" },
@@ -808,6 +820,8 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
                     presenca: produto.presenca,
                     data: dataAuditoria,
                     usuario: usuarioAuditoria,
+                    usuarioLeitura: produto.usuarioLeitura || usuarioAuditoria,
+                    usuarioNome: produto.usuarioNome || usuarioAuditoria,
                     situacao: situacaoProduto,
                   }
                 : { status: "N/A" },
@@ -820,6 +834,8 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
                         : "ok",
                     data: dataAuditoria,
                     usuario: usuarioAuditoria,
+                    usuarioLeitura: produto.usuarioLeitura || usuarioAuditoria,
+                    usuarioNome: produto.usuarioNome || usuarioAuditoria,
                     situacao: situacaoProduto,
                   }
                 : { status: "N/A" },
@@ -866,8 +882,17 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
             produto.auditorias[tipoAudit].status !== 0 &&
             produto.auditorias[tipoAudit].status !== "N/A"
           ) {
-            produtoExistente.auditorias[tipoAudit] =
-              produto.auditorias[tipoAudit];
+            // Preservar informações do usuário ao mesclar
+            const auditExistente = produtoExistente.auditorias[tipoAudit];
+            const auditNovo = produto.auditorias[tipoAudit];
+
+            produtoExistente.auditorias[tipoAudit] = {
+              ...auditNovo,
+              // Manter informações do usuário se já existirem e forem diferentes
+              usuario: auditNovo.usuario || auditExistente.usuario || "",
+              usuarioLeitura: auditNovo.usuarioLeitura || auditExistente.usuarioLeitura || "",
+              usuarioNome: auditNovo.usuarioNome || auditExistente.usuarioNome || "",
+            };
           }
         });
 

@@ -5,7 +5,7 @@
       <div class="cover-overlay">
         <button class="btn-edit-cover" @click="showCoverSelector = true">
           <i class="fas fa-pencil-alt"></i>
-          <span class="btn-tooltip">Editar Capa e Informações</span>
+          <span class="btn-tooltip">Editar Tema e Informações da Loja</span>
         </button>
         <div class="loja-status" :class="statusAuditoria.classe">
           <i class="fas" :class="statusAuditoria.icone"></i>
@@ -101,7 +101,7 @@
             class="badge-item"
             :title="getBadgeDescription(badgeId)"
           >
-            <span class="badge-icon">{{ getBadgeIcon(badgeId) }}</span>
+            <i class="fas badge-icon" :class="getBadgeIcon(badgeId)"></i>
           </div>
         </div>
       </div>
@@ -586,18 +586,18 @@ export default {
     // Methods to handle badges
     getBadgeIcon(badgeId) {
       const badgeMap = {
-        "badge-destaque": "🏆",
-        "badge-ouro": "🥇",
-        "badge-prata": "🥈",
-        "badge-bronze": "🥉",
-        "badge-qualidade": "⭐",
-        "badge-desempenho": "⚡",
-        "badge-inovacao": "💡",
-        "badge-sustentavel": "🌱",
-        "badge-cliente": "❤️",
-        "badge-seguranca": "🛡️",
+        "badge-destaque": "fa-trophy",
+        "badge-ouro": "fa-medal",
+        "badge-prata": "fa-award",
+        "badge-bronze": "fa-certificate",
+        "badge-qualidade": "fa-star",
+        "badge-desempenho": "fa-bolt",
+        "badge-inovacao": "fa-lightbulb",
+        "badge-sustentavel": "fa-leaf",
+        "badge-cliente": "fa-heart",
+        "badge-seguranca": "fa-shield-alt",
       };
-      return badgeMap[badgeId] || "❓";
+      return badgeMap[badgeId] || "fa-question";
     },
 
     getBadgeDescription(badgeId) {
@@ -1117,10 +1117,8 @@ export default {
 .badges-section {
   margin-top: 20px;
   padding: 15px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 10px;
+
   min-width: 180px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .badges-container {
@@ -1131,25 +1129,91 @@ export default {
 }
 
 .badge-item {
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
   cursor: default;
 }
 
 .badge-item:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.15) rotate(5deg);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .badge-icon {
-  font-size: 1.2rem;
+  font-size: 1.8rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: all 0.3s ease;
+}
+
+/* Gradientes específicos para cada tipo de badge */
+.badge-icon.fa-trophy {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-medal {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-award {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-certificate {
+  background: linear-gradient(135deg, #cd7f32 0%, #e6a85c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-star {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-bolt {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-lightbulb {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-leaf {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-heart {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge-icon.fa-shield-alt {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Responsividade */
