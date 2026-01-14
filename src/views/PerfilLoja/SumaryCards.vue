@@ -14,14 +14,16 @@
     <!-- Error state -->
     <div v-else-if="error" class="error-container">
       <p class="error-message">{{ error }}</p>
-      <button @click="buscarMetricas" class="retry-button">Tentar novamente</button>
+      <button @click="buscarMetricas" class="retry-button">
+        Tentar novamente
+      </button>
     </div>
 
     <!-- Data loaded -->
     <div v-else class="summary-cards">
       <div class="summary-card">
         <div class="summary-icon distribuicao">
-          <span class="summary-emoji">📊</span>
+          <i class="fas fa-chart-bar"></i>
         </div>
         <div class="summary-content">
           <div class="summary-value">{{ auditoriasRealizadas }}</div>
@@ -40,7 +42,7 @@
 
       <div class="summary-card">
         <div class="summary-icon desempenho">
-          <span class="summary-emoji">🏆</span>
+          <i class="fas fa-trophy"></i>
         </div>
         <div class="summary-content">
           <div class="summary-value">#{{ posicaoGeral }}</div>
@@ -50,7 +52,7 @@
 
       <div class="summary-card">
         <div class="summary-icon setor-destaque">
-          <span class="summary-emoji">⭐</span>
+          <i class="fas fa-star"></i>
         </div>
         <div class="summary-content">
           <div class="summary-value">{{ colaboradorDestaque }}</div>
@@ -60,11 +62,21 @@
 
       <div class="summary-card">
         <div class="summary-icon tipo-predominante">
-          <span class="summary-emoji">👥</span>
+          <i class="fas fa-users"></i>
         </div>
         <div class="summary-content">
           <div class="summary-value">{{ totalColaboradores }}</div>
-          <div class="summary-label">Colaboradores</div>
+          <div class="summary-label">Total Colaboradores</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon itens-auditados">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <div class="summary-content">
+          <div class="summary-value">{{ totalItensAuditadosFormatado }}</div>
+          <div class="summary-label">Total Itens Auditados</div>
         </div>
       </div>
     </div>
@@ -89,6 +101,7 @@ const dadosMetricas = ref({
   posicaoGeral: 0,
   colaboradorDestaque: "N/A",
   totalColaboradores: 0,
+  totalItensAuditados: 0,
 });
 
 // Computed properties para os dados
@@ -104,6 +117,25 @@ const colaboradorDestaque = computed(
 );
 const totalColaboradores = computed(
   () => dadosMetricas.value.totalColaboradores
+);
+const totalItensAuditados = computed(
+  () => dadosMetricas.value.totalItensAuditados
+);
+
+// Função para formatar números grandes
+const formatarNumero = (valor) => {
+  if (valor >= 1000000) {
+    return (valor / 1000000).toFixed(1).replace(".0", "") + " mi";
+  }
+  if (valor >= 1000) {
+    return (valor / 1000).toFixed(1).replace(".0", "") + " mil";
+  }
+  return valor.toString();
+};
+
+// Computed property para Total Itens Auditados formatado
+const totalItensAuditadosFormatado = computed(() =>
+  formatarNumero(dadosMetricas.value.totalItensAuditados)
 );
 
 // Função para buscar métricas da loja
@@ -121,6 +153,7 @@ const buscarMetricas = async () => {
         posicaoGeral: response.data.posicaoGeral || 0,
         colaboradorDestaque: response.data.colaboradorDestaque || "N/A",
         totalColaboradores: response.data.totalColaboradores || 0,
+        totalItensAuditados: response.data.totalItensAuditados || 0,
       };
     }
   } catch (err) {
@@ -185,16 +218,40 @@ defineExpose({
   background: rgba(102, 126, 234, 0.1);
 }
 
+.summary-icon.distribuicao i {
+  color: #667eea;
+}
+
 .summary-icon.desempenho {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.summary-icon.desempenho i {
+  color: #ff9800;
 }
 
 .summary-icon.setor-destaque {
   background: rgba(255, 193, 7, 0.1);
 }
 
+.summary-icon.setor-destaque i {
+  color: #ffc107;
+}
+
 .summary-icon.tipo-predominante {
-  background: rgba(156, 39, 176, 0.1);
+  background: rgba(158, 158, 158, 0.1);
+}
+
+.summary-icon.tipo-predominante i {
+  color: #9e9e9e;
+}
+
+.summary-icon.itens-auditados {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.summary-icon.itens-auditados i {
+  color: #2196f3;
 }
 
 .summary-emoji {

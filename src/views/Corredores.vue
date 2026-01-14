@@ -79,22 +79,6 @@
           </div>
 
           <div class="filter-item">
-            <label for="dias-sem-venda-filter" class="filter-label"
-              >Dias sem Venda</label
-            >
-            <select
-              id="dias-sem-venda-filter"
-              v-model="diasSemVendaFiltro"
-              :disabled="tipoAuditoria !== 'etiqueta'"
-            >
-              <option value="todos">Todos</option>
-              <option value="1-5">1-5 dias</option>
-              <option value="6-9">6-9 dias</option>
-              <option value="10+">10+ dias</option>
-            </select>
-          </div>
-
-          <div class="filter-item">
             <label for="usuario-filter" class="filter-label">Usuário</label>
             <select id="usuario-filter" v-model="usuarioFiltro">
               <option value="todos">Todos os Usuários</option>
@@ -105,6 +89,18 @@
               >
                 {{ usuario }}
               </option>
+            </select>
+          </div>
+
+          <div class="filter-item">
+            <label for="dias-sem-venda-filter" class="filter-label"
+              >Dias sem Venda</label
+            >
+            <select id="dias-sem-venda-filter" v-model="diasSemVendaFiltro">
+              <option value="todos">Todos</option>
+              <option value="1-5">1-5 dias</option>
+              <option value="6-9">6-9 dias</option>
+              <option value="10+">10+ dias</option>
             </select>
           </div>
         </div>
@@ -285,10 +281,7 @@ const produtos = ref([]);
 
 // --- COMPUTED ---
 const tipoAuditoriaFormatado = computed(() => {
-  if (tipoAuditoria.value === "etiqueta") return "Dias sem Venda";
-  if (tipoAuditoria.value === "presenca") return "Presença";
-  if (tipoAuditoria.value === "ruptura") return "Situação";
-  return "Status";
+  return "Dias sem Venda";
 });
 
 const corredores = computed(() =>
@@ -346,10 +339,7 @@ const filtrosAtivos = computed(() => {
     });
   }
 
-  if (
-    diasSemVendaFiltro.value !== "todos" &&
-    tipoAuditoria.value === "etiqueta"
-  ) {
+  if (diasSemVendaFiltro.value !== "todos") {
     filtros.push({
       key: "diasSemVenda",
       label: "Dias sem Venda",
@@ -404,7 +394,6 @@ const filteredProducts = computed(() => {
       produto.corredor === corredorSelecionado.value;
 
     const diasOk = (() => {
-      if (tipoAuditoria.value !== "etiqueta") return true; // Filtro só para etiqueta
       if (diasSemVendaFiltro.value === "todos") return true;
 
       const dias = audit?.diasSemVenda || audit?.status || 0;
@@ -783,7 +772,10 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
 
         // Usuário que auditou
         const usuarioAuditoria =
-          produto.usuarioLeitura || produto.usuario || produto.usuarioNome || "N/A";
+          produto.usuarioLeitura ||
+          produto.usuario ||
+          produto.usuarioNome ||
+          "N/A";
 
         // Data da auditoria
         const dataAuditoria =
@@ -816,7 +808,8 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
             presenca:
               tipo === "presenca"
                 ? {
-                    status: produto.presenca ? "presente" : "ausente",
+                    status: produto.diasSemVenda || 0,
+                    diasSemVenda: produto.diasSemVenda || 0,
                     presenca: produto.presenca,
                     data: dataAuditoria,
                     usuario: usuarioAuditoria,
@@ -828,10 +821,8 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
             ruptura:
               tipo === "ruptura"
                 ? {
-                    status:
-                      produto.situacao === "Sem Presença e Com Estoque"
-                        ? "ruptura"
-                        : "ok",
+                    status: produto.diasSemVenda || 0,
+                    diasSemVenda: produto.diasSemVenda || 0,
                     data: dataAuditoria,
                     usuario: usuarioAuditoria,
                     usuarioLeitura: produto.usuarioLeitura || usuarioAuditoria,
@@ -890,8 +881,10 @@ const carregarDadosReais = async (forcarRecarregar = false) => {
               ...auditNovo,
               // Manter informações do usuário se já existirem e forem diferentes
               usuario: auditNovo.usuario || auditExistente.usuario || "",
-              usuarioLeitura: auditNovo.usuarioLeitura || auditExistente.usuarioLeitura || "",
-              usuarioNome: auditNovo.usuarioNome || auditExistente.usuarioNome || "",
+              usuarioLeitura:
+                auditNovo.usuarioLeitura || auditExistente.usuarioLeitura || "",
+              usuarioNome:
+                auditNovo.usuarioNome || auditExistente.usuarioNome || "",
             };
           }
         });
@@ -1265,7 +1258,8 @@ onMounted(() => {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -1316,13 +1310,18 @@ onMounted(() => {
 }
 
 .upload-btn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.5s;
 }
 
