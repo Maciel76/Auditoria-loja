@@ -50,13 +50,18 @@
         </div>
       </div>
 
-      <div class="summary-card">
+      <div class="summary-card colaborador-destaque-card">
         <div class="summary-icon setor-destaque">
           <i class="fas fa-star"></i>
         </div>
         <div class="summary-content">
-          <div class="summary-value">{{ colaboradorDestaque }}</div>
-          <div class="summary-label">Colaborador Em Destaque</div>
+          <div class="colaborador-nome-wrapper">
+            <div class="summary-value colaborador-nome">
+              {{ colaboradorDestaque }}
+            </div>
+            <div class="colaborador-tooltip">{{ colaboradorDestaque }}</div>
+          </div>
+          <div class="summary-label">Auditor Destaque</div>
         </div>
       </div>
 
@@ -202,6 +207,77 @@ defineExpose({
 .summary-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo especial para o card do colaborador em destaque */
+.colaborador-destaque-card {
+  overflow: visible;
+  position: relative;
+}
+
+.colaborador-nome-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.colaborador-nome {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+  transition: color 0.3s ease;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.colaborador-nome-wrapper:hover .colaborador-nome {
+  color: #ffc107;
+}
+
+/* Tooltip flutuante */
+.colaborador-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Seta do tooltip */
+.colaborador-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #764ba2;
+}
+
+/* Mostrar tooltip no hover */
+.colaborador-nome-wrapper:hover .colaborador-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Animação de destaque no card ao hover */
+.colaborador-destaque-card:hover {
+  border-color: rgba(255, 193, 7, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 193, 7, 0.15);
 }
 
 .summary-icon {

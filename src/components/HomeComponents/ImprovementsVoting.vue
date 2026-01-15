@@ -1,7 +1,10 @@
 <template>
   <div class="improvements-voting">
     <div class="section-header">
-      <h2>🚀 Melhorias em Votação</h2>
+      <h2>
+        <i class="fas fa-lightbulb"></i>
+        Melhorias em Votação
+      </h2>
       <span class="see-all">Ver Tudo</span>
     </div>
 
@@ -40,7 +43,7 @@
               :class="{ 'user-reacted': hasUserReacted(item, type) }"
               @click.stop="handleReaction(item.originalId || item.id, type)"
             >
-              <span class="reaction-emoji">{{ getReactionEmoji(type) }}</span>
+              <i :class="getReactionIcon(type)"></i>
               <span class="reaction-count">{{ reaction.count }}</span>
             </button>
           </div>
@@ -106,9 +109,7 @@
                     )
                   "
                 >
-                  <span class="reaction-emoji">{{
-                    getReactionEmoji(type)
-                  }}</span>
+                  <i :class="getReactionIcon(type)"></i>
                   <span class="reaction-count">{{ reaction.count }}</span>
                 </button>
               </div>
@@ -190,14 +191,14 @@ const getReactions = (item) => {
   return item.reactions || defaultReactions;
 };
 
-const getReactionEmoji = (type) => {
-  const emojis = {
-    like: "👍",
-    dislike: "👎",
-    fire: "🔥",
-    heart: "💚",
+const getReactionIcon = (type) => {
+  const icons = {
+    like: "fas fa-thumbs-up",
+    dislike: "fas fa-thumbs-down",
+    fire: "fas fa-fire",
+    heart: "fas fa-heart",
   };
-  return emojis[type];
+  return icons[type];
 };
 
 const getReactionText = (type) => {
@@ -283,6 +284,14 @@ const getTotalReactions = (voting) => {
   font-weight: 700;
   color: #1a202c;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header h2 i {
+  color: #f59e0b;
+  font-size: 1.4rem;
 }
 
 .see-all {
@@ -299,15 +308,36 @@ const getTotalReactions = (voting) => {
 
 .voting-item {
   align-items: center;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  transition: border-color 0.2s;
+  padding: 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.voting-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .voting-item:hover {
-  border-color: #3b82f6;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+}
+
+.voting-item:hover::before {
+  opacity: 1;
 }
 
 .voting-header {
@@ -405,47 +435,101 @@ const getTotalReactions = (voting) => {
 .reactions-section {
   margin-top: 1rem;
   padding: 1rem;
-  background: #ffffff;
-  border-radius: 8px;
-  border-top: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.reactions-section:hover {
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Sistema de Reações - Estilo horizontal do CommunityFeed */
 .card-reactions {
   display: flex;
-  gap: 0.5rem;
-
+  gap: 0.6rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .reaction-btn {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 0.5rem 0.75rem;
-  border-radius: 20px;
+  gap: 0.4rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 24px;
   color: #64748b;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
+  min-width: 55px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reaction-btn i {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.reaction-btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.reaction-btn:active::before {
+  width: 100px;
+  height: 100px;
 }
 
 .reaction-btn:hover {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-}
-
-.reaction-btn.user-reacted {
-  background: #667eea;
-  color: white;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   border-color: #667eea;
 }
 
-.reaction-emoji {
-  font-size: 1rem;
+.reaction-btn:hover i {
+  transform: scale(1.2);
+}
+
+.reaction-btn.user-reacted {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: scale(1.05);
+}
+
+.reaction-btn.user-reacted i {
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  75% {
+    transform: scale(1.1);
+  }
 }
 
 .reaction-count {
@@ -635,32 +719,64 @@ const getTotalReactions = (voting) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   background: white;
   border: 2px solid #e2e8f0;
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  border-radius: 20px;
   color: #64748b;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 600;
-  min-width: 80px;
+  min-width: 90px;
+  position: relative;
+  overflow: hidden;
+}
+
+.reaction-btn-modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s;
 }
 
 .reaction-btn-modal:hover {
   border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.reaction-btn-modal:hover::before {
+  left: 100%;
 }
 
 .reaction-btn-modal.user-reacted {
-  background: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-color: #667eea;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
 }
 
-.reaction-btn-modal .reaction-emoji {
-  font-size: 1.5rem;
+.reaction-btn-modal i {
+  font-size: 1.8rem;
+  transition: transform 0.3s ease;
+}
+
+.reaction-btn-modal:hover i {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.reaction-btn-modal.user-reacted i {
+  animation: bounce 0.6s ease;
 }
 
 .reaction-btn-modal .reaction-count {

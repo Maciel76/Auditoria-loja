@@ -120,37 +120,53 @@ export const useDashboardStore = defineStore("dashboard", {
     async loadRealVotingItems() {
       console.log("🔄 dashboardStore.loadRealVotingItems() iniciado");
       try {
-        console.log("📡 Fazendo requisição para http://localhost:3000/api/sugestoes?tipo=voting");
-        const response = await axios.get("http://localhost:3000/api/sugestoes?tipo=voting");
+        console.log(
+          "📡 Fazendo requisição para http://localhost:3000/api/sugestoes?tipo=voting"
+        );
+        const response = await axios.get(
+          "http://localhost:3000/api/sugestoes?tipo=voting"
+        );
         console.log("📦 Resposta recebida:", response.data);
 
         if (response.data.sugestoes) {
-          console.log(`✅ ${response.data.sugestoes.length} itens de votação encontrados`);
+          console.log(
+            `✅ ${response.data.sugestoes.length} itens de votação encontrados`
+          );
 
           // Converter sugestões de votação em formato apropriado
-          this.realVotingItems = response.data.sugestoes.map(sugestao => {
-            const lines = sugestao.sugestao.split('\n\n');
-            const title = lines[0] || sugestao.sugestao.substring(0, 50);
-            const description = lines.length > 1 ? lines.slice(1).join('\n\n') : sugestao.sugestao;
+          this.realVotingItems = response.data.sugestoes
+            .map((sugestao) => {
+              const lines = sugestao.sugestao.split("\n\n");
+              const title = lines[0] || sugestao.sugestao.substring(0, 50);
+              const description =
+                lines.length > 1
+                  ? lines.slice(1).join("\n\n")
+                  : sugestao.sugestao;
 
-            return {
-              id: sugestao.id || sugestao._id,
-              title: title,
-              description: description.length > 100 ? description.substring(0, 100) + '...' : description,
-              status: this.mapStatusToVoting(sugestao.status),
-              votes: this.calculateTotalReactions(sugestao.reactions),
-              userVoted: false, // TODO: implementar tracking de voto por usuário
-              reactions: sugestao.reactions || {
-                like: { count: 0, users: [] },
-                dislike: { count: 0, users: [] },
-                fire: { count: 0, users: [] },
-                heart: { count: 0, users: [] }
-              },
-              originalId: sugestao._id
-            };
-          }).reverse(); // Mais recentes primeiro
+              return {
+                id: sugestao.id || sugestao._id,
+                title: title,
+                description:
+                  description.length > 100
+                    ? description.substring(0, 100) + "..."
+                    : description,
+                status: this.mapStatusToVoting(sugestao.status),
+                votes: this.calculateTotalReactions(sugestao.reactions),
+                userVoted: false, // TODO: implementar tracking de voto por usuário
+                reactions: sugestao.reactions || {
+                  like: { count: 0, users: [] },
+                  dislike: { count: 0, users: [] },
+                  fire: { count: 0, users: [] },
+                  heart: { count: 0, users: [] },
+                },
+                originalId: sugestao._id,
+              };
+            })
+            .reverse(); // Mais recentes primeiro
 
-          console.log(`✅ Items de votação processados: ${this.realVotingItems.length}`);
+          console.log(
+            `✅ Items de votação processados: ${this.realVotingItems.length}`
+          );
         } else {
           console.log("⚠️ Nenhum item de votação encontrado");
           this.realVotingItems = [];
@@ -164,21 +180,23 @@ export const useDashboardStore = defineStore("dashboard", {
     // Mapear status para formato de votação
     mapStatusToVoting(status) {
       const statusMap = {
-        'pendente': 'new-idea',
-        'analisando': 'under-review',
-        'implementado': 'implemented',
-        'rejeitado': 'rejected'
+        pendente: "new-idea",
+        analisando: "under-review",
+        implementado: "implemented",
+        rejeitado: "rejected",
       };
-      return statusMap[status] || 'new-idea';
+      return statusMap[status] || "new-idea";
     },
 
     // Calcular total de reações como "votos"
     calculateTotalReactions(reactions) {
       if (!reactions) return 0;
-      return (reactions.like?.count || 0) +
-             (reactions.fire?.count || 0) +
-             (reactions.heart?.count || 0) -
-             (reactions.dislike?.count || 0);
+      return (
+        (reactions.like?.count || 0) +
+        (reactions.fire?.count || 0) +
+        (reactions.heart?.count || 0) -
+        (reactions.dislike?.count || 0)
+      );
     },
 
     // Reagir em item de votação
@@ -195,7 +213,9 @@ export const useDashboardStore = defineStore("dashboard", {
 
         if (response.data.reactions) {
           // Atualizar item local
-          const item = this.realVotingItems.find(item => item.originalId === itemId);
+          const item = this.realVotingItems.find(
+            (item) => item.originalId === itemId
+          );
           if (item) {
             item.reactions = response.data.reactions;
             item.votes = this.calculateTotalReactions(response.data.reactions);
@@ -215,86 +235,99 @@ export const useDashboardStore = defineStore("dashboard", {
       console.log("🔄 dashboardStore.loadFeedItems() iniciado");
       this.loading.feed = true;
       try {
-        console.log("📡 Fazendo requisição para http://localhost:3000/api/sugestoes");
+        console.log(
+          "📡 Fazendo requisição para http://localhost:3000/api/sugestoes"
+        );
         const response = await axios.get("http://localhost:3000/api/sugestoes");
         console.log("📦 Resposta recebida:", response.data);
 
         if (response.data.sugestoes) {
-          console.log(`✅ ${response.data.sugestoes.length} sugestões encontradas`);
+          console.log(
+            `✅ ${response.data.sugestoes.length} sugestões encontradas`
+          );
           console.log("🔄 Processando sugestões...");
           // Converter sugestões em formato de feed
-          this.feedItems = response.data.sugestoes.map(sugestao => {
-            // Funções auxiliares inline
-            const getSuggestionTitle = (texto, tipo) => {
-              const lines = texto.split('\n\n');
-              let title = lines[0] || texto.substring(0, 50);
+          this.feedItems = response.data.sugestoes
+            .map((sugestao) => {
+              // Funções auxiliares inline
+              const getSuggestionTitle = (texto, tipo) => {
+                const lines = texto.split("\n\n");
+                let title = lines[0] || texto.substring(0, 50);
 
-              // Remover "💡 POSTAGEM:" ou "POSTAGEM:" do início se existir
-              title = title.replace(/^💡\s*POSTAGEM:\s*/i, '');
-              title = title.replace(/^POSTAGEM:\s*/i, '');
+                // Remover "💡 POSTAGEM:" ou "POSTAGEM:" do início se existir
+                title = title.replace(/^💡\s*POSTAGEM:\s*/i, "");
+                title = title.replace(/^POSTAGEM:\s*/i, "");
 
-              return title.trim();
-            };
+                return title.trim();
+              };
 
-            const getSuggestionDescription = (texto) => {
-              const lines = texto.split('\n\n');
-              if (lines.length > 1) {
-                return lines.slice(1).join('\n\n');
-              }
-              return texto.length > 100 ? texto.substring(0, 100) + '...' : texto;
-            };
+              const getSuggestionDescription = (texto) => {
+                const lines = texto.split("\n\n");
+                if (lines.length > 1) {
+                  return lines.slice(1).join("\n\n");
+                }
+                return texto.length > 100
+                  ? texto.substring(0, 100) + "..."
+                  : texto;
+              };
 
-            const formatTime = (dateString) => {
-              if (!dateString) return 'Recente';
-              const date = new Date(dateString);
-              const now = new Date();
-              const diff = now - date;
-              const minutes = Math.floor(diff / (1000 * 60));
-              const hours = Math.floor(diff / (1000 * 60 * 60));
-              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+              const formatTime = (dateString) => {
+                if (!dateString) return "Recente";
+                const date = new Date(dateString);
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / (1000 * 60));
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-              if (minutes < 1) return 'Agora mesmo';
-              if (minutes < 60) return `${minutes}m`;
-              if (hours < 24) return `${hours}h`;
-              if (days === 1) return '1 dia';
-              if (days < 7) return `${days} dias`;
-              return date.toLocaleDateString('pt-BR');
-            };
+                if (minutes < 1) return "Agora mesmo";
+                if (minutes < 60) return `${minutes}m`;
+                if (hours < 24) return `${hours}h`;
+                if (days === 1) return "1 dia";
+                if (days < 7) return `${days} dias`;
+                return date.toLocaleDateString("pt-BR");
+              };
 
-            const getBadgeFromDate = (dateString) => {
-              if (!dateString) return null;
-              const date = new Date(dateString);
-              const now = new Date();
-              const diffHours = (now - date) / (1000 * 60 * 60);
-              if (diffHours < 24) return 'new';
-              return null;
-            };
+              const getBadgeFromDate = (dateString) => {
+                if (!dateString) return null;
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffHours = (now - date) / (1000 * 60 * 60);
+                if (diffHours < 24) return "new";
+                return null;
+              };
 
-            return {
-              id: sugestao.id || sugestao._id,
-              type: sugestao.tipo,
-              title: getSuggestionTitle(sugestao.sugestao, sugestao.tipo),
-              description: getSuggestionDescription(sugestao.sugestao),
-              votes: sugestao.votos || 0,
-              comments: 0,
-              time: sugestao.tempoDecorrido || formatTime(sugestao.createdAt),
-              badge: getBadgeFromDate(sugestao.createdAt),
-              user: { name: sugestao.nome || "Usuário", avatar: (sugestao.nome || "U").charAt(0).toUpperCase() },
-              adminResponse: sugestao.comentarioAdmin ? {
-                text: sugestao.comentarioAdmin,
-                badge: "📋 Admin respondeu:"
-              } : null,
-              userVoted: false,
-              status: sugestao.status,
-              originalId: sugestao._id,
-              reactions: sugestao.reactions || {
-                like: { count: 0, users: [] },
-                dislike: { count: 0, users: [] },
-                fire: { count: 0, users: [] },
-                heart: { count: 0, users: [] }
-              }
-            };
-          }).reverse(); // Mais recentes primeiro
+              return {
+                id: sugestao.id || sugestao._id,
+                type: sugestao.tipo,
+                title: getSuggestionTitle(sugestao.sugestao, sugestao.tipo),
+                description: getSuggestionDescription(sugestao.sugestao),
+                votes: sugestao.votos || 0,
+                comentarios: sugestao.comentarios || [], // Manter comentários no formato original do backend
+                time: sugestao.tempoDecorrido || formatTime(sugestao.createdAt),
+                badge: getBadgeFromDate(sugestao.createdAt),
+                user: {
+                  name: sugestao.nome || "Usuário",
+                  avatar: (sugestao.nome || "U").charAt(0).toUpperCase(),
+                },
+                adminResponse: sugestao.comentarioAdmin
+                  ? {
+                      text: sugestao.comentarioAdmin,
+                      badge: "📋 Admin respondeu:",
+                    }
+                  : null,
+                userVoted: false,
+                status: sugestao.status,
+                originalId: sugestao._id,
+                reactions: sugestao.reactions || {
+                  like: { count: 0, users: [] },
+                  dislike: { count: 0, users: [] },
+                  fire: { count: 0, users: [] },
+                  heart: { count: 0, users: [] },
+                },
+              };
+            })
+            .reverse(); // Mais recentes primeiro
 
           console.log(`✅ Feed processado com ${this.feedItems.length} itens`);
           console.log("📰 Primeiro item do feed:", this.feedItems[0]);
@@ -338,13 +371,43 @@ export const useDashboardStore = defineStore("dashboard", {
       this.loading.achievements = false;
     },
 
+    // Adicionar comentário a um item
+    async addCommentToItem(itemId, comment) {
+      try {
+        // Encontrar o item no feed
+        const feedItem = this.feedItems.find(
+          (item) => item.id === itemId || item.originalId === itemId
+        );
+
+        if (!feedItem) {
+          return { success: false, message: "Item não encontrado" };
+        }
+
+        // Inicializar array de comentários se não existir
+        if (!feedItem.comments) {
+          feedItem.comments = [];
+        }
+
+        // Adicionar o comentário
+        feedItem.comments.push(comment);
+
+        return { success: true, message: "Comentário adicionado com sucesso!" };
+      } catch (error) {
+        console.error("Erro ao adicionar comentário:", error);
+        return { success: false, message: error.message };
+      }
+    },
+
     // Submeter sugestão
     async submitSuggestion(suggestion, tipo = "geral") {
       try {
-        const response = await axios.post("http://localhost:3000/api/sugestoes", {
-          sugestao: suggestion,
-          tipo: tipo
-        });
+        const response = await axios.post(
+          "http://localhost:3000/api/sugestoes",
+          {
+            sugestao: suggestion,
+            tipo: tipo,
+          }
+        );
 
         if (response.data.message) {
           // Adicionar ao feed local
@@ -428,7 +491,8 @@ export const useDashboardStore = defineStore("dashboard", {
           id: 1,
           type: "feature",
           title: "🚀 Auditoria em Tempo Real",
-          description: "Nova funcionalidade permite acompanhar auditorias em tempo real com atualizações instantâneas",
+          description:
+            "Nova funcionalidade permite acompanhar auditorias em tempo real com atualizações instantâneas",
           votes: 24,
           comments: 8,
           time: "2 horas",
@@ -440,7 +504,8 @@ export const useDashboardStore = defineStore("dashboard", {
           id: 2,
           type: "suggestion",
           title: "💡 Sugestão: Relatórios Personalizados",
-          description: "Seria ótimo poder criar relatórios personalizados com filtros específicos por departamento",
+          description:
+            "Seria ótimo poder criar relatórios personalizados com filtros específicos por departamento",
           votes: 42,
           comments: 15,
           time: "1 dia",
@@ -455,7 +520,8 @@ export const useDashboardStore = defineStore("dashboard", {
           id: 3,
           type: "update",
           title: "🛠️ Melhorias no Dashboard",
-          description: "Otimizamos a performance do dashboard e adicionamos novos gráficos de tendência",
+          description:
+            "Otimizamos a performance do dashboard e adicionamos novos gráficos de tendência",
           votes: 31,
           comments: 12,
           time: "3 dias",
@@ -551,7 +617,6 @@ export const useDashboardStore = defineStore("dashboard", {
         this.loadRealVotingItems(), // Carregar items de votação reais
       ]);
     },
-
 
     // Limpar dados
     clearData() {

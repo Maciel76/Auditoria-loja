@@ -138,13 +138,13 @@
                       @click="updatePostStatus(post._id, 'implementado')"
                       class="btn-approve"
                     >
-                      ✅ Aprovar
+                      📢 Publicar
                     </button>
                     <button
-                      @click="updatePostStatus(post._id, 'rejeitado')"
-                      class="btn-reject"
+                      @click="openDeleteModal('postagem', post._id)"
+                      class="btn-delete"
                     >
-                      ❌ Rejeitar
+                      🗑️ Excluir
                     </button>
                   </div>
                 </div>
@@ -681,6 +681,25 @@ export default {
       }
     };
 
+    // Deletar postagem
+    const deletarPostagem = async (postId) => {
+      cancelDeletion(); // Fecha o modal
+
+      try {
+        await axios.delete(`http://localhost:3000/api/sugestoes/${postId}`);
+
+        // Remover da lista local
+        posts.value = posts.value.filter(
+          (p) => p._id !== postId
+        );
+
+        showMessage("Postagem excluída com sucesso!", "success");
+      } catch (error) {
+        console.error("Erro ao excluir postagem:", error);
+        showMessage("Erro ao excluir a postagem. Tente novamente.", "error");
+      }
+    };
+
     // Rejeitar aviso
     const rejeitarAviso = async (avisoId) => {
       try {
@@ -1198,6 +1217,8 @@ export default {
         deletarVotacao(id);
       } else if (type === "sugestao") {
         deletarSugestao(id);
+      } else if (type === "postagem") {
+        deletarPostagem(id);
       } else if (type === "post") {
         deletePost(id);
       }

@@ -39,15 +39,13 @@
 
         <div class="hero-actions">
           <button class="btn-primary" @click="openPostModal">
-            <i class="fas fa-search"></i>
             📝Criar Nova Postagem
           </button>
           <button class="btn-secondary" @click="openSuggestionModal">
-            <i class="fas fa-lightbulb"></i>
             💡 Enviar Sugestão
           </button>
           <button class="btn-secondary" @click="openNoticeModal">
-            💬 Novo Aviso
+            ⚠️ Novo Aviso
           </button>
           <button class="btn-secondary" @click="openVotingModal">
             🚀 Nova votação
@@ -57,15 +55,12 @@
 
       <div class="hero-visual">
         <div class="floating-card card-1">
-          <i class="fas fa-rocket"></i>
           <span>✨ Transforme Dados em Resultados</span>
         </div>
         <div class="floating-card card-2">
-          <i class="fas fa-lightbulb"></i>
           <span>💡 Sua Ideia Pode Mudar Tudo</span>
         </div>
         <div class="floating-card card-3">
-          <i class="fas fa-star"></i>
           <span>🌟 Juntos Somos Mais Fortes</span>
         </div>
       </div>
@@ -570,8 +565,8 @@ const submitPost = async () => {
         "x-loja": "001",
       },
       body: JSON.stringify({
-        sugestao: `POSTAGEM: ${postForm.value.title}\n\nAUTOR: ${postForm.value.author}\n\nCONTEÚDO: ${postForm.value.content}`,
-        email: null,
+        sugestao: `${postForm.value.title}\n\n${postForm.value.content}`,
+        nome: postForm.value.author,
         tipo: postForm.value.type,
       }),
     });

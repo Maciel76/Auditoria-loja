@@ -98,7 +98,7 @@ const routes = [
   },
 
   {
-    path: "/dashboard",
+    path: "/admin",
     name: "Dashboard",
     component: Dashboard,
     meta: { requiresLoja: true, requiresAuth: true }, // Requer autenticação admin

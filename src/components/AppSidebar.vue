@@ -231,7 +231,7 @@
             </div>
           </div>
 
-          <router-link
+          <!-- <router-link
             to="/dashboard"
             class="nav-item"
             @click="closeSubmenus"
@@ -243,7 +243,7 @@
               class="nav-icon"
             />
             <span class="nav-text" v-if="!sidebarCollapsed">Dashboard</span>
-          </router-link>
+          </router-link> -->
 
           <router-link
             to="/corredores"
@@ -302,6 +302,56 @@
             <span class="nav-text" v-if="!sidebarCollapsed"
               >Ranking das Lojas</span
             >
+          </router-link>
+          <!-- // Perfil Usuários -->
+          <router-link
+            to="/lista"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Perfil usuários' : ''"
+          >
+            <img
+              src="../assets/svg/list.svg"
+              alt="Lista de Usuários"
+              class="nav-icon"
+            />
+            <span class="nav-text" v-if="!sidebarCollapsed"
+              >Perfil usuários</span
+            >
+          </router-link>
+          <!-- Perfil da Loja -->
+          <router-link
+            :to="`/perfil-loja/${lojaStore.codigoLojaAtual}`"
+            class="nav-item"
+            @click="closeSubmenus"
+            :title="sidebarCollapsed ? 'Perfil da Loja' : ''"
+          >
+            <img
+              src="../assets/svg/StorePerfil.svg"
+              alt="Perfil da Loja"
+              class="nav-icon"
+            />
+            <span class="nav-text" v-if="!sidebarCollapsed"
+              >Perfil da Loja</span
+            >
+            <span class="dropdown-arrow static-arrow" v-if="!sidebarCollapsed">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                style="display: inline; vertical-align: middle"
+              >
+                <path
+                  d="M7 5l5 5-5 5"
+                  stroke="#667eea"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
           </router-link>
 
           <!-- Informações Menu com Dropdown -->
@@ -491,22 +541,6 @@
             <span class="nav-text" v-if="!sidebarCollapsed">Setores</span>
           </router-link> -->
 
-          <router-link
-            to="/lista"
-            class="nav-item"
-            @click="closeSubmenus"
-            :title="sidebarCollapsed ? 'Perfil usuários' : ''"
-          >
-            <img
-              src="../assets/svg/list.svg"
-              alt="Lista de Usuários"
-              class="nav-icon"
-            />
-            <span class="nav-text" v-if="!sidebarCollapsed"
-              >Perfil usuários</span
-            >
-          </router-link>
-
           <!-- <router-link
             to="/relatorios"
             class="nav-item"
@@ -520,40 +554,6 @@
             />
             <span class="nav-text" v-if="!sidebarCollapsed">Relatórios</span>
           </router-link> -->
-
-          <router-link
-            :to="`/perfil-loja/${lojaStore.codigoLojaAtual}`"
-            class="nav-item"
-            @click="closeSubmenus"
-            :title="sidebarCollapsed ? 'Perfil da Loja' : ''"
-          >
-            <img
-              src="../assets/svg/StorePerfil.svg"
-              alt="Perfil da Loja"
-              class="nav-icon"
-            />
-            <span class="nav-text" v-if="!sidebarCollapsed"
-              >Perfil da Loja</span
-            >
-            <span class="dropdown-arrow static-arrow" v-if="!sidebarCollapsed">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 20 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style="display: inline; vertical-align: middle"
-              >
-                <path
-                  d="M7 5l5 5-5 5"
-                  stroke="#667eea"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-          </router-link>
         </nav>
 
         <!-- Perfil da Loja no final da sidebar -->

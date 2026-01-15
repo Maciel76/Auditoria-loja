@@ -100,7 +100,7 @@ const handleLogin = async () => {
     );
 
     // Redirecionar para a página de métricas ou dashboard
-    router.push("/teste-metricas");
+    router.push("/admin");
   } catch (error) {
     errorMessage.value =
       error.message || "Erro ao fazer login. Verifique suas credenciais.";

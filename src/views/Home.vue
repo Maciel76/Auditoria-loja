@@ -10,10 +10,7 @@
           :feedItems="dashboardStore.feedItems"
           @vote-submitted="handleFeedVote"
           @reaction-submitted="handleFeedReaction"
-        />
-        <QuickSuggestion
-          v-model="novaSugestao"
-          @suggestion-submitted="handleSuggestionSubmit"
+          @comment-added="handleCommentAdded"
         />
       </div>
 
@@ -23,7 +20,7 @@
           @vote-submitted="handleVoteSubmit"
           @reaction-submitted="handleVotingReaction"
         />
-        <SystemSummary :stats="dashboardStore.systemStats" />
+        <AvisosSistema :stats="dashboardStore.systemStats" />
         <!-- <OnlineUsersList /> -->
       </div>
     </div>
@@ -41,36 +38,13 @@ import HeroSection from "@/components/HomeComponents/HeroSection.vue";
 // import OnlineUsersList from "@/components/HomeComponents/OnlineUsersList.vue";
 import CommunityFeed from "@/components/HomeComponents/CommunityFeed.vue";
 import ImprovementsVoting from "@/components/HomeComponents/ImprovementsVoting.vue";
-import SystemSummary from "@/components/HomeComponents/SystemSummary.vue";
-import QuickSuggestion from "@/components/HomeComponents/QuickSuggestion.vue";
-import PostCreator from "@/components/HomeComponents/PostCreator.vue";
+import AvisosSistema from "@/components/HomeComponents/UserAchievements.vue";
 import FooterComponent from "@/components/HomeComponents/FooterComponent.vue";
 
 // Usar o store do Pinia
 const dashboardStore = useDashboardStore();
 
-// Estado reativo para dados globais
-const novaSugestao = ref("");
-
 // Métodos
-const handleSuggestionSubmit = async (suggestion) => {
-  console.log("Nova sugestão enviada:", suggestion);
-
-  try {
-    // Usar o store para enviar a sugestão
-    const result = await dashboardStore.submitSuggestion(suggestion);
-
-    if (result.success) {
-      console.log("✅ Sugestão enviada com sucesso!");
-      novaSugestao.value = "";
-    } else {
-      console.error("❌ Erro ao enviar sugestão:", result.message);
-    }
-  } catch (error) {
-    console.error("❌ Erro interno:", error);
-  }
-};
-
 const handleVoteSubmit = async (itemId) => {
   try {
     const result = await dashboardStore.submitVote(itemId);
@@ -183,6 +157,71 @@ const handleVotingReaction = async ({
     }
   } catch (error) {
     console.error("❌ Erro ao reagir em item de votação:", error);
+  }
+};
+
+// Manipular adição de comentários
+const handleCommentAdded = async ({ itemId, comment }) => {
+  console.log(`💬 Comentário adicionado ao item ${itemId}:`, comment);
+
+  try {
+    // Enviar comentário para o backend (comment já vem no formato correto do CommunityFeed)
+    const response = await axios.post(
+      `http://localhost:3000/api/sugestoes/${itemId}/comentarios`,
+      {
+        conteudo: comment.conteudo,
+        autor: comment.autor,
+        avatar: comment.avatar,
+      }
+    );
+
+    if (response.data.success) {
+      console.log("✅ Comentário salvo no backend com sucesso!");
+
+      // Atualizar o item localmente com o comentário completo retornado do backend
+      const feedItem = dashboardStore.feedItems.find(
+        (item) => item.id === itemId || item.originalId === itemId
+      );
+
+      if (feedItem) {
+        // Inicializar array de comentários se não existir
+        if (!feedItem.comentarios) {
+          feedItem.comentarios = [];
+        }
+
+        // Adicionar o comentário retornado do backend
+        if (response.data.comentario) {
+          feedItem.comentarios.push(response.data.comentario);
+          console.log("📝 Comentário adicionado à lista local");
+        }
+      }
+    } else {
+      console.error(
+        "❌ Erro ao salvar comentário no backend:",
+        response.data.message
+      );
+    }
+  } catch (error) {
+    console.error(
+      "❌ Erro ao enviar comentário para o backend:",
+      error.message
+    );
+
+    // Em caso de erro, tentar usar o store para atualizar o feed
+    try {
+      const result = await dashboardStore.addCommentToItem(itemId, comment);
+      if (!result.success) {
+        console.error(
+          "❌ Erro ao adicionar comentário via store:",
+          result.message
+        );
+      }
+    } catch (storeError) {
+      console.error(
+        "❌ Erro ao usar store para adicionar comentário:",
+        storeError
+      );
+    }
   }
 };
 
