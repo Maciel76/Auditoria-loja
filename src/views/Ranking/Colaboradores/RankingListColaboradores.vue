@@ -24,7 +24,14 @@
 
         <div class="user-info">
           <div class="user-avatar">
+            <img
+              v-if="usuario.foto"
+              :src="usuario.foto"
+              :alt="usuario.nome"
+              class="avatar-image"
+            />
             <div
+              v-else
               class="avatar-initials"
               :class="getAvatarClass(viewMode === 'podium' ? index + 3 : index)"
             >
@@ -534,6 +541,7 @@ export default {
   position: relative;
 }
 
+.avatar-image,
 .avatar-icon,
 .avatar-initials {
   width: 100%;
@@ -549,11 +557,17 @@ export default {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+.avatar-image {
+  object-fit: cover;
+  font-size: 0;
+}
+
 .avatar-initials {
   font-size: 1.2rem;
   letter-spacing: 0.5px;
 }
 
+.avatar-image.gold,
 .avatar-icon.gold,
 .avatar-initials.gold {
   background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
@@ -561,6 +575,7 @@ export default {
   text-shadow: 0 1px 2px rgba(146, 64, 14, 0.3);
 }
 
+.avatar-image.silver,
 .avatar-icon.silver,
 .avatar-initials.silver {
   background: linear-gradient(135deg, #c0c0c0 0%, #e5e7eb 100%);
@@ -568,6 +583,7 @@ export default {
   text-shadow: 0 1px 2px rgba(55, 65, 81, 0.3);
 }
 
+.avatar-image.bronze,
 .avatar-icon.bronze,
 .avatar-initials.bronze {
   background: linear-gradient(135deg, #cd7f32 0%, #f97316 100%);
