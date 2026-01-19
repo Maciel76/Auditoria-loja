@@ -169,23 +169,10 @@
 
             <!-- Avatars tab -->
             <div v-show="activeTab === 'avatars'" class="avatars-tab">
-              <p class="tab-description">
-                Selecione um avatar para seu perfil:
-              </p>
-              <div class="avatars-grid">
-                <div
-                  v-for="avatar in avatars"
-                  :key="avatar.id"
-                  class="avatar-item"
-                  :class="{ selected: selectedAvatar === avatar.url }"
-                  @click="selectAvatar(avatar.id)"
-                  :title="avatar.name"
-                >
-                  <div class="avatar-preview">
-                    <img :src="avatar.url" :alt="avatar.name" class="avatar-img" />
-                  </div>
-                </div>
-              </div>
+              <AvatarSelector
+                v-model="selectedAvatar"
+                @update:model-value="handleAvatarChange"
+              />
             </div>
           </div>
         </div>
@@ -205,8 +192,13 @@
 </template>
 
 <script>
+import AvatarSelector from "./AvatarSelector.vue";
+
 export default {
   name: "UserCoverSelector",
+  components: {
+    AvatarSelector,
+  },
   props: {
     modelValue: {
       type: Boolean,
@@ -230,88 +222,6 @@ export default {
       selectedBadges: [], // Selected badges
       maxBadges: 3, // Maximum number of badges that can be selected
       selectedAvatar: null, // Selected avatar
-      avatars: [
-        {
-          id: "avatar-1",
-          name: "Avatar Abstrato",
-          url: "https://api.dicebear.com/7.x/abstract/id-1/svg?seed=1&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-2",
-          name: "Avatar Personagem",
-          url: "https://api.dicebear.com/7.x/avataaars/svg?seed=2&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-3",
-          name: "Avatar Bot",
-          url: "https://api.dicebear.com/7.x/bottts/svg?seed=3&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-4",
-          name: "Avatar Micah",
-          url: "https://api.dicebear.com/7.x/micah/svg?seed=4&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-5",
-          name: "Avatar Miniavs",
-          url: "https://api.dicebear.com/7.x/miniavs/svg?seed=5&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-6",
-          name: "Avatar Notionists",
-          url: "https://api.dicebear.com/7.x/notionists/svg?seed=6&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-7",
-          name: "Avatar Open Peeps",
-          url: "https://api.dicebear.com/7.x/open-peeps/svg?seed=7&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-8",
-          name: "Avatar Big Ears",
-          url: "https://api.dicebear.com/7.x/big-ears/svg?seed=8&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-9",
-          name: "Avatar Fun Emoji",
-          url: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=9&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-10",
-          name: "Avatar Pixel Art",
-          url: "https://api.dicebear.com/7.x/pixel-art/svg?seed=10&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-11",
-          name: "Avatar Cropped",
-          url: "https://api.dicebear.com/7.x/croodles/svg?seed=11&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-12",
-          name: "Avatar Cropped Neutral",
-          url: "https://api.dicebear.com/7.x/croodles-neutral/svg?seed=12&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-13",
-          name: "Avatar Icons",
-          url: "https://api.dicebear.com/7.x/icons/svg?seed=13&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-14",
-          name: "Avatar Identicon",
-          url: "https://api.dicebear.com/7.x/identicon/svg?seed=14&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-15",
-          name: "Avatar Big Smile",
-          url: "https://api.dicebear.com/7.x/big-smile/svg?seed=15&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-        {
-          id: "avatar-16",
-          name: "Avatar Parfait",
-          url: "https://api.dicebear.com/7.x/parfait/svg?seed=16&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
-        },
-      ],
       badges: [
         {
           id: "badge-destaque",
@@ -511,12 +421,16 @@ export default {
         selectedAvatar: null,
       };
 
-      if (this.activeTab === 'gradients' || this.activeTab === 'patterns' || this.activeTab === 'images') {
+      if (
+        this.activeTab === "gradients" ||
+        this.activeTab === "patterns" ||
+        this.activeTab === "images"
+      ) {
         payload.coverId = this.selectedCover;
-      } else if (this.activeTab === 'badges') {
+      } else if (this.activeTab === "badges") {
         // Handle badge selection
         payload.selectedBadges = [...this.selectedBadges]; // Copy the array
-      } else if (this.activeTab === 'avatars') {
+      } else if (this.activeTab === "avatars") {
         // Handle avatar selection
         payload.selectedAvatar = this.selectedAvatar;
       }
@@ -569,7 +483,7 @@ export default {
       if (this.isSelected(badgeId)) {
         // Remove badge if already selected
         this.selectedBadges = this.selectedBadges.filter(
-          (id) => id !== badgeId
+          (id) => id !== badgeId,
         );
       } else if (this.selectedBadges.length < this.maxBadges) {
         // Add badge if not selected and we haven't reached the limit
@@ -577,12 +491,9 @@ export default {
       }
     },
 
-    selectAvatar(avatarId) {
-      // Find the avatar object by ID and set the URL
-      const avatar = this.avatars.find(a => a.id === avatarId);
-      if (avatar) {
-        this.selectedAvatar = avatar.url;
-      }
+    handleAvatarChange(value) {
+      // Atualiza o selectedAvatar quando o AvatarSelector emitir um novo valor
+      this.selectedAvatar = value;
     },
   },
 };
@@ -1068,8 +979,8 @@ export default {
 
 .avatars-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
   max-height: 500px;
   overflow-y: auto;
   padding: 10px;
@@ -1084,17 +995,32 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: visible;
 }
 
 .avatar-item:hover {
   background-color: #f8f9fa;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .avatar-item.selected {
-  background: #f8f9ff;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+  }
 }
 
 .avatar-preview {
@@ -1105,11 +1031,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
 }
 
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.avatar-item.selected .avatar-preview {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
 }
 </style>
