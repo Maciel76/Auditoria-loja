@@ -7,27 +7,28 @@
     <div class="decoration-circle circle-4"></div>
     <div class="decoration-circle circle-5"></div>
     <div class="decoration-circle circle-6"></div>
-    
+
     <div class="login-card">
       <!-- Cabeçalho com ícone de perfil -->
       <div class="login-header">
         <div class="logo-container">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="8" r="4" fill="white"/>
-            <path d="M20 21V19C20 16.7909 18.2091 15 16 15H8C5.79086 15 4 16.7909 4 19V21" stroke="white" stroke-width="2"/>
-          </svg>
+          <i
+            class="fas fa-user-circle"
+            style="font-size: 48px; color: white"
+          ></i>
         </div>
-        <h1>Sistema de Auditoria</h1>
-        <p>Digite sua matrícula para acessar seu perfil</p>
+        <h1>Meu Perfil</h1>
+        <p>Digite sua matrícula para ver seu perfil</p>
       </div>
 
       <!-- Formulário -->
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="input-group">
           <div class="input-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12.5L3 14V16L9 17.5V22H15V17.5L21 16V14L15 12.5V10.5L21 9Z" fill="#667eea"/>
-            </svg>
+            <i
+              class="fas fa-id-badge"
+              style="font-size: 20px; color: #667eea"
+            ></i>
           </div>
           <input
             type="text"
@@ -42,15 +43,19 @@
 
         <button type="submit" class="login-btn">
           <span>Acessar Perfil</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 17L15 12L10 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <i class="fas fa-arrow-right" style="font-size: 18px"></i>
         </button>
       </form>
 
       <!-- Rodapé -->
       <div class="login-footer">
-        <p>Não sabe sua matrícula? <span>Contate seu superior.</span></p>
+        <p>
+          <i
+            class="fas fa-question-circle"
+            style="margin-right: 6px; color: #667eea"
+          ></i
+          >Não sabe sua matrícula? <span>Contate seu superior.</span>
+        </p>
       </div>
     </div>
   </div>
@@ -77,10 +82,10 @@ export default {
       if (!this.matricula.trim()) {
         return;
       }
-      
+
       // Fazer login como usuário comum
       this.userSessionStore.loginUsuarioComum(this.matricula);
-      
+
       // Redireciona diretamente para a rota /perfil/matricula
       this.router.push(`/perfil/${this.matricula}`);
     },
@@ -157,7 +162,8 @@ export default {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) rotate(0deg);
   }
   50% {
@@ -318,22 +324,23 @@ export default {
     padding: 2.5rem 1.5rem;
     margin: 0 10px;
   }
-  
+
   .login-header h1 {
     font-size: 1.6rem;
   }
-  
+
   .logo-container {
     width: 70px;
     height: 70px;
     margin-bottom: 1.2rem;
   }
-  
+
   .decoration-circle {
     display: none; /* Esconde algumas bolinhas em mobile para não poluir */
   }
-  
-  .circle-1, .circle-2 {
+
+  .circle-1,
+  .circle-2 {
     display: block;
   }
 }

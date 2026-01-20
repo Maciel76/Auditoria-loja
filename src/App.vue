@@ -2,12 +2,15 @@
 <template>
   <div id="app">
     <!-- Tela de seleção de loja -->
-    <div v-if="!lojaStore.isLojaSelected && !userSessionStore.isUsuarioComum" class="selecao-loja-screen">
-      <SelecionarLoja @lojaAlterada="onLojaAlterada" />
+    <div v-if="rotaSemLayout" class="tela-sem-layout">
+      <router-view />
     </div>
 
-    <!-- Aplicação principal com sidebar (esconder para usuários comuns) -->
-    <div v-else-if="lojaStore.isLojaSelected && !userSessionStore.isUsuarioComum" class="app-principal">
+    <!-- Aplicação principal com sidebar -->
+    <div
+      v-else-if="lojaStore.isLojaSelected && !userSessionStore.isUsuarioComum"
+      class="app-principal"
+    >
       <AppSidebar />
     </div>
 
@@ -19,19 +22,27 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, computed } from "vue";
+import { useRoute } from "vue-router";
 import { useLojaStore } from "./store/lojaStore";
 import { useUserSessionStore } from "./store/userSessionStore";
 import SelecionarLoja from "./views/SelecionarLoja.vue";
 import AppSidebar from "./components/AppSidebar.vue";
 
+const route = useRoute();
 const lojaStore = useLojaStore();
 const userSessionStore = useUserSessionStore();
+
+// Rotas que não devem mostrar sidebar nem layout
+const rotaSemLayout = computed(() => {
+  const rotasSemLayout = ["/", "/login", "/admin/login"];
+  return rotasSemLayout.includes(route.path);
+});
 
 onMounted(() => {
   // Carregar sessão do usuário comum se existir
   userSessionStore.carregarSessao();
-  
+
   // Carregar loja salva ao inicializar
   lojaStore.carregarLoja();
 });
@@ -52,7 +63,8 @@ function onLojaAlterada(loja) {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: #f8fafc;
 }
 
@@ -65,6 +77,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.tela-sem-layout {
+  min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 

@@ -245,7 +245,8 @@ router.beforeEach((to, from, next) => {
     // Usuários comuns podem visualizar perfis de outros colegas
     // Removida a restrição que impedia visualização de outros perfis
 
-    // Permitir acesso às rotas permitidas
+    // Usuários comuns NÃO precisam de loja selecionada para acessar perfis
+    // Permitir acesso direto às rotas permitidas
     next();
     return;
   }
@@ -259,8 +260,24 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
+  // IMPORTANTE: Se a rota NÃO requer loja, verificar se precisa redirecionar para seleção
+  if (to.meta.requiresLoja === false) {
+    // Se está tentando acessar /login sem loja selecionada, redirecionar para seleção
+    if (to.path === "/login" && !lojaStore.lojaSelecionada) {
+      // Salvar rota de destino para redirecionar depois
+      sessionStorage.setItem("redirectAfterLoja", to.fullPath);
+      next("/");
+      return;
+    }
+    next();
+    return;
+  }
+
   // Se a rota requer loja mas não está selecionada, redireciona para seleção
+  // Esta verificação só afeta admins e visitantes, não usuários comuns
   if (to.meta.requiresLoja && !lojaStore.lojaSelecionada) {
+    // Salvar rota de destino para redirecionar depois
+    sessionStorage.setItem("redirectAfterLoja", to.fullPath);
     next("/");
   } else {
     next();

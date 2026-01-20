@@ -8,10 +8,10 @@
     <div class="rankings-cards">
       <router-link to="/ranking" class="ranking-card usuarios-card">
         <div class="card-icon">
-          <i class="fas fa-trophy"></i>
+          <img src="/src/assets/svg/ranking.svg" alt="Ranking" />
         </div>
         <div class="card-content">
-          <h3>Ranking de Usuários</h3>
+          <h3>Ranking Colaboradores</h3>
           <p>Veja a classificação de todos os colaboradores</p>
         </div>
         <div class="card-arrow">
@@ -21,10 +21,10 @@
 
       <router-link to="/ranking-lojas" class="ranking-card lojas-card">
         <div class="card-icon">
-          <i class="fas fa-store"></i>
+          <img src="/src/assets/svg/ranking.png" alt="Ranking Lojas" />
         </div>
         <div class="card-content">
-          <h3>Ranking de Lojas</h3>
+          <h3>Ranking Lojas</h3>
           <p>Compare o desempenho entre as unidades</p>
         </div>
         <div class="card-arrow">
@@ -165,20 +165,26 @@ export default {
   transition: transform 0.3s ease;
 }
 
+.card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .ranking-card:hover .card-icon {
   transform: scale(1.1) rotate(5deg);
 }
 
 .usuarios-card .card-icon {
-  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  background: transparent;
   color: white;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  box-shadow: none;
 }
 
 .lojas-card .card-icon {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: transparent;
   color: white;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: none;
 }
 
 .minha-loja-card .card-icon {

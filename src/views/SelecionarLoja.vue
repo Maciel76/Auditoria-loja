@@ -53,13 +53,20 @@
           ✓
         </div>
       </div>
-      <button class="AddLoja" @click="mostrarMensagem = !mostrarMensagem" alt="Adciona Nova loja">+</button>
+      <button
+        class="AddLoja"
+        @click="mostrarMensagem = !mostrarMensagem"
+        alt="Adciona Nova loja"
+      >
+        +
+      </button>
     </div>
 
     <!-- Mensagem de aviso sobre a funcionalidade indisponível -->
     <div v-if="mostrarMensagem" class="mensagem-aviso">
       <i class="fas fa-exclamation-circle icone-aviso"></i>
-      Funcionalidade de adicionar lojas ainda não está disponível. Qualquer dúvida entre em
+      Funcionalidade de adicionar lojas ainda não está disponível. Qualquer
+      dúvida entre em
       <RouterLink to="/info/contato" class="link-contato">contato</RouterLink>.
     </div>
 
@@ -188,7 +195,16 @@ function selecionarLoja(loja) {
 function continuar() {
   if (lojaSelecionada.value) {
     lojaStore.selecionarLoja(lojaSelecionada.value);
-    router.push("/selecionar-auditoria");
+
+    // Verificar se existe uma rota salva para redirecionar
+    const redirectPath = sessionStorage.getItem("redirectAfterLoja");
+    if (redirectPath) {
+      sessionStorage.removeItem("redirectAfterLoja");
+      router.push(redirectPath);
+    } else {
+      // Comportamento padrão para admin
+      router.push("/selecionar-auditoria");
+    }
   }
 }
 
@@ -430,8 +446,14 @@ h3 {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .btn-continuar:hover:not(:disabled) {
