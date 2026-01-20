@@ -3,11 +3,19 @@
     <!-- Indicador de Período -->
     <div v-if="usarPeriodoCompleto" class="periodo-indicator">
       <i class="fas fa-calendar-alt"></i>
-      <span>Exibindo <strong>TODAS as auditorias</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong> do período completo (Modelo: MetricasUsuario)</span>
+      <span
+        >Exibindo <strong>TODAS as auditorias</strong> de
+        <strong>{{ getTipoAuditoriaName(filtroTipoAuditoriaCompleto) }}</strong>
+        do período completo (Modelo: MetricasUsuario)</span
+      >
     </div>
     <div v-else class="periodo-indicator periodo-diario">
       <i class="fas fa-calendar-day"></i>
-      <span>Exibindo auditorias <strong>DIÁRIAS</strong> de <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong> (Modelo: UserDailyMetrics)</span>
+      <span
+        >Exibindo auditorias <strong>DIÁRIAS</strong> de
+        <strong>{{ getTipoAuditoriaName(filtroTipoAuditoria) }}</strong>
+        (Modelo: UserDailyMetrics)</span
+      >
     </div>
 
     <!-- Hero Section -->
@@ -249,7 +257,7 @@ export default {
     const totalItensLidos = computed(() => {
       return usuarios.value.reduce(
         (total, usuario) => total + (usuario.contador || 0),
-        0
+        0,
       );
     });
 
@@ -266,7 +274,7 @@ export default {
     const percentualAboveAverage = computed(() => {
       if (usuarios.value.length === 0) return 0;
       const aboveAverage = usuarios.value.filter(
-        (u) => u.contador > mediaItensPorUsuario.value
+        (u) => u.contador > mediaItensPorUsuario.value,
       ).length;
       return Math.round((aboveAverage / usuarios.value.length) * 100);
     });
@@ -283,7 +291,7 @@ export default {
     };
 
     const setPeriodo = async (periodo) => {
-      const novoValor = periodo === 'completo';
+      const novoValor = periodo === "completo";
       if (usarPeriodoCompleto.value !== novoValor) {
         usarPeriodoCompleto.value = novoValor;
         await buscarDados();
@@ -338,7 +346,7 @@ export default {
         }));
 
         console.log(
-          `✅ ${usuarios.value.length} colaboradores carregados do ${modeloUsado}`
+          `✅ ${usuarios.value.length} colaboradores carregados do ${modeloUsado}`,
         );
 
         // Log para debug
@@ -398,7 +406,7 @@ export default {
         "Posição,Nome,Matrícula,Itens Lidos,Eficiência (%),Pontuação,Posição na Loja,Tipo de Auditoria,Data da Última Atualização,Loja",
         ...rankingData.map(
           (item) =>
-            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Lidos"]},${item["Eficiência (%)"]},${item.Pontuação},"${item["Posição na Loja"]}","${item["Tipo de Auditoria"]}","${item["Data da Última Atualização"]}","${item.Loja}"`
+            `"${item.Posição}","${item.Nome}","${item.Matrícula}",${item["Itens Lidos"]},${item["Eficiência (%)"]},${item.Pontuação},"${item["Posição na Loja"]}","${item["Tipo de Auditoria"]}","${item["Data da Última Atualização"]}","${item.Loja}"`,
         ),
       ].join("\n");
 
@@ -411,7 +419,7 @@ export default {
         "download",
         `ranking_colaboradores_${tipoTexto.toLowerCase()}_${
           new Date().toISOString().split("T")[0]
-        }.csv`
+        }.csv`,
       );
       link.style.visibility = "hidden";
 
@@ -420,7 +428,7 @@ export default {
       document.body.removeChild(link);
 
       console.log(
-        `📊 Exportado ranking de ${rankingData.length} colaboradores (${tipoTexto})`
+        `📊 Exportado ranking de ${rankingData.length} colaboradores (${tipoTexto})`,
       );
     };
 
@@ -428,49 +436,51 @@ export default {
     const gerarImagemParaCompartilhar = async () => {
       try {
         // Importar html2canvas dinamicamente
-        const { default: html2canvas } = await import('html2canvas');
+        const { default: html2canvas } = await import("html2canvas");
 
         // Criar um container temporário com apenas os elementos que queremos capturar
-        const contentToCapture = document.createElement('div');
-        contentToCapture.style.position = 'absolute';
-        contentToCapture.style.left = '-9999px';
-        contentToCapture.style.width = '1200px';
-        contentToCapture.style.maxWidth = '100%';
-        contentToCapture.style.backgroundColor = 'white';
-        contentToCapture.style.padding = '30px';
-        contentToCapture.style.boxSizing = 'border-box';
-        contentToCapture.style.overflow = 'hidden';
+        const contentToCapture = document.createElement("div");
+        contentToCapture.style.position = "absolute";
+        contentToCapture.style.left = "-9999px";
+        contentToCapture.style.width = "1200px";
+        contentToCapture.style.maxWidth = "100%";
+        contentToCapture.style.backgroundColor = "white";
+        contentToCapture.style.padding = "30px";
+        contentToCapture.style.boxSizing = "border-box";
+        contentToCapture.style.overflow = "hidden";
 
         // Título
-        const titleElement = document.createElement('h1');
-        titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'}`;
-        titleElement.style.textAlign = 'center';
-        titleElement.style.color = '#1f2937';
-        titleElement.style.marginBottom = '30px';
-        titleElement.style.fontSize = '24px';
+        const titleElement = document.createElement("h1");
+        titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || "Loja"}`;
+        titleElement.style.textAlign = "center";
+        titleElement.style.color = "#1f2937";
+        titleElement.style.marginBottom = "30px";
+        titleElement.style.fontSize = "24px";
         titleElement.style.fontFamily = '"Inter", sans-serif';
         contentToCapture.appendChild(titleElement);
 
         // Clonar o pódio Top Performers
-        const podiumElement = document.querySelector('.podium-section');
+        const podiumElement = document.querySelector(".podium-section");
         if (podiumElement) {
           const podiumClone = podiumElement.cloneNode(true);
-          podiumClone.style.width = '100%';
-          podiumClone.style.overflow = 'visible';
+          podiumClone.style.width = "100%";
+          podiumClone.style.overflow = "visible";
           contentToCapture.appendChild(podiumClone);
         }
 
         // Clonar a lista de ranking com base no modo de visualização atual
         let rankingListToCapture = null;
 
-        if (viewMode.value === 'podium') {
+        if (viewMode.value === "podium") {
           // Em modo pódio, capturar apenas os primeiros colaboradores (do 4º ao 15º lugar)
-          const rankingListElement = document.querySelector('.full-ranking-section');
+          const rankingListElement = document.querySelector(
+            ".full-ranking-section",
+          );
           if (rankingListElement) {
             const rankingClone = rankingListElement.cloneNode(true);
 
             // Encontrar e manter apenas os primeiros 12 colaboradores (posição 4 a 15)
-            const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+            const rankingItems = rankingClone.querySelectorAll(".ranking-item");
             if (rankingItems.length > 0) {
               // Remover itens além dos 12 primeiros (para que tenhamos do 4º ao 15º)
               for (let i = 12; i < rankingItems.length; i++) {
@@ -478,17 +488,19 @@ export default {
               }
             }
 
-            rankingClone.style.width = '100%';
-            rankingClone.style.overflow = 'visible';
+            rankingClone.style.width = "100%";
+            rankingClone.style.overflow = "visible";
             rankingListToCapture = rankingClone;
           }
-        } else if (viewMode.value === 'all') {
+        } else if (viewMode.value === "all") {
           // Em modo lista, capturar a lista completa de ranking
-          const rankingListElement = document.querySelector('.full-ranking-section');
+          const rankingListElement = document.querySelector(
+            ".full-ranking-section",
+          );
           if (rankingListElement) {
             const rankingClone = rankingListElement.cloneNode(true);
-            rankingClone.style.width = '100%';
-            rankingClone.style.overflow = 'visible';
+            rankingClone.style.width = "100%";
+            rankingClone.style.overflow = "visible";
             rankingListToCapture = rankingClone;
           }
         }
@@ -501,15 +513,17 @@ export default {
         document.body.appendChild(contentToCapture);
 
         // Aguardar um pouco para garantir que todos os estilos e imagens sejam carregados
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Processar avatares que usam iniciais (geralmente SVGs ou fallbacks)
-        const avatarImages = contentToCapture.querySelectorAll('.avatar-icon img, .user-avatar img');
-        avatarImages.forEach(img => {
+        const avatarImages = contentToCapture.querySelectorAll(
+          ".avatar-icon img, .user-avatar img",
+        );
+        avatarImages.forEach((img) => {
           // Força o carregamento da imagem
-          if (img.src.includes('ui-avatars.com')) {
+          if (img.src.includes("ui-avatars.com")) {
             // Força o carregamento da imagem de iniciais
-            img.crossOrigin = 'anonymous';
+            img.crossOrigin = "anonymous";
           }
         });
 
@@ -521,7 +535,7 @@ export default {
           scale: 2, // Maior qualidade
           useCORS: true,
           allowTaint: true,
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
           width: Math.min(1200, window.innerWidth || 1200), // Ajustar largura dinamicamente
           height: height + 100, // Adicionar um pouco de altura extra
           scrollX: 0,
@@ -531,78 +545,89 @@ export default {
           // Opções para melhor renderização de conteúdo responsivo
           onclone: (clonedDoc) => {
             // Ajustar estilos para melhor captura
-            const elements = clonedDoc.querySelectorAll('.ranking-item, .podium-item');
-            elements.forEach(el => {
-              el.style.maxWidth = '100%';
-              el.style.overflow = 'visible';
+            const elements = clonedDoc.querySelectorAll(
+              ".ranking-item, .podium-item",
+            );
+            elements.forEach((el) => {
+              el.style.maxWidth = "100%";
+              el.style.overflow = "visible";
             });
 
             // Garantir que os avatares sejam renderizados corretamente
-            const avatarImgs = clonedDoc.querySelectorAll('.avatar-icon img, .user-avatar img');
-            avatarImgs.forEach(img => {
+            const avatarImgs = clonedDoc.querySelectorAll(
+              ".avatar-icon img, .user-avatar img",
+            );
+            avatarImgs.forEach((img) => {
               // Força renderização de imagens de avatares/iniciais
               if (!img.complete) {
-                img.style.visibility = 'hidden';
+                img.style.visibility = "hidden";
                 img.onload = () => {
-                  img.style.visibility = 'visible';
+                  img.style.visibility = "visible";
                 };
               }
             });
-          }
+          },
         });
 
         // Remover o elemento temporário
         document.body.removeChild(contentToCapture);
 
         // Converter canvas para imagem
-        const imgData = canvas.toDataURL('image/png');
+        const imgData = canvas.toDataURL("image/png");
 
         // Criar link para download
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = imgData;
-        link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || 'loja'}-${new Date().toISOString().slice(0, 10)}-${viewMode.value}.png`;
+        link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || "loja"}-${new Date().toISOString().slice(0, 10)}-${viewMode.value}.png`;
         link.click();
-
       } catch (error) {
-        console.error('Erro ao gerar imagem para compartilhamento:', error);
+        console.error("Erro ao gerar imagem para compartilhamento:", error);
 
         // Fallback - abrir uma nova janela com os elementos para impressão
-        const podiumElement = document.querySelector('.podium-section');
+        const podiumElement = document.querySelector(".podium-section");
 
         // Determinar qual conteúdo de ranking será capturado com base no modo de visualização
         let rankingListElement = null;
-        if (viewMode.value === 'podium') {
-          rankingListElement = document.querySelector('.full-ranking-section');
-        } else if (viewMode.value === 'all') {
-          rankingListElement = document.querySelector('.full-ranking-section');
+        if (viewMode.value === "podium") {
+          rankingListElement = document.querySelector(".full-ranking-section");
+        } else if (viewMode.value === "all") {
+          rankingListElement = document.querySelector(".full-ranking-section");
         }
 
         if (podiumElement || rankingListElement) {
-          let printContent = '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
-          printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || 'Loja'} - Modo: ${viewMode.value === 'podium' ? 'Pódio' : 'Lista Completa'}</h1>`;
+          let printContent =
+            '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
+          printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || "Loja"} - Modo: ${viewMode.value === "podium" ? "Pódio" : "Lista Completa"}</h1>`;
 
           if (podiumElement) {
-            printContent += '<div style="margin-bottom: 30px;">' + podiumElement.outerHTML + '</div>';
+            printContent +=
+              '<div style="margin-bottom: 30px;">' +
+              podiumElement.outerHTML +
+              "</div>";
           }
 
           if (rankingListElement) {
             // Clonar a lista baseado no modo de visualização
             const rankingClone = rankingListElement.cloneNode(true);
-            if (viewMode.value === 'podium') {
+            if (viewMode.value === "podium") {
               // Limitar a 12 colaboradores (posição 4 a 15)
-              const rankingItems = rankingClone.querySelectorAll('.ranking-item');
+              const rankingItems =
+                rankingClone.querySelectorAll(".ranking-item");
               if (rankingItems.length > 12) {
                 for (let i = 12; i < rankingItems.length; i++) {
                   rankingItems[i].remove();
                 }
               }
             }
-            printContent += '<div style="margin-top: 30px;">' + rankingClone.innerHTML + '</div>';
+            printContent +=
+              '<div style="margin-top: 30px;">' +
+              rankingClone.innerHTML +
+              "</div>";
           }
 
-          printContent += '</div>';
+          printContent += "</div>";
 
-          const printWindow = window.open('', '_blank');
+          const printWindow = window.open("", "_blank");
           printWindow.document.write(`
             <html>
               <head>
@@ -626,7 +651,9 @@ export default {
             printWindow.print();
           }, 500);
         } else {
-          alert('Não foi possível encontrar os elementos para compartilhamento.');
+          alert(
+            "Não foi possível encontrar os elementos para compartilhamento.",
+          );
         }
       }
     };
@@ -647,7 +674,7 @@ export default {
         } else {
           usuarios.value = [];
         }
-      }
+      },
     );
 
     return {

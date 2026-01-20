@@ -433,7 +433,7 @@ const dadosReais = ref({
 const carregando = ref(true);
 const erro = ref(null);
 
-// Ícones para cada classe de produtos
+// Ícones para cada classe de produtos - dinâmico
 const iconesClasses = {
   "A CLASSIFICAR": "❓",
   "ALTO GIRO": "⚡",
@@ -452,6 +452,34 @@ const iconesClasses = {
   "SECA SALGADA 2": "🥫",
 };
 
+// Função para obter ícone dinamicamente baseado no nome da classe
+const getIconeClasse = (classe) => {
+  if (iconesClasses[classe]) {
+    return iconesClasses[classe];
+  }
+
+  // Mapeamento genérico baseado em palavras-chave
+  const classeUpper = classe.toUpperCase();
+  if (classeUpper.includes('GIRO')) return '⚡';
+  if (classeUpper.includes('BAZAR')) return '🛍️';
+  if (classeUpper.includes('DIVERSOS')) return '🧰';
+  if (classeUpper.includes('DPH') || classeUpper.includes('HIGIENE') || classeUpper.includes('BELEZA')) return '🧴';
+  if (classeUpper.includes('FLV') || classeUpper.includes('FRUTA') || classeUpper.includes('VERDU') || classeUpper.includes('LEGUM')) return '🍎';
+  if (classeUpper.includes('LATIC') || classeUpper.includes('LEITE')) return '🥛';
+  if (classeUpper.includes('LIQUIDA')) return '🥤';
+  if (classeUpper.includes('PEREC') || classeUpper.includes('CARNE') || classeUpper.includes('AVE') || classeUpper.includes('SUA')) return '🍗';
+  if (classeUpper.includes('DOCE') || classeUpper.includes('CONFEIT')) return '🍬';
+  if (classeUpper.includes('SALGAD') || classeUpper.includes('BISCOITO') || classeUpper.includes('SALG')) return '🍿';
+  if (classeUpper.includes('PAD') || classeUpper.includes('PAO') || classeUpper.includes('BOLO')) return '🍞';
+  if (classeUpper.includes('BEBID') || classeUpper.includes('REFRI') || classeUpper.includes('SUCO')) return '🥤';
+  if (classeUpper.includes('FRIOS')) return '❄️';
+  if (classeUpper.includes('FROZEN')) return '🧊';
+  if (classeUpper.includes('PET') || classeUpper.includes('H2O')) return '💧';
+
+  // Retorna ícone padrão se não encontrar correspondência
+  return '📦';
+};
+
 const setorSelecionado = ref(null);
 
 // Computed para obter dados filtrados pelo tipo de auditoria
@@ -463,7 +491,7 @@ const dadosFiltrados = computed(() => {
     ([classe, dados]) => {
       return {
         ClasseProduto: classe,
-        icone: iconesClasses[classe] || "📦",
+        icone: getIconeClasse(classe),
         totalItens: dados.total || 0,
         itensValidos: dados.itensValidos || 0,
         itensLidos: dados.lidos || 0,
