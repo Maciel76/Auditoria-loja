@@ -3,7 +3,11 @@
     <div class="perfil-cover" :style="coverStyle">
       <div class="cover-pattern"></div>
       <div class="cover-overlay">
-        <button class="btn-edit-cover" @click="showCoverSelector = true">
+        <button
+          class="btn-edit-cover"
+          @click="showCoverSelector = true"
+          v-if="!userSessionStore.isUsuarioComum"
+        >
           <i class="fas fa-pencil-alt"></i>
           <span class="btn-tooltip">Editar Tema e Informações da Loja</span>
         </button>
@@ -113,11 +117,18 @@
 import CoverSelector from "@/components/CoverSelector.vue";
 import axios from "axios";
 import { useLojaStore } from "@/store/lojaStore.js";
+import { useUserSessionStore } from "@/store/userSessionStore";
 
 export default {
   name: "PerfilHeaderLoja",
   components: {
     CoverSelector,
+  },
+  setup() {
+    const userSessionStore = useUserSessionStore();
+    return {
+      userSessionStore,
+    };
   },
   props: {
     loja: {
@@ -393,18 +404,18 @@ export default {
 
           // Update in backend
           const response = await this.updateBadgesOnBackend(
-            payload.selectedBadges
+            payload.selectedBadges,
           );
 
           if (response.success) {
             console.log(
               "Selos atualizados com sucesso:",
-              payload.selectedBadges
+              payload.selectedBadges,
             );
           } else {
             console.error(
               "Erro ao atualizar selos no backend:",
-              response.message
+              response.message,
             );
           }
 
@@ -421,7 +432,7 @@ export default {
             // Update in localStorage as well
             localStorage.setItem(
               "lojaSelecionada",
-              JSON.stringify(lojaStore.lojaSelecionada)
+              JSON.stringify(lojaStore.lojaSelecionada),
             );
           }
         } else {
@@ -449,7 +460,7 @@ export default {
           } else {
             console.error(
               "Erro ao atualizar cover no backend:",
-              response.message
+              response.message,
             );
           }
         }
@@ -467,7 +478,7 @@ export default {
           `http://localhost:3000/api/stores/${this.loja.codigo}/cover`,
           {
             coverId: coverId,
-          }
+          },
         );
 
         return { success: true, data: response.data };
@@ -487,7 +498,7 @@ export default {
           `http://localhost:3000/api/stores/${this.loja.codigo}/badges`,
           {
             selectedBadges: selectedBadges,
-          }
+          },
         );
 
         return { success: true, data: response.data };
@@ -520,7 +531,7 @@ export default {
             // Update in localStorage as well
             localStorage.setItem(
               "lojaSelecionada",
-              JSON.stringify(lojaStore.lojaSelecionada)
+              JSON.stringify(lojaStore.lojaSelecionada),
             );
           }
 
@@ -528,13 +539,13 @@ export default {
         } else {
           console.error(
             "Erro ao atualizar informações da loja no backend:",
-            response.message
+            response.message,
           );
         }
       } catch (error) {
         console.error("Erro ao atualizar informações da loja:", error);
         alert(
-          "Erro ao atualizar as informações da loja. Por favor, tente novamente."
+          "Erro ao atualizar as informações da loja. Por favor, tente novamente.",
         );
       }
     },
@@ -543,10 +554,10 @@ export default {
       try {
         // First, get the store to get its ID
         const lojasResponse = await axios.get(
-          "http://localhost:3000/api/stores"
+          "http://localhost:3000/api/stores",
         );
         const loja = lojasResponse.data.find(
-          (l) => l.codigo === this.loja.codigo
+          (l) => l.codigo === this.loja.codigo,
         );
 
         if (!loja) {
@@ -567,14 +578,14 @@ export default {
               gerente: info.gerente || loja.metadata?.gerente,
             },
             regiao: info.regiao || loja.regiao,
-          }
+          },
         );
 
         return { success: true, data: response.data };
       } catch (error) {
         console.error(
           "Erro ao atualizar informações da loja no backend:",
-          error
+          error,
         );
         return {
           success: false,
@@ -1035,11 +1046,15 @@ export default {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 2px 8px rgba(102, 126, 234, 0.18), 0 1px 0 #fff;
+  text-shadow:
+    0 2px 8px rgba(102, 126, 234, 0.18),
+    0 1px 0 #fff;
   letter-spacing: 1px;
   border-radius: 8px;
   padding: 2px 12px 2px 6px;
-  box-shadow: 0 2px 12px 0 rgba(102, 126, 234, 0.1), 0 1.5px 0 #fff;
+  box-shadow:
+    0 2px 12px 0 rgba(102, 126, 234, 0.1),
+    0 1.5px 0 #fff;
   transition: color 0.2s;
 }
 
@@ -1312,7 +1327,9 @@ export default {
     width: 110px;
     height: 110px;
     font-size: 2.5rem;
-    box-shadow: 0 4px 24px 0 rgba(102, 126, 234, 0.18), 0 2px 0 #fff;
+    box-shadow:
+      0 4px 24px 0 rgba(102, 126, 234, 0.18),
+      0 2px 0 #fff;
     border: 4px solid #fff;
     background: #f8f8fa;
     z-index: 10;

@@ -3,6 +3,7 @@ import Upload from "../views/Upload.vue";
 import Usuarios from "../views/Usuarios.vue";
 import RankingColaboradores from "../views/RankingColaboradores.vue";
 import RankingLojas from "../views/RankingLojas.vue";
+import ListaLojas from "../views/ListaLojas.vue";
 import Setores from "../views/Setores.vue";
 import ListaUsuarios from "../views/ListaUsuarios.vue";
 import PerfilUsuario from "../views/PerfilUsuario.vue";
@@ -18,6 +19,7 @@ import TesteMetricas from "@/views/PerfilLoja/TesteMetricas.vue";
 import AdminLogin from "@/views/AdminLogin.vue";
 import { useLojaStore } from "../store/lojaStore";
 import { useAuthStore } from "../store/authStore";
+import { useUserSessionStore } from "../store/userSessionStore";
 import Login from "@/views/Login.vue";
 
 // InfoSite components
@@ -82,6 +84,12 @@ const routes = [
     name: "RankingLojas",
     component: RankingLojas,
     meta: { requiresLoja: false }, // Ranking de lojas não precisa de loja específica
+  },
+  {
+    path: "/lojas",
+    name: "ListaLojas",
+    component: ListaLojas,
+    meta: { requiresLoja: false }, // Lista de lojas não precisa de loja específica
   },
 
   {
@@ -218,6 +226,29 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const lojaStore = useLojaStore();
   const authStore = useAuthStore();
+  const userSessionStore = useUserSessionStore();
+
+  // Carregar sessão do usuário comum se existir
+  if (!userSessionStore.usuarioComum) {
+    userSessionStore.carregarSessao();
+  }
+
+  // Se é usuário comum, verificar permissões
+  if (userSessionStore.isUsuarioComum) {
+    // Permitir apenas rotas específicas para usuário comum
+    if (!userSessionStore.podeAcessarRota(to.name)) {
+      // Redirecionar para o perfil do usuário
+      next(`/perfil/${userSessionStore.getUsuarioId}`);
+      return;
+    }
+
+    // Usuários comuns podem visualizar perfis de outros colegas
+    // Removida a restrição que impedia visualização de outros perfis
+
+    // Permitir acesso às rotas permitidas
+    next();
+    return;
+  }
 
   // NÃO verificar sessão salva - sempre requer login
 

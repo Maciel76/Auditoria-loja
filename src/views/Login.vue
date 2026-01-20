@@ -58,12 +58,14 @@
 
 <script>
 import { useRouter } from "vue-router";
+import { useUserSessionStore } from "@/store/userSessionStore";
 
 export default {
   name: "LoginView",
   setup() {
     const router = useRouter();
-    return { router };
+    const userSessionStore = useUserSessionStore();
+    return { router, userSessionStore };
   },
   data() {
     return {
@@ -75,6 +77,9 @@ export default {
       if (!this.matricula.trim()) {
         return;
       }
+      
+      // Fazer login como usuário comum
+      this.userSessionStore.loginUsuarioComum(this.matricula);
       
       // Redireciona diretamente para a rota /perfil/matricula
       this.router.push(`/perfil/${this.matricula}`);

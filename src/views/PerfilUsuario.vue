@@ -19,13 +19,54 @@
         <div class="perfil-cover" :style="coverStyle">
           <div class="cover-pattern"></div>
           <div class="cover-overlay">
-            <button class="btn-edit-cover" @click="showCoverSelector = true">
+            <button
+              class="btn-edit-cover"
+              @click="showCoverSelector = true"
+              v-if="
+                !userSessionStore.isUsuarioComum ||
+                (userSessionStore.isUsuarioComum &&
+                  usuario.id === userSessionStore.getUsuarioId)
+              "
+            >
               <i class="fas fa-pencil-alt"></i>
               <span class="btn-tooltip">Personalizar Perfil</span>
             </button>
-            <div class="user-status">
-              <i class="fas fa-user-check"></i>
-              Colaborador Ativo
+
+            <!-- Badge de Usuário Comum -->
+            <div
+              v-if="
+                userSessionStore.isUsuarioComum &&
+                usuario.id === userSessionStore.getUsuarioId
+              "
+              class="usuario-comum-badge"
+            >
+              <i class="fas fa-user"></i>
+              <span>Modo Visualização</span>
+            </div>
+
+            <div class="header-actions">
+              <button
+                v-if="usuario.loja"
+                class="user-status"
+                @click="irParaPerfilLoja"
+              >
+                <img
+                  src="@/assets/svg/StorePerfil.svg"
+                  alt="Loja"
+                  class="store-icon"
+                />
+                {{ usuario.loja.nome }}
+              </button>
+
+              <!-- Botão de Logout para Usuário Comum -->
+              <button
+                v-if="userSessionStore.isUsuarioComum"
+                class="btn-logout"
+                @click="fazerLogout"
+                title="Sair"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -74,9 +115,9 @@
           <div class="perfil-stats">
             <div class="stat-item">
               <div class="stat-number">
-                {{ conquistasDesbloqueadas.length }}
+                {{ usuario.contador || 0 }}
               </div>
-              <div class="stat-label">Conquistas</div>
+              <div class="stat-label">Itens Auditados</div>
             </div>
             <div class="stat-item">
               <div class="stat-number">#{{ posicaoRanking }}</div>
@@ -90,25 +131,175 @@
         </div>
       </div>
 
+      <!-- Navegação para Rankings - Visível para Usuário Comum -->
+      <NavegacaoRankings
+        v-if="userSessionStore.isUsuarioComum"
+        :loja-link="usuario.loja ? `/perfil-loja/${usuario.loja.codigo}` : null"
+      />
+
+      <!-- Colegas da Mesma Loja -->
+      <ColegasLoja
+        v-if="usuario.loja && usuario.loja.nome"
+        :loja="usuario.loja.nome"
+        :usuario-atual-id="usuario.id"
+      />
+
       <!-- Galeria de Conquistas -->
       <div class="conquistas-gallery">
-        <h2>
-          Galeria de Conquistas ({{ conquistasDesbloqueadas.length }} /
-          {{ todasConquistas.length }})
-        </h2>
-        <div class="conquistas-grid">
+        <div class="gallery-header">
+          <div class="header-title">
+            <h2>
+              <i class="fas fa-trophy"></i>
+              Galeria de Conquistas
+            </h2>
+            <p class="subtitle">Desbloqueie conquistas e ganhe XP extra!</p>
+          </div>
+
+          <div class="progresso-geral">
+            <div class="progresso-info">
+              <span class="progresso-label">Progresso Geral</span>
+              <span class="progresso-numeros">
+                {{ conquistasDesbloqueadas.length }} /
+                {{ todasConquistas.length }}
+              </span>
+            </div>
+            <div class="progresso-bar">
+              <div
+                class="progresso-fill"
+                :style="{ width: progressoPercentual + '%' }"
+              >
+                <span class="progresso-text">{{ progressoPercentual }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros e Ordenação -->
+        <div class="conquistas-controls">
+          <div class="filtros-tabs">
+            <button
+              class="tab-btn"
+              :class="{ active: filtroAtivo === 'todas' }"
+              @click="filtroAtivo = 'todas'"
+            >
+              <i class="fas fa-list"></i>
+              Todas ({{ todasConquistas.length }})
+            </button>
+            <button
+              class="tab-btn"
+              :class="{ active: filtroAtivo === 'desbloqueadas' }"
+              @click="filtroAtivo = 'desbloqueadas'"
+            >
+              <i class="fas fa-check-circle"></i>
+              Desbloqueadas ({{ conquistasDesbloqueadas.length }})
+            </button>
+            <button
+              class="tab-btn"
+              :class="{ active: filtroAtivo === 'bloqueadas' }"
+              @click="filtroAtivo = 'bloqueadas'"
+            >
+              <i class="fas fa-lock"></i>
+              Bloqueadas ({{ conquistasBloqueadas.length }})
+            </button>
+          </div>
+
+          <div class="ordenacao">
+            <label>
+              <i class="fas fa-sort"></i>
+              Ordenar:
+            </label>
+            <select v-model="ordenacaoAtiva" class="ordenacao-select">
+              <option value="padrao">Padrão</option>
+              <option value="xp-desc">Maior XP</option>
+              <option value="xp-asc">Menor XP</option>
+              <option value="nome">Nome A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Grid de Conquistas -->
+        <div v-if="conquistasFiltradas.length === 0" class="conquistas-empty">
+          <i class="fas fa-medal"></i>
+          <p>Nenhuma conquista encontrada nesta categoria.</p>
+        </div>
+
+        <div v-else class="conquistas-grid">
           <div
-            v-for="conquista in todasConquistas"
+            v-for="conquista in conquistasFiltradas"
             :key="conquista.achievementId"
             class="conquista-card"
-            :class="{ desbloqueada: conquista.desbloqueada }"
+            :class="{
+              desbloqueada: conquista.desbloqueada,
+              rara: conquista.points >= 100,
+              epica: conquista.points >= 200,
+            }"
           >
+            <!-- Badge de Raridade -->
+            <div
+              v-if="conquista.desbloqueada && conquista.points >= 100"
+              class="badge-raridade"
+            >
+              <span v-if="conquista.points >= 200">Épica</span>
+              <span v-else>Rara</span>
+            </div>
+
             <div class="conquista-icon">
               {{ conquista.desbloqueada ? conquista.icon : "🔒" }}
             </div>
-            <h4 class="conquista-titulo">{{ conquista.title }}</h4>
-            <p class="conquista-descricao">{{ conquista.description }}</p>
-            <span class="conquista-xp">{{ conquista.points }} XP</span>
+
+            <div class="conquista-content">
+              <h4 class="conquista-titulo">{{ conquista.title }}</h4>
+              <p class="conquista-descricao">{{ conquista.description }}</p>
+
+              <div class="conquista-footer">
+                <span class="conquista-xp">
+                  <i class="fas fa-star"></i>
+                  {{ conquista.points }} XP
+                </span>
+
+                <!-- Data de desbloqueio (se disponível) -->
+                <span
+                  v-if="conquista.desbloqueada && conquista.unlockedAt"
+                  class="conquista-data"
+                >
+                  <i class="fas fa-calendar"></i>
+                  {{ formatarData(conquista.unlockedAt) }}
+                </span>
+
+                <!-- Progresso (para conquistas progressivas) -->
+                <span
+                  v-if="!conquista.desbloqueada && conquista.progresso"
+                  class="conquista-progresso"
+                >
+                  {{ conquista.progresso }}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas Adicionais -->
+        <div class="conquistas-stats">
+          <div class="stat-box">
+            <i class="fas fa-fire"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ xpTotalConquistas }}</span>
+              <span class="stat-label">XP de Conquistas</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <i class="fas fa-star"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ conquistasRaras }}</span>
+              <span class="stat-label">Conquistas Raras</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <i class="fas fa-gem"></i>
+            <div class="stat-info">
+              <span class="stat-value">{{ conquistasEpicas }}</span>
+              <span class="stat-label">Conquistas Épicas</span>
+            </div>
           </div>
         </div>
       </div>
@@ -121,13 +312,18 @@ import { useRouter } from "vue-router";
 import { useNivelStore } from "@/store/nivelStore";
 import { useConquistasStore } from "@/store/conquistasStore";
 import { useLojaStore } from "@/store/lojaStore";
+import { useUserSessionStore } from "@/store/userSessionStore";
 import UserCoverSelector from "@/components/UserCoverSelector.vue";
+import ColegasLoja from "@/components/ColegasLoja.vue";
+import NavegacaoRankings from "@/components/NavegacaoRankings.vue";
 import axios from "axios";
 
 export default {
   name: "PerfilUsuario",
   components: {
     UserCoverSelector,
+    ColegasLoja,
+    NavegacaoRankings,
   },
   props: {
     id: {
@@ -139,6 +335,7 @@ export default {
     const router = useRouter();
     const lojaStore = useLojaStore();
     const nivelStore = useNivelStore();
+    const userSessionStore = useUserSessionStore();
 
     const voltarParaLista = () => {
       // Verificar se veio de uma rota específica ou usar rota padrão
@@ -153,6 +350,7 @@ export default {
       voltarParaLista,
       lojaStore,
       nivelStore,
+      userSessionStore,
     };
   },
   data() {
@@ -173,11 +371,22 @@ export default {
         conquistas: [], // IDs das conquistas desbloqueadas
         coverId: "gradient-1",
         selectedBadges: [],
+        loja: null, // Informação da loja do usuário
       },
       carregando: true,
       todasConquistas: [],
       showCoverSelector: false,
+      filtroAtivo: "todas",
+      ordenacaoAtiva: "padrao",
     };
+  },
+  watch: {
+    // Monitorar mudanças no ID da rota para recarregar o perfil
+    id(novoId, antigoId) {
+      if (novoId !== antigoId) {
+        this.carregarUsuarioPorId(novoId);
+      }
+    },
   },
   async mounted() {
     try {
@@ -212,6 +421,68 @@ export default {
       return this.todasConquistas.filter((c) =>
         this.usuario.conquistas.includes(c.achievementId),
       );
+    },
+
+    conquistasBloqueadas() {
+      if (!this.usuario.conquistas) {
+        return this.todasConquistas;
+      }
+      return this.todasConquistas.filter(
+        (c) => !this.usuario.conquistas.includes(c.achievementId),
+      );
+    },
+
+    progressoPercentual() {
+      if (this.todasConquistas.length === 0) return 0;
+      return Math.round(
+        (this.conquistasDesbloqueadas.length / this.todasConquistas.length) *
+          100,
+      );
+    },
+
+    conquistasFiltradas() {
+      let conquistas = [];
+
+      // Aplicar filtro
+      switch (this.filtroAtivo) {
+        case "desbloqueadas":
+          conquistas = this.conquistasDesbloqueadas;
+          break;
+        case "bloqueadas":
+          conquistas = this.conquistasBloqueadas;
+          break;
+        default:
+          conquistas = [...this.todasConquistas];
+      }
+
+      // Aplicar ordenação
+      switch (this.ordenacaoAtiva) {
+        case "xp-desc":
+          return conquistas.sort((a, b) => b.points - a.points);
+        case "xp-asc":
+          return conquistas.sort((a, b) => a.points - b.points);
+        case "nome":
+          return conquistas.sort((a, b) => a.title.localeCompare(b.title));
+        default:
+          return conquistas;
+      }
+    },
+
+    xpTotalConquistas() {
+      return this.conquistasDesbloqueadas.reduce(
+        (total, c) => total + c.points,
+        0,
+      );
+    },
+
+    conquistasRaras() {
+      return this.conquistasDesbloqueadas.filter(
+        (c) => c.points >= 100 && c.points < 200,
+      ).length;
+    },
+
+    conquistasEpicas() {
+      return this.conquistasDesbloqueadas.filter((c) => c.points >= 200).length;
     },
 
     coverStyle() {
@@ -327,6 +598,7 @@ export default {
             conquistas: usuarioApi.conquistas || [],
             coverId: usuarioApi.coverId || "gradient-1",
             selectedBadges: usuarioApi.selectedBadges || [],
+            loja: usuarioApi.loja || null,
           };
 
           // Mark which achievements are unlocked
@@ -373,7 +645,9 @@ export default {
         return usuario.foto;
       }
       // Generate a default avatar using DiceBear if no photo is set
-      const seed = usuario.nome ? encodeURIComponent(usuario.nome.toLowerCase()) : 'default';
+      const seed = usuario.nome
+        ? encodeURIComponent(usuario.nome.toLowerCase())
+        : "default";
       return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
     },
 
@@ -393,6 +667,12 @@ export default {
       }
     },
 
+    irParaPerfilLoja() {
+      if (this.usuario.loja && this.usuario.loja.codigo) {
+        this.$router.push(`/perfil-loja/${this.usuario.loja.codigo}`);
+      }
+    },
+
     voltarParaLista() {
       // Garante navegação para rota correta
       if (this.$router) {
@@ -400,6 +680,23 @@ export default {
       } else {
         window.location.href = "/usuarios";
       }
+    },
+
+    formatarData(data) {
+      if (!data) return "";
+      const date = new Date(data);
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+      });
+    },
+
+    fazerLogout() {
+      // Fazer logout do usuário comum
+      this.userSessionStore.logoutUsuarioComum();
+
+      // Redirecionar para a página de login
+      this.$router.push("/login");
     },
 
     async handleCoverSelected(payload) {
@@ -576,6 +873,54 @@ export default {
   align-items: flex-start;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.usuario-comum-badge {
+  background: rgba(52, 152, 219, 0.95);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.95rem;
+  color: white;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.usuario-comum-badge i {
+  font-size: 1rem;
+}
+
+.btn-logout {
+  background: rgba(231, 76, 60, 0.95);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.95rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.btn-logout:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+  background: rgba(192, 57, 43, 0.95);
+}
+
 .btn-edit-cover {
   background: rgba(255, 255, 255, 0.95);
   border: none;
@@ -670,47 +1015,25 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(76, 175, 80, 0.25);
-  color: #2e7d32;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2859c5;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  animation: pulse-green 2s infinite;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.user-status::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #4caf50;
-  animation: pulse-dot 2s infinite;
+.user-status:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: white;
 }
 
-@keyframes pulse-green {
-  0% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-  }
-}
-
-@keyframes pulse-dot {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
+.store-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .perfil-info {
@@ -795,6 +1118,30 @@ export default {
   transition: color 0.2s;
 }
 
+.loja-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.3);
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+
+.loja-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 18px rgba(16, 185, 129, 0.4);
+}
+
+.loja-badge i {
+  font-size: 0.9rem;
+}
+
 .titulo-usuario {
   font-size: 1.2rem;
   font-weight: 500;
@@ -875,19 +1222,197 @@ export default {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
-.conquistas-gallery h2 {
+.gallery-header {
+  margin-bottom: 2rem;
+}
+
+.header-title {
+  margin-bottom: 1.5rem;
+}
+
+.gallery-header h2 {
   font-size: 1.8rem;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e9ecef;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
+.gallery-header h2 i {
+  color: #f59e0b;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.progresso-geral {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+}
+
+.progresso-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.progresso-label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.progresso-numeros {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.progresso-bar {
+  height: 20px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.progresso-text {
+  color: white;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Controles de Filtros */
+.conquistas-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.filtros-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid #e9ecef;
+  background: white;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-2px);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.tab-btn i {
+  font-size: 0.85rem;
+}
+
+.ordenacao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ordenacao label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ordenacao-select {
+  padding: 0.6rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ordenacao-select:hover,
+.ordenacao-select:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+/* Empty State */
+.conquistas-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #7f8c8d;
+}
+
+.conquistas-empty i {
+  font-size: 4rem;
+  color: #cbd5e0;
+  margin-bottom: 1rem;
+}
+
+.conquistas-empty p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Grid de Conquistas */
 .conquistas-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .conquista-card {
@@ -895,10 +1420,16 @@ export default {
   border-radius: 12px;
   padding: 1.5rem;
   text-align: center;
-  border: 1px solid #e9ecef;
+  border: 2px solid #e9ecef;
   transition: all 0.3s ease;
-  opacity: 0.5;
-  filter: grayscale(80%);
+  opacity: 0.6;
+  filter: grayscale(70%);
+  position: relative;
+  overflow: hidden;
+}
+
+.conquista-card:hover {
+  transform: translateY(-3px);
 }
 
 .conquista-card.desbloqueada {
@@ -906,37 +1437,185 @@ export default {
   filter: grayscale(0%);
   background: white;
   border-color: #667eea;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+}
+
+.conquista-card.rara.desbloqueada {
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+}
+
+.conquista-card.epica.desbloqueada {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+  animation: pulse-epic 2s ease-in-out infinite;
+}
+
+@keyframes pulse-epic {
+  0%,
+  100% {
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(245, 158, 11, 0.5);
+  }
+}
+
+.badge-raridade {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.conquista-card.epica .badge-raridade {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
 
 .conquista-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.conquista-card.desbloqueada:hover .conquista-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.conquista-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .conquista-titulo {
   font-size: 1.1rem;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .conquista-descricao {
   font-size: 0.85rem;
   color: #6c757d;
-  margin-bottom: 1rem;
+  margin: 0;
   min-height: 40px;
+  line-height: 1.4;
+}
+
+.conquista-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .conquista-xp {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 700;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.conquista-data {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.conquista-data i {
+  font-size: 0.7rem;
+}
+
+.conquista-progresso {
+  display: inline-block;
+  background: #fef3c7;
+  color: #f59e0b;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Estatísticas de Conquistas */
+.conquistas-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e9ecef;
+}
+
+.stat-box {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border-color: #667eea;
+}
+
+.stat-box i {
+  font-size: 2rem;
+  color: #667eea;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 500;
 }
 
 /* ============================================
@@ -965,6 +1644,26 @@ export default {
     top: 10px;
     left: 10px;
     right: 10px;
+  }
+
+  .usuario-comum-badge {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .usuario-comum-badge i {
+    font-size: 0.8rem;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .btn-logout {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
   }
 
   .btn-edit-cover {
@@ -1040,6 +1739,16 @@ export default {
     padding: 2px 8px;
   }
 
+  .loja-badge {
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 15px;
+  }
+
+  .loja-badge i {
+    font-size: 0.8rem;
+  }
+
   .titulo-usuario {
     font-size: 1rem;
     margin: 0 0 0.8rem 0;
@@ -1090,20 +1799,66 @@ export default {
     margin: 0 0 0 0;
   }
 
-  .conquistas-gallery h2 {
+  .gallery-header h2 {
     font-size: 1.4rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.8rem;
+  }
+
+  .gallery-header h2 i {
+    font-size: 1.2rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .progresso-geral {
+    padding: 1rem;
+  }
+
+  .progresso-label,
+  .progresso-numeros {
+    font-size: 0.85rem;
+  }
+
+  .conquistas-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .filtros-tabs {
+    justify-content: center;
+  }
+
+  .tab-btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .ordenacao {
+    justify-content: space-between;
+  }
+
+  .ordenacao label {
+    font-size: 0.85rem;
+  }
+
+  .ordenacao-select {
+    flex: 1;
+    max-width: 200px;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.8rem;
   }
 
   .conquistas-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .conquista-card {
     padding: 1rem;
-    border-radius: 15px;
+    border-radius: 12px;
   }
 
   .conquista-icon {
@@ -1113,7 +1868,6 @@ export default {
 
   .conquista-titulo {
     font-size: 0.95rem;
-    margin-bottom: 0.4rem;
   }
 
   .conquista-descricao {
@@ -1122,9 +1876,63 @@ export default {
     min-height: 35px;
   }
 
+  .conquista-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
   .conquista-xp {
     padding: 3px 10px;
     font-size: 0.7rem;
+  }
+
+  .conquista-data {
+    font-size: 0.7rem;
+  }
+
+  .badge-raridade {
+    top: 5px;
+    right: 5px;
+    padding: 3px 8px;
+    font-size: 0.6rem;
+  }
+
+  .conquistas-stats {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .stat-box {
+    padding: 1rem;
+  }
+
+  .stat-box i {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .conquistas-empty {
+    padding: 3rem 1rem;
+  }
+
+  .conquistas-empty i {
+    font-size: 3rem;
+  }
+
+  .conquistas-empty p {
+    font-size: 0.95rem;
   }
 }
 
@@ -1190,6 +1998,27 @@ export default {
   .conquista-descricao {
     font-size: 0.7rem;
     min-height: 30px;
+  }
+
+  .tab-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .ordenacao-select {
+    font-size: 0.8rem;
+  }
+
+  .conquistas-stats {
+    gap: 0.6rem;
+  }
+
+  .stat-box {
+    padding: 0.8rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
   }
 }
 

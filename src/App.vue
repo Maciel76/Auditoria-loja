@@ -2,13 +2,18 @@
 <template>
   <div id="app">
     <!-- Tela de seleção de loja -->
-    <div v-if="!lojaStore.isLojaSelected" class="selecao-loja-screen">
+    <div v-if="!lojaStore.isLojaSelected && !userSessionStore.isUsuarioComum" class="selecao-loja-screen">
       <SelecionarLoja @lojaAlterada="onLojaAlterada" />
     </div>
 
-    <!-- Aplicação principal com sidebar -->
-    <div v-else class="app-principal">
+    <!-- Aplicação principal com sidebar (esconder para usuários comuns) -->
+    <div v-else-if="lojaStore.isLojaSelected && !userSessionStore.isUsuarioComum" class="app-principal">
       <AppSidebar />
+    </div>
+
+    <!-- Aplicação para usuário comum (sem sidebar) -->
+    <div v-else class="app-usuario-comum">
+      <router-view />
     </div>
   </div>
 </template>
@@ -16,12 +21,17 @@
 <script setup>
 import { onMounted } from "vue";
 import { useLojaStore } from "./store/lojaStore";
+import { useUserSessionStore } from "./store/userSessionStore";
 import SelecionarLoja from "./views/SelecionarLoja.vue";
 import AppSidebar from "./components/AppSidebar.vue";
 
 const lojaStore = useLojaStore();
+const userSessionStore = useUserSessionStore();
 
 onMounted(() => {
+  // Carregar sessão do usuário comum se existir
+  userSessionStore.carregarSessao();
+  
   // Carregar loja salva ao inicializar
   lojaStore.carregarLoja();
 });
@@ -60,5 +70,10 @@ body {
 
 .app-principal {
   min-height: 100vh;
+}
+
+.app-usuario-comum {
+  min-height: 100vh;
+  background: #f8fafc;
 }
 </style>
