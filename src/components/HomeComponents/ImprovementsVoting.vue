@@ -105,7 +105,7 @@
                   @click.stop="
                     handleReaction(
                       selectedVoting.originalId || selectedVoting.id,
-                      type
+                      type,
                     )
                   "
                 >
@@ -486,7 +486,9 @@ const getTotalReactions = (voting) => {
   border-radius: 50%;
   background: rgba(102, 126, 234, 0.2);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .reaction-btn:active::before {
@@ -851,30 +853,252 @@ const getTotalReactions = (voting) => {
   color: #6b7280;
 }
 
+/* ============================================
+   MOBILE FIRST - APP-LIKE DESIGN
+   ============================================ */
+
 @media (max-width: 768px) {
-  .details-modal {
-    width: 95%;
-    margin: 20px;
+  .improvements-voting {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
   }
 
-  .modal-header,
-  .modal-content,
+  .section-header {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .section-header h2 {
+    font-size: 1.15rem;
+  }
+
+  .voting-list {
+    gap: 0.75rem;
+  }
+
+  .voting-item {
+    padding: 1rem;
+    border-radius: 12px;
+    margin: 0 0.75rem;
+  }
+
+  .voting-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .author-name {
+    font-size: 0.8rem;
+  }
+
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .vote-content h4 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .vote-content p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  .reactions-section {
+    margin-top: 0.875rem;
+    padding-top: 0.875rem;
+  }
+
+  .card-reactions {
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .reaction-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 20px;
+  }
+
+  .reaction-btn i {
+    font-size: 0.95rem;
+  }
+
+  .reaction-count {
+    font-size: 0.75rem;
+  }
+
+  /* Modal mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .details-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    animation: modalSlideUp 0.3s ease-out;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    padding: 1.25rem 1rem;
+    position: relative;
+  }
+
+  /* Indicador de arraste */
+  .modal-header::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.2rem;
+    margin-top: 8px;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+  }
+
+  .modal-content {
+    padding: 1.25rem 1rem;
+    max-height: calc(90vh - 150px);
+    overflow-y: auto;
+  }
+
+  .voting-info h3 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+  }
+
+  .description-section h4,
+  .benefits-section h4,
+  .author-section h4,
+  .reactions-section-modal h4 {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .full-description,
+  .benefits-section p,
+  .author-section p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .card-reactions-modal {
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .reaction-btn-modal {
+    padding: 0.75rem 1rem;
+    min-width: auto;
+    flex: 0 0 auto;
+  }
+
+  .reaction-btn-modal .reaction-emoji {
+    font-size: 1.25rem;
+  }
+
+  .reaction-btn-modal .reaction-info {
+    gap: 0.25rem;
+  }
+
+  .reaction-btn-modal .reaction-count-modal {
+    font-size: 1rem;
+  }
+
+  .reaction-btn-modal .reaction-label {
+    font-size: 0.75rem;
+  }
+
   .modal-footer {
-    padding: 20px;
+    padding: 1rem;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-close {
+    width: 100%;
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .reaction-percentages {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Mobile muito pequeno */
+@media (max-width: 480px) {
+  .section-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .voting-item {
+    padding: 0.875rem;
+  }
+
+  .vote-content h4 {
+    font-size: 0.95rem;
   }
 
   .reaction-btn {
     padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .reaction-btn i {
+    font-size: 0.9rem;
+  }
+
+  .reaction-count {
+    font-size: 0.7rem;
   }
 
   .reaction-btn-modal {
-    padding: 0.8rem 1rem;
-    min-width: 70px;
+    padding: 0.625rem 0.875rem;
   }
 
   .reaction-btn-modal .reaction-emoji {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+  }
+
+  .reaction-btn-modal .reaction-count-modal {
+    font-size: 0.9rem;
   }
 }
 </style>

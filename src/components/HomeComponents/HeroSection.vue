@@ -37,9 +37,10 @@
           </div>
         </div>
 
-        <div class="hero-actions">
+        <!-- Botões Desktop (4 botões separados) -->
+        <div class="hero-actions desktop-only">
           <button class="btn-primary" @click="openPostModal">
-            📝Criar Nova Postagem
+            📝 Criar Nova Postagem
           </button>
           <button class="btn-secondary" @click="openSuggestionModal">
             💡 Enviar Sugestão
@@ -48,7 +49,59 @@
             ⚠️ Novo Aviso
           </button>
           <button class="btn-secondary" @click="openVotingModal">
-            🚀 Nova votação
+            🚀 Nova Votação
+          </button>
+        </div>
+
+        <!-- Floating Action Button Mobile -->
+        <div class="fab-container mobile-only">
+          <!-- Botões do Menu (aparecem quando expandido) -->
+          <transition-group name="fab-item" tag="div" class="fab-menu">
+            <button
+              v-if="fabMenuOpen"
+              key="post"
+              class="fab-menu-item"
+              @click="openPostModal"
+            >
+              <span class="fab-icon">📝</span>
+              <span class="fab-label">Nova Postagem</span>
+            </button>
+            <button
+              v-if="fabMenuOpen"
+              key="suggestion"
+              class="fab-menu-item"
+              @click="openSuggestionModal"
+            >
+              <span class="fab-icon">💡</span>
+              <span class="fab-label">Enviar Sugestão</span>
+            </button>
+            <button
+              v-if="fabMenuOpen"
+              key="notice"
+              class="fab-menu-item"
+              @click="openNoticeModal"
+            >
+              <span class="fab-icon">⚠️</span>
+              <span class="fab-label">Novo Aviso</span>
+            </button>
+            <button
+              v-if="fabMenuOpen"
+              key="voting"
+              class="fab-menu-item"
+              @click="openVotingModal"
+            >
+              <span class="fab-icon">🚀</span>
+              <span class="fab-label">Nova Votação</span>
+            </button>
+          </transition-group>
+
+          <!-- Botão Principal FAB -->
+          <button
+            class="fab-main"
+            :class="{ active: fabMenuOpen }"
+            @click="toggleFabMenu"
+          >
+            <i class="fas fa-plus"></i>
           </button>
         </div>
       </div>
@@ -376,6 +429,9 @@ defineEmits([
   "voting-created",
 ]);
 
+// Estado do menu FAB
+const fabMenuOpen = ref(false);
+
 // Estados reativos para modal de sugestões
 const showSuggestionModal = ref(false);
 const suggestion = ref("");
@@ -448,8 +504,14 @@ const isVotingFormValid = computed(() => {
   );
 });
 
+// Método para alternar o menu FAB
+const toggleFabMenu = () => {
+  fabMenuOpen.value = !fabMenuOpen.value;
+};
+
 // Métodos para modal de sugestões
 const openSuggestionModal = () => {
+  fabMenuOpen.value = false; // Fecha o menu FAB
   showSuggestionModal.value = true;
 };
 
@@ -462,6 +524,7 @@ const closeSuggestionModal = () => {
 
 // Métodos para modal de postagem
 const openPostModal = () => {
+  fabMenuOpen.value = false; // Fecha o menu FAB
   showPostModal.value = true;
 };
 
@@ -478,6 +541,7 @@ const closePostModal = () => {
 
 // Métodos para modal de aviso
 const openNoticeModal = () => {
+  fabMenuOpen.value = false; // Fecha o menu FAB
   showNoticeModal.value = true;
 };
 
@@ -494,6 +558,7 @@ const closeNoticeModal = () => {
 
 // Métodos para modal de votação
 const openVotingModal = () => {
+  fabMenuOpen.value = false; // Fecha o menu FAB
   showVotingModal.value = true;
 };
 
@@ -745,6 +810,7 @@ const submitVoting = async () => {
   opacity: 0.8;
 }
 
+/* Botões Desktop - Estilo Tradicional */
 .hero-actions {
   display: flex;
   gap: 1rem;
@@ -783,6 +849,15 @@ const submitVoting = async () => {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
+}
+
+/* Controle de visibilidade Desktop/Mobile */
+.desktop-only {
+  display: flex;
+}
+
+.mobile-only {
+  display: none;
 }
 
 .hero-visual {
@@ -914,25 +989,87 @@ const submitVoting = async () => {
 }
 
 @media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 0 2rem;
+    min-height: auto;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
     text-align: center;
+    padding: 0 1rem;
+    padding-top: 1.5rem;
+  }
+
+  .hero-text h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-subtitle br {
+    display: none;
   }
 
   .hero-stats {
-    justify-content: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
   }
 
-  .hero-actions {
-    justify-content: center;
+  .stat-item {
+    padding: 0.5rem 0.75rem;
+    flex: 1;
+    min-width: 90px;
+    max-width: 120px;
   }
 
-  /* Esconde algumas bolinhas em mobile para não poluir */
+  .stat-number {
+    font-size: 1.3rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    line-height: 1.2;
+  }
+
+  /* Esconder botões desktop e mostrar FAB no mobile */
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  /* Visual Hero - esconder no mobile para economizar espaço */
+  .hero-visual {
+    display: none;
+  }
+
+  /* Esconde algumas bolinhas decorativas em mobile */
   .hero-circle-3,
   .hero-circle-4,
   .hero-circle-5,
-  .hero-circle-6 {
+  .hero-circle-6,
+  .hero-circle-7,
+  .hero-circle-8 {
     display: none;
+  }
+
+  .hero-circle-1,
+  .hero-circle-2 {
+    opacity: 0.3;
   }
 }
 
@@ -1116,26 +1253,111 @@ const submitVoting = async () => {
   font-size: 1rem;
 }
 
-/* Responsividade do Modal */
+/* Responsividade do Modal - Mobile First */
 @media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .suggestion-modal {
-    width: 95%;
-    margin: 20px;
+    width: 100%;
+    max-width: 100%;
+    max-height: 90vh;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    animation: modalSlideUp 0.3s ease-out;
   }
 
-  .modal-header,
-  .modal-content,
-  .modal-footer {
-    padding: 20px;
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    padding: 1.25rem 1rem;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+  }
+
+  /* Indicador de arraste no topo do modal */
+  .modal-header::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.25rem;
+    margin-top: 8px;
+  }
+
+  .close-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+  }
+
+  .modal-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .modal-description {
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 12px 14px;
+    font-size: 1rem; /* 16px para evitar zoom no iOS */
+    border-radius: 10px;
+  }
+
+  .form-textarea {
+    min-height: 120px;
   }
 
   .modal-footer {
-    flex-direction: column;
+    padding: 1rem;
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e9ecef;
   }
 
   .btn-cancel,
   .btn-submit {
     width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 12px;
+  }
+
+  .btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
   }
 }
 
@@ -1191,6 +1413,174 @@ const submitVoting = async () => {
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Estilos do Floating Action Button (FAB) */
+.fab-container {
+  position: relative;
+  display: none; /* Escondido por padrão no desktop */
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  animation: fabItemSlideIn 0.3s ease-out backwards;
+}
+
+.fab-menu-item:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.fab-menu-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.fab-menu-item:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.fab-menu-item:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.fab-menu-item:hover {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+  transform: translateX(-4px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.fab-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.fab-label {
+  font-size: 0.95rem;
+}
+
+.fab-main {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.fab-main i {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-main.active i {
+  transform: rotate(45deg);
+}
+
+.fab-main:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 28px rgba(102, 126, 234, 0.5);
+}
+
+.fab-main:active {
+  transform: scale(0.95);
+}
+
+/* Animações */
+@keyframes fabItemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fab-item-enter-active {
+  animation: fabItemSlideIn 0.3s ease-out;
+}
+
+.fab-item-leave-active {
+  animation: fabItemSlideOut 0.2s ease-in;
+}
+
+@keyframes fabItemSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+}
+
+/* Mobile - FAB fixo no canto inferior direito */
+@media (max-width: 768px) {
+  .fab-container {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    right: 20px;
+    z-index: 999;
+  }
+
+  .fab-menu {
+    margin-bottom: 0.75rem;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .fab-menu-item {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .fab-icon {
+    font-size: 1.1rem;
+  }
+
+  .fab-label {
+    font-size: 0.9rem;
+  }
+
+  .fab-main {
+    width: 60px;
+    height: 60px;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
   }
 }
 

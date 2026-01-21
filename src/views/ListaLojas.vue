@@ -58,14 +58,6 @@
             <i class="fas fa-sort-alpha-down"></i>
             Nome
           </button>
-          <button
-            class="filter-btn"
-            :class="{ active: ordenacao === 'desempenho' }"
-            @click="ordenacao = 'desempenho'"
-          >
-            <i class="fas fa-chart-line"></i>
-            Desempenho
-          </button>
         </div>
       </div>
 
@@ -134,26 +126,6 @@
                 </div>
               </div>
 
-              <!-- Performance -->
-              <div class="performance-section">
-                <div class="performance-header">
-                  <span class="performance-label">Desempenho</span>
-                  <span
-                    class="performance-value"
-                    :class="getDesempenhoClass(loja.percentualDesempenho)"
-                  >
-                    {{ loja.percentualDesempenho || 0 }}%
-                  </span>
-                </div>
-                <div class="performance-bar">
-                  <div
-                    class="performance-fill"
-                    :class="getDesempenhoClass(loja.percentualDesempenho)"
-                    :style="{ width: (loja.percentualDesempenho || 0) + '%' }"
-                  ></div>
-                </div>
-              </div>
-
               <!-- Botão de ação -->
               <button class="btn-ver-loja">
                 <span>Ver Perfil Completo</span>
@@ -204,7 +176,6 @@ export default {
           ...lojaStore,
           totalColaboradores: lojaApi?.totalColaboradores || 0,
           totalAuditorias: lojaApi?.totalAuditorias || 0,
-          percentualDesempenho: lojaApi?.percentualDesempenho || 0,
           coverId: lojaApi?.coverId || "gradient-1",
         };
       });
@@ -229,12 +200,6 @@ export default {
         case "nome":
           resultado.sort((a, b) => a.nome.localeCompare(b.nome));
           break;
-        case "desempenho":
-          resultado.sort(
-            (a, b) =>
-              (b.percentualDesempenho || 0) - (a.percentualDesempenho || 0),
-          );
-          break;
         case "codigo":
         default:
           resultado.sort((a, b) => a.codigo.localeCompare(b.codigo));
@@ -251,7 +216,7 @@ export default {
       try {
         this.carregando = true;
         // Buscar dados adicionais da API (métricas, etc)
-        const response = await axios.get("http://localhost:3000/api/lojas");
+        const response = await axios.get("http://localhost:3000/lojas");
         this.lojasApi = response.data || [];
       } catch (error) {
         console.error("Erro ao carregar dados das lojas:", error);
@@ -304,14 +269,6 @@ export default {
       return {
         background: coverMap[coverId] || coverMap["gradient-1"],
       };
-    },
-
-    getDesempenhoClass(percentual) {
-      if (!percentual) return "baixo";
-      if (percentual >= 80) return "excelente";
-      if (percentual >= 60) return "bom";
-      if (percentual >= 40) return "medio";
-      return "baixo";
     },
   },
 };
@@ -727,85 +684,6 @@ export default {
   background: linear-gradient(180deg, transparent, #cbd5e0, transparent);
 }
 
-/* Seção de Performance */
-.performance-section {
-  margin-bottom: 1.2rem;
-}
-
-.performance-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.6rem;
-}
-
-.performance-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.performance-value {
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: 0.3rem 0.8rem;
-  border-radius: 10px;
-}
-
-.performance-value.excelente {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.performance-value.bom {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.performance-value.medio {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.performance-value.baixo {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* Barra de Performance */
-.performance-bar {
-  height: 10px;
-  background: #e9ecef;
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-}
-
-.performance-fill {
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.performance-fill.excelente {
-  background: linear-gradient(90deg, #10b981, #059669);
-}
-
-.performance-fill.bom {
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-}
-
-.performance-fill.medio {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-}
-
-.performance-fill.baixo {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-}
-
 /* Botão de Ação */
 .btn-ver-loja {
   width: 100%;
@@ -984,19 +862,6 @@ export default {
 
   .stat-divider {
     height: 36px;
-  }
-
-  .performance-label {
-    font-size: 0.75rem;
-  }
-
-  .performance-value {
-    font-size: 1rem;
-    padding: 0.25rem 0.6rem;
-  }
-
-  .performance-bar {
-    height: 8px;
   }
 
   .btn-ver-loja {

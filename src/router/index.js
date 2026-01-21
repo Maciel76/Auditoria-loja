@@ -58,6 +58,7 @@ const routes = [
     path: "/home",
     name: "Home",
     component: Home,
+    props: true,
     meta: { requiresLoja: true },
   },
   {

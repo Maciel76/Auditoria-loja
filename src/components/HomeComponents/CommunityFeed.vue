@@ -231,7 +231,7 @@ const getTotalReactions = (item) => {
   const reactions = getReactions(item);
   return Object.values(reactions).reduce(
     (total, reaction) => total + (reaction.count || 0),
-    0
+    0,
   );
 };
 
@@ -286,7 +286,7 @@ watch(
       initializeCommentInput(item);
     });
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Função para alternar visibilidade dos comentários
@@ -499,7 +499,9 @@ const formatDate = (dateString) => {
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .feed-card:hover {
@@ -607,7 +609,9 @@ const formatDate = (dateString) => {
   border-radius: 50%;
   background: rgba(102, 126, 234, 0.2);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .reaction-btn:active::before {
@@ -1331,40 +1335,284 @@ const formatDate = (dateString) => {
   font-size: 0.9rem;
 }
 
-/* Responsividade para dispositivos móveis */
+/* ============================================
+   MOBILE FIRST - APP-LIKE DESIGN
+   ============================================ */
+
 @media (max-width: 768px) {
+  .community-feed {
+    padding: 0;
+    background: transparent;
+  }
+
+  .section-header {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .feed-content {
+    gap: 0.5rem;
+  }
+
+  .feed-card {
+    border-radius: 0;
+    padding: 1rem;
+    margin: 0;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid #f1f5f9;
+    box-shadow: none;
+  }
+
+  .feed-card:first-child {
+    border-top: none;
+  }
+
+  .card-header {
+    margin-bottom: 0.875rem;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .card-content h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-content p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* Ações em layout horizontal mais compacto */
   .card-actions {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid #f1f5f9;
   }
 
   .card-reactions {
-    justify-content: center;
-    order: 2;
-  }
-
-  .comment-btn {
-    order: 1;
-    margin-left: 0;
-    width: 100%;
-    justify-content: center;
+    flex: 1;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
   }
 
   .reaction-btn {
     flex: 1;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+    border-radius: 24px;
+    min-width: 60px;
+    max-width: 80px;
+    border-width: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .reaction-btn i {
+    font-size: 1.15rem;
+  }
+
+  .reaction-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .comment-btn {
+    flex: 0;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    border-radius: 24px;
+    margin-left: auto;
+    min-width: 90px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .comment-btn i {
+    font-size: 1rem;
+  }
+
+  /* Comentários */
+  .comments-section {
+    margin-top: 1rem;
+    padding: 0.875rem;
+    border-radius: 12px;
+  }
+
+  .comments-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-bottom: 0.875rem;
+  }
+
+  .comments-header h4 {
+    font-size: 1rem;
+  }
+
+  .btn-add-comment-header {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
     justify-content: center;
-    min-width: 45%;
+  }
+
+  .comment-item {
+    padding: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .comment-user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+
+  .comment-user-name {
+    font-size: 0.85rem;
+  }
+
+  .comment-text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+
+  /* Modal de comentário mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .comment-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85vh;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    animation: modalSlideUp 0.3s ease-out;
+  }
+
+  @keyframes modalSlideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .comment-modal-header {
+    padding: 1rem;
+    position: relative;
+  }
+
+  /* Indicador de arraste */
+  .comment-modal-header::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+  }
+
+  .comment-modal-header h3 {
+    font-size: 1.15rem;
+    margin-top: 8px;
+  }
+
+  .btn-close-modal {
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+  }
+
+  .comment-modal-body {
+    padding: 1rem;
+  }
+
+  .form-textarea-comment {
+    min-height: 120px;
+    font-size: 1rem; /* 16px para evitar zoom no iOS */
+  }
+
+  .comment-modal-footer {
+    padding: 1rem;
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 1px solid #e9ecef;
+  }
+
+  .btn-cancel-comment,
+  .btn-submit-comment {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
   }
 }
 
+/* Mobile pequeno */
 @media (max-width: 480px) {
+  .section-header h2 {
+    font-size: 1.15rem;
+  }
+
+  .section-header i {
+    font-size: 1rem;
+  }
+
+  .feed-card {
+    padding: 0.875rem;
+  }
+
+  .card-content h3 {
+    font-size: 1rem;
+  }
+
+  .card-content p {
+    font-size: 0.85rem;
+  }
+
   .reaction-btn {
-    padding: 0.35rem 0.6rem;
+    padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
   }
 
   .reaction-btn i {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .reaction-count {
+    font-size: 0.75rem;
+  }
+
+  .comment-btn {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.8rem;
   }
 }
 </style>

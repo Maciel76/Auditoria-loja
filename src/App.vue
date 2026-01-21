@@ -17,6 +17,7 @@
     <!-- Aplicação para usuário comum (sem sidebar) -->
     <div v-else class="app-usuario-comum">
       <router-view />
+      <MobileBottomNav />
     </div>
   </div>
 </template>
@@ -28,6 +29,7 @@ import { useLojaStore } from "./store/lojaStore";
 import { useUserSessionStore } from "./store/userSessionStore";
 import SelecionarLoja from "./views/SelecionarLoja.vue";
 import AppSidebar from "./components/AppSidebar.vue";
+import MobileBottomNav from "./components/MobileBottomNav.vue";
 
 const route = useRoute();
 const lojaStore = useLojaStore();
@@ -92,5 +94,6 @@ body {
 .app-usuario-comum {
   min-height: 100vh;
   background: #f8fafc;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 </style>

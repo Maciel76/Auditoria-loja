@@ -77,13 +77,13 @@ const handleFeedReaction = async ({ itemId, reactionType, userIdentifier }) => {
       {
         reaction: reactionType,
         userIdentifier: userIdentifier,
-      }
+      },
     );
 
     if (response.data.reactions) {
       // Atualizar item local no feed
       const item = dashboardStore.feedItems.find(
-        (item) => item.id === itemId || item.originalId === itemId
+        (item) => item.id === itemId || item.originalId === itemId,
       );
       if (item) {
         item.reactions = response.data.reactions;
@@ -93,12 +93,12 @@ const handleFeedReaction = async ({ itemId, reactionType, userIdentifier }) => {
   } catch (error) {
     console.warn(
       "⚠️ API não disponível, usando simulação local:",
-      error.message
+      error.message,
     );
 
     // Fallback: Simular reação local nas publicações da Home
     const item = dashboardStore.feedItems.find(
-      (item) => item.id === itemId || item.originalId === itemId
+      (item) => item.id === itemId || item.originalId === itemId,
     );
     if (item) {
       // Inicializar reactions se não existir
@@ -119,7 +119,7 @@ const handleFeedReaction = async ({ itemId, reactionType, userIdentifier }) => {
         // Remover reação
         item.reactions[reactionType].count = Math.max(
           0,
-          item.reactions[reactionType].count - 1
+          item.reactions[reactionType].count - 1,
         );
         item.reactions[reactionType].users = item.reactions[
           reactionType
@@ -142,12 +142,12 @@ const handleVotingReaction = async ({
 }) => {
   try {
     console.log(
-      `🗳️ Reagindo em item de votação: ${reactionType} para item ${itemId}`
+      `🗳️ Reagindo em item de votação: ${reactionType} para item ${itemId}`,
     );
     const result = await dashboardStore.reactToVotingItem(
       itemId,
       reactionType,
-      userIdentifier
+      userIdentifier,
     );
 
     if (result.success) {
@@ -172,7 +172,7 @@ const handleCommentAdded = async ({ itemId, comment }) => {
         conteudo: comment.conteudo,
         autor: comment.autor,
         avatar: comment.avatar,
-      }
+      },
     );
 
     if (response.data.success) {
@@ -180,7 +180,7 @@ const handleCommentAdded = async ({ itemId, comment }) => {
 
       // Atualizar o item localmente com o comentário completo retornado do backend
       const feedItem = dashboardStore.feedItems.find(
-        (item) => item.id === itemId || item.originalId === itemId
+        (item) => item.id === itemId || item.originalId === itemId,
       );
 
       if (feedItem) {
@@ -198,13 +198,13 @@ const handleCommentAdded = async ({ itemId, comment }) => {
     } else {
       console.error(
         "❌ Erro ao salvar comentário no backend:",
-        response.data.message
+        response.data.message,
       );
     }
   } catch (error) {
     console.error(
       "❌ Erro ao enviar comentário para o backend:",
-      error.message
+      error.message,
     );
 
     // Em caso de erro, tentar usar o store para atualizar o feed
@@ -213,13 +213,13 @@ const handleCommentAdded = async ({ itemId, comment }) => {
       if (!result.success) {
         console.error(
           "❌ Erro ao adicionar comentário via store:",
-          result.message
+          result.message,
         );
       }
     } catch (storeError) {
       console.error(
         "❌ Erro ao usar store para adicionar comentário:",
-        storeError
+        storeError,
       );
     }
   }
@@ -250,23 +250,108 @@ onMounted(async () => {
 <style scoped>
 .home-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  font-family: "Inter", system-ui, sans-serif;
+  background: #f8f9fa;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .main-grid {
   max-width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
+/* ============================================
+   MOBILE FIRST - APP-LIKE DESIGN
+   ============================================ */
+
 @media (max-width: 768px) {
+  .home-container {
+    background: #ffffff;
+    padding-bottom: env(safe-area-inset-bottom, 60px);
+  }
+
   .main-grid {
     grid-template-columns: 1fr;
-    padding: 1rem;
+    padding: 0;
+    gap: 0;
+    margin: 0;
+  }
+
+  .left-column {
+    order: 1;
+    width: 100%;
+    padding: 0;
+  }
+
+  .right-column {
+    order: 2;
+    width: 100%;
+    padding: 0 0.75rem 1rem;
+    background: #f8f9fa;
+    border-radius: 20px 20px 0 0;
+    margin-top: 1rem;
+  }
+}
+
+/* Tablet responsivo */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+    padding: 1.5rem;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+}
+
+/* Desktop - mantém layout em colunas */
+@media (min-width: 1025px) {
+  .main-grid {
+    max-width: 1400px;
+    padding: 2rem;
+    gap: 2rem;
+  }
+}
+
+/* Melhorias para iOS/Safari */
+@supports (-webkit-touch-callout: none) {
+  .home-container {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Scroll suave em todo app */
+* {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Remover tap highlight no mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Garantir que inputs não causem zoom no iOS */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
 </style>
