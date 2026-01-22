@@ -91,13 +91,35 @@
                   >
                     <div class="comment-header">
                       <div class="comment-user-info">
-                        <div class="comment-user-avatar">
-                          {{ comment.user?.avatar || "?" }}
+                        <div
+                          class="comment-user-avatar"
+                          :class="{
+                            'has-photo':
+                              comment.user?.avatar &&
+                              comment.user.avatar.startsWith('http'),
+                          }"
+                        >
+                          <img
+                            v-if="
+                              comment.user?.avatar &&
+                              comment.user.avatar.startsWith('http')
+                            "
+                            :src="comment.user.avatar"
+                            :alt="comment.user.name"
+                            class="avatar-img"
+                          />
+                          <span v-else>{{ comment.user?.avatar || "?" }}</span>
                         </div>
                         <div class="comment-user-details">
                           <span class="comment-user-name">{{
                             comment.user?.name || "Anônimo"
                           }}</span>
+                          <span
+                            class="comment-user-cargo"
+                            v-if="comment.user?.cargo"
+                          >
+                            {{ comment.user.cargo }}
+                          </span>
                           <span class="comment-time">{{
                             formatDate(comment.createdAt)
                           }}</span>
@@ -136,28 +158,18 @@
 
         <div class="modal-body" v-if="selectedItemForComment">
           <div class="comment-input-section">
-            <label for="user-name">Seu Nome *</label>
-            <input
-              id="user-name"
-              v-model="commentInputs[selectedItemForComment.id].userName"
-              type="text"
-              placeholder="Digite seu nome"
-              class="comment-name-input"
-              required
-            />
-
-            <label for="comment-content">Comentário *</label>
+            <label for="comment-content">Seu Comentário *</label>
             <textarea
               id="comment-content"
               v-model="commentInputs[selectedItemForComment.id].content"
               placeholder="Escreva seu comentário..."
               class="comment-textarea"
-              rows="4"
+              rows="5"
             ></textarea>
           </div>
         </div>
 
-        <div class="modal-footer" v-if="selectedItemForComment">
+        <div class="modal-footer comment-modal-footer" v-if="selectedItemForComment">
           <button class="btn-cancel" @click="closeCommentModal">
             Cancelar
           </button>
@@ -176,7 +188,8 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, watch } from "vue";
+import { defineProps, defineEmits, ref, watch, onUnmounted } from "vue";
+import { useUserSessionStore } from "@/store/userSessionStore";
 
 const props = defineProps({
   feedItems: {
@@ -192,6 +205,7 @@ const emit = defineEmits([
   "comment-added",
 ]);
 
+const userSessionStore = useUserSessionStore();
 const userIdentifier = ref(`user_${Date.now()}`);
 
 const getBadgeText = (badge) => {
@@ -263,7 +277,6 @@ const selectedItemForComment = ref(null);
 const initializeCommentInput = (item) => {
   if (!commentInputs.value[item.id]) {
     commentInputs.value[item.id] = {
-      userName: "",
       content: "",
     };
   }
@@ -296,7 +309,6 @@ const toggleComments = (item) => {
   // Garante que o estado do input existe
   if (!commentInputs.value[item.id]) {
     commentInputs.value[item.id] = {
-      userName: "",
       content: "",
     };
   }
@@ -307,10 +319,12 @@ const openCommentModal = (item) => {
   selectedItemForComment.value = item;
   showCommentModal.value = true;
 
+  // Adiciona classe ao body para esconder menu mobile
+  document.body.classList.add('modal-comment-open');
+
   // Garante que o estado do input existe
   if (!commentInputs.value[item.id]) {
     commentInputs.value[item.id] = {
-      userName: "",
       content: "",
     };
   }
@@ -319,7 +333,15 @@ const openCommentModal = (item) => {
 const closeCommentModal = () => {
   showCommentModal.value = false;
   selectedItemForComment.value = null;
+  
+  // Remove classe do body
+  document.body.classList.remove('modal-comment-open');
 };
+
+// Limpa a classe do body quando o componente for desmontado
+onUnmounted(() => {
+  document.body.classList.remove('modal-comment-open');
+});
 
 // Função para obter contagem de comentários
 const getCommentCount = (item) => {
@@ -334,13 +356,14 @@ const getCommentsForItem = (item) => {
   // Verifica se o item tem comentários do banco de dados (campo 'comentarios')
   if (item.comentarios && Array.isArray(item.comentarios)) {
     // Mapeia os comentários do banco de dados para o formato esperado pelo frontend
-    const dbComments = item.comentarios.map((dbComment) => ({
-      id: dbComment._id || Date.now(),
+    const dbComments = item.comentarios.map((dbComment, index) => ({
+      id: dbComment._id || `comment-${item.id}-${index}-${Date.now()}`,
       content: dbComment.conteudo || dbComment.content,
       createdAt: dbComment.data || dbComment.createdAt,
       user: {
-        name: dbComment.autor || dbComment.user?.name || "Anônimo",
-        avatar: dbComment.avatar || dbComment.user?.avatar || "?",
+        name: dbComment.user?.nome || dbComment.autor || "Anônimo",
+        avatar: dbComment.user?.foto || dbComment.avatar || "?",
+        cargo: dbComment.user?.cargo,
       },
     }));
 
@@ -355,8 +378,8 @@ const getCommentsForItem = (item) => {
 // Função para verificar se pode submeter comentário
 const canSubmitComment = (item) => {
   return (
-    commentInputs.value[item.id]?.userName.trim() &&
-    commentInputs.value[item.id]?.content.trim()
+    commentInputs.value[item.id]?.content.trim() &&
+    userSessionStore.isUsuarioComum
   );
 };
 
@@ -364,31 +387,19 @@ const canSubmitComment = (item) => {
 const addComment = async (item) => {
   if (!canSubmitComment(item)) return;
 
-  const commentData = {
-    id: Date.now(), // ID temporário
-    content: commentInputs.value[item.id].content.trim(),
-    createdAt: new Date().toISOString(),
-    user: {
-      name: commentInputs.value[item.id].userName.trim(),
-      avatar: commentInputs.value[item.id].userName.charAt(0).toUpperCase(),
-    },
-  };
-
   // Limpa os campos de input
+  const content = commentInputs.value[item.id].content.trim();
   commentInputs.value[item.id].content = "";
-  commentInputs.value[item.id].userName = "";
 
   // Fecha o modal
   closeCommentModal();
 
-  // Emite evento para salvar o comentário no backend
-  // O backend retornará o comentário e ele será adicionado à lista
+  // Emite evento para salvar o comentário no backend com userId
   emit("comment-added", {
-    itemId: item.originalId || item.id, // Usa originalId se disponível para identificação no backend
+    itemId: item.originalId || item.id,
     comment: {
-      conteudo: commentData.content,
-      autor: commentData.user.name,
-      avatar: commentData.user.avatar,
+      conteudo: content,
+      userId: userSessionStore.getUsuarioId,
     },
   });
 };
@@ -951,8 +962,8 @@ const formatDate = (dateString) => {
 }
 
 .comment-user-avatar {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
@@ -960,18 +971,38 @@ const formatDate = (dateString) => {
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.comment-user-avatar.has-photo {
+  background: transparent;
+  border: 2px solid #e5e7eb;
+}
+
+.comment-user-avatar .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .comment-user-details {
   display: flex;
   flex-direction: column;
+  gap: 0.125rem;
 }
 
 .comment-user-name {
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
   font-size: 0.875rem;
+}
+
+.comment-user-cargo {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .comment-time {
@@ -1022,7 +1053,7 @@ const formatDate = (dateString) => {
   border-radius: 8px;
   font-size: 0.875rem;
   resize: vertical;
-  min-height: 80px;
+  min-height: 100px;
   transition: all 0.3s ease;
   background: white;
   font-family: inherit;
@@ -1033,6 +1064,24 @@ const formatDate = (dateString) => {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
+}
+
+.comment-helper-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.813rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.comment-helper-text i {
+  color: #667eea;
+  font-size: 1rem;
 }
 
 .btn-add-comment {
@@ -1170,9 +1219,15 @@ const formatDate = (dateString) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1050;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease;
+}
+
+/* Esconde o menu mobile quando modal está aberto */
+.modal-overlay ~ * .mobile-bottom-nav,
+body:has(.modal-overlay) .mobile-bottom-nav {
+  display: none !important;
 }
 
 @keyframes fadeIn {
@@ -1566,12 +1621,18 @@ const formatDate = (dateString) => {
     bottom: 0;
     background: white;
     border-top: 1px solid #e9ecef;
+    z-index: 10;
+    display: flex !important;
+    gap: 0.75rem;
+    flex-wrap: wrap;
   }
 
-  .btn-cancel-comment,
+  .btn-cancel,
   .btn-submit-comment {
     padding: 0.875rem 1.25rem;
     font-size: 0.95rem;
+    flex: 1;
+    min-width: 120px;
   }
 }
 

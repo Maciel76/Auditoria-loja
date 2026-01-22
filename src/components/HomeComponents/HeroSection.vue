@@ -1551,9 +1551,9 @@ const submitVoting = async () => {
 @media (max-width: 768px) {
   .fab-container {
     position: fixed;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
     right: 20px;
-    z-index: 999;
+    z-index: 1100;
   }
 
   .fab-menu {

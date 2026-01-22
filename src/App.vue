@@ -97,3 +97,13 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 </style>
+
+<style>
+/* Esconde o menu mobile quando modal de comentário estiver aberto */
+body.modal-comment-open .mobile-bottom-nav {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(100%);
+}
+</style>

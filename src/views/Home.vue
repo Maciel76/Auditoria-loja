@@ -165,13 +165,12 @@ const handleCommentAdded = async ({ itemId, comment }) => {
   console.log(`💬 Comentário adicionado ao item ${itemId}:`, comment);
 
   try {
-    // Enviar comentário para o backend (comment já vem no formato correto do CommunityFeed)
+    // Enviar comentário para o backend (comment já vem com userId do CommunityFeed)
     const response = await axios.post(
       `http://localhost:3000/api/sugestoes/${itemId}/comentarios`,
       {
         conteudo: comment.conteudo,
-        autor: comment.autor,
-        avatar: comment.avatar,
+        userId: comment.userId,
       },
     );
 
