@@ -169,7 +169,10 @@
           </div>
         </div>
 
-        <div class="modal-footer comment-modal-footer" v-if="selectedItemForComment">
+        <div
+          class="modal-footer comment-modal-footer"
+          v-if="selectedItemForComment"
+        >
           <button class="btn-cancel" @click="closeCommentModal">
             Cancelar
           </button>
@@ -320,7 +323,7 @@ const openCommentModal = (item) => {
   showCommentModal.value = true;
 
   // Adiciona classe ao body para esconder menu mobile
-  document.body.classList.add('modal-comment-open');
+  document.body.classList.add("modal-comment-open");
 
   // Garante que o estado do input existe
   if (!commentInputs.value[item.id]) {
@@ -333,14 +336,14 @@ const openCommentModal = (item) => {
 const closeCommentModal = () => {
   showCommentModal.value = false;
   selectedItemForComment.value = null;
-  
+
   // Remove classe do body
-  document.body.classList.remove('modal-comment-open');
+  document.body.classList.remove("modal-comment-open");
 };
 
 // Limpa a classe do body quando o componente for desmontado
 onUnmounted(() => {
-  document.body.classList.remove('modal-comment-open');
+  document.body.classList.remove("modal-comment-open");
 });
 
 // Função para obter contagem de comentários

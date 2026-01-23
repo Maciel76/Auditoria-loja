@@ -33,16 +33,16 @@
             </button>
 
             <!-- Badge de Usuário Comum -->
-            <div
+            <!-- <div
               v-if="
                 userSessionStore.isUsuarioComum &&
                 usuario.id === userSessionStore.getUsuarioId
               "
               class="usuario-comum-badge"
             >
-              <i class="fas fa-user"></i>
-              <span>Modo Visualização</span>
-            </div>
+              <i class="fas fa-user"></i> -->
+            <!-- <span>Modo Visualização</span> -->
+            <!-- </div>  -->
 
             <div class="header-actions">
               <button
@@ -137,15 +137,30 @@
         :loja-link="usuario.loja ? `/perfil-loja/${usuario.loja.codigo}` : null"
       />
 
+      <!-- Navegação por Abas -->
+      <PerfilNavegacao :aba-ativa="abaAtiva" @mudar-aba="abaAtiva = $event" />
+
+      <!-- Progresso -->
+      <ProgressoUsuario
+        v-if="abaAtiva === 'progresso'"
+        :usuario="usuario"
+        :posicao-ranking="posicaoRanking"
+        :total-conquistas="conquistasDesbloqueadas.length"
+        :conquistas-pendentes="conquistasBloqueadas.length"
+      />
+
+      <!-- Minha Auditoria -->
+      <MinhaAuditoria v-if="abaAtiva === 'auditoria'" :usuario="usuario" />
+
       <!-- Colegas da Mesma Loja -->
       <ColegasLoja
-        v-if="usuario.loja && usuario.loja.nome"
+        v-if="abaAtiva === 'colegas' && usuario.loja && usuario.loja.nome"
         :loja="usuario.loja.nome"
         :usuario-atual-id="usuario.id"
       />
 
       <!-- Galeria de Conquistas -->
-      <div class="conquistas-gallery">
+      <div v-if="abaAtiva === 'conquistas'" class="conquistas-gallery">
         <div class="gallery-header">
           <div class="header-title">
             <h2>
@@ -303,8 +318,11 @@
           </div>
         </div>
       </div>
+      <!-- Fecha conquistas-gallery -->
     </div>
+    <!-- Fecha v-else -->
   </div>
+  <!-- Fecha perfil-usuario-container -->
 </template>
 
 <script>
@@ -316,6 +334,10 @@ import { useUserSessionStore } from "@/store/userSessionStore";
 import UserCoverSelector from "@/components/UserCoverSelector.vue";
 import ColegasLoja from "@/components/ColegasLoja.vue";
 import NavegacaoRankings from "@/components/NavegacaoRankings.vue";
+import PerfilNavegacao from "@/views/Perfiltemplate/PerfilNavegacao.vue";
+import MinhaAuditoria from "@/views/Perfiltemplate/MinhaAuditoria.vue";
+import ProgressoUsuario from "@/views/Perfiltemplate/ProgressoUsuario.vue";
+import api from "@/config/api";
 import axios from "axios";
 
 export default {
@@ -324,6 +346,9 @@ export default {
     UserCoverSelector,
     ColegasLoja,
     NavegacaoRankings,
+    PerfilNavegacao,
+    MinhaAuditoria,
+    ProgressoUsuario,
   },
   props: {
     id: {
@@ -378,6 +403,7 @@ export default {
       showCoverSelector: false,
       filtroAtivo: "todas",
       ordenacaoAtiva: "padrao",
+      abaAtiva: "conquistas",
     };
   },
   watch: {
@@ -559,26 +585,35 @@ export default {
       try {
         this.carregando = true;
 
-        // Fetch fresh user data from the API instead of relying on store cache
-        const lojaSelecionada = JSON.parse(
-          localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
-        );
-
-        const response = await axios.get(
-          `http://localhost:3000/api/usuarios/${usuarioId}`,
-          {
-            headers: {
-              "x-loja": lojaSelecionada.codigo,
-            },
+        // Fetch user data from the metricas endpoint
+        const config = {
+          headers: {
+            "x-loja": this.lojaStore.codigoLojaAtual || "056",
           },
+        };
+
+        const response = await api.get("/metricas/usuarios", config);
+        let usuariosMetricas = response.data.usuarios || response.data; // Suporta ambos os formatos
+
+        // Ensure usuariosMetricas is an array
+        if (!Array.isArray(usuariosMetricas)) {
+          console.warn(
+            "API não retornou um array, usando array vazio:",
+            usuariosMetricas,
+          );
+          usuariosMetricas = [];
+        }
+
+        // Find the specific user in the returned data
+        const usuarioMetricas = usuariosMetricas.find(
+          (user) => user.id === usuarioId,
         );
 
-        const usuarioApi = response.data;
-
-        if (usuarioApi) {
+        if (usuarioMetricas) {
           // Calculate XP total
           const xpTotal =
-            (usuarioApi.contador || 0) + (usuarioApi.xpConquistas || 0);
+            (usuarioMetricas.contador || 0) +
+            (usuarioMetricas.xpConquistas || 0);
 
           // Calculate level and progress
           const nivel = this.nivelStore.calcularNivel(xpTotal);
@@ -586,19 +621,44 @@ export default {
             this.nivelStore.calcularXpRestante(xpTotal);
           const progressoXp = ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
 
+          // Get additional user data from the original API if needed
+          let usuarioCompleto = {};
+          try {
+            const lojaSelecionada = JSON.parse(
+              localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
+            );
+
+            const usuarioResponse = await axios.get(
+              `http://localhost:3000/api/usuarios/${usuarioId}`,
+              {
+                headers: {
+                  "x-loja": lojaSelecionada.codigo,
+                },
+              },
+            );
+
+            usuarioCompleto = usuarioResponse.data || {};
+          } catch (fetchError) {
+            console.warn("Could not fetch additional user data:", fetchError);
+          }
+
           this.usuario = {
-            ...usuarioApi,
-            foto: this.getFotoUrl(usuarioApi),
-            iniciais: this.obterIniciais(usuarioApi.nome),
+            ...usuarioCompleto, // Original user data
+            id: usuarioMetricas.id,
+            nome: usuarioMetricas.nome,
+            contador: usuarioMetricas.contador || 0, // Itens auditados from metricas
+            totalAuditorias: usuarioMetricas.totalAuditorias || 0, // Total auditorias from metricas
+            foto: this.getFotoUrl(usuarioCompleto),
+            iniciais: this.obterIniciais(usuarioMetricas.nome),
             nivel: nivel,
             titulo: this.nivelStore.obterTitulo(nivel),
             xpAtual: xpTotal,
             xpParaProximoNivel: xpParaProximoNivel,
             progressoXp: progressoXp,
-            conquistas: usuarioApi.conquistas || [],
-            coverId: usuarioApi.coverId || "gradient-1",
-            selectedBadges: usuarioApi.selectedBadges || [],
-            loja: usuarioApi.loja || null,
+            conquistas: usuarioCompleto.conquistas || [],
+            coverId: usuarioCompleto.coverId || "gradient-1",
+            selectedBadges: usuarioCompleto.selectedBadges || [],
+            loja: usuarioCompleto.loja || null,
           };
 
           // Mark which achievements are unlocked
@@ -613,13 +673,16 @@ export default {
             (u) => u.id === usuarioId,
           );
           if (indexInStore !== -1) {
-            this.nivelStore.usuarios[indexInStore] = { ...usuarioApi };
+            this.nivelStore.usuarios[indexInStore] = { ...usuarioMetricas };
           } else {
             // If user doesn't exist in store, add it
-            this.nivelStore.usuarios.push({ ...usuarioApi });
+            this.nivelStore.usuarios.push({ ...usuarioMetricas });
           }
         } else {
-          console.error("Usuário não encontrado:", usuarioId);
+          console.error(
+            "Usuário não encontrado nos dados de métricas:",
+            usuarioId,
+          );
           this.usuario = {}; // Clear user to show error screen
         }
       } catch (error) {
@@ -697,6 +760,10 @@ export default {
 
       // Redirecionar para a página de login
       this.$router.push("/login");
+    },
+
+    mudarAba(aba) {
+      this.abaAtiva = aba;
     },
 
     async handleCoverSelected(payload) {

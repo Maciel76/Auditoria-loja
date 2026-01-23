@@ -54,6 +54,15 @@
 
       <div class="perfil-details">
         <div class="loja-header">
+          <!-- Botão de informação mobile -->
+          <button
+            class="btn-info-mobile"
+            @click="toggleInfo"
+            title="Ver informações da loja"
+          >
+            <i class="fas fa-info-circle"></i>
+          </button>
+
           <h1 class="loja-nome">
             {{ loja.nome }}
             <span
@@ -66,30 +75,34 @@
             >
           </h1>
         </div>
-        <p class="loja-endereco">
-          <i class="fas fa-map-marker-alt"></i>
-          {{ loja.endereco }} • {{ loja.cidade }}
-        </p>
-        <p class="loja-contato">
-          <i class="fas fa-phone"></i>
-          {{ loja.telefone }} •
-          <i class="fas fa-user-tie"></i>
-          Gerente: {{ loja.gerente }}
-        </p>
 
-        <div class="loja-horario">
-          <i class="fas fa-clock"></i>
-          <span v-if="auditoriaHoje">
-            Próxima auditoria hoje: das {{ auditoriaHoje.inicio }} às
-            {{ auditoriaHoje.fim }}
-          </span>
-          <span v-else-if="auditoriaRolando">
-            Auditoria rolando: termina em {{ tempoRestante }}
-          </span>
-          <span v-else>
-            Próxima auditoria {{ proximaDescricao }}: das
-            {{ proximaHorario.inicio }} às {{ proximaHorario.fim }}
-          </span>
+        <!-- Informações da loja (visível no desktop, colapsável no mobile) -->
+        <div class="loja-informacoes" :class="{ expandido: mostrarInfo }">
+          <p class="loja-endereco">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ loja.endereco }} • {{ loja.cidade }}
+          </p>
+          <p class="loja-contato">
+            <i class="fas fa-phone"></i>
+            {{ loja.telefone }} •
+            <i class="fas fa-user-tie"></i>
+            Gerente: {{ loja.gerente }}
+          </p>
+
+          <div class="loja-horario">
+            <i class="fas fa-clock"></i>
+            <span v-if="auditoriaHoje">
+              Próxima auditoria hoje: das {{ auditoriaHoje.inicio }} às
+              {{ auditoriaHoje.fim }}
+            </span>
+            <span v-else-if="auditoriaRolando">
+              Auditoria rolando: termina em {{ tempoRestante }}
+            </span>
+            <span v-else>
+              Próxima auditoria {{ proximaDescricao }}: das
+              {{ proximaHorario.inicio }} às {{ proximaHorario.fim }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -157,6 +170,7 @@ export default {
   data() {
     return {
       showCoverSelector: false,
+      mostrarInfo: false,
       statusAuditoria: {
         texto: "Verificando status...",
         classe: "verificando",
@@ -289,6 +303,10 @@ export default {
     },
   },
   methods: {
+    toggleInfo() {
+      this.mostrarInfo = !this.mostrarInfo;
+    },
+
     atualizarStatusAuditoria() {
       const agora = new Date();
       const diaSemana = agora.getDay(); // 0=Domingo, 1=Segunda, etc.
@@ -1035,9 +1053,7 @@ export default {
 
 .loja-nome {
   font-size: 2.5rem;
-
-  margin: 10;
-
+  margin: 0;
   margin-top: -20px;
   font-weight: 800;
   position: relative;
@@ -1046,15 +1062,8 @@ export default {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow:
-    0 2px 8px rgba(102, 126, 234, 0.18),
-    0 1px 0 #fff;
   letter-spacing: 1px;
-  border-radius: 8px;
-  padding: 2px 12px 2px 6px;
-  box-shadow:
-    0 2px 12px 0 rgba(102, 126, 234, 0.1),
-    0 1.5px 0 #fff;
+  padding: 2px 6px;
   transition: color 0.2s;
 }
 
@@ -1231,6 +1240,41 @@ export default {
   -webkit-text-fill-color: transparent;
 }
 
+/* Botão de informação mobile */
+.btn-info-mobile {
+  display: none;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: #667eea;
+  border: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0;
+  padding: 0;
+  margin-right: 10px;
+  margin-top: -15px;
+}
+
+.btn-info-mobile:hover {
+  transform: scale(1.15);
+  color: #764ba2;
+}
+
+.btn-info-mobile:active {
+  transform: scale(0.95);
+}
+
+/* Container de informações */
+.loja-informacoes {
+  transition: all 0.3s ease;
+}
+
 /* Responsividade */
 @media (max-width: 968px) {
   .perfil-info {
@@ -1273,30 +1317,94 @@ export default {
   .loja-nome {
     font-size: 2rem;
     z-index: 10;
+    /* Sobrescrever gradiente para cor sólida no mobile */
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    color: #2c3e50;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .perfil-stats {
-    flex-direction: column;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     width: 100%;
     min-width: auto;
+    padding: 15px;
   }
 
   .stat-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    text-align: left;
+    text-align: center;
+    background: white;
+    padding: 15px 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
   }
 
   .stat-number {
-    font-size: 1.8rem;
-    margin-bottom: 0;
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+    display: block;
+    margin-left: 0;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    line-height: 1.3;
   }
 
   .loja-status {
     font-size: 0.85rem;
     padding: 8px 14px;
+  }
+
+  /* Mostrar botão de informação no mobile */
+  .btn-info-mobile {
+    display: flex;
+  }
+
+  /* Esconder informações por padrão no mobile */
+  .loja-informacoes {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-top: 0;
+  }
+
+  /* Mostrar informações quando expandido */
+  .loja-informacoes.expandido {
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 15px;
+  }
+
+  .loja-endereco,
+  .loja-contato,
+  .loja-horario {
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
@@ -1309,6 +1417,13 @@ export default {
   .loja-nome {
     font-size: 1.8rem;
     z-index: 10;
+    /* Cor sólida para melhor visibilidade */
+    background: none;
+    -webkit-background-clip: unset;
+    -webkit-text-fill-color: unset;
+    background-clip: unset;
+    color: #2c3e50;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .loja-endereco,
@@ -1317,9 +1432,21 @@ export default {
   }
 
   .perfil-stats {
-    padding: 20px;
-    flex-direction: column;
-    gap: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .stat-item {
+    padding: 12px 8px;
+  }
+
+  .stat-number {
+    font-size: 1.4rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
   }
 
   .avatar-img,
@@ -1344,13 +1471,6 @@ export default {
 
   .perfil-details {
     min-width: 0;
-  }
-
-  .stat-number {
-    font-size: 1.8rem;
-  }
-  .stat-label {
-    font-size: 0.8rem;
   }
 
   .loja-status {
