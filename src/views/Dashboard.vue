@@ -96,6 +96,7 @@
                 >
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -311,6 +312,8 @@
               </div>
             </transition-group>
           </div>
+
+
 
           <!-- Default Posts List (legacy) -->
           <div v-else class="posts-list">
@@ -577,6 +580,14 @@ export default {
     // Estados para avisos e votações
     const avisosPendentes = ref([]);
     const votacoesPendentes = ref([]);
+
+    // Estados para conquistas
+    const achievements = ref([]);
+    const loadingAchievements = ref(false);
+    const errorAchievements = ref(null);
+    const isUpdating = ref(false);
+    const showEditModal = ref(false);
+    const selectedAchievement = ref(null);
 
     // Estado para view atual
     const currentView = ref("postagens");
@@ -1224,11 +1235,309 @@ export default {
       }
     };
 
+    // Funções para gerenciamento de conquistas
+    const loadAchievements = async () => {
+      loadingAchievements.value = true;
+      errorAchievements.value = null;
+
+      try {
+        // Buscar as configurações das conquistas do backend
+        const response = await axios.get('http://localhost:3000/api/achievements/config');
+
+        if (response.data.success) {
+          // Mapear as configurações recebidas para o formato esperado
+          const loadedAchievements = response.data.configs.map(config => ({
+            achievementId: config.achievementId,
+            achievementData: {
+              title: config.title,
+              description: config.description,
+              icon: config.icon,
+              category: config.category,
+              difficulty: config.difficulty,
+              rarity: config.rarity,
+              points: config.points,
+              criteria: config.criteria,
+            },
+            progress: { target: config.target },
+            editTitle: config.title,
+            editDescription: config.description,
+            editPoints: config.points,
+            editRarity: config.rarity,
+            editIcon: config.icon,
+          }));
+
+          achievements.value = loadedAchievements;
+        } else {
+          throw new Error(response.data.error || 'Erro desconhecido');
+        }
+      } catch (error) {
+        console.error('Erro ao carregar conquistas:', error);
+
+        // Em caso de erro, carregar dados simulados como fallback
+        console.warn('Usando dados simulados devido ao erro...');
+
+        const mockAchievements = [
+          {
+            achievementId: "first-audit",
+            achievementData: {
+              title: "Primeira Auditoria",
+              description: "Concluiu sua primeira auditoria",
+              icon: "🔍",
+              category: "audits",
+              difficulty: "easy",
+              rarity: "Basica",
+              points: 10,
+              criteria: { type: "count", target: 1, description: "Realizar 1 auditoria atualizada" },
+            },
+            progress: { target: 1 },
+            editTitle: "Primeira Auditoria",
+            editDescription: "Concluiu sua primeira auditoria",
+            editPoints: 10,
+            editRarity: "Basica",
+            editIcon: "🔍",
+          },
+          {
+            achievementId: "audit-enthusiast",
+            achievementData: {
+              title: "Entusiasta de Auditoria",
+              description: "Concluiu 5 auditorias atualizadas",
+              icon: "📊",
+              category: "audits",
+              difficulty: "medium",
+              rarity: "Raro",
+              points: 150,
+              criteria: { type: "count", target: 5, description: "Realizar 5 auditorias atualizadas" },
+            },
+            progress: { target: 5 },
+            editTitle: "Entusiasta de Auditoria",
+            editDescription: "Concluiu 5 auditorias atualizadas",
+            editPoints: 150,
+            editRarity: "Raro",
+            editIcon: "📊",
+          },
+          {
+            achievementId: "audit-master",
+            achievementData: {
+              title: "Mestre de Auditoria",
+              description: "Concluiu 10 auditorias atualizadas",
+              icon: "🏆",
+              category: "audits",
+              difficulty: "hard",
+              rarity: "Epico",
+              points: 1500,
+              criteria: { type: "count", target: 10, description: "Realizar 10 auditorias atualizadas" },
+            },
+            progress: { target: 10 },
+            editTitle: "Mestre de Auditoria",
+            editDescription: "Concluiu 10 auditorias atualizadas",
+            editPoints: 1500,
+            editRarity: "Epico",
+            editIcon: "🏆",
+          },
+          {
+            achievementId: "consistent-auditor",
+            achievementData: {
+              title: "Auditor Consistente",
+              description: "Realizou 20 auditorias atualizadas",
+              icon: "📅",
+              category: "consistency",
+              difficulty: "hard",
+              rarity: "Lendario",
+              points: 5000,
+              criteria: { type: "count", target: 20, description: "Realizar 20 auditorias atualizadas" },
+            },
+            progress: { target: 20 },
+            editTitle: "Auditor Consistente",
+            editDescription: "Realizou 20 auditorias atualizadas",
+            editPoints: 5000,
+            editRarity: "Lendario",
+            editIcon: "📅",
+          },
+          {
+            achievementId: "weekly-warrior",
+            achievementData: {
+              title: "Mestre das Auditorias",
+              description: "Realizou 50 auditorias atualizadas",
+              icon: "👑",
+              category: "performance",
+              difficulty: "very-hard",
+              rarity: "Diamante",
+              points: 25000,
+              criteria: { type: "count", target: 50, description: "Realizar 50 auditorias atualizadas" },
+            },
+            progress: { target: 50 },
+            editTitle: "Mestre das Auditorias",
+            editDescription: "Realizou 50 auditorias atualizadas",
+            editPoints: 25000,
+            editRarity: "Diamante",
+            editIcon: "👑",
+          },
+          {
+            achievementId: "item-collector-100",
+            achievementData: {
+              title: "Colecionador",
+              description: "Leu 100 itens",
+              icon: "💯",
+              category: "performance",
+              difficulty: "easy",
+              rarity: "Basica",
+              points: 15,
+              criteria: { type: "count", target: 100, description: "Ler 100 itens" },
+            },
+            progress: { target: 100 },
+            editTitle: "Colecionador",
+            editDescription: "Leu 100 itens",
+            editPoints: 15,
+            editRarity: "Basica",
+            editIcon: "💯",
+          },
+          {
+            achievementId: "item-collector-500",
+            achievementData: {
+              title: "Meta Batida",
+              description: "Leu 500 itens",
+              icon: "🎯",
+              category: "performance",
+              difficulty: "medium",
+              rarity: "Comum",
+              points: 50,
+              criteria: { type: "count", target: 500, description: "Ler 500 itens" },
+            },
+            progress: { target: 500 },
+            editTitle: "Meta Batida",
+            editDescription: "Leu 500 itens",
+            editPoints: 50,
+            editRarity: "Comum",
+            editIcon: "🎯",
+          },
+          {
+            achievementId: "item-collector-1000",
+            achievementData: {
+              title: "Maratona",
+              description: "Leu 1000 itens",
+              icon: "🏅",
+              category: "performance",
+              difficulty: "hard",
+              rarity: "Raro",
+              points: 100,
+              criteria: { type: "count", target: 1000, description: "Ler 1000 itens" },
+            },
+            progress: { target: 1000 },
+            editTitle: "Maratona",
+            editDescription: "Leu 1000 itens",
+            editPoints: 100,
+            editRarity: "Raro",
+            editIcon: "🏅",
+          },
+          {
+            achievementId: "perfect-accuracy",
+            achievementData: {
+              title: "Precisão Perfeita",
+              description: "Manteve 95% de precisão",
+              icon: "🎯",
+              category: "performance",
+              difficulty: "hard",
+              rarity: "Epico",
+              points: 40,
+              criteria: { type: "percentage", target: 95, description: "Manter 95% de precisão" },
+            },
+            progress: { target: 95 },
+            editTitle: "Precisão Perfeita",
+            editDescription: "Manteve 95% de precisão",
+            editPoints: 40,
+            editRarity: "Epico",
+            editIcon: "🎯",
+          },
+          {
+            achievementId: "team-player",
+            achievementData: {
+              title: "Jogador de Equipe",
+              description: "Trabalhou em 3 setores diferentes",
+              icon: "🤝",
+              category: "participation",
+              difficulty: "medium",
+              rarity: "Comum",
+              points: 20,
+              criteria: { type: "count", target: 3, description: "Trabalhar em 3 setores diferentes" },
+            },
+            progress: { target: 3 },
+            editTitle: "Jogador de Equipe",
+            editDescription: "Trabalhou em 3 setores diferentes",
+            editPoints: 20,
+            editRarity: "Comum",
+            editIcon: "🤝",
+          }
+        ];
+
+        achievements.value = mockAchievements;
+      } finally {
+        loadingAchievements.value = false;
+      }
+    };
+
+    const openEditModal = (achievement) => {
+      // Fazer uma cópia do achievement para edição
+      selectedAchievement.value = {
+        ...JSON.parse(JSON.stringify(achievement)),
+        editTitle: achievement.editTitle || achievement.achievementData?.title,
+        editDescription: achievement.editDescription || achievement.achievementData?.description,
+        editPoints: achievement.editPoints || achievement.achievementData?.points,
+        editRarity: achievement.editRarity || achievement.achievementData?.rarity,
+        editIcon: achievement.editIcon || achievement.achievementData?.icon
+      };
+      showEditModal.value = true;
+    };
+
+    const closeEditModal = () => {
+      showEditModal.value = false;
+      selectedAchievement.value = null;
+    };
+
+    const updateAchievement = async (achievement) => {
+      isUpdating.value = true;
+
+      try {
+        // Atualizar os dados editáveis localmente primeiro
+        achievement.achievementData.title = achievement.editTitle;
+        achievement.achievementData.description = achievement.editDescription;
+        achievement.achievementData.points = achievement.editPoints;
+        achievement.achievementData.rarity = achievement.editRarity;
+        achievement.achievementData.icon = achievement.editIcon;
+
+        // Enviar atualização para o backend
+        const response = await axios.put(`http://localhost:3000/api/achievements/config/${achievement.achievementId}`, {
+          title: achievement.editTitle,
+          description: achievement.editDescription,
+          points: achievement.editPoints,
+          rarity: achievement.editRarity,
+          icon: achievement.editIcon
+        });
+
+        if (response.data.success) {
+          showMessage(`Conquista "${achievement.editTitle}" atualizada com sucesso!`, "success");
+          // Fechar o modal após sucesso
+          closeEditModal();
+        } else {
+          throw new Error(response.data.error || 'Erro desconhecido');
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar conquista:', error);
+        showMessage('Erro ao atualizar conquista: ' + (error.response?.data?.error || error.message), "error");
+      } finally {
+        isUpdating.value = false;
+      }
+    };
+
+    const achievementsCount = computed(() => {
+      return achievements.value.length;
+    });
+
     // Carregar dados quando componente for montado
     onMounted(() => {
       loadPosts();
       loadAvisos();
       loadVotacoes();
+      loadAchievements();
     });
 
     return {
@@ -1284,6 +1593,18 @@ export default {
       openDeleteModal,
       cancelDeletion,
       confirmDeletion,
+      // Novas variáveis e funções para conquistas
+      achievements,
+      loadingAchievements,
+      errorAchievements,
+      isUpdating,
+      showEditModal,
+      selectedAchievement,
+      loadAchievements,
+      updateAchievement,
+      openEditModal,
+      closeEditModal,
+      achievementsCount,
     };
   },
 };
@@ -2658,5 +2979,278 @@ export default {
   .title-icon {
     font-size: 1.8rem;
   }
+}
+
+/* Estilos para o gerenciamento de conquistas */
+.achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.achievement-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.achievement-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.achievement-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.achievement-info p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.achievement-details,
+.achievement-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.detail-item,
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-item label,
+.stat-item label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+}
+
+.detail-item span,
+.stat-item span {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.achievement-edit {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f1f3f5;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #4361ee;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.achievement-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a0ca3, #4361ee);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #f5c6cb;
+  margin-top: 1rem;
+}
+
+/* Estilos para o modal de edição */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.modal-body {
+  margin-bottom: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: #e2e8f0;
+  color: #4a5568;
+  border: 2px solid #cbd5e0;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e0;
+  transform: translateY(-1px);
+}
+
+/* Melhorar estilo do card de conquista para cliques */
+.achievement-card {
+  cursor: pointer;
+}
+
+.achievement-card:hover {
+  border-color: #4361ee;
+  background: #f1f3f5;
 }
 </style>

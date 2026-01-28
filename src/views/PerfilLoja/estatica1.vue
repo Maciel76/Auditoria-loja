@@ -11,7 +11,7 @@
             <option value="mensal">Mensal</option>
           </select>
         </div>
-
+        <!-- tetste -->
         <div class="filter-group">
           <label>Loja:</label>
           <select v-model="filters.loja" @change="atualizarDados">
@@ -756,12 +756,10 @@ export default {
         conteudo: `
           <div class="modal-alert-details">
             <p><strong>Descrição:</strong> ${alerta.descricao}</p>
-            <p><strong>Severidade:</strong> <span class="severity-${
+            <p><strong>Severidade:</strong> <span class="severity-${alerta.severidade}">${
               alerta.severidade
-            }">${alerta.severidade}</span></p>
-            <p><strong>Detectado em:</strong> ${formatarData(
-              alerta.dataDeteccao
-            )}</p>
+            }</span></p>
+            <p><strong>Detectado em:</strong> ${formatarData(alerta.dataDeteccao)}</p>
             <div class="recommendations">
               <h4>Ações Recomendadas:</h4>
               <ul>
@@ -839,7 +837,7 @@ export default {
       () => {
         atualizarDados();
       },
-      { deep: true }
+      { deep: true },
     );
 
     // Lifecycle

@@ -1,6 +1,6 @@
 <template>
   <div class="evolucao-auditorias-container">
-    <!-- Cabeçalho com Filtros -->
+    <!-- Cabeçalho com Filtros  ok-->
     <div class="section-header">
       <div class="header-main">
         <div class="title-section">
@@ -402,7 +402,7 @@ Chart.register(
   Legend,
   Filler,
   BarController,
-  BarElement
+  BarElement,
 );
 
 // Refs para os gráficos
@@ -678,7 +678,7 @@ const previsao30dias = computed(() => {
     variacaoDesempenho.value / dadosAtuais.value.desempenhos.length;
   return Math.min(
     100,
-    Math.round(desempenhoAtual.value + crescimentoDiario * 30)
+    Math.round(desempenhoAtual.value + crescimentoDiario * 30),
   );
 });
 
@@ -709,7 +709,7 @@ const initializeCharts = () => {
         {
           label: "Meta",
           data: Array(dadosAtuais.value.labels.length).fill(
-            dadosAtuais.value.meta
+            dadosAtuais.value.meta,
           ),
           borderColor: "#4CAF50",
           borderWidth: 2,
@@ -781,7 +781,7 @@ const initializeCharts = () => {
           backgroundColor: dadosAtuais.value.comparacaoSetores.map((s) =>
             s.variacao >= 0
               ? "rgba(76, 175, 80, 0.8)"
-              : "rgba(244, 67, 54, 0.8)"
+              : "rgba(244, 67, 54, 0.8)",
           ),
           borderRadius: 8,
         },
@@ -832,7 +832,7 @@ const updateCharts = () => {
     graficoLinhaInstance.value.data.datasets[0].data =
       dadosAtuais.value.desempenhos;
     graficoLinhaInstance.value.data.datasets[1].data = Array(
-      dadosAtuais.value.labels.length
+      dadosAtuais.value.labels.length,
     ).fill(dadosAtuais.value.meta);
     graficoLinhaInstance.value.data.datasets[2].data =
       dadosAtuais.value.mediaMovel;
@@ -846,7 +846,7 @@ const updateCharts = () => {
       dadosAtuais.value.comparacaoSetores.map((s) => s.variacao);
     graficoComparacaoInstance.value.data.datasets[0].backgroundColor =
       dadosAtuais.value.comparacaoSetores.map((s) =>
-        s.variacao >= 0 ? "rgba(76, 175, 80, 0.8)" : "rgba(244, 67, 54, 0.8)"
+        s.variacao >= 0 ? "rgba(76, 175, 80, 0.8)" : "rgba(244, 67, 54, 0.8)",
       );
     graficoComparacaoInstance.value.update();
   }

@@ -1,6 +1,6 @@
 <template>
   <div class="timeline-atividades-container">
-    <!-- Header -->
+    <!-- Header  timeline-->
     <div class="timeline-header">
       <div class="header-left">
         <div class="icon-title">
@@ -264,8 +264,8 @@
                   status === "concluido"
                     ? "Concluído"
                     : status === "andamento"
-                    ? "Em Andamento"
-                    : "Pendente"
+                      ? "Em Andamento"
+                      : "Pendente"
                 }}
               </span>
             </label>
@@ -291,8 +291,8 @@
                   prioridade === "alta"
                     ? "Alta"
                     : prioridade === "media"
-                    ? "Média"
-                    : "Baixa"
+                      ? "Média"
+                      : "Baixa"
                 }}
               </span>
             </label>
@@ -410,8 +410,8 @@
                       evento.prioridade === "alta"
                         ? "Alta"
                         : evento.prioridade === "media"
-                        ? "Média"
-                        : "Baixa"
+                          ? "Média"
+                          : "Baixa"
                     }}
                   </span>
                   <span
@@ -423,8 +423,8 @@
                       evento.status === "concluido"
                         ? "Concluído"
                         : evento.status === "andamento"
-                        ? "Em Andamento"
-                        : "Pendente"
+                          ? "Em Andamento"
+                          : "Pendente"
                     }}
                   </span>
                 </div>
@@ -885,13 +885,13 @@ const eventosFiltrados = computed(() => {
 
 const estatisticas = computed(() => {
   const concluidos = eventosFiltrados.value.filter(
-    (e) => e.status === "concluido"
+    (e) => e.status === "concluido",
   ).length;
   const alertas = eventosFiltrados.value.filter(
-    (e) => e.tipo === "alerta"
+    (e) => e.tipo === "alerta",
   ).length;
   const andamento = eventosFiltrados.value.filter(
-    (e) => e.status === "andamento"
+    (e) => e.status === "andamento",
   ).length;
 
   return {
@@ -936,7 +936,11 @@ onMounted(() => {
   width: 100%;
   position: relative;
   overflow: hidden;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .timeline-header {

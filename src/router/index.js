@@ -28,9 +28,9 @@ import Changelog from "@/views/InfoSite/Changelog.vue";
 import Contato from "@/views/InfoSite/Contato.vue";
 import Documentacao from "@/views/InfoSite/Documentacao.vue";
 import RoadMap from "@/views/InfoSite/RoadMap.vue";
-import Sugestao from "@/views/InfoSite/Sugestao.vue";
+// import Sugestao from "@/views/InfoSite/Sugestao.vue"; // Componente removido
 import Tutorias from "@/views/InfoSite/Tutorias.vue";
-import Votacao from "@/views/InfoSite/Votacao.vue";
+// import Votacao from "@/views/InfoSite/Votacao.vue"; // Componente removido
 
 const routes = [
   // Rota principal - Seleção de Loja (SEM Layout do App.vue)
@@ -46,6 +46,7 @@ const routes = [
     component: AdminLogin,
     meta: { requiresLoja: false, requiresAuth: false },
   },
+
   {
     path: "/",
     name: "SelecionarLoja",
@@ -198,24 +199,24 @@ const routes = [
     component: RoadMap,
     meta: { requiresLoja: false },
   },
-  {
-    path: "/info/sugestao",
-    name: "Sugestao",
-    component: Sugestao,
-    meta: { requiresLoja: false },
-  },
+  // {
+  //   path: "/info/sugestao",
+  //   name: "Sugestao",
+  //   component: Sugestao,
+  //   meta: { requiresLoja: false },
+  // },
   {
     path: "/info/tutorias",
     name: "Tutorias",
     component: Tutorias,
     meta: { requiresLoja: false },
   },
-  {
-    path: "/info/votacao",
-    name: "Votacao",
-    component: Votacao,
-    meta: { requiresLoja: false },
-  },
+  // {
+  //   path: "/info/votacao",
+  //   name: "Votacao",
+  //   component: Votacao,
+  //   meta: { requiresLoja: false },
+  // },
 ];
 
 const router = createRouter({

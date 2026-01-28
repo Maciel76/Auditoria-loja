@@ -50,7 +50,7 @@ export default {
           title: "Finalizador Dourado",
           description: "Fez a última leitura que completou uma auditoria.",
           rarity: "Raro",
-          earned: false,
+          earned: true,
         },
         {
           icon: "🏷️",
@@ -71,7 +71,7 @@ export default {
           title: "Mira Certa",
           description: "Concluiu uma auditoria de 200 itens sem erros.",
           rarity: "Épico",
-          earned: false,
+          earned: true,
         },
         {
           icon: "⚡",
@@ -85,28 +85,42 @@ export default {
           title: "Dupla Dinâmica",
           description: "Você e um colega leram 250+ itens na mesma auditoria.",
           rarity: "Raro",
-          earned: false,
+          earned: true,
         },
         {
           icon: "🔥",
           title: "Fôlego de Aço",
           description: "Bateu a meta individual por 5 dias consecutivos.",
           rarity: "Épico",
-          earned: false,
+          earned: true,
         },
         {
           icon: "🏆",
           title: "Lenda Viva",
           description: "Realizou auditorias em 100 dias diferentes.",
           rarity: "Lendário",
-          earned: false,
+          earned: true,
         },
         {
           icon: "🗓️",
           title: "Mês Perfeito",
           description: "Auditou em todos os dias úteis de um mês.",
           rarity: "Lendário",
-          earned: false,
+          earned: true,
+        },
+        {
+          icon: "💚",
+          title: "Conquista basica ",
+          description: "Auditou em todos os dias úteis de um mês.",
+          rarity: "basica",
+          earned: true,
+        },
+        {
+          icon: "💎",
+          title: "Diamante ",
+          description: "Auditou em todos os dias úteis de um mês.",
+          rarity: "diamante",
+          earned: true,
         },
       ],
     };
@@ -117,8 +131,9 @@ export default {
 <style scoped>
 .conquistas {
   padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -207,6 +222,9 @@ export default {
 }
 
 /* Cores de Raridade */
+.basica {
+  background-color: #adadad;
+} /* Cinza clara */
 .comum {
   background-color: #95a5a6;
 } /* Cinza */
@@ -218,5 +236,8 @@ export default {
 } /* Roxo */
 .lendário {
   background-color: #f1c40f;
+} /* Dourado */
+.diamante {
+  background-color: #2b3b53;
 } /* Dourado */
 </style>

@@ -4,7 +4,7 @@
 
     <!-- Filtro por data -->
     <div class="filtro-data">
-      <label for="data-select"
+      <label for="data-sele ct"
         ><i class="fas fa-calendar-alt"></i> Filtrar por data:
       </label>
       <select

@@ -24,6 +24,7 @@
       <aside
         class="sidebar"
         :class="{ open: sidebarOpen, collapsed: sidebarCollapsed }"
+        @click="handleSidebarClick"
       >
         <div class="sidebar-header">
           <div class="header-pattern"></div>
@@ -436,13 +437,13 @@
                 >
                   <span class="dropdown-text">Roadmap</span>
                 </router-link>
-                <router-link
+                <!-- <router-link
                   to="/info/sugestao"
                   class="dropdown-item"
                   @click="closeSubmenus"
                 >
                   <span class="dropdown-text">Sugestão</span>
-                </router-link>
+                </router-link> -->
                 <router-link
                   to="/info/tutorias"
                   class="dropdown-item"
@@ -450,13 +451,13 @@
                 >
                   <span class="dropdown-text">Tutorias</span>
                 </router-link>
-                <router-link
+                <!-- <router-link
                   to="/info/votacao"
                   class="dropdown-item"
                   @click="closeSubmenus"
                 >
                   <span class="dropdown-text">Votação</span>
-                </router-link>
+                </router-link> -->
               </div>
             </transition>
 
@@ -502,13 +503,13 @@
                 >
                   Roadmap
                 </router-link>
-                <router-link
+                <!-- <router-link
                   to="/info/sugestao"
                   class="tooltip-item"
                   @click="closeSubmenus"
                 >
                   Sugestão
-                </router-link>
+                </router-link> -->
                 <router-link
                   to="/info/tutorias"
                   class="tooltip-item"
@@ -516,13 +517,13 @@
                 >
                   Tutorias
                 </router-link>
-                <router-link
+                <!-- <router-link
                   to="/info/votacao"
                   class="tooltip-item"
                   @click="closeSubmenus"
                 >
                   Votação
-                </router-link>
+                </router-link> -->
               </div>
             </div>
           </div>
@@ -663,7 +664,7 @@ async function trocarLoja(loja) {
     } else {
       console.error(
         `Erro ao trocar para loja ${loja.codigo}:`,
-        lojaStore.error
+        lojaStore.error,
       );
       alert(`Erro ao selecionar loja: ${lojaStore.error}`);
     }
@@ -737,6 +738,23 @@ function toggleSidebarCollapse() {
 
   // Salvar estado no localStorage
   localStorage.setItem("sidebarCollapsed", sidebarCollapsed.value.toString());
+}
+
+function handleSidebarClick(event) {
+  // Se a sidebar está colapsada e o clique não foi em um link ou botão específico
+  if (sidebarCollapsed.value && window.innerWidth > 768) {
+    const target = event.target;
+    const isClickOnInteractive =
+      target.closest(".nav-item") ||
+      target.closest(".sidebar-toggle-btn") ||
+      target.closest(".logout-btn") ||
+      target.closest(".loja-image");
+
+    // Se não clicou em elemento interativo, expande a sidebar
+    if (!isClickOnInteractive) {
+      toggleSidebarCollapse();
+    }
+  }
 }
 
 // Watchers
@@ -820,11 +838,18 @@ body {
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  overflow-x: visible; /* Permite que elementos saiam da sidebar */
   z-index: 1000;
   display: flex;
   flex-direction: column;
   border-radius: 0 20px 20px 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.sidebar.collapsed {
+  cursor: pointer;
+  overflow: visible; /* Garante que o botão fique visível fora */
 }
 
 /* Sidebar Colapsada */
@@ -842,6 +867,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-right: 15px;
+  overflow: visible; /* Permite que o botão saia do header */
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -924,7 +950,16 @@ body {
   right: -18px;
   top: 50%;
   transform: translateY(-50%) rotate(180deg);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 2px solid white;
+  z-index: 1001; /* z-index maior que a sidebar */
+}
+
+.sidebar.collapsed .sidebar-toggle-btn:hover {
+  background: linear-gradient(135deg, #7c8ff0 0%, #8a5bb8 100%);
+  transform: translateY(-50%) rotate(180deg) scale(1.15);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
 /* Navegação */

@@ -1,17 +1,33 @@
+<!-- ajusta -->
 <template>
   <div class="sugestao">
     <h1>Envie sua Sugestão</h1>
-    <p>Sua opinião é muito importante para nós. Use o formulário abaixo para enviar suas sugestões, críticas ou elogios.</p>
+    <p>
+      Sua opinião é muito importante para nós. Use o formulário abaixo para
+      enviar suas sugestões, críticas ou elogios.
+    </p>
 
     <form @submit.prevent="enviarSugestao" class="sugestao-form">
       <div class="form-group">
         <label for="nome">Seu Nome</label>
-        <input type="text" id="nome" v-model="form.nome" placeholder="Digite seu nome" required>
+        <input
+          type="text"
+          id="nome"
+          v-model="form.nome"
+          placeholder="Digite seu nome"
+          required
+        />
       </div>
 
       <div class="form-group">
-        <label for="email">Seu E-mail</label>
-        <input type="email" id="email" v-model="form.email" placeholder="Digite seu e-mail" required>
+        <label for="email">Seu E-mai1l</label>
+        <input
+          type="email"
+          id="email"
+          v-model="form.email"
+          placeholder="Digite seu e-mail"
+          required
+        />
       </div>
 
       <div class="form-group">
@@ -25,7 +41,13 @@
 
       <div class="form-group">
         <label for="mensagem">Sua Mensagem</label>
-        <textarea id="mensagem" v-model="form.mensagem" rows="6" placeholder="Escreva sua mensagem aqui..." required></textarea>
+        <textarea
+          id="mensagem"
+          v-model="form.mensagem"
+          rows="6"
+          placeholder="Escreva sua mensagem aqui..."
+          required
+        ></textarea>
       </div>
 
       <button type="submit">Enviar Sugestão</button>
@@ -35,35 +57,37 @@
 
 <script>
 export default {
-  name: 'Sugestao',
+  name: "Sugestao",
   data() {
     return {
       form: {
-        nome: '',
-        email: '',
-        tipo: 'sugestao',
-        mensagem: ''
-      }
-    }
+        nome: "",
+        email: "",
+        tipo: "sugestao",
+        mensagem: "",
+      },
+    };
   },
   methods: {
     enviarSugestao() {
       // Aqui você pode adicionar a lógica para enviar a sugestão para o backend
       // Por exemplo, usando o Axios
-      alert('Sua sugestão foi enviada com sucesso! Agradecemos a sua contribuição.');
-      this.form.nome = '';
-      this.form.email = '';
-      this.form.tipo = 'sugestao';
-      this.form.mensagem = '';
-    }
-  }
-}
+      alert(
+        "Sua sugestão foi enviada com sucesso! Agradecemos a sua contribuição.",
+      );
+      this.form.nome = "";
+      this.form.email = "";
+      this.form.tipo = "sugestao";
+      this.form.mensagem = "";
+    },
+  },
+};
 </script>
 
 <style scoped>
 .sugestao {
   padding: 2rem;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   max-width: 700px;
   margin: 0 auto;
 }

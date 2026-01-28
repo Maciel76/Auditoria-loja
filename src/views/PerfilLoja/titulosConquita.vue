@@ -1,6 +1,6 @@
 <template>
   <div class="titulos-conquistas-container">
-    <!-- Header -->
+    <!-- Header  conquista da loja-->
     <div class="section-header">
       <div class="header-main">
         <div class="title-section">
@@ -673,7 +673,7 @@ const conquistasFiltradas = computed(() => {
   // Filtro por categoria
   if (filtroSelecionado.value !== "todos") {
     filtradas = filtradas.filter(
-      (conquista) => conquista.categoria === filtroSelecionado.value
+      (conquista) => conquista.categoria === filtroSelecionado.value,
     );
   }
 
@@ -681,19 +681,19 @@ const conquistasFiltradas = computed(() => {
   switch (ordenacaoSelecionada.value) {
     case "antigo":
       return filtradas.sort(
-        (a, b) => new Date(a.dataConquista) - new Date(b.dataConquista)
+        (a, b) => new Date(a.dataConquista) - new Date(b.dataConquista),
       );
     case "nivel":
       const nivelOrder = { ouro: 3, prata: 2, bronze: 1 };
       return filtradas.sort(
-        (a, b) => nivelOrder[b.nivel] - nivelOrder[a.nivel]
+        (a, b) => nivelOrder[b.nivel] - nivelOrder[a.nivel],
       );
     case "alfabeto":
       return filtradas.sort((a, b) => a.titulo.localeCompare(b.titulo));
     case "recente":
     default:
       return filtradas.sort(
-        (a, b) => new Date(b.dataConquista) - new Date(a.dataConquista)
+        (a, b) => new Date(b.dataConquista) - new Date(a.dataConquista),
       );
   }
 });
@@ -715,7 +715,7 @@ const novasConquistas = computed(() => {
   const currentYear = new Date().getFullYear();
   return conquistas.value.filter(
     (conquista) =>
-      new Date(conquista.dataConquista).getFullYear() === currentYear
+      new Date(conquista.dataConquista).getFullYear() === currentYear,
   ).length;
 });
 
@@ -726,7 +726,7 @@ const proximasConquistas = computed(() => conquistasAndamento.value.length);
 const progressoProximas = computed(() => {
   const totalProgress = conquistasAndamento.value.reduce(
     (sum, conquista) => sum + conquista.progresso,
-    0
+    0,
   );
   return Math.round(totalProgress / conquistasAndamento.value.length);
 });

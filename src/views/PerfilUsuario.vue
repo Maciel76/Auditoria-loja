@@ -245,17 +245,17 @@
             class="conquista-card"
             :class="{
               desbloqueada: conquista.desbloqueada,
-              rara: conquista.points >= 100,
-              epica: conquista.points >= 200,
+              rara: conquista.rarity === 'Raro' || conquista.rarity === 'Epico' || conquista.rarity === 'Lendario' || conquista.rarity === 'Diamante' || conquista.rarity === 'Especial',
+              epica: conquista.rarity === 'Epico' || conquista.rarity === 'Lendario' || conquista.rarity === 'Diamante' || conquista.rarity === 'Especial',
             }"
           >
             <!-- Badge de Raridade -->
             <div
-              v-if="conquista.desbloqueada && conquista.points >= 100"
+              v-if="conquista.desbloqueada && conquista.rarity"
               class="badge-raridade"
+              :class="conquista.rarity.toLowerCase()"
             >
-              <span v-if="conquista.points >= 200">Épica</span>
-              <span v-else>Rara</span>
+              <span>{{ conquista.rarity }}</span>
             </div>
 
             <div class="conquista-icon">
@@ -423,6 +423,9 @@ export default {
 
       // Carregar dados do usuário específico
       await this.carregarUsuarioPorId(this.id);
+
+      // Após carregar o usuário, atualizar as conquistas específicas dele
+      await this.carregarConquistasUsuario();
     } catch (error) {
       console.error("Erro ao inicializar perfil:", error);
     } finally {
@@ -441,21 +444,11 @@ export default {
     },
 
     conquistasDesbloqueadas() {
-      if (!this.usuario.conquistas || this.usuario.conquistas.length === 0) {
-        return [];
-      }
-      return this.todasConquistas.filter((c) =>
-        this.usuario.conquistas.includes(c.achievementId),
-      );
+      return this.todasConquistas.filter((c) => c.desbloqueada);
     },
 
     conquistasBloqueadas() {
-      if (!this.usuario.conquistas) {
-        return this.todasConquistas;
-      }
-      return this.todasConquistas.filter(
-        (c) => !this.usuario.conquistas.includes(c.achievementId),
-      );
+      return this.todasConquistas.filter((c) => !c.desbloqueada);
     },
 
     progressoPercentual() {
@@ -661,13 +654,6 @@ export default {
             loja: usuarioCompleto.loja || null,
           };
 
-          // Mark which achievements are unlocked
-          this.todasConquistas.forEach((conquista) => {
-            conquista.desbloqueada = this.usuario.conquistas.includes(
-              conquista.achievementId,
-            );
-          });
-
           // Update the user in nivelStore to keep it consistent
           const indexInStore = this.nivelStore.usuarios.findIndex(
             (u) => u.id === usuarioId,
@@ -689,6 +675,36 @@ export default {
         console.error("Erro ao carregar usuário:", error);
       } finally {
         this.carregando = false;
+      }
+    },
+
+    async carregarConquistasUsuario() {
+      try {
+        const conquistasStore = useConquistasStore();
+        await conquistasStore.carregarConquistasUsuario(this.usuario.id);
+
+        // Atualizar as conquistas no array local
+        const conquistasUsuario = conquistasStore.conquistasDoUsuario(this.usuario.id);
+
+        // Marcar quais conquistas estão desbloqueadas
+        this.todasConquistas.forEach((conquista) => {
+          // Verificar se a conquista está desbloqueada comparando com o tipo
+          const conquistaDesbloqueada = conquistasUsuario.find(c =>
+            c.tipo === conquista.id || c.achievementId === conquista.id
+          );
+
+          if (conquistaDesbloqueada) {
+            conquista.desbloqueada = true;
+            conquista.unlockedAt = conquistaDesbloqueada.unlockedAt || conquistaDesbloqueada.createdAt;
+            conquista.points = conquistaDesbloqueada.points;
+            conquista.icon = conquistaDesbloqueada.icon || conquista.icon;
+            conquista.rarity = conquistaDesbloqueada.rarity || conquista.rarity;
+          } else {
+            conquista.desbloqueada = false;
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao carregar conquistas do usuário:", error);
       }
     },
 
@@ -1532,7 +1548,7 @@ export default {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, #6b7280, #4b5563);
   color: white;
   padding: 4px 10px;
   border-radius: 8px;
@@ -1540,7 +1556,42 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.badge-raridade.basica {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.badge-raridade.comum {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-raridade.raro {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.badge-raridade.epico {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.badge-raridade.lendario {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.badge-raridade.diamante {
+  background: linear-gradient(135deg, #06b6d4, #0e7490);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.4);
+}
+
+.badge-raridade.especial {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
 }
 
 .conquista-card.epica .badge-raridade {

@@ -12,11 +12,10 @@
             </div>
           </div>
           <div class="header-actions">
-            <button @click="loadAchievements" class="btn-refresh">
-              🔄 Atualizar
-            </button>
+            <button @click="loadAchievements" class="btn-refresh">🔄 Atualizar</button>
             <button @click="openCreateModal" class="btn-create">
               ➕ Nova Conquista
+              <!-- reque atenção -->
             </button>
           </div>
         </div>
@@ -79,9 +78,7 @@
               <span class="stat-label">Fáceis</span>
             </div>
             <div class="stat-card">
-              <span class="stat-value">{{
-                getCountByDifficulty("medium")
-              }}</span>
+              <span class="stat-value">{{ getCountByDifficulty("medium") }}</span>
               <span class="stat-label">Médias</span>
             </div>
             <div class="stat-card">
@@ -115,21 +112,13 @@
                 <p class="achievement-id">{{ achievement.achievementId }}</p>
               </div>
               <div class="achievement-badges">
-                <span
-                  class="badge badge-category"
-                  :class="achievement.category"
-                >
+                <span class="badge badge-category" :class="achievement.category">
                   {{ getCategoryText(achievement.category) }}
                 </span>
-                <span
-                  class="badge badge-difficulty"
-                  :class="achievement.difficulty"
-                >
+                <span class="badge badge-difficulty" :class="achievement.difficulty">
                   {{ getDifficultyText(achievement.difficulty) }}
                 </span>
-                <span class="badge badge-points"
-                  >{{ achievement.points }} XP</span
-                >
+                <span class="badge badge-points">{{ achievement.points }} XP</span>
               </div>
             </div>
 
@@ -150,9 +139,7 @@
                 </div>
                 <div class="criteria-item">
                   <span class="criteria-label">Meta:</span>
-                  <span class="criteria-value">{{
-                    achievement.criteria.target
-                  }}</span>
+                  <span class="criteria-value">{{ achievement.criteria.target }}</span>
                 </div>
                 <div class="criteria-item">
                   <span class="criteria-label">Campo Fonte:</span>
@@ -168,10 +155,7 @@
 
             <!-- Ações -->
             <div class="achievement-actions">
-              <button
-                @click="editAchievement(achievement)"
-                class="btn-action btn-edit"
-              >
+              <button @click="editAchievement(achievement)" class="btn-action btn-edit">
                 ✏️ Editar
               </button>
               <button
@@ -229,9 +213,7 @@
                     :disabled="isEditing"
                     class="form-input"
                   />
-                  <small
-                    >Identificador único (apenas letras, números e hífen)</small
-                  >
+                  <small>Identificador único (apenas letras, números e hífen)</small>
                 </div>
               </div>
 
@@ -385,8 +367,7 @@
                     </optgroup>
                   </select>
                   <small class="field-hint"
-                    >Este campo define de onde vem o valor para comparar com a
-                    meta</small
+                    >Este campo define de onde vem o valor para comparar com a meta</small
                   >
                 </div>
               </div>
@@ -431,11 +412,7 @@
 
     <!-- Notificação -->
     <transition name="fade">
-      <div
-        v-if="notification.show"
-        class="notification"
-        :class="notification.type"
-      >
+      <div v-if="notification.show" class="notification" :class="notification.type">
         {{ notification.message }}
       </div>
     </transition>
@@ -487,9 +464,7 @@ export default {
     // Computed
     const filteredAchievements = computed(() => {
       if (!categoryFilter.value) return achievements.value;
-      return achievements.value.filter(
-        (a) => a.category === categoryFilter.value
-      );
+      return achievements.value.filter((a) => a.category === categoryFilter.value);
     });
 
     // Métodos
@@ -507,8 +482,7 @@ export default {
     };
 
     const getCountByDifficulty = (difficulty) => {
-      return achievements.value.filter((a) => a.difficulty === difficulty)
-        .length;
+      return achievements.value.filter((a) => a.difficulty === difficulty).length;
     };
 
     const getCategoryText = (category) => {
@@ -605,10 +579,7 @@ export default {
       try {
         if (isEditing.value) {
           // Atualizar conquista existente
-          await conquistasStore.atualizarConquista(
-            currentEditId.value,
-            formData.value
-          );
+          await conquistasStore.atualizarConquista(currentEditId.value, formData.value);
           showNotification("Conquista atualizada com sucesso!", "success");
         } else {
           // Criar nova conquista
@@ -617,8 +588,7 @@ export default {
         }
         closeModal();
       } catch (error) {
-        const mensagem =
-          error.response?.data?.erro || "Erro ao salvar conquista";
+        const mensagem = error.response?.data?.erro || "Erro ao salvar conquista";
         showNotification(mensagem, "error");
       }
     };

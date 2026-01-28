@@ -99,9 +99,9 @@ export default {
         // Estilo Avataaars - Categoria: people
         {
           id: "avatar-4",
-          name: "Avatar Personagem 1",
+          name: "Jessica Avatar",
           category: "people",
-          url: "https://api.dicebear.com/7.x/avataaars/svg?seed=4&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jessica&backgroundColor=667eea,764ba2&radius=50&size=128",
         },
         {
           id: "avatar-5",
@@ -111,7 +111,7 @@ export default {
         },
         {
           id: "avatar-6",
-          name: "Avatar Personagem 3",
+          name: "Avatar Personagem 3", //
           category: "people",
           url: "https://api.dicebear.com/7.x/avataaars/svg?seed=6&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
@@ -140,7 +140,7 @@ export default {
         {
           id: "avatar-10",
           name: "Avatar Micah 1",
-          category: "cartoon",
+          category: "people",
           url: "https://api.dicebear.com/7.x/micah/svg?seed=10&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
@@ -152,7 +152,7 @@ export default {
         {
           id: "avatar-12",
           name: "Avatar Micah 3",
-          category: "cartoon",
+          category: "people",
           url: "https://api.dicebear.com/7.x/micah/svg?seed=12&backgroundColor=f093fb,f5576c&radius=50&size=128",
         },
 
@@ -299,21 +299,21 @@ export default {
         // Estilo Croodles Neutral - Categoria: cartoon
         {
           id: "avatar-34",
-          name: "Avatar Croodles Neutral 1",
-          category: "cartoon",
-          url: "https://api.dicebear.com/7.x/croodles-neutral/svg?seed=34&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
+          name: "Jack",
+          category: "people",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jack&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-35",
-          name: "Avatar Croodles Neutral 2",
-          category: "cartoon",
-          url: "https://api.dicebear.com/7.x/croodles-neutral/svg?seed=35&backgroundColor=43e97b,38f9d7&radius=50&size=128",
+          name: "Jocelyn",
+          category: "people",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jocelyn&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
         {
           id: "avatar-36",
-          name: "Avatar Croodles Neutral 3",
-          category: "cartoon",
-          url: "https://api.dicebear.com/7.x/croodles-neutral/svg?seed=36&backgroundColor=f83600,f9d423&radius=50&size=128",
+          name: "Jade",
+          category: "people",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jade&backgroundColor=f093fb,f5576c&radius=50&size=128",
         },
 
         // Estilo Icons - Categoria: symbols
@@ -393,26 +393,26 @@ export default {
           id: "avatar-48",
           name: "Avatar Parfait 3",
           category: "food",
-          url: "https://api.dicebear.com/7.x/parfait/svg?seed=48&backgroundColor=fa709a,fee140&radius=50&size=128",
+          url: "https://api.dicebear.com/7.x/parfait/svg?seed=48&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
 
         // Estilo Adventure - Categoria: travel
         {
           id: "avatar-49",
           name: "Avatar Adventure 1",
-          category: "travel",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=49&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-50",
           name: "Avatar Adventure 2",
-          category: "travel",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=50&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
         {
           id: "avatar-51",
           name: "Avatar Adventure 3",
-          category: "travel",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=51&backgroundColor=f093fb,f5576c&radius=50&size=128",
         },
 
@@ -437,21 +437,21 @@ export default {
         },
         {
           id: "avatar-55",
-          name: "Avatar Human Avatar",
+          name: "Nolan Avatar",
           category: "people",
-          url: "https://api.dicebear.com/7.x/human-avatar/svg?seed=55&backgroundColor=667eea,764ba2&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Nolan&backgroundColor=667eea,764ba2&radius=50&size=128",
         },
         {
           id: "avatar-56",
-          name: "Avatar Male Avatar",
+          name: "Emery",
           category: "people",
-          url: "https://api.dicebear.com/7.x/male/svg?seed=56&backgroundColor=fa709a,fee140&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Emery&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-57",
           name: "Avatar Female Avatar",
           category: "people",
-          url: "https://api.dicebear.com/7.x/female/svg?seed=57&backgroundColor=4facfe,00f2fe&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=57&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
         {
           id: "avatar-58",
@@ -545,27 +545,27 @@ export default {
           id: "avatar-71",
           name: "Avatar Croodles 1",
           category: "people",
-          url: "https://api.dicebear.com/7.x/croodles/svg?seed=71&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Christopher&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-72",
           name: "Avatar Croodles 2",
           category: "people",
-          url: "https://api.dicebear.com/7.x/croodles/svg?seed=72&backgroundColor=4facfe,00f2fe&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Aidan&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
         {
           id: "avatar-73",
           name: "Avatar Croodles 3",
           category: "people",
-          url: "https://api.dicebear.com/7.x/croodles/svg?seed=73&backgroundColor=f093fb,f5576c&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Chase&backgroundColor=f093fb,f5576c&radius=50&size=128",
         },
 
         // Estilo Croodles Neutral - Categoria: people
         {
           id: "avatar-74",
-          name: "Avatar Croodles Neutral 1",
+          name: "jack avata",
           category: "people",
-          url: "https://api.dicebear.com/7.x/croodles-neutral/svg?seed=74&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jackson&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-75",
@@ -815,21 +815,21 @@ export default {
         // Estilo Tidy People - Categoria: people
         {
           id: "avatar-101",
-          name: "Avatar Tidy People 1",
+          name: "George",
           category: "people",
           url: "https://api.dicebear.com/7.x/tidy-persons/svg?seed=101&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50&size=128",
         },
         {
           id: "avatar-102",
-          name: "Avatar Tidy People 2",
+          name: "Liliana",
           category: "people",
-          url: "https://api.dicebear.com/7.x/tidy-persons/svg?seed=102&backgroundColor=43e97b,38f9d7&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Liliana&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
         {
           id: "avatar-103",
-          name: "Avatar Tidy People 3",
+          name: "Alexander",
           category: "people",
-          url: "https://api.dicebear.com/7.x/tidy-persons/svg?seed=103&backgroundColor=f83600,f9d423&radius=50&size=128",
+          url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Alexander&backgroundColor=f093fb,f5576c&radius=50&size=128",
         },
 
         // Estilo Thumbs - Categoria: objects
@@ -1477,19 +1477,19 @@ export default {
         {
           id: "avatar-220",
           name: "Personagem 1",
-          category: "game",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=hero1&backgroundColor=f83600,f9d423&radius=50&size=128",
         },
         {
           id: "avatar-221",
           name: "Personagem 2",
-          category: "game",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=hero2&backgroundColor=43e97b,38f9d7&radius=50&size=128",
         },
         {
           id: "avatar-222",
           name: "Personagem 3",
-          category: "game",
+          category: "people",
           url: "https://api.dicebear.com/7.x/adventurer/svg?seed=hero3&backgroundColor=4facfe,00f2fe&radius=50&size=128",
         },
       ],
