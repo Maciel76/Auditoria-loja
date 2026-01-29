@@ -328,7 +328,6 @@
 <script>
 import { useRouter } from "vue-router";
 import { useNivelStore } from "@/store/nivelStore";
-import { useConquistasStore } from "@/store/conquistasStore";
 import { useLojaStore } from "@/store/lojaStore";
 import { useUserSessionStore } from "@/store/userSessionStore";
 import UserCoverSelector from "@/components/UserCoverSelector.vue";
@@ -416,15 +415,10 @@ export default {
   },
   async mounted() {
     try {
-      // Carregar todas as conquistas do sistema
-      const conquistasStore = useConquistasStore();
-      await conquistasStore.carregarConquistas();
-      this.todasConquistas = conquistasStore.conquistas;
-
       // Carregar dados do usuário específico
       await this.carregarUsuarioPorId(this.id);
 
-      // Após carregar o usuário, atualizar as conquistas específicas dele
+      // Carregar conquistas do usuário do modelo ConquistasUsuario
       await this.carregarConquistasUsuario();
     } catch (error) {
       console.error("Erro ao inicializar perfil:", error);
@@ -649,6 +643,7 @@ export default {
             xpParaProximoNivel: xpParaProximoNivel,
             progressoXp: progressoXp,
             conquistas: usuarioCompleto.conquistas || [],
+            achievements: usuarioMetricas.achievements || {}, // Adicionando as conquistas do modelo MetricasUsuario
             coverId: usuarioCompleto.coverId || "gradient-1",
             selectedBadges: usuarioCompleto.selectedBadges || [],
             loja: usuarioCompleto.loja || null,
@@ -680,32 +675,65 @@ export default {
 
     async carregarConquistasUsuario() {
       try {
-        const conquistasStore = useConquistasStore();
-        await conquistasStore.carregarConquistasUsuario(this.usuario.id);
+        // Buscar conquistas do usuário do modelo ConquistasUsuario
+        const config = {
+          headers: {
+            "x-loja": this.lojaStore.codigoLojaAtual || "056",
+          },
+        };
 
-        // Atualizar as conquistas no array local
-        const conquistasUsuario = conquistasStore.conquistasDoUsuario(this.usuario.id);
+        // Primeiro tentamos buscar as conquistas específicas do usuário
+        const response = await api.get(`/metricas/conquistas/${this.usuario.id}`, config);
 
-        // Marcar quais conquistas estão desbloqueadas
-        this.todasConquistas.forEach((conquista) => {
-          // Verificar se a conquista está desbloqueada comparando com o tipo
-          const conquistaDesbloqueada = conquistasUsuario.find(c =>
-            c.tipo === conquista.id || c.achievementId === conquista.id
-          );
+        if (response.data && response.data.achievements && response.data.achievements.achievements) {
+          // Processar as conquistas do modelo ConquistasUsuario
+          const conquistasUsuario = response.data.achievements.achievements || [];
 
-          if (conquistaDesbloqueada) {
-            conquista.desbloqueada = true;
-            conquista.unlockedAt = conquistaDesbloqueada.unlockedAt || conquistaDesbloqueada.createdAt;
-            conquista.points = conquistaDesbloqueada.points;
-            conquista.icon = conquistaDesbloqueada.icon || conquista.icon;
-            conquista.rarity = conquistaDesbloqueada.rarity || conquista.rarity;
-          } else {
-            conquista.desbloqueada = false;
-          }
-        });
+          // Mapear as conquistas do usuário para o formato esperado pelo template
+          this.todasConquistas = conquistasUsuario.map(conquista => {
+            return {
+              achievementId: conquista.achievementId,
+              title: conquista.achievementData?.title || conquista.title || 'Conquista Desconhecida',
+              description: conquista.achievementData?.description || conquista.description || 'Descrição não disponível',
+              icon: conquista.achievementData?.icon || conquista.icon || '🏆',
+              rarity: conquista.rarity || conquista.achievementData?.rarity || 'Comum',
+              points: conquista.fixedXpValue || conquista.achievementData?.points || 0,
+              desbloqueada: conquista.unlocked || false,
+              unlockedAt: conquista.unlockedAt,
+              progresso: conquista.progress?.percentage || 0,
+              criteria: conquista.achievementData?.criteria || conquista.criteria || {}
+            };
+          });
+        } else {
+          // Se não encontrar conquistas específicas, usar as do modelo MetricasUsuario como fallback
+          this.processarConquistasUsuario();
+        }
       } catch (error) {
-        console.error("Erro ao carregar conquistas do usuário:", error);
+        console.warn("Erro ao carregar conquistas específicas do usuário, usando fallback:", error);
+        // Em caso de erro, usar as conquistas do modelo MetricasUsuario como fallback
+        this.processarConquistasUsuario();
       }
+    },
+
+    processarConquistasUsuario() {
+      // Processar as conquistas diretamente do modelo MetricasUsuario (fallback)
+      const conquistasUsuario = this.usuario.achievements?.achievements || [];
+
+      // Mapear as conquistas do usuário para o formato esperado pelo template
+      this.todasConquistas = conquistasUsuario.map(conquista => {
+        return {
+          achievementId: conquista.achievementId,
+          title: conquista.achievementData?.title || conquista.title || 'Conquista Desconhecida',
+          description: conquista.achievementData?.description || conquista.description || 'Descrição não disponível',
+          icon: conquista.achievementData?.icon || conquista.icon || '🏆',
+          rarity: conquista.rarity || conquista.achievementData?.rarity || 'Comum',
+          points: conquista.fixedXpValue || conquista.achievementData?.points || 0,
+          desbloqueada: conquista.unlocked || false,
+          unlockedAt: conquista.unlockedAt,
+          progresso: conquista.progress?.percentage || 0,
+          criteria: conquista.achievementData?.criteria || conquista.criteria || {}
+        };
+      });
     },
 
     obterIniciais(nome) {
