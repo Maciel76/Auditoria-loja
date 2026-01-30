@@ -1,322 +1,1443 @@
 <template>
-  <div class="perfil-usuario-container">
-    <div v-if="carregando" class="loading-container">
-      <div class="spinner"></div>
-      <p>Carregando perfil...</p>
-    </div>
-
-    <div v-else-if="!usuario.id" class="error-container">
-      <div class="error-icon">
-        <i class="fas fa-exclamation-triangle"></i>
+  <div>
+    <div class="perfil-usuario-container">
+      <div v-if="carregando" class="loading-container">
+        <div class="spinner"></div>
+        <p>Carregando perfil...</p>
       </div>
-      <h3>Usuário não encontrado</h3>
-      <p>O colaborador solicitado não foi encontrado no sistema.</p>
-    </div>
 
-    <div v-else>
-      <!-- Header do Perfil -->
-      <div class="perfil-header">
-        <div class="perfil-cover" :style="coverStyle">
-          <div class="cover-pattern"></div>
-          <div class="cover-overlay">
-            <button
-              class="btn-edit-cover"
-              @click="showCoverSelector = true"
-              v-if="
-                !userSessionStore.isUsuarioComum ||
-                (userSessionStore.isUsuarioComum &&
-                  usuario.id === userSessionStore.getUsuarioId)
-              "
-            >
-              <i class="fas fa-pencil-alt"></i>
-              <span class="btn-tooltip">Personalizar Perfil</span>
-            </button>
+      <div v-else-if="!usuario.id" class="error-container">
+        <div class="error-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3>Usuário não encontrado</h3>
+        <p>O colaborador solicitado não foi encontrado no sistema.</p>
+      </div>
 
-            <!-- Badge de Usuário Comum -->
-            <!-- <div
-              v-if="
-                userSessionStore.isUsuarioComum &&
-                usuario.id === userSessionStore.getUsuarioId
-              "
-              class="usuario-comum-badge"
-            >
-              <i class="fas fa-user"></i> -->
-            <!-- <span>Modo Visualização</span> -->
-            <!-- </div>  -->
-
-            <div class="header-actions">
+      <div v-else>
+        <!-- Header do Perfil -->
+        <div class="perfil-header">
+          <div class="perfil-cover" :style="coverStyle">
+            <div class="cover-pattern"></div>
+            <div class="cover-overlay">
               <button
-                v-if="usuario.loja"
-                class="user-status"
-                @click="irParaPerfilLoja"
+                class="btn-edit-cover"
+                @click="showCoverSelector = true"
+                v-if="
+                  !userSessionStore.isUsuarioComum ||
+                  (userSessionStore.isUsuarioComum &&
+                    usuario.id === userSessionStore.getUsuarioId)
+                "
               >
+                <i class="fas fa-pencil-alt"></i>
+                <span class="btn-tooltip">Personalizar Perfil</span>
+              </button>
+
+              <!-- Badge de Usuário Comum -->
+              <!-- <div
+                v-if="
+                  userSessionStore.isUsuarioComum &&
+                  usuario.id === userSessionStore.getUsuarioId
+                "
+                class="usuario-comum-badge"
+              >
+                <i class="fas fa-user"></i> -->
+              <!-- <span>Modo Visualização</span> -->
+              <!-- </div>  -->
+
+              <div class="header-actions">
+                <button
+                  v-if="usuario.loja"
+                  class="user-status"
+                  @click="irParaPerfilLoja"
+                >
+                  <img
+                    src="@/assets/svg/StorePerfil.svg"
+                    alt="Loja"
+                    class="store-icon"
+                  />
+                  {{ usuario.loja.nome }}
+                </button>
+
+                <!-- Botão de Logout para Usuário Comum -->
+                <button
+                  v-if="userSessionStore.isUsuarioComum"
+                  class="btn-logout"
+                  @click="fazerLogout"
+                  title="Sair"
+                >
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal de Seleção de Cover -->
+          <UserCoverSelector
+            v-model="showCoverSelector"
+            :current-cover="usuario.coverId"
+            :user-id="usuario.id"
+            @cover-selected="handleCoverSelected"
+          />
+
+          <div class="perfil-info">
+            <div class="avatar-container">
+              <div class="avatar-wrapper">
                 <img
-                  src="@/assets/svg/StorePerfil.svg"
-                  alt="Loja"
-                  class="store-icon"
+                  :src="usuario.foto"
+                  :alt="usuario.nome"
+                  class="avatar-img"
                 />
-                {{ usuario.loja.nome }}
-              </button>
+                <div class="level-badge">
+                  <span class="level-icon">⭐</span>
+                  Nível {{ usuario.nivel }}
+                </div>
+              </div>
+            </div>
 
-              <!-- Botão de Logout para Usuário Comum -->
-              <button
-                v-if="userSessionStore.isUsuarioComum"
-                class="btn-logout"
-                @click="fazerLogout"
-                title="Sair"
-              >
-                <i class="fas fa-sign-out-alt"></i>
-              </button>
+            <div class="perfil-details">
+              <div class="user-header">
+                <h1 class="nome-usuario">{{ usuario.nome }}</h1>
+              </div>
+              <p class="titulo-usuario">
+                <i class="fas fa-award"></i>
+                {{ usuario.titulo }}
+              </p>
+              <div class="xp-container">
+                <span class="xp-text">
+                  {{ usuario.xpAtual }} XP | Faltam
+                  {{ usuario.xpParaProximoNivel }} XP para o próximo nível
+                </span>
+              </div>
+            </div>
+
+            <div class="perfil-stats">
+              <div class="stat-item">
+                <div class="stat-number">
+                  {{
+                    usuario.totaisAcumulados?.itensLidosTotal ||
+                    usuario.contador ||
+                    0
+                  }}
+                </div>
+                <div class="stat-label">Itens Auditados</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">
+                  #{{ usuario.ranking?.posicaoLoja || posicaoRanking }}
+                </div>
+                <div class="stat-label">Ranking</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">
+                  {{ usuario.totalAuditorias || 0 }}
+                </div>
+                <div class="stat-label">Auditorias</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Modal de Seleção de Cover -->
-        <UserCoverSelector
-          v-model="showCoverSelector"
-          :current-cover="usuario.coverId"
-          :user-id="usuario.id"
-          @cover-selected="handleCoverSelected"
+        <!-- Navegação para Rankings - Visível para Usuário Comum -->
+        <NavegacaoRankings
+          v-if="userSessionStore.isUsuarioComum"
+          :loja-link="
+            usuario.loja ? `/perfil-loja/${usuario.loja.codigo}` : null
+          "
         />
 
-        <div class="perfil-info">
-          <div class="avatar-container">
-            <div class="avatar-wrapper">
-              <img :src="usuario.foto" :alt="usuario.nome" class="avatar-img" />
-              <div class="level-badge">
-                <span class="level-icon">⭐</span>
-                Nível {{ usuario.nivel }}
+        <!-- Navegação por Abas -->
+        <PerfilNavegacao :aba-ativa="abaAtiva" @mudar-aba="abaAtiva = $event" />
+
+        <!-- Progresso -->
+        <ProgressoUsuario
+          v-if="abaAtiva === 'progresso'"
+          :usuario="usuario"
+          :posicao-ranking="posicaoRanking"
+          :total-conquistas="conquistasDesbloqueadas.length"
+          :conquistas-pendentes="conquistasBloqueadas.length"
+        />
+
+        <!-- Minha Auditoria -->
+        <MinhaAuditoria v-if="abaAtiva === 'auditoria'" :usuario="usuario" />
+
+        <!-- Colegas da Mesma Loja -->
+        <ColegasLoja
+          v-if="abaAtiva === 'colegas' && usuario.loja && usuario.loja.nome"
+          :loja="usuario.loja.nome"
+          :usuario-atual-id="usuario.id"
+        />
+
+        <!-- Galeria de Conquistas -->
+        <div v-if="abaAtiva === 'conquistas'" class="conquistas-gallery">
+          <div class="gallery-header">
+            <div class="header-title">
+              <h2>
+                <i class="fas fa-trophy"></i>
+                Galeria de Conquistas
+              </h2>
+              <p class="subtitle">Desbloqueie conquistas e ganhe XP extra!</p>
+            </div>
+
+            <div class="progresso-geral">
+              <div class="progresso-info">
+                <span class="progresso-label">Progresso Geral</span>
+                <span class="progresso-numeros">
+                  {{ conquistasDesbloqueadas.length }} /
+                  {{ todasConquistas.length }}
+                </span>
+              </div>
+              <div class="progresso-bar">
+                <div
+                  class="progresso-fill"
+                  :style="{ width: progressoPercentual + '%' }"
+                >
+                  <span class="progresso-text">{{ progressoPercentual }}%</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="perfil-details">
-            <div class="user-header">
-              <h1 class="nome-usuario">{{ usuario.nome }}</h1>
-            </div>
-            <p class="titulo-usuario">
-              <i class="fas fa-award"></i>
-              {{ usuario.titulo }}
-            </p>
-            <div class="xp-container">
-              <span class="xp-text">
-                {{ usuario.xpAtual }} XP | Faltam {{ usuario.xpParaProximoNivel }} XP para o próximo nível
-              </span>
-            </div>
-          </div>
-
-          <div class="perfil-stats">
-            <div class="stat-item">
-              <div class="stat-number">
-                {{ usuario.totaisAcumulados?.itensLidosTotal || usuario.contador || 0 }}
-              </div>
-              <div class="stat-label">Itens Auditados</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">#{{ usuario.ranking?.posicaoLoja || posicaoRanking }}</div>
-              <div class="stat-label">Ranking</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">{{ usuario.totalAuditorias || 0 }}</div>
-              <div class="stat-label">Auditorias</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navegação para Rankings - Visível para Usuário Comum -->
-      <NavegacaoRankings
-        v-if="userSessionStore.isUsuarioComum"
-        :loja-link="usuario.loja ? `/perfil-loja/${usuario.loja.codigo}` : null"
-      />
-
-      <!-- Navegação por Abas -->
-      <PerfilNavegacao :aba-ativa="abaAtiva" @mudar-aba="abaAtiva = $event" />
-
-      <!-- Progresso -->
-      <ProgressoUsuario
-        v-if="abaAtiva === 'progresso'"
-        :usuario="usuario"
-        :posicao-ranking="posicaoRanking"
-        :total-conquistas="conquistasDesbloqueadas.length"
-        :conquistas-pendentes="conquistasBloqueadas.length"
-      />
-
-      <!-- Minha Auditoria -->
-      <MinhaAuditoria v-if="abaAtiva === 'auditoria'" :usuario="usuario" />
-
-      <!-- Colegas da Mesma Loja -->
-      <ColegasLoja
-        v-if="abaAtiva === 'colegas' && usuario.loja && usuario.loja.nome"
-        :loja="usuario.loja.nome"
-        :usuario-atual-id="usuario.id"
-      />
-
-      <!-- Galeria de Conquistas -->
-      <div v-if="abaAtiva === 'conquistas'" class="conquistas-gallery">
-        <div class="gallery-header">
-          <div class="header-title">
-            <h2>
-              <i class="fas fa-trophy"></i>
-              Galeria de Conquistas
-            </h2>
-            <p class="subtitle">Desbloqueie conquistas e ganhe XP extra!</p>
-          </div>
-
-          <div class="progresso-geral">
-            <div class="progresso-info">
-              <span class="progresso-label">Progresso Geral</span>
-              <span class="progresso-numeros">
-                {{ conquistasDesbloqueadas.length }} /
-                {{ todasConquistas.length }}
-              </span>
-            </div>
-            <div class="progresso-bar">
-              <div
-                class="progresso-fill"
-                :style="{ width: progressoPercentual + '%' }"
+          <!-- Filtros e Ordenação -->
+          <div class="conquistas-controls">
+            <div class="filtros-tabs">
+              <button
+                class="tab-btn"
+                :class="{ active: filtroAtivo === 'todas' }"
+                @click="filtroAtivo = 'todas'"
               >
-                <span class="progresso-text">{{ progressoPercentual }}%</span>
-              </div>
+                <i class="fas fa-list"></i>
+                Todas ({{ todasConquistas.length }})
+              </button>
+              <button
+                class="tab-btn"
+                :class="{ active: filtroAtivo === 'desbloqueadas' }"
+                @click="filtroAtivo = 'desbloqueadas'"
+              >
+                <i class="fas fa-check-circle"></i>
+                Desbloqueadas ({{ conquistasDesbloqueadas.length }})
+              </button>
+              <button
+                class="tab-btn"
+                :class="{ active: filtroAtivo === 'bloqueadas' }"
+                @click="filtroAtivo = 'bloqueadas'"
+              >
+                <i class="fas fa-lock"></i>
+                Bloqueadas ({{ conquistasBloqueadas.length }})
+              </button>
+            </div>
+
+            <div class="ordenacao">
+              <label>
+                <i class="fas fa-filter"></i>
+                Filtrar por Raridade:
+              </label>
+              <select v-model="filtroRaridade" class="ordenacao-select">
+                <option value="">Todas as Raridades</option>
+                <option value="Basica">Básica</option>
+                <option value="Comum">Comum</option>
+                <option value="Raro">Raro</option>
+                <option value="Epico">Épico</option>
+                <option value="Lendario">Lendário</option>
+                <option value="Diamante">Diamante</option>
+                <option value="Especial">Especial</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <!-- Filtros e Ordenação -->
-        <div class="conquistas-controls">
-          <div class="filtros-tabs">
-            <button
-              class="tab-btn"
-              :class="{ active: filtroAtivo === 'todas' }"
-              @click="filtroAtivo = 'todas'"
-            >
-              <i class="fas fa-list"></i>
-              Todas ({{ todasConquistas.length }})
-            </button>
-            <button
-              class="tab-btn"
-              :class="{ active: filtroAtivo === 'desbloqueadas' }"
-              @click="filtroAtivo = 'desbloqueadas'"
-            >
-              <i class="fas fa-check-circle"></i>
-              Desbloqueadas ({{ conquistasDesbloqueadas.length }})
-            </button>
-            <button
-              class="tab-btn"
-              :class="{ active: filtroAtivo === 'bloqueadas' }"
-              @click="filtroAtivo = 'bloqueadas'"
-            >
-              <i class="fas fa-lock"></i>
-              Bloqueadas ({{ conquistasBloqueadas.length }})
-            </button>
+          <!-- Grid de Conquistas -->
+          <div v-if="conquistasFiltradas.length === 0" class="conquistas-empty">
+            <i class="fas fa-medal"></i>
+            <p>Nenhuma conquista encontrada nesta categoria.</p>
           </div>
 
-          <div class="ordenacao">
-            <label>
-              <i class="fas fa-sort"></i>
-              Ordenar:
-            </label>
-            <select v-model="ordenacaoAtiva" class="ordenacao-select">
-              <option value="padrao">Padrão</option>
-              <option value="xp-desc">Maior XP</option>
-              <option value="xp-asc">Menor XP</option>
-              <option value="nome">Nome A-Z</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Grid de Conquistas -->
-        <div v-if="conquistasFiltradas.length === 0" class="conquistas-empty">
-          <i class="fas fa-medal"></i>
-          <p>Nenhuma conquista encontrada nesta categoria.</p>
-        </div>
-
-        <div v-else class="conquistas-grid">
-          <div
-            v-for="conquista in conquistasFiltradas"
-            :key="conquista.achievementId"
-            class="conquista-card"
-            :class="{
-              desbloqueada: conquista.desbloqueada,
-              rara: conquista.rarity === 'Raro' || conquista.rarity === 'Epico' || conquista.rarity === 'Lendario' || conquista.rarity === 'Diamante' || conquista.rarity === 'Especial',
-              epica: conquista.rarity === 'Epico' || conquista.rarity === 'Lendario' || conquista.rarity === 'Diamante' || conquista.rarity === 'Especial',
-            }"
-          >
-            <!-- Badge de Raridade -->
+          <div v-else class="conquistas-grid">
             <div
-              v-if="conquista.desbloqueada && conquista.rarity"
-              class="badge-raridade"
-              :class="conquista.rarity.toLowerCase()"
+              v-for="conquista in conquistasFiltradas"
+              :key="conquista.achievementId"
+              class="achievement-card"
+              :class="{
+                earned: conquista.desbloqueada,
+                [conquista.rarity.toLowerCase()]: true,
+              }"
+              @click="abrirModalDetalhes(conquista)"
+              style="cursor: pointer"
             >
-              <span>{{ conquista.rarity }}</span>
-            </div>
+              <div
+                class="achievement-icon"
+                :class="conquista.rarity.toLowerCase() + '-icon'"
+              >
+                {{ conquista.icon }}
+              </div>
 
-            <div class="conquista-icon">
-              {{ conquista.desbloqueada ? conquista.icon : "🔒" }}
-            </div>
-
-            <div class="conquista-content">
-              <h4 class="conquista-titulo">{{ conquista.title }}</h4>
-              <p class="conquista-descricao">{{ conquista.description }}</p>
-
-              <div class="conquista-footer">
-                <span class="conquista-xp">
-                  <i class="fas fa-star"></i>
-                  {{ conquista.points }} XP
-                </span>
-
-                <!-- Data de desbloqueio (se disponível) -->
-                <span
-                  v-if="conquista.desbloqueada && conquista.unlockedAt"
-                  class="conquista-data"
+              <div class="achievement-content">
+                <h4
+                  class="achievement-title"
+                  :class="conquista.rarity.toLowerCase() + '-title'"
                 >
-                  <i class="fas fa-calendar"></i>
-                  {{ formatarData(conquista.unlockedAt) }}
-                </span>
+                  {{ conquista.title }}
+                </h4>
+                <p class="achievement-description">
+                  {{ conquista.description }}
+                </p>
+              </div>
 
-                <!-- Progresso (para conquistas progressivas) -->
-                <span
-                  v-if="!conquista.desbloqueada && conquista.progresso"
-                  class="conquista-progresso"
-                >
-                  {{ conquista.progresso }}%
-                </span>
+              <div
+                class="achievement-rarity"
+                :class="conquista.rarity.toLowerCase()"
+              >
+                {{ conquista.rarity }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Estatísticas Adicionais -->
+          <div class="conquistas-stats">
+            <div class="stat-box">
+              <i class="fas fa-fire"></i>
+              <div class="stat-info">
+                <span class="stat-value">{{ xpTotal }}</span>
+                <span class="stat-label">XP Total</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <i class="fas fa-star"></i>
+              <div class="stat-info">
+                <span class="stat-value">{{ xpConquistas }}</span>
+                <span class="stat-label">XP de Conquistas</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <i class="fas fa-gem"></i>
+              <div class="stat-info">
+                <span class="stat-value">{{ xpAuditoria }}</span>
+                <span class="stat-label">XP de Auditoria</span>
               </div>
             </div>
           </div>
         </div>
+        <!-- Fecha conquistas-gallery -->
+      </div>
+      <!-- Fecha v-else -->
+    </div>
+    <!-- Fecha perfil-usuario-container -->
 
-        <!-- Estatísticas Adicionais -->
-        <div class="conquistas-stats">
-          <div class="stat-box">
-            <i class="fas fa-fire"></i>
-            <div class="stat-info">
-              <span class="stat-value">{{ xpTotalConquistas }}</span>
-              <span class="stat-label">XP Total</span>
-            </div>
+    <!-- Modal de Detalhes da Conquista -->
+    <div
+      v-if="mostrarModalDetalhes"
+      class="modal-overlay"
+      @click="fecharModalDetalhes"
+    >
+      <div class="modal-conquista-detalhes" @click.stop>
+        <div class="modal-header">
+          <div class="modal-icon-rarity">
+            <span class="modal-icon">{{ conquistaSelecionada?.icon }}</span>
+            <span
+              v-if="conquistaSelecionada?.rarity"
+              class="badge-raridade-modal"
+              :class="conquistaSelecionada?.rarity.toLowerCase()"
+            >
+              {{ conquistaSelecionada?.rarity }}
+            </span>
           </div>
-          <div class="stat-box">
-            <i class="fas fa-star"></i>
-            <div class="stat-info">
-              <span class="stat-value">{{ conquistasRaras }}</span>
-              <span class="stat-label">XP de Conquistas</span>
+          <h3 class="modal-title">{{ conquistaSelecionada?.title }}</h3>
+          <button class="modal-close" @click="fecharModalDetalhes">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-description">
+            {{ conquistaSelecionada?.description }}
+          </p>
+
+          <div class="modal-info-grid">
+            <div class="info-item">
+              <i class="fas fa-star"></i>
+              <span class="info-label">XP:</span>
+              <span class="info-value">{{ conquistaSelecionada?.points }}</span>
             </div>
-          </div>
-          <div class="stat-box">
-            <i class="fas fa-gem"></i>
-            <div class="stat-info">
-              <span class="stat-value">{{ conquistasEpicas }}</span>
-              <span class="stat-label">XP de Auditoria</span>
+
+            <div class="info-item">
+              <i class="fas fa-trophy"></i>
+              <span class="info-label">Status:</span>
+              <span
+                class="info-value"
+                :class="{
+                  'status-desbloqueada': conquistaSelecionada?.desbloqueada,
+                  'status-bloqueada': !conquistaSelecionada?.desbloqueada,
+                }"
+              >
+                {{
+                  conquistaSelecionada?.desbloqueada
+                    ? "Desbloqueada"
+                    : "Bloqueada"
+                }}
+              </span>
+            </div>
+
+            <div
+              v-if="
+                conquistaSelecionada?.desbloqueada &&
+                conquistaSelecionada?.unlockedAt
+              "
+              class="info-item"
+            >
+              <i class="fas fa-calendar-check"></i>
+              <span class="info-label">Desbloqueada em:</span>
+              <span class="info-value">{{
+                formatarData(conquistaSelecionada?.unlockedAt)
+              }}</span>
+            </div>
+
+            <div
+              v-if="
+                !conquistaSelecionada?.desbloqueada &&
+                conquistaSelecionada?.progress
+              "
+              class="info-item"
+            >
+              <i class="fas fa-chart-line"></i>
+              <span class="info-label">Progresso:</span>
+              <span class="info-value"
+                >{{ conquistaSelecionada?.progress.current }} /
+                {{ conquistaSelecionada?.progress.target }}</span
+              >
+            </div>
+
+            <div
+              v-if="
+                !conquistaSelecionada?.desbloqueada &&
+                conquistaSelecionada?.progress
+              "
+              class="info-item"
+            >
+              <i class="fas fa-percentage"></i>
+              <span class="info-label">Porcentagem:</span>
+              <span class="info-value"
+                >{{ conquistaSelecionada?.progress.percentage }}%</span
+              >
+            </div>
+
+            <div
+              v-if="
+                !conquistaSelecionada?.desbloqueada &&
+                conquistaSelecionada?.progress
+              "
+              class="info-item-full"
+            >
+              <span class="info-label">Barra de Progresso:</span>
+              <div class="modal-progress-container">
+                <div class="modal-progress-bar">
+                  <div
+                    class="modal-progress-fill"
+                    :style="{
+                      width: conquistaSelecionada?.progress.percentage + '%',
+                    }"
+                  ></div>
+                </div>
+                <div class="modal-progress-text">
+                  {{ conquistaSelecionada?.progress.percentage }}% completo
+                </div>
+              </div>
+            </div>
+
+            <!-- Informações detalhadas de progresso -->
+            <div
+              v-if="
+                !conquistaSelecionada?.desbloqueada &&
+                conquistaSelecionada?.progress
+              "
+              class="progress-details-grid"
+            >
+              <div class="progress-detail-item">
+                <i class="fas fa-play-circle"></i>
+                <span class="detail-label">Atual:</span>
+                <span class="detail-value">{{
+                  conquistaSelecionada?.progress.current
+                }}</span>
+              </div>
+              <div class="progress-detail-item">
+                <i class="fas fa-flag-checkered"></i>
+                <span class="detail-label">Meta:</span>
+                <span class="detail-value">{{
+                  conquistaSelecionada?.progress.target
+                }}</span>
+              </div>
+              <div class="progress-detail-item">
+                <i class="fas fa-calculator"></i>
+                <span class="detail-label">Faltam:</span>
+                <span class="detail-value">{{
+                  conquistaSelecionada?.progress.target -
+                  conquistaSelecionada?.progress.current
+                }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- Fecha conquistas-gallery -->
     </div>
-    <!-- Fecha v-else -->
   </div>
-  <!-- Fecha perfil-usuario-container -->
 </template>
+
+<style scoped>
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+
+/* Estilos existentes mantidos... */
+
+/* Estilos para a barra de progresso das conquistas */
+.conquista-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 8px 0;
+  position: relative;
+  opacity: 0.8;
+}
+
+.conquista-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  min-width: 0;
+}
+
+.conquista-percentual {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* Ajuste para o layout do footer da conquista */
+.conquista-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.conquista-progresso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8f9fa;
+  color: #495057;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #e9ecef;
+}
+
+/* Estilos específicos para conquistas bloqueadas */
+.conquista-card:not(.desbloqueada) .conquista-progress-bar {
+  opacity: 0.7;
+}
+
+.conquista-card:not(.desbloqueada) .conquista-progress-fill {
+  background: linear-gradient(90deg, #a8a8a8, #6b7280);
+}
+
+/* Estilos para o modal de detalhes da conquista */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-conquista-detalhes {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 2px solid #e9ecef;
+  position: relative;
+}
+
+.modal-icon-rarity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-icon {
+  font-size: 2rem;
+}
+
+.badge-raridade-modal {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.badge-raridade-modal.basica {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.badge-raridade-modal.comum {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.badge-raridade-modal.raro {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.badge-raridade-modal.epico {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.badge-raridade-modal.lendario {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.badge-raridade-modal.diamante {
+  background: linear-gradient(135deg, #06b6d4, #0e7490);
+}
+
+.badge-raridade-modal.especial {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  flex: 1;
+  padding-left: 16px;
+}
+
+.modal-close {
+  background: #e9ecef;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+.modal-close:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-description {
+  font-size: 1rem;
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.modal-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.info-item-full {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.85rem;
+}
+
+.info-value {
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.status-desbloqueada {
+  color: #28a745;
+}
+
+.status-bloqueada {
+  color: #dc3545;
+}
+
+.modal-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.modal-progress-bar {
+  width: 100%;
+  height: 16px;
+  background: #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 8px 0;
+  position: relative;
+}
+
+.modal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}
+
+.modal-progress-text {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+/* Estilos para os detalhes de progresso */
+.progress-details-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.progress-detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.progress-detail-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.progress-detail-item i {
+  font-size: 1.2rem;
+  color: #667eea;
+  margin-bottom: 4px;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+  display: block;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+}
+
+/* Estilos para conquistas baseados no modelo Conquistas.vue */
+.achievement-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  overflow: hidden;
+
+  /* Estilo para conquistas não ganhas */
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.achievement-card.earned {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.achievement-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-icon {
+  font-size: 3rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+}
+
+/* Cores dos ícones por raridade */
+.achievement-card.earned .basica-icon {
+  color: #6c757d;
+}
+
+.achievement-card.earned .comum-icon {
+  color: #2b944e;
+}
+
+.achievement-card.earned .raro-icon {
+  color: #2471a3;
+}
+
+.achievement-card.earned .epico-icon {
+  color: #7d3c98;
+}
+
+.achievement-card.earned .lendario-icon {
+  color: #f4d03f;
+  filter: drop-shadow(0 2px 4px rgba(244, 208, 63, 0.3));
+}
+
+.achievement-card.earned .diamante-icon {
+  color: #29b6f6;
+  filter: drop-shadow(0 2px 8px rgba(41, 182, 246, 0.5));
+  animation: icon-glow 2s ease-in-out infinite alternate;
+}
+
+.achievement-card.earned .especial-icon {
+  color: #ff3b30;
+  filter: drop-shadow(0 0 10px rgba(255, 59, 48, 0.8))
+    drop-shadow(0 0 20px rgba(255, 99, 71, 0.6));
+  animation: icon-rainbow 3s ease-in-out infinite;
+}
+
+@keyframes icon-glow {
+  from {
+    filter: drop-shadow(0 2px 8px rgba(41, 182, 246, 0.5));
+  }
+  to {
+    filter: drop-shadow(0 4px 12px rgba(41, 182, 246, 0.8));
+  }
+}
+
+@keyframes icon-rainbow {
+  0%,
+  100% {
+    color: #ff3b30;
+    filter: drop-shadow(0 0 10px rgba(255, 59, 48, 0.8))
+      drop-shadow(0 0 20px rgba(255, 99, 71, 0.6));
+  }
+  25% {
+    color: #ff6347;
+    filter: drop-shadow(0 0 10px rgba(255, 99, 71, 0.8))
+      drop-shadow(0 0 20px rgba(255, 69, 0, 0.6));
+  }
+  50% {
+    color: #ff4500;
+    filter: drop-shadow(0 0 10px rgba(255, 69, 0, 0.8))
+      drop-shadow(0 0 20px rgba(220, 20, 60, 0.6));
+  }
+  75% {
+    color: #dc143c;
+    filter: drop-shadow(0 0 10px rgba(220, 20, 60, 0.8))
+      drop-shadow(0 0 20px rgba(255, 59, 48, 0.6));
+  }
+}
+
+.achievement-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #34495e;
+  margin: 0 0 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+/* Cores dos títulos por raridade */
+.basica-title {
+  color: #555555;
+}
+
+.comum-title {
+  color: #525252;
+  font-weight: 600;
+}
+
+.raro-title {
+  color: #f3f3f3;
+  font-weight: 600;
+}
+
+.epico-title {
+  color: #7d3c98;
+  font-weight: 700;
+}
+
+.lendario-title {
+  background: linear-gradient(135deg, #f4d03f 0%, #d4ac0d 100%);
+  color: #b8860b;
+  text-shadow:
+    0 1px 6px #fffbe6,
+    0 2px 8px #b8860b,
+    0 1px 0 #fffbe6;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.diamante-title {
+  background: linear-gradient(135deg, #29b6f6 0%, #4fc3f7 50%, #29b6f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  animation: diamond-title-shimmer 3s ease-in-out infinite;
+}
+
+.especial-title {
+  background: linear-gradient(
+    90deg,
+    #ff3b30 0%,
+    #ff6347 25%,
+    #ff4500 50%,
+    #dc143c 75%,
+    #ff3b30 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  animation: rainbow-title 4s linear infinite;
+  text-shadow: 0 0 20px rgba(255, 59, 48, 0.5);
+}
+
+@keyframes diamond-title-shimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes rainbow-title {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.achievement-description {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.achievement-rarity {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.4rem 1.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  border-bottom-left-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* Cores de Raridade */
+.basica {
+  background: linear-gradient(135deg, #b8b8b8 0%, #e6e3e3 100%);
+}
+
+.comum {
+  background: linear-gradient(135deg, #73db6f 0%, #41b973 100%);
+}
+
+.raro {
+  background: linear-gradient(135deg, #5dade2 0%, #2471a3 100%);
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+  animation: pulse-blue 2s ease-in-out infinite;
+}
+
+.epico {
+  background: linear-gradient(135deg, #bb8fce 0%, #7d3c98 100%);
+  box-shadow: 0 3px 12px rgba(155, 89, 182, 0.5);
+  animation: pulse-purple 2s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.lendario {
+  background: linear-gradient(135deg, #f4d03f 0%, #d4ac0d 50%, #f4d03f 100%);
+  box-shadow:
+    0 4px 15px rgba(241, 196, 15, 0.6),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.2),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  border: 2px solid #f9e79f;
+  animation: shine-gold 3s ease-in-out infinite;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.diamante {
+  background: linear-gradient(
+    135deg,
+    #e3f2fd 0%,
+    #b3e5fc 15%,
+    #81d4fa 30%,
+    #4fc3f7 45%,
+    #29b6f6 50%,
+    #4fc3f7 55%,
+    #81d4fa 70%,
+    #b3e5fc 85%,
+    #e3f2fd 100%
+  );
+  background-size: 200% 200%;
+  box-shadow:
+    0 0 20px rgba(41, 182, 246, 0.8),
+    0 0 40px rgba(3, 169, 244, 0.6),
+    0 5px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 10px rgba(255, 255, 255, 0.8),
+    inset 0 -1px 10px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  animation:
+    diamond-shimmer 4s ease-in-out infinite,
+    glow-diamond 2s ease-in-out infinite alternate;
+  overflow: hidden;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow:
+    0 1px 2px rgba(255, 255, 255, 0.8),
+    0 -1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.diamante::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: diamond-reflection 3s linear infinite;
+}
+
+.especial {
+  background: linear-gradient(
+    135deg,
+    #ff3b30 0%,
+    #ff6347 15%,
+    #ff4500 30%,
+    #dc143c 45%,
+    #ff0000 60%,
+    #c0392b 75%,
+    #e74c3c 90%,
+    #ff3b30 100%
+  );
+  background-size: 300% 300%;
+  box-shadow:
+    0 0 25px rgba(255, 59, 48, 1),
+    0 0 50px rgba(255, 99, 71, 0.8),
+    0 0 75px rgba(255, 69, 0, 0.6),
+    0 5px 30px rgba(0, 0, 0, 0.4),
+    inset 0 1px 15px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 15px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 1);
+  animation:
+    rainbow-shimmer 5s ease-in-out infinite,
+    glow-rainbow 2.5s ease-in-out infinite alternate,
+    pulse-scale 3s ease-in-out infinite;
+  overflow: hidden;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 1),
+    0 0 10px rgba(255, 59, 48, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.especial::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 59, 48, 0.2),
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 99, 71, 0.2),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: rainbow-reflection 2s linear infinite;
+}
+
+.especial::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shine-sweep 3s ease-in-out infinite;
+}
+
+/* Animações */
+@keyframes pulse-blue {
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.4);
+  }
+  50% {
+    box-shadow: 0 2px 15px rgba(52, 152, 219, 0.7);
+  }
+}
+
+@keyframes pulse-purple {
+  0%,
+  100% {
+    box-shadow: 0 3px 12px rgba(155, 89, 182, 0.5);
+  }
+  50% {
+    box-shadow: 0 3px 20px rgba(155, 89, 182, 0.8);
+  }
+}
+
+@keyframes shine-gold {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    box-shadow:
+      0 4px 15px rgba(241, 196, 15, 0.6),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.2),
+      inset 0 2px 5px rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    background-position: 100% 50%;
+    box-shadow:
+      0 4px 25px rgba(241, 196, 15, 0.9),
+      0 0 30px rgba(244, 208, 63, 0.4),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.2),
+      inset 0 2px 5px rgba(255, 255, 255, 0.6);
+  }
+}
+
+@keyframes diamond-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes glow-diamond {
+  from {
+    box-shadow:
+      0 0 20px rgba(41, 182, 246, 0.8),
+      0 0 40px rgba(3, 169, 244, 0.6),
+      0 5px 25px rgba(0, 0, 0, 0.3),
+      inset 0 1px 10px rgba(255, 255, 255, 0.8),
+      inset 0 -1px 10px rgba(0, 0, 0, 0.2);
+  }
+  to {
+    box-shadow:
+      0 0 30px rgba(41, 182, 246, 1),
+      0 0 60px rgba(3, 169, 244, 0.8),
+      0 0 80px rgba(33, 150, 243, 0.4),
+      0 5px 25px rgba(0, 0, 0, 0.3),
+      inset 0 1px 10px rgba(255, 255, 255, 1),
+      inset 0 -1px 10px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@keyframes diamond-reflection {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes rainbow-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes glow-rainbow {
+  from {
+    box-shadow:
+      0 0 25px rgba(255, 59, 48, 1),
+      0 0 50px rgba(255, 99, 71, 0.8),
+      0 0 75px rgba(255, 69, 0, 0.6),
+      0 5px 30px rgba(0, 0, 0, 0.4),
+      inset 0 1px 15px rgba(255, 255, 255, 0.9),
+      inset 0 -1px 15px rgba(0, 0, 0, 0.3);
+  }
+  to {
+    box-shadow:
+      0 0 35px rgba(255, 59, 48, 1),
+      0 0 70px rgba(255, 99, 71, 1),
+      0 0 100px rgba(255, 69, 0, 0.8),
+      0 0 125px rgba(220, 20, 60, 0.6),
+      0 5px 30px rgba(0, 0, 0, 0.4),
+      inset 0 1px 15px rgba(255, 255, 255, 1),
+      inset 0 -1px 15px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes pulse-scale {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes rainbow-reflection {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Ajuste para dispositivos móveis */
+@media (max-width: 768px) {
+  .conquista-footer {
+    align-items: center;
+  }
+
+  .conquista-progresso {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+
+  .conquista-percentual {
+    font-size: 0.7rem;
+  }
+
+  .modal-conquista-detalhes {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .modal-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .modal-title {
+    padding-left: 0;
+  }
+
+  /* Ajustes para o novo estilo de conquistas */
+  .achievement-card {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .achievement-icon {
+    font-size: 2.5rem;
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .achievement-title {
+    font-size: 1.05rem;
+  }
+
+  .achievement-description {
+    font-size: 0.85rem;
+  }
+
+  .achievement-rarity {
+    padding: 0.35rem 1rem;
+    font-size: 0.7rem;
+  }
+
+  /* Layout de 2 colunas para mobile */
+  .conquistas-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Ajuste para telas muito pequenas */
+@media (max-width: 480px) {
+  .conquistas-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.875rem;
+  }
+
+  .achievement-card {
+    padding: 1rem;
+    gap: 0.875rem;
+    border-radius: 10px;
+  }
+
+  .achievement-icon {
+    font-size: 2.25rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .achievement-title {
+    font-size: 1rem;
+  }
+
+  .achievement-description {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .achievement-rarity {
+    padding: 0.3rem 0.85rem;
+    font-size: 0.65rem;
+    border-bottom-left-radius: 10px;
+  }
+}
+</style>
 
 <script>
 import { useRouter } from "vue-router";
@@ -393,9 +1514,12 @@ export default {
       carregando: true,
       todasConquistas: [],
       showCoverSelector: false,
-      filtroAtivo: "todas",
+      filtroAtivo: "desbloqueadas", // Alterado de "todas" para "desbloqueadas"
+      filtroRaridade: "", // Filtro por raridade específico
       ordenacaoAtiva: "padrao",
       abaAtiva: "conquistas",
+      mostrarModalDetalhes: false,
+      conquistaSelecionada: null,
     };
   },
   watch: {
@@ -422,8 +1546,11 @@ export default {
   computed: {
     xpProgressoPercentual() {
       // Primeiro tenta usar o progresso do modelo MetricasUsuario
-      if (this.usuario.achievements && this.usuario.achievements.level &&
-          this.usuario.achievements.level.progressPercentage !== undefined) {
+      if (
+        this.usuario.achievements &&
+        this.usuario.achievements.level &&
+        this.usuario.achievements.level.progressPercentage !== undefined
+      ) {
         return this.usuario.achievements.level.progressPercentage;
       }
 
@@ -434,9 +1561,13 @@ export default {
       // xpFaltando = XP que falta para o próximo nível (this.usuario.xpParaProximoNivel)
       // xpProximoNivel = xpTotal + xpFaltando
       // Cálculo da barra: progresso = xpTotal / xpProximoNivel, porcentagem = progresso * 100
-      if (this.usuario.xpAtual !== undefined && this.usuario.xpParaProximoNivel !== undefined) {
+      if (
+        this.usuario.xpAtual !== undefined &&
+        this.usuario.xpParaProximoNivel !== undefined
+      ) {
         // Calcular o XP total necessário para o próximo nível
-        const xpTotalProximoNivel = this.usuario.xpAtual + this.usuario.xpParaProximoNivel;
+        const xpTotalProximoNivel =
+          this.usuario.xpAtual + this.usuario.xpParaProximoNivel;
 
         // Calcular o progresso como porcentagem do caminho até o próximo nível
         if (xpTotalProximoNivel > 0) {
@@ -455,7 +1586,10 @@ export default {
     posicaoRanking() {
       if (!this.usuario.id) return "-";
       // Primeiro tenta usar o ranking do modelo MetricasUsuario
-      if (this.usuario.ranking && this.usuario.ranking.posicaoLoja !== undefined) {
+      if (
+        this.usuario.ranking &&
+        this.usuario.ranking.posicaoLoja !== undefined
+      ) {
         return this.usuario.ranking.posicaoLoja;
       }
       // Caso contrário, calcula pela store (fallback)
@@ -486,7 +1620,7 @@ export default {
     conquistasFiltradas() {
       let conquistas = [];
 
-      // Aplicar filtro
+      // Aplicar filtro principal (Todas, Desbloqueadas, Bloqueadas)
       switch (this.filtroAtivo) {
         case "desbloqueadas":
           conquistas = this.conquistasDesbloqueadas;
@@ -498,6 +1632,11 @@ export default {
           conquistas = [...this.todasConquistas];
       }
 
+      // Aplicar filtro por raridade
+      if (this.filtroRaridade) {
+        conquistas = conquistas.filter((c) => c.rarity === this.filtroRaridade);
+      }
+
       // Aplicar ordenação
       switch (this.ordenacaoAtiva) {
         case "xp-desc":
@@ -506,24 +1645,64 @@ export default {
           return conquistas.sort((a, b) => a.points - b.points);
         case "nome":
           return conquistas.sort((a, b) => a.title.localeCompare(b.title));
+        case "raridade":
+          // Definir ordem de raridade (do mais raro para o menos raro)
+          const ordemRaridade = {
+            Especial: 7,
+            Diamante: 6,
+            Lendario: 5,
+            Epico: 4,
+            Raro: 3,
+            Comum: 2,
+            Basica: 1,
+          };
+
+          return conquistas.sort((a, b) => {
+            const raridadeA = ordemRaridade[a.rarity] || 0;
+            const raridadeB = ordemRaridade[b.rarity] || 0;
+            return raridadeB - raridadeA; // Ordem decrescente (mais raro primeiro)
+          });
         default:
           return conquistas;
       }
     },
 
-    xpTotalConquistas() {
-      // Usando o campo xp.total do usuário em vez de calcular a soma das conquistas
+    xpTotal() {
+      // Usando o campo xp.total do usuário
       return this.usuario.achievements?.xp?.total || 0;
     },
 
-    conquistasRaras() {
+    xpConquistas() {
       // Usando o campo xp.fromAchievements do usuário
       return this.usuario.achievements?.xp?.fromAchievements || 0;
     },
 
-    conquistasEpicas() {
+    xpAuditoria() {
       // Usando o campo xp.fromActivities do usuário
       return this.usuario.achievements?.xp?.fromActivities || 0;
+    },
+
+    conquistasRarasCount() {
+      // Contar conquistas raras (Raro, Épico, Lendário, Diamante, Especial)
+      return this.todasConquistas.filter(
+        (c) =>
+          c.rarity === "Raro" ||
+          c.rarity === "Epico" ||
+          c.rarity === "Lendario" ||
+          c.rarity === "Diamante" ||
+          c.rarity === "Especial",
+      ).length;
+    },
+
+    conquistasEpicasCount() {
+      // Contar conquistas épicas (Épico, Lendário, Diamante, Especial)
+      return this.todasConquistas.filter(
+        (c) =>
+          c.rarity === "Epico" ||
+          c.rarity === "Lendario" ||
+          c.rarity === "Diamante" ||
+          c.rarity === "Especial",
+      ).length;
     },
 
     coverStyle() {
@@ -608,18 +1787,29 @@ export default {
         };
 
         // Primeiro, buscar as métricas do usuário específico
-        const response = await api.get(`/metricas/usuarios/${usuarioId}`, config);
+        const response = await api.get(
+          `/metricas/usuarios/${usuarioId}`,
+          config,
+        );
         let usuarioMetricas = response.data; // Agora pegamos diretamente os dados do usuário específico
 
         if (usuarioMetricas) {
           // Calculate XP total based on the achievements data if available
-          const xpTotal = usuarioMetricas.achievements?.xp?.total ||
-                         (usuarioMetricas.contadores?.totalGeral || 0) + (usuarioMetricas.xpConquistas || 0);
+          const xpTotal =
+            usuarioMetricas.achievements?.xp?.total ||
+            (usuarioMetricas.contadores?.totalGeral || 0) +
+              (usuarioMetricas.xpConquistas || 0);
 
           // Use XP values from achievements if available, otherwise calculate
-          const nivel = usuarioMetricas.achievements?.level?.current || this.nivelStore.calcularNivel(xpTotal);
-          const xpParaProximoNivel = usuarioMetricas.achievements?.level?.xpForNextLevel || this.nivelStore.calcularXpRestante(xpTotal);
-          const progressoXp = usuarioMetricas.achievements?.level?.progressPercentage || ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
+          const nivel =
+            usuarioMetricas.achievements?.level?.current ||
+            this.nivelStore.calcularNivel(xpTotal);
+          const xpParaProximoNivel =
+            usuarioMetricas.achievements?.level?.xpForNextLevel ||
+            this.nivelStore.calcularXpRestante(xpTotal);
+          const progressoXp =
+            usuarioMetricas.achievements?.level?.progressPercentage ||
+            ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
 
           // Get additional user data from the original API if needed
           let usuarioCompleto = {};
@@ -653,10 +1843,18 @@ export default {
             foto: this.getFotoUrl(usuarioCompleto),
             iniciais: this.obterIniciais(usuarioMetricas.nome),
             nivel: usuarioMetricas.achievements?.level?.current || nivel,
-            titulo: usuarioMetricas.achievements?.level?.title || this.nivelStore.obterTitulo(nivel || usuarioMetricas.achievements?.level?.current),
+            titulo:
+              usuarioMetricas.achievements?.level?.title ||
+              this.nivelStore.obterTitulo(
+                nivel || usuarioMetricas.achievements?.level?.current,
+              ),
             xpAtual: usuarioMetricas.achievements?.xp?.total || xpTotal,
-            xpParaProximoNivel: usuarioMetricas.achievements?.level?.xpForNextLevel || xpParaProximoNivel,
-            progressoXp: usuarioMetricas.achievements?.level?.progressPercentage || progressoXp,
+            xpParaProximoNivel:
+              usuarioMetricas.achievements?.level?.xpForNextLevel ||
+              xpParaProximoNivel,
+            progressoXp:
+              usuarioMetricas.achievements?.level?.progressPercentage ||
+              progressoXp,
             conquistas: usuarioCompleto.conquistas || [],
             achievements: usuarioMetricas.achievements || {}, // Adicionando as conquistas do modelo MetricasUsuario
             coverId: usuarioCompleto.coverId || "gradient-1",
@@ -698,25 +1896,47 @@ export default {
         };
 
         // Buscar as conquistas específicas do usuário
-        const response = await api.get(`/metricas/conquistas/${this.usuario.id}`, config);
+        const response = await api.get(
+          `/metricas/conquistas/${this.usuario.id}`,
+          config,
+        );
 
-        if (response.data && response.data.achievements && response.data.achievements.achievements) {
+        if (
+          response.data &&
+          response.data.achievements &&
+          response.data.achievements.achievements
+        ) {
           // Processar as conquistas do modelo MetricasUsuario
-          const conquistasUsuario = response.data.achievements.achievements || [];
+          const conquistasUsuario =
+            response.data.achievements.achievements || [];
 
           // Mapear as conquistas do usuário para o formato esperado pelo template
-          this.todasConquistas = conquistasUsuario.map(conquista => {
+          this.todasConquistas = conquistasUsuario.map((conquista) => {
             return {
               achievementId: conquista.achievementId,
-              title: conquista.achievementData?.title || conquista.title || 'Conquista Desconhecida',
-              description: conquista.achievementData?.description || conquista.description || 'Descrição não disponível',
-              icon: conquista.achievementData?.icon || conquista.icon || '🏆',
-              rarity: conquista.rarity || conquista.achievementData?.rarity || 'Comum',
-              points: conquista.fixedXpValue || conquista.achievementData?.points || 0,
+              title:
+                conquista.achievementData?.title ||
+                conquista.title ||
+                "Conquista Desconhecida",
+              description:
+                conquista.achievementData?.description ||
+                conquista.description ||
+                "Descrição não disponível",
+              icon: conquista.achievementData?.icon || conquista.icon || "🏆",
+              rarity:
+                conquista.rarity ||
+                conquista.achievementData?.rarity ||
+                "Comum",
+              points:
+                conquista.fixedXpValue ||
+                conquista.achievementData?.points ||
+                0,
               desbloqueada: conquista.unlocked || false,
               unlockedAt: conquista.unlockedAt,
-              progresso: conquista.progress?.percentage || 0,
-              criteria: conquista.achievementData?.criteria || conquista.criteria || {}
+              progress: conquista.progress || {}, // Manter o objeto completo de progresso
+              progresso: conquista.progress?.percentage || 0, // Manter para compatibilidade
+              criteria:
+                conquista.achievementData?.criteria || conquista.criteria || {},
             };
           });
 
@@ -724,7 +1944,7 @@ export default {
           if (response.data.achievements) {
             this.usuario.achievements = {
               ...this.usuario.achievements,
-              ...response.data.achievements
+              ...response.data.achievements,
             };
           }
         } else {
@@ -732,7 +1952,10 @@ export default {
           this.processarConquistasUsuario();
         }
       } catch (error) {
-        console.warn("Erro ao carregar conquistas específicas do usuário, usando fallback:", error);
+        console.warn(
+          "Erro ao carregar conquistas específicas do usuário, usando fallback:",
+          error,
+        );
         // Em caso de erro, usar as conquistas do modelo MetricasUsuario como fallback
         this.processarConquistasUsuario();
       }
@@ -743,18 +1966,28 @@ export default {
       const conquistasUsuario = this.usuario.achievements?.achievements || [];
 
       // Mapear as conquistas do usuário para o formato esperado pelo template
-      this.todasConquistas = conquistasUsuario.map(conquista => {
+      this.todasConquistas = conquistasUsuario.map((conquista) => {
         return {
           achievementId: conquista.achievementId,
-          title: conquista.achievementData?.title || conquista.title || 'Conquista Desconhecida',
-          description: conquista.achievementData?.description || conquista.description || 'Descrição não disponível',
-          icon: conquista.achievementData?.icon || conquista.icon || '🏆',
-          rarity: conquista.rarity || conquista.achievementData?.rarity || 'Comum',
-          points: conquista.fixedXpValue || conquista.achievementData?.points || 0,
+          title:
+            conquista.achievementData?.title ||
+            conquista.title ||
+            "Conquista Desconhecida",
+          description:
+            conquista.achievementData?.description ||
+            conquista.description ||
+            "Descrição não disponível",
+          icon: conquista.achievementData?.icon || conquista.icon || "🏆",
+          rarity:
+            conquista.rarity || conquista.achievementData?.rarity || "Comum",
+          points:
+            conquista.fixedXpValue || conquista.achievementData?.points || 0,
           desbloqueada: conquista.unlocked || false,
           unlockedAt: conquista.unlockedAt,
-          progresso: conquista.progress?.percentage || 0,
-          criteria: conquista.achievementData?.criteria || conquista.criteria || {}
+          progress: conquista.progress || {}, // Manter o objeto completo de progresso
+          progresso: conquista.progress?.percentage || 0, // Manter para compatibilidade
+          criteria:
+            conquista.achievementData?.criteria || conquista.criteria || {},
         };
       });
     },
@@ -897,6 +2130,18 @@ export default {
           message: error.response?.data?.erro || error.message,
         };
       }
+    },
+
+    // Método para abrir o modal de detalhes da conquista
+    abrirModalDetalhes(conquista) {
+      this.conquistaSelecionada = conquista;
+      this.mostrarModalDetalhes = true;
+    },
+
+    // Método para fechar o modal de detalhes
+    fecharModalDetalhes() {
+      this.mostrarModalDetalhes = false;
+      this.conquistaSelecionada = null;
     },
   },
 };
@@ -1611,7 +2856,7 @@ export default {
 }
 
 .badge-raridade.basica {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
+  background: linear-gradient(135deg, #80858f, #7d848d);
   box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
 }
 
@@ -1882,7 +3127,7 @@ export default {
     bottom: -5px;
     right: -5px;
     padding: 6px 12px;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     border: 2px solid white;
   }
 
@@ -1919,7 +3164,7 @@ export default {
   }
 
   .titulo-usuario {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin: 0 0 0.8rem 0;
     justify-content: center;
   }
@@ -2001,7 +3246,7 @@ export default {
 
   .tab-btn {
     font-size: 0.8rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.8rem;
   }
 
   .ordenacao {
@@ -2013,20 +3258,18 @@ export default {
   }
 
   .ordenacao-select {
-    flex: 1;
-    max-width: 200px;
-    font-size: 0.85rem;
-    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
   }
 
   .conquistas-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
   }
 
   .conquista-card {
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 12px;
   }
 
@@ -2040,68 +3283,29 @@ export default {
   }
 
   .conquista-descricao {
-    font-size: 0.75rem;
-    margin-bottom: 0.8rem;
+    font-size: 0.7rem;
     min-height: 35px;
   }
 
-  .conquista-footer {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
+  .tab-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
   }
 
-  .conquista-xp {
-    padding: 3px 10px;
-    font-size: 0.7rem;
-  }
-
-  .conquista-data {
-    font-size: 0.7rem;
-  }
-
-  .badge-raridade {
-    top: 5px;
-    right: 5px;
-    padding: 3px 8px;
-    font-size: 0.6rem;
-  }
-
-  .conquistas-stats {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-  }
-
-  .stat-box {
-    padding: 1rem;
-  }
-
-  .stat-box i {
-    font-size: 1.5rem;
-    width: 40px;
-    height: 40px;
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .stat-label {
+  .ordenacao-select {
     font-size: 0.8rem;
   }
 
-  .conquistas-empty {
-    padding: 3rem 1rem;
+  .conquistas-stats {
+    gap: 0.6rem;
   }
 
-  .conquistas-empty i {
-    font-size: 3rem;
+  .stat-box {
+    padding: 0.8rem;
   }
 
-  .conquistas-empty p {
-    font-size: 0.95rem;
+  .stat-value {
+    font-size: 1.3rem;
   }
 }
 
