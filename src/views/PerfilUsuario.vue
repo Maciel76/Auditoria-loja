@@ -99,28 +99,21 @@
               {{ usuario.titulo }}
             </p>
             <div class="xp-container">
-              <div class="xp-bar">
-                <div
-                  class="xp-fill"
-                  :style="{ width: usuario.progressoXp + '%' }"
-                ></div>
-              </div>
-              <span class="xp-text"
-                >{{ usuario.xpAtual }} /
-                {{ usuario.xpParaProximoNivel }} XP</span
-              >
+              <span class="xp-text">
+                {{ usuario.xpAtual }} XP | Faltam {{ usuario.xpParaProximoNivel }} XP para o próximo nível
+              </span>
             </div>
           </div>
 
           <div class="perfil-stats">
             <div class="stat-item">
               <div class="stat-number">
-                {{ usuario.contador || 0 }}
+                {{ usuario.totaisAcumulados?.itensLidosTotal || usuario.contador || 0 }}
               </div>
               <div class="stat-label">Itens Auditados</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">#{{ posicaoRanking }}</div>
+              <div class="stat-number">#{{ usuario.ranking?.posicaoLoja || posicaoRanking }}</div>
               <div class="stat-label">Ranking</div>
             </div>
             <div class="stat-item">
@@ -299,21 +292,21 @@
             <i class="fas fa-fire"></i>
             <div class="stat-info">
               <span class="stat-value">{{ xpTotalConquistas }}</span>
-              <span class="stat-label">XP de Conquistas</span>
+              <span class="stat-label">XP Total</span>
             </div>
           </div>
           <div class="stat-box">
             <i class="fas fa-star"></i>
             <div class="stat-info">
               <span class="stat-value">{{ conquistasRaras }}</span>
-              <span class="stat-label">Conquistas Raras</span>
+              <span class="stat-label">XP de Conquistas</span>
             </div>
           </div>
           <div class="stat-box">
             <i class="fas fa-gem"></i>
             <div class="stat-info">
               <span class="stat-value">{{ conquistasEpicas }}</span>
-              <span class="stat-label">Conquistas Épicas</span>
+              <span class="stat-label">XP de Auditoria</span>
             </div>
           </div>
         </div>
@@ -427,8 +420,45 @@ export default {
     }
   },
   computed: {
+    xpProgressoPercentual() {
+      // Primeiro tenta usar o progresso do modelo MetricasUsuario
+      if (this.usuario.achievements && this.usuario.achievements.level &&
+          this.usuario.achievements.level.progressPercentage !== undefined) {
+        return this.usuario.achievements.level.progressPercentage;
+      }
+
+      // Caso contrário, calcula manualmente com base no XP para o próximo nível
+      // A barra de progresso deve representar o progresso até o próximo nível
+      // Regras:
+      // xpTotal = XP total acumulado do usuário (this.usuario.xpAtual)
+      // xpFaltando = XP que falta para o próximo nível (this.usuario.xpParaProximoNivel)
+      // xpProximoNivel = xpTotal + xpFaltando
+      // Cálculo da barra: progresso = xpTotal / xpProximoNivel, porcentagem = progresso * 100
+      if (this.usuario.xpAtual !== undefined && this.usuario.xpParaProximoNivel !== undefined) {
+        // Calcular o XP total necessário para o próximo nível
+        const xpTotalProximoNivel = this.usuario.xpAtual + this.usuario.xpParaProximoNivel;
+
+        // Calcular o progresso como porcentagem do caminho até o próximo nível
+        if (xpTotalProximoNivel > 0) {
+          const progresso = this.usuario.xpAtual / xpTotalProximoNivel;
+          const porcentagem = progresso * 100;
+
+          // Limitar entre 0 e 100
+          return Math.max(0, Math.min(100, porcentagem));
+        }
+      }
+
+      // Caso contrário, usa o valor existente no objeto do usuário
+      return this.usuario.progressoXp || 0;
+    },
+
     posicaoRanking() {
       if (!this.usuario.id) return "-";
+      // Primeiro tenta usar o ranking do modelo MetricasUsuario
+      if (this.usuario.ranking && this.usuario.ranking.posicaoLoja !== undefined) {
+        return this.usuario.ranking.posicaoLoja;
+      }
+      // Caso contrário, calcula pela store (fallback)
       try {
         return this.nivelStore.calcularPosicaoRanking(this.usuario.id);
       } catch (error) {
@@ -482,20 +512,18 @@ export default {
     },
 
     xpTotalConquistas() {
-      return this.conquistasDesbloqueadas.reduce(
-        (total, c) => total + c.points,
-        0,
-      );
+      // Usando o campo xp.total do usuário em vez de calcular a soma das conquistas
+      return this.usuario.achievements?.xp?.total || 0;
     },
 
     conquistasRaras() {
-      return this.conquistasDesbloqueadas.filter(
-        (c) => c.points >= 100 && c.points < 200,
-      ).length;
+      // Usando o campo xp.fromAchievements do usuário
+      return this.usuario.achievements?.xp?.fromAchievements || 0;
     },
 
     conquistasEpicas() {
-      return this.conquistasDesbloqueadas.filter((c) => c.points >= 200).length;
+      // Usando o campo xp.fromActivities do usuário
+      return this.usuario.achievements?.xp?.fromActivities || 0;
     },
 
     coverStyle() {
@@ -579,34 +607,19 @@ export default {
           },
         };
 
-        const response = await api.get("/metricas/usuarios", config);
-        let usuariosMetricas = response.data.usuarios || response.data; // Suporta ambos os formatos
-
-        // Ensure usuariosMetricas is an array
-        if (!Array.isArray(usuariosMetricas)) {
-          console.warn(
-            "API não retornou um array, usando array vazio:",
-            usuariosMetricas,
-          );
-          usuariosMetricas = [];
-        }
-
-        // Find the specific user in the returned data
-        const usuarioMetricas = usuariosMetricas.find(
-          (user) => user.id === usuarioId,
-        );
+        // Primeiro, buscar as métricas do usuário específico
+        const response = await api.get(`/metricas/usuarios/${usuarioId}`, config);
+        let usuarioMetricas = response.data; // Agora pegamos diretamente os dados do usuário específico
 
         if (usuarioMetricas) {
-          // Calculate XP total
-          const xpTotal =
-            (usuarioMetricas.contador || 0) +
-            (usuarioMetricas.xpConquistas || 0);
+          // Calculate XP total based on the achievements data if available
+          const xpTotal = usuarioMetricas.achievements?.xp?.total ||
+                         (usuarioMetricas.contadores?.totalGeral || 0) + (usuarioMetricas.xpConquistas || 0);
 
-          // Calculate level and progress
-          const nivel = this.nivelStore.calcularNivel(xpTotal);
-          const xpParaProximoNivel =
-            this.nivelStore.calcularXpRestante(xpTotal);
-          const progressoXp = ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
+          // Use XP values from achievements if available, otherwise calculate
+          const nivel = usuarioMetricas.achievements?.level?.current || this.nivelStore.calcularNivel(xpTotal);
+          const xpParaProximoNivel = usuarioMetricas.achievements?.level?.xpForNextLevel || this.nivelStore.calcularXpRestante(xpTotal);
+          const progressoXp = usuarioMetricas.achievements?.level?.progressPercentage || ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
 
           // Get additional user data from the original API if needed
           let usuarioCompleto = {};
@@ -634,14 +647,16 @@ export default {
             id: usuarioMetricas.id,
             nome: usuarioMetricas.nome,
             contador: usuarioMetricas.contador || 0, // Itens auditados from metricas
-            totalAuditorias: usuarioMetricas.totalAuditorias || 0, // Total auditorias from metricas
+            totalAuditorias: usuarioMetricas.contadores?.totalGeral || 0, // Total auditorias from metricas usando o campo correto do endpoint
+            ranking: usuarioMetricas.ranking || {}, // Adicionando informações de ranking do modelo MetricasUsuario
+            totaisAcumulados: usuarioMetricas.totaisAcumulados || {}, // Adicionando totais acumulados do modelo MetricasUsuario
             foto: this.getFotoUrl(usuarioCompleto),
             iniciais: this.obterIniciais(usuarioMetricas.nome),
-            nivel: nivel,
-            titulo: this.nivelStore.obterTitulo(nivel),
-            xpAtual: xpTotal,
-            xpParaProximoNivel: xpParaProximoNivel,
-            progressoXp: progressoXp,
+            nivel: usuarioMetricas.achievements?.level?.current || nivel,
+            titulo: usuarioMetricas.achievements?.level?.title || this.nivelStore.obterTitulo(nivel || usuarioMetricas.achievements?.level?.current),
+            xpAtual: usuarioMetricas.achievements?.xp?.total || xpTotal,
+            xpParaProximoNivel: usuarioMetricas.achievements?.level?.xpForNextLevel || xpParaProximoNivel,
+            progressoXp: usuarioMetricas.achievements?.level?.progressPercentage || progressoXp,
             conquistas: usuarioCompleto.conquistas || [],
             achievements: usuarioMetricas.achievements || {}, // Adicionando as conquistas do modelo MetricasUsuario
             coverId: usuarioCompleto.coverId || "gradient-1",
@@ -675,18 +690,18 @@ export default {
 
     async carregarConquistasUsuario() {
       try {
-        // Buscar conquistas do usuário do modelo ConquistasUsuario
+        // Buscar conquistas do usuário diretamente do modelo MetricasUsuario via endpoint específico
         const config = {
           headers: {
             "x-loja": this.lojaStore.codigoLojaAtual || "056",
           },
         };
 
-        // Primeiro tentamos buscar as conquistas específicas do usuário
+        // Buscar as conquistas específicas do usuário
         const response = await api.get(`/metricas/conquistas/${this.usuario.id}`, config);
 
         if (response.data && response.data.achievements && response.data.achievements.achievements) {
-          // Processar as conquistas do modelo ConquistasUsuario
+          // Processar as conquistas do modelo MetricasUsuario
           const conquistasUsuario = response.data.achievements.achievements || [];
 
           // Mapear as conquistas do usuário para o formato esperado pelo template
@@ -704,6 +719,14 @@ export default {
               criteria: conquista.achievementData?.criteria || conquista.criteria || {}
             };
           });
+
+          // Atualizar também os dados de achievements no objeto do usuário para garantir consistência
+          if (response.data.achievements) {
+            this.usuario.achievements = {
+              ...this.usuario.achievements,
+              ...response.data.achievements
+            };
+          }
         } else {
           // Se não encontrar conquistas específicas, usar as do modelo MetricasUsuario como fallback
           this.processarConquistasUsuario();
