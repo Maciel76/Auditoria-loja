@@ -315,13 +315,13 @@ export default {
 
         if (usarPeriodoCompleto.value) {
           // Modo PERÍODO COMPLETO - usa MetricasUsuario
-          url = "http://localhost:3000/ranking-colaboradores";
+          url = "http://localhost:3000/ranking-colaboradores-completo";
           tipoSelecionado = filtroTipoAuditoriaCompleto.value;
           params.append("tipo", tipoSelecionado);
           modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(tipoSelecionado)})`;
         } else {
           // Modo DIÁRIO - usa UserDailyMetrics
-          url = "http://localhost:3000/ranking-colaboradores-completo";
+          url = "http://localhost:3000/ranking-colaboradores";
           tipoSelecionado = filtroTipoAuditoria.value;
           params.append("tipo", tipoSelecionado);
           modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(tipoSelecionado)})`;

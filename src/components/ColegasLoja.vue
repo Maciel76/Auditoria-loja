@@ -49,8 +49,8 @@
               <span>{{ colega.contador }}</span>
             </div>
             <div class="stat-mini ranking-stat">
-              <i class="fas fa-trophy"></i>
-              <span>#{{ colega.posicao }}</span>
+              <i class="fas fa-award"></i>
+              <span>{{ colega.totalConquistas }}</span>
             </div>
           </div>
         </div>
@@ -62,7 +62,7 @@
 <script>
 import { useRouter } from "vue-router";
 import { useNivelStore } from "@/store/nivelStore";
-import axios from "axios";
+import api from "@/config/api";
 
 export default {
   name: "ColegasLoja",
@@ -95,38 +95,33 @@ export default {
       try {
         this.carregando = true;
 
-        // Buscar usuários da mesma loja
+        // Buscar métricas dos usuários da mesma loja
         const lojaSelecionada = JSON.parse(
           localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
         );
 
-        const response = await axios.get("http://localhost:3000/api/usuarios", {
+        const response = await api.get("/metricas/usuarios", {
           headers: {
             "x-loja": lojaSelecionada.codigo,
           },
         });
 
-        // Filtrar usuários da mesma loja e processar dados
-        this.colegas = response.data
-          .filter((usuario) => usuario.loja?.nome === this.loja)
-          .map((usuario) => {
-            const xpTotal =
-              (usuario.contador || 0) + (usuario.xpConquistas || 0);
-            const nivel = this.nivelStore.calcularNivel(xpTotal);
-            const titulo = this.nivelStore.obterTitulo(nivel);
-            const posicao = this.nivelStore.calcularPosicaoRanking(usuario.id);
+        const data = response.data;
+        const usuariosRaw = data.usuarios || data || [];
 
-            return {
-              id: usuario.id,
-              nome: usuario.nome,
-              foto: this.getFotoUrl(usuario),
-              contador: usuario.contador || 0,
-              xpTotal: xpTotal,
-              nivel: nivel,
-              titulo: titulo,
-              posicao: posicao,
-            };
-          })
+        // Mapear os dados do endpoint /metricas/usuarios (MetricasUsuario model)
+        this.colegas = usuariosRaw
+          .map((u) => ({
+            id: u.id,
+            nome: u.nome,
+            foto: u.foto || this.getFotoUrl({ nome: u.nome }),
+            contador: u.contador || 0,
+            xpTotal: u.conquistas?.xpTotal || 0,
+            nivel: u.conquistas?.nivel || 1,
+            titulo: u.conquistas?.titulo || "Novato",
+            posicao: u.desempenho?.posicaoLoja || 0,
+            totalConquistas: u.conquistas?.totalConquistas || 0,
+          }))
           .sort((a, b) => b.xpTotal - a.xpTotal); // Ordenar por XP
       } catch (error) {
         console.error("Erro ao carregar colegas:", error);

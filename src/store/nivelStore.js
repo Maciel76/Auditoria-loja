@@ -24,17 +24,26 @@ export const useNivelStore = defineStore("nivel", {
     obterTitulo: () => (nivel) => {
       const titulos = {
         1: "Novato",
-        2: "Iniciante",
-        3: "Aprendiz",
-        5: "Competente",
-        8: "Experiente",
-        12: "Veterano",
-        16: "Especialista",
-        20: "Mestre",
-        25: "Auditor Senior",
-        30: "Lenda",
-        40: "Elite",
-        50: "Supremo"
+        5: "Aprendiz",
+        10: "Iniciante",
+        15: "Competente",
+        20: "Profissional",
+        25: "Experiente",
+        30: "Avançado",
+        35: "Especialista",
+        40: "Veterano",
+        45: "Mestre",
+        50: "Auditor Sênior",
+        60: "Auditor Pleno",
+        70: "Auditor Master",
+        80: "Lenda",
+        90: "Elite",
+        100: "Campeão",
+        120: "Supremo",
+        140: "Imortal",
+        160: "Ascendido",
+        180: "Divino",
+        200: "Infinito"
       };
 
       // Encontrar o título adequado para o nível
