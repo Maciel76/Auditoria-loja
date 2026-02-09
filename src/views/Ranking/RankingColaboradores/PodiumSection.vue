@@ -1,9 +1,21 @@
 <template>
   <div class="podium-section">
-    <h2 class="section-title">Top Performers</h2>
+    <h2 class="section-title">
+      <template v-if="filtroTipo === 'diario'">
+        Top Performers Auditoria
+        {{ getTipoAuditoriaName(tipoAuditoria) }} Diária
+      </template>
+      <template v-else>
+        Top Performers {{ getTipoAuditoriaName(tipoAuditoria) }} Período
+        Completo
+      </template>
+    </h2>
     <div class="podium-container">
       <!-- Segundo lugar -->
-      <div class="podium-item silver-medal">
+      <div
+        class="podium-item silver-medal clickable-profile"
+        @click="irParaPerfil(usuariosOrdenados[1].id)"
+      >
         <div class="podium-position">2º</div>
         <div class="podium-content">
           <div class="medal-icon">
@@ -24,7 +36,6 @@
             </div>
           </div>
           <h3 class="user-name">{{ usuariosOrdenados[1].nome }}</h3>
-          <p class="user-id">Matrícula: {{ usuariosOrdenados[1].id }}</p>
           <div class="score-badge silver">
             <span class="icon">📊</span>
             {{ usuariosOrdenados[1].contador }} itens
@@ -33,7 +44,10 @@
       </div>
 
       <!-- Primeiro lugar -->
-      <div class="podium-item gold-medal">
+      <div
+        class="podium-item gold-medal clickable-profile"
+        @click="irParaPerfil(usuariosOrdenados[0].id)"
+      >
         <div class="podium-position">1º</div>
         <div class="podium-content">
           <div class="crown-icon">
@@ -54,7 +68,6 @@
             </div>
           </div>
           <h3 class="user-name">{{ usuariosOrdenados[0].nome }}</h3>
-          <p class="user-id">Matrícula: {{ usuariosOrdenados[0].id }}</p>
           <div class="score-badge gold">
             <img
               src="../../../assets/svg/icon-ranking/medalgold.svg"
@@ -67,7 +80,10 @@
       </div>
 
       <!-- Terceiro lugar -->
-      <div class="podium-item bronze-medal">
+      <div
+        class="podium-item bronze-medal clickable-profile"
+        @click="irParaPerfil(usuariosOrdenados[2].id)"
+      >
         <div class="podium-position">3º</div>
         <div class="podium-content">
           <div class="medal-icon">
@@ -88,7 +104,6 @@
             </div>
           </div>
           <h3 class="user-name">{{ usuariosOrdenados[2].nome }}</h3>
-          <p class="user-id">Matrícula: {{ usuariosOrdenados[2].id }}</p>
           <div class="score-badge bronze">
             <span class="icon">📊</span>
             {{ usuariosOrdenados[2].contador }} itens
@@ -106,6 +121,28 @@ export default {
     usuariosOrdenados: {
       type: Array,
       required: true,
+    },
+    tipoAuditoria: {
+      type: String,
+      default: "etiqueta",
+    },
+    filtroTipo: {
+      type: String,
+      default: "diario", // 'diario' ou 'completo'
+    },
+  },
+  methods: {
+    getTipoAuditoriaName(tipo) {
+      const tipos = {
+        etiqueta: "Etiqueta",
+        presenca: "Presença",
+        ruptura: "Ruptura",
+        todos: "Todas",
+      };
+      return tipos[tipo] || tipo;
+    },
+    irParaPerfil(usuarioId) {
+      window.location.href = `/perfil/${usuarioId}`;
     },
   },
 };
@@ -135,7 +172,7 @@ export default {
 .podium-item {
   background: white;
   border-radius: 20px;
-  padding: 30px;
+  padding: 40px;
   text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   position: relative;
@@ -286,6 +323,20 @@ export default {
 .score-badge.bronze {
   background: #fff3e0;
   color: #f76707;
+}
+
+/* Estilo para o card clicável */
+.clickable-profile {
+  cursor: pointer;
+}
+
+.clickable-profile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+}
+
+.clickable-profile:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 768px) {

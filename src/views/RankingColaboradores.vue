@@ -150,7 +150,10 @@
         usuariosOrdenados.length >= 3
       "
       :usuariosOrdenados="usuariosOrdenados"
-      :tipoAuditoria="filtroTipoAuditoria"
+      :tipoAuditoria="
+        usarPeriodoCompleto ? filtroTipoAuditoriaCompleto : filtroTipoAuditoria
+      "
+      :filtroTipo="usarPeriodoCompleto ? 'completo' : 'diario'"
     />
 
     <!-- Lista Completa de Ranking -->
@@ -159,7 +162,10 @@
       :usuariosFiltradosOrdenados="usuariosFiltradosOrdenados"
       :viewMode="viewMode"
       :usuariosOrdenados="usuariosOrdenados"
-      :tipoAuditoria="filtroTipoAuditoria"
+      :tipoAuditoria="
+        usarPeriodoCompleto ? filtroTipoAuditoriaCompleto : filtroTipoAuditoria
+      "
+      :filtroTipo="usarPeriodoCompleto ? 'completo' : 'diario'"
     />
 
     <!-- Estatísticas Avançadas -->
@@ -318,13 +324,17 @@ export default {
           url = "http://localhost:3000/ranking-colaboradores-completo";
           tipoSelecionado = filtroTipoAuditoriaCompleto.value;
           params.append("tipo", tipoSelecionado);
-          modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(tipoSelecionado)})`;
+          modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(
+            tipoSelecionado,
+          )})`;
         } else {
           // Modo DIÁRIO - usa UserDailyMetrics
           url = "http://localhost:3000/ranking-colaboradores";
           tipoSelecionado = filtroTipoAuditoria.value;
           params.append("tipo", tipoSelecionado);
-          modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(tipoSelecionado)})`;
+          modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(
+            tipoSelecionado,
+          )})`;
         }
 
         if (params.toString()) {
@@ -451,7 +461,9 @@ export default {
 
         // Título
         const titleElement = document.createElement("h1");
-        titleElement.textContent = `Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || "Loja"}`;
+        titleElement.textContent = `Ranking de Colaboradores - ${
+          lojaStore.nomeLojaAtual || "Loja"
+        }`;
         titleElement.style.textAlign = "center";
         titleElement.style.color = "#1f2937";
         titleElement.style.marginBottom = "30px";
@@ -578,7 +590,9 @@ export default {
         // Criar link para download
         const link = document.createElement("a");
         link.href = imgData;
-        link.download = `ranking-colaboradores-${lojaStore.codigoLojaAtual || "loja"}-${new Date().toISOString().slice(0, 10)}-${viewMode.value}.png`;
+        link.download = `ranking-colaboradores-${
+          lojaStore.codigoLojaAtual || "loja"
+        }-${new Date().toISOString().slice(0, 10)}-${viewMode.value}.png`;
         link.click();
       } catch (error) {
         console.error("Erro ao gerar imagem para compartilhamento:", error);
@@ -597,7 +611,9 @@ export default {
         if (podiumElement || rankingListElement) {
           let printContent =
             '<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto;">';
-          printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${lojaStore.nomeLojaAtual || "Loja"} - Modo: ${viewMode.value === "podium" ? "Pódio" : "Lista Completa"}</h1>`;
+          printContent += `<h1 style="text-align: center; color: #1f2937;">Ranking de Colaboradores - ${
+            lojaStore.nomeLojaAtual || "Loja"
+          } - Modo: ${viewMode.value === "podium" ? "Pódio" : "Lista Completa"}</h1>`;
 
           if (podiumElement) {
             printContent +=

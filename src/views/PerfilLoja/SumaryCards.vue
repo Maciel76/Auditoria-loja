@@ -21,13 +21,13 @@
 
     <!-- Data loaded -->
     <div v-else class="summary-cards">
-      <div class="summary-card">
+      <div class="summary-card auditorias-realizadas-card">
         <div class="summary-icon distribuicao">
-          <i class="fas fa-chart-bar"></i>
+          <i class="fas fa-clipboard-list"></i>
         </div>
         <div class="summary-content">
-          <div class="summary-value">{{ auditoriasRealizadas }}</div>
-          <div class="summary-label">Auditorias Realizadas</div>
+          <div class="summary-value">{{ auditoriasPorTipo.geral }}</div>
+          <div class="summary-label">Total de Tipos de Auditoria</div>
           <div class="summary-trend positive" v-if="variacaoAuditorias > 0">
             +{{ variacaoAuditorias }}% vs anterior
           </div>
@@ -36,6 +36,23 @@
             v-else-if="variacaoAuditorias < 0"
           >
             {{ variacaoAuditorias }}% vs anterior
+          </div>
+          <!-- Detalhes das auditorias por tipo (visíveis ao passar o mouse) -->
+          <div class="auditorias-detalhes-tooltip">
+            <div class="auditorias-detalhes-content">
+              <div class="detalhe-item">
+                <img src="/src/assets/svg/Etiqueta.svg" alt="Etiqueta" class="icone-tipo-auditoria"> Etiqueta:
+                {{ auditoriasPorTipo.etiqueta }}
+              </div>
+              <div class="detalhe-item">
+                <img src="/src/assets/svg/Ruptura.svg" alt="Ruptura" class="icone-tipo-auditoria"> Ruptura:
+                {{ auditoriasPorTipo.ruptura }}
+              </div>
+              <div class="detalhe-item">
+                <img src="/src/assets/svg/Presenca.svg" alt="Presença" class="icone-tipo-auditoria"> Presença:
+                {{ auditoriasPorTipo.presenca }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -50,16 +67,24 @@
         </div>
       </div>
 
-      <div class="summary-card colaborador-destaque-card">
-        <div class="summary-icon setor-destaque">
-          <i class="fas fa-star"></i>
+      <div class="summary-card colaborador-destaque-card" @click="irParaPerfilColaborador">
+        <div class="summary-icon setor-destaque avatar-container">
+          <img
+            v-if="infoColaboradorDestaque.foto"
+            :src="infoColaboradorDestaque.foto"
+            :alt="infoColaboradorDestaque.nome"
+            class="colaborador-avatar"
+          />
+          <i v-else class="fas fa-star"></i>
         </div>
         <div class="summary-content">
           <div class="colaborador-nome-wrapper">
             <div class="summary-value colaborador-nome">
-              {{ colaboradorDestaque }}
+              {{ infoColaboradorDestaque.nome }}
             </div>
-            <div class="colaborador-tooltip">{{ colaboradorDestaque }}</div>
+            <div class="colaborador-tooltip">
+              {{ infoColaboradorDestaque.nome }}
+            </div>
           </div>
           <div class="summary-label">Auditor Destaque</div>
         </div>
@@ -91,6 +116,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
+import axios from "axios";
 
 // Estado de loading e erro
 const loading = ref(true);
@@ -105,27 +131,42 @@ const dadosMetricas = ref({
   variacaoAuditorias: 0,
   posicaoGeral: 0,
   colaboradorDestaque: "N/A",
+  idColaboradorDestaque: null,
   totalColaboradores: 0,
   totalItensAuditados: 0,
+  auditoriasPorTipo: {
+    geral: 0,
+    etiqueta: 0,
+    ruptura: 0,
+    presenca: 0,
+  },
+});
+
+// Armazenar informações completas do colaborador em destaque
+const infoColaboradorDestaque = ref({
+  nome: "N/A",
+  foto: null,
 });
 
 // Computed properties para os dados
 const auditoriasRealizadas = computed(
-  () => dadosMetricas.value.auditoriasRealizadas
+  () => dadosMetricas.value.auditoriasPorTipo.geral,
 );
 const variacaoAuditorias = computed(
-  () => dadosMetricas.value.variacaoAuditorias
+  () => dadosMetricas.value.variacaoAuditorias,
 );
 const posicaoGeral = computed(() => dadosMetricas.value.posicaoGeral);
 const colaboradorDestaque = computed(
-  () => dadosMetricas.value.colaboradorDestaque
+  () => dadosMetricas.value.colaboradorDestaque,
 );
 const totalColaboradores = computed(
-  () => dadosMetricas.value.totalColaboradores
+  () => dadosMetricas.value.totalColaboradores,
 );
 const totalItensAuditados = computed(
-  () => dadosMetricas.value.totalItensAuditados
+  () => dadosMetricas.value.totalItensAuditados,
 );
+
+const auditoriasPorTipo = computed(() => dadosMetricas.value.auditoriasPorTipo);
 
 // Função para formatar números grandes
 const formatarNumero = (valor) => {
@@ -140,8 +181,55 @@ const formatarNumero = (valor) => {
 
 // Computed property para Total Itens Auditados formatado
 const totalItensAuditadosFormatado = computed(() =>
-  formatarNumero(dadosMetricas.value.totalItensAuditados)
+  formatarNumero(dadosMetricas.value.totalItensAuditados),
 );
+
+// Função para obter o avatar do colaborador em destaque
+const obterAvatarColaborador = async (nomeColaborador) => {
+  if (!nomeColaborador || nomeColaborador === "N/A") {
+    return null;
+  }
+
+  try {
+    // Primeiro, tentar obter o ID do colaborador a partir do nome
+    const lojaSelecionada = JSON.parse(
+      localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
+    );
+
+    const response = await axios.get(`http://localhost:3000/api/usuarios`, {
+      headers: {
+        "x-loja": lojaSelecionada.codigo,
+      },
+    });
+
+    const usuario = response.data.find((u) => u.nome === nomeColaborador);
+
+    if (usuario) {
+      // Armazenar o ID do colaborador em destaque
+      dadosMetricas.value.idColaboradorDestaque = usuario.id;
+
+      // Retornar a foto do usuário ou gerar avatar com base no nome
+      if (usuario.foto) {
+        return usuario.foto;
+      } else {
+        // Gerar avatar usando DiceBear com base no nome
+        const seed = encodeURIComponent(nomeColaborador.toLowerCase());
+        return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
+      }
+    } else {
+      // Se não encontrar o usuário, gerar avatar com base no nome
+      const seed = encodeURIComponent(nomeColaborador.toLowerCase());
+      return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
+    }
+  } catch (err) {
+    console.error("Erro ao obter avatar do colaborador:", err);
+    // Em caso de erro, gerar avatar com base no nome
+    const seed = nomeColaborador
+      ? encodeURIComponent(nomeColaborador.toLowerCase())
+      : "default";
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
+  }
+};
 
 // Função para buscar métricas da loja
 const buscarMetricas = async () => {
@@ -159,7 +247,32 @@ const buscarMetricas = async () => {
         colaboradorDestaque: response.data.colaboradorDestaque || "N/A",
         totalColaboradores: response.data.totalColaboradores || 0,
         totalItensAuditados: response.data.totalItensAuditados || 0,
+        auditoriasPorTipo: response.data.auditoriasPorTipo || {
+          geral: 0,
+          etiqueta: 0,
+          ruptura: 0,
+          presenca: 0,
+        },
       };
+
+      // Obter o avatar do colaborador em destaque
+      if (
+        response.data.colaboradorDestaque &&
+        response.data.colaboradorDestaque !== "N/A"
+      ) {
+        const avatar = await obterAvatarColaborador(
+          response.data.colaboradorDestaque,
+        );
+        infoColaboradorDestaque.value = {
+          nome: response.data.colaboradorDestaque,
+          foto: avatar,
+        };
+      } else {
+        infoColaboradorDestaque.value = {
+          nome: "N/A",
+          foto: null,
+        };
+      }
     }
   } catch (err) {
     console.error("Erro ao buscar métricas da loja:", err);
@@ -173,6 +286,34 @@ const buscarMetricas = async () => {
 onMounted(() => {
   buscarMetricas();
 });
+
+// Função para ir para o perfil do colaborador em destaque
+const irParaPerfilColaborador = () => {
+  if (infoColaboradorDestaque.value.nome && infoColaboradorDestaque.value.nome !== "N/A") {
+    // Primeiro, precisamos encontrar o ID do colaborador
+    const lojaSelecionada = JSON.parse(
+      localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
+    );
+
+    axios.get(`http://localhost:3000/api/usuarios`, {
+      headers: {
+        "x-loja": lojaSelecionada.codigo,
+      },
+    })
+    .then(response => {
+      const usuario = response.data.find(u => u.nome === infoColaboradorDestaque.value.nome);
+      if (usuario) {
+        // Usar o router do Vue para navegar para o perfil
+        window.location.href = `/perfil/${usuario.id}`;
+      } else {
+        console.error("Usuário não encontrado para o nome:", infoColaboradorDestaque.value.nome);
+      }
+    })
+    .catch(error => {
+      console.error("Erro ao buscar ID do usuário:", error);
+    });
+  }
+};
 
 // Expor função de atualização para componentes pai (opcional)
 defineExpose({
@@ -190,6 +331,11 @@ defineExpose({
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
+}
+
+/* Ajuste para quando houver 5 cards */
+.summary-cards:has(.summary-card:nth-child(5)) {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 .summary-card {
@@ -278,6 +424,12 @@ defineExpose({
 .colaborador-destaque-card:hover {
   border-color: rgba(255, 193, 7, 0.3);
   box-shadow: 0 4px 16px rgba(255, 193, 7, 0.15);
+  cursor: pointer;
+}
+
+/* Efeito de clique para o card de colaborador em destaque */
+.colaborador-destaque-card:active {
+  transform: scale(0.98);
 }
 
 .summary-icon {
@@ -288,6 +440,109 @@ defineExpose({
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+}
+
+/* Estilo para o container do avatar do colaborador */
+.summary-icon.avatar-container {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+/* Estilos para o tooltip de detalhes das auditorias */
+.auditorias-realizadas-card {
+  position: relative;
+}
+
+.auditorias-detalhes-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  background: white;
+  color: #2c3e50;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.2),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(102, 126, 234, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1000;
+  width: auto;
+  min-width: 220px;
+  text-align: center;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.auditorias-detalhes-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detalhe-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  justify-content: flex-start;
+  padding: 0.4rem 0.6rem;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05),
+    rgba(118, 75, 162, 0.05)
+  );
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.icone-tipo-auditoria {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.detalhe-item i {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+/* Seta do tooltip */
+.auditorias-detalhes-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: white;
+  filter: drop-shadow(0 -1px 0 rgba(102, 126, 234, 0.3));
+}
+
+/* Mostrar tooltip ao passar o mouse sobre o card */
+.auditorias-realizadas-card:hover .auditorias-detalhes-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.colaborador-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .summary-icon.distribuicao {
@@ -304,14 +559,6 @@ defineExpose({
 
 .summary-icon.desempenho i {
   color: #ff9800;
-}
-
-.summary-icon.setor-destaque {
-  background: rgba(255, 193, 7, 0.1);
-}
-
-.summary-icon.setor-destaque i {
-  color: #ffc107;
 }
 
 .summary-icon.tipo-predominante {
@@ -439,6 +686,27 @@ defineExpose({
 
 .retry-button:active {
   transform: translateY(0);
+}
+
+/* Estilos para o card de auditorias por tipo */
+.auditorias-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 /* Responsividade */

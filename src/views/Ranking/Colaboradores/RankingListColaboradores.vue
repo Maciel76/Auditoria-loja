@@ -15,6 +15,8 @@
           'ranking-item',
           getRankingClass(viewMode === 'podium' ? index + 3 : index),
         ]"
+        @click="irParaPerfil(usuario.id)"
+        class="clickable-profile"
       >
         <div class="rank-number">
           <span class="normal-rank"
@@ -40,7 +42,6 @@
           </div>
           <div class="user-details">
             <h3 class="user-name">{{ usuario.nome }}</h3>
-            <p class="user-id">Matrícula: {{ usuario.id }}</p>
           </div>
         </div>
 
@@ -410,6 +411,11 @@ export default {
       formatarPorcentagem,
     };
   },
+  methods: {
+    irParaPerfil(usuarioId) {
+      window.location.href = `/perfil/${usuarioId}`;
+    }
+  }
 };
 </script>
 
@@ -689,6 +695,21 @@ export default {
 
 .ranking-badge.bronze {
   background: linear-gradient(135deg, #cd7f32 0%, #f97316 100%);
+}
+
+/* Estilo para o card clicável */
+.clickable-profile {
+  cursor: pointer;
+}
+
+.clickable-profile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.clickable-profile:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 768px) {
