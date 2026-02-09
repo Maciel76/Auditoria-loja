@@ -1525,24 +1525,44 @@ export default {
   },
   watch: {
     // Monitorar mudanças no ID da rota para recarregar o perfil
-    id(novoId, antigoId) {
-      if (novoId !== antigoId) {
-        this.carregarUsuarioPorId(novoId);
-      }
+    id: {
+      handler(novoId, antigoId) {
+        if (novoId !== antigoId) {
+          // Resetar dados para evitar exibição de dados antigos durante o carregamento
+          this.usuario = {
+            id: "",
+            nome: "",
+            contador: 0,
+            foto: "",
+            iniciais: "",
+            xpConquistas: 0,
+            totalAuditorias: 0,
+            nivel: 0,
+            titulo: "",
+            xpAtual: 0,
+            xpParaProximoNivel: 100,
+            progressoXp: 0,
+            conquistas: [],
+            coverId: "gradient-1",
+            selectedBadges: [],
+            loja: null,
+          };
+          this.todasConquistas = [];
+          this.carregando = true;
+          
+          this.carregarUsuarioPorId(novoId).then(() => {
+            return this.carregarConquistasUsuario();
+          }).finally(() => {
+            this.carregando = false;
+          });
+        }
+      },
+      immediate: true
     },
   },
   async mounted() {
-    try {
-      // Carregar dados do usuário específico
-      await this.carregarUsuarioPorId(this.id);
-
-      // Carregar conquistas do usuário do modelo ConquistasUsuario
-      await this.carregarConquistasUsuario();
-    } catch (error) {
-      console.error("Erro ao inicializar perfil:", error);
-    } finally {
-      this.carregando = false;
-    }
+    // A lógica de carregamento será tratada pelo watcher do ID
+    // Isso evita duplicação de chamadas e garante consistência
   },
   computed: {
     xpProgressoPercentual() {
