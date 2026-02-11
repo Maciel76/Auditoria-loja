@@ -246,6 +246,34 @@
             class="tab-pane"
           >
             <h3><i class="fas fa-cut"></i> Estilo de Cabelo</h3>
+
+            <!-- Seleção de cor do cabelo -->
+            <div class="color-section">
+              <h4><i class="fas fa-palette"></i> Cor do Cabelo</h4>
+              <div class="color-options">
+                <div
+                  v-for="color in hairColors"
+                  :key="color.value"
+                  class="color-option"
+                  :class="{ active: selectedHairColor === color.value }"
+                  :style="{ backgroundColor: '#' + color.value }"
+                  @click="selectHairColor(color.value)"
+                  :title="color.label"
+                ></div>
+                <!-- Seletor de cor personalizado -->
+                <div class="custom-color-picker">
+                  <input
+                    type="color"
+                    id="hairColorPicker"
+                    :value="'#' + selectedHairColor"
+                    @input="selectCustomHairColor"
+                    class="gradient-color-circle"
+                    title="Selecione uma cor personalizada"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div class="hair-preview-container">
               <div
                 v-for="hair in hairStyles"
@@ -266,26 +294,6 @@
             </div>
           </div>
 
-          <!-- Aba: Cor do Cabelo (disponível para estilo aventureiro) -->
-          <div
-            v-if="selectedStyle === 'adventurer' && activeTab === 'cor_cabelo'"
-            class="tab-pane"
-          >
-            <h3><i class="fas fa-palette"></i> Cor do Cabelo</h3>
-            <div class="color-section">
-              <div class="color-options">
-                <div
-                  v-for="color in hairColors"
-                  :key="color.value"
-                  class="color-option"
-                  :class="{ active: selectedHairColor === color.value }"
-                  :style="{ backgroundColor: '#' + color.value }"
-                  @click="selectHairColor(color.value)"
-                  :title="color.label"
-                ></div>
-              </div>
-            </div>
-          </div>
 
           <!-- Aba: Boca (disponível para estilo aventureiro) -->
           <div
@@ -945,7 +953,6 @@ export default {
           { id: "olhos", title: "Olhos", icon: "fas fa-eye" },
           { id: "recursos", title: "Recursos", icon: "fas fa-star" },
           { id: "oculos", title: "Óculos", icon: "fas fa-glasses" },
-          { id: "cor_cabelo", title: "Cor do Cabelo", icon: "fas fa-palette" },
           { id: "boca", title: "Boca", icon: "fas fa-smile" },
           { id: "cor_pele", title: "Cor da Pele", icon: "fas fa-tint" },
         ];
@@ -962,7 +969,6 @@ export default {
           { id: "olhos", title: "Olhos", icon: "fas fa-eye" },
           { id: "oculos", title: "Óculos", icon: "fas fa-glasses" },
           { id: "cabelo", title: "Cabelo", icon: "fas fa-cut" },
-          { id: "cor_cabelo", title: "Cor do Cabelo", icon: "fas fa-palette" },
           { id: "boca", title: "Boca", icon: "fas fa-smile" },
           { id: "cor_pele", title: "Cor da Pele", icon: "fas fa-tint" },
         ];
@@ -1090,6 +1096,12 @@ export default {
 
     selectHairColor(color) {
       this.selectedHairColor = color;
+    },
+
+    selectCustomHairColor(event) {
+      // Extrai a cor hexadecimal do evento e remove o '#'
+      const hexColor = event.target.value.replace('#', '');
+      this.selectedHairColor = hexColor;
     },
 
     toggleAccessory(accessory) {
@@ -2027,6 +2039,53 @@ export default {
   font-size: 0.75rem;
   text-align: center;
   color: #495057;
+}
+
+/* Estilos para o seletor de cor personalizado */
+.custom-color-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.gradient-color-circle {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #adb5bd;
+  border-radius: 50%;
+  cursor: pointer;
+  background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff, #ffff00);
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-color-circle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: inherit;
+  mask: conic-gradient(from 0deg, #000 0deg 90deg, #fff 90deg 180deg, #000 180deg 270deg, #fff 270deg 360deg);
+  -webkit-mask: conic-gradient(from 0deg, #000 0deg 90deg, #fff 90deg 180deg, #000 180deg 270deg, #fff 270deg 360deg);
+}
+
+.gradient-color-circle::-webkit-color-swatch {
+  opacity: 0;
+}
+
+.gradient-color-circle::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
 }
 
 .action-buttons {
