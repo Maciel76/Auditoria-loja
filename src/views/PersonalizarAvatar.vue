@@ -148,15 +148,22 @@
             class="tab-pane"
           >
             <h3><i class="fas fa-low-vision"></i> Estilo das Sobrancelhas</h3>
-            <div class="brow-options">
+            <div class="brow-preview-container">
               <div
-                v-for="brow in browStyles"
+                v-for="brow in eyebrowVariants"
                 :key="brow.value"
-                class="brow-option"
+                class="brow-preview-item"
                 :class="{ active: selectedBrowStyle === brow.value }"
                 @click="selectBrowStyle(brow.value)"
+                :title="brow.label"
               >
-                <span>{{ brow.label }}</span>
+                <div class="avatar-preview-with-brow">
+                  <img
+                    :src="generateEyebrowPreviewUrl(brow.value)"
+                    :alt="`Avatar com ${brow.label.toLowerCase()}`"
+                    class="preview-image"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -167,56 +174,99 @@
             class="tab-pane"
           >
             <h3><i class="fas fa-eye"></i> Estilo dos Olhos</h3>
-            <div class="eye-options">
+            <div class="eye-preview-container">
               <div
                 v-for="eye in eyeStyles"
                 :key="eye.value"
-                class="eye-option"
+                class="eye-preview-item"
                 :class="{ active: selectedEyeStyle === eye.value }"
                 @click="selectEyeStyle(eye.value)"
+                :title="eye.label"
               >
-                <span>{{ eye.label }}</span>
-              </div>
-            </div>
-
-            <!-- Personalização de olhos específico para o estilo aventureiro -->
-            <div class="adventurer-eyes-card">
-              <h4>
-                <i class="fas fa-eye"></i> Personalização de Olhos (Aventureiro)
-              </h4>
-              <p>
-                Personalize os olhos do seu avatar aventureiro com estas opções
-                específicas:
-              </p>
-              <div class="eye-options">
-                <div
-                  v-for="eye in adventurerEyeStyles"
-                  :key="eye.value"
-                  class="eye-option"
-                  :class="{ active: selectedEyeStyle === eye.value }"
-                  @click="selectEyeStyle(eye.value)"
-                >
-                  <span>{{ eye.label }}</span>
+                <div class="avatar-preview-with-eye">
+                  <img
+                    :src="generateEyePreviewUrl(eye.value)"
+                    :alt="`Avatar com ${eye.label.toLowerCase()}`"
+                    class="preview-image"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Aba: Recursos (para estilo aventureiro - recursos faciais) -->
+          <!-- Aba: Acessórios (para estilo aventureiro) -->
           <div
             v-if="selectedStyle === 'adventurer' && activeTab === 'recursos'"
             class="tab-pane"
           >
-            <h3><i class="fas fa-star"></i> Recursos Faciais</h3>
-            <div class="feature-options">
-              <div
-                v-for="feature in faceFeatures"
-                :key="feature.value"
-                class="feature-option"
-                :class="{ active: selectedFaceFeature === feature.value }"
-                @click="selectFaceFeature(feature.value)"
-              >
-                <span>{{ feature.label }}</span>
+            <h3><i class="fas fa-star"></i> Acessórios</h3>
+
+            <!-- Categoria: Óculos -->
+            <div class="accessory-category">
+              <h4><i class="fas fa-glasses"></i> Óculos</h4>
+              <div class="glasses-preview-container">
+                <div
+                  v-for="glasses in glassesVariants"
+                  :key="glasses.value"
+                  class="glasses-preview-item"
+                  :class="{ active: selectedGlassesVariant === glasses.value }"
+                  @click="selectGlassesVariant(glasses.value)"
+                  :title="glasses.label"
+                >
+                  <div class="avatar-preview-with-glasses">
+                    <img
+                      :src="generateGlassesPreviewUrl(glasses.value)"
+                      :alt="`Avatar com ${glasses.label.toLowerCase()}`"
+                      class="preview-image"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categoria: Features (Recursos faciais) -->
+            <div class="accessory-category">
+              <h4><i class="fas fa-smile"></i> Recursos Faciais</h4>
+              <div class="features-preview-container">
+                <div
+                  v-for="feature in faceFeaturesExtended"
+                  :key="feature.value"
+                  class="feature-preview-item"
+                  :class="{ active: selectedFaceFeature === feature.value }"
+                  @click="selectFaceFeature(feature.value)"
+                  :title="feature.label"
+                >
+                  <div class="avatar-preview-with-feature">
+                    <img
+                      :src="generateFeaturePreviewUrl(feature.value)"
+                      :alt="`Avatar com ${feature.label.toLowerCase()}`"
+                      class="preview-image"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categoria: Brincos -->
+            <div class="accessory-category">
+              <h4><i class="fas fa-gem"></i> Brincos</h4>
+              <div class="earrings-preview-container">
+                <div
+                  v-for="earrings in earringVariantsExtended"
+                  :key="earrings.value"
+                  class="earrings-preview-item"
+                  :class="{ active: selectedEarringVariant === earrings.value }"
+                  @click="selectEarringVariant(earrings.value)"
+                  :title="earrings.label"
+                >
+                  <div class="avatar-preview-with-earrings">
+                    <img
+                      :src="generateEarringsPreviewUrl(earrings.value)"
+                      :alt="`Avatar com ${earrings.label.toLowerCase()}`"
+                      class="preview-image"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -301,15 +351,22 @@
             class="tab-pane"
           >
             <h3><i class="fas fa-smile"></i> Estilo da Boca</h3>
-            <div class="mouth-options">
+            <div class="mouth-preview-container">
               <div
                 v-for="mouth in mouthStyles"
                 :key="mouth.value"
-                class="mouth-option"
+                class="mouth-preview-item"
                 :class="{ active: selectedMouthStyle === mouth.value }"
                 @click="selectMouthStyle(mouth.value)"
+                :title="mouth.label"
               >
-                <span>{{ mouth.label }}</span>
+                <div class="avatar-preview-with-mouth">
+                  <img
+                    :src="generateMouthPreviewUrl(mouth.value)"
+                    :alt="`Avatar com ${mouth.label.toLowerCase()}`"
+                    class="preview-image"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -567,10 +624,27 @@ export default {
         { value: "variant03", label: "Variante 3" },
         { value: "variant04", label: "Variante 4" },
         { value: "variant05", label: "Variante 5" },
-        { value: "happy", label: "Feliz" },
-        { value: "hearts", label: "Corações" },
-        { value: "squint", label: "Semi-cerrado" },
-        { value: "winkWacky", label: "Piscando Loucamente" },
+        { value: "variant06", label: "Variante 6" },
+        { value: "variant07", label: "Variante 7" },
+        { value: "variant08", label: "Variante 8" },
+        { value: "variant09", label: "Variante 9" },
+        { value: "variant10", label: "Variante 10" },
+        { value: "variant11", label: "Variante 11" },
+        { value: "variant12", label: "Variante 12" },
+        { value: "variant13", label: "Variante 13" },
+        { value: "variant14", label: "Variante 14" },
+        { value: "variant15", label: "Variante 15" },
+        { value: "variant16", label: "Variante 16" },
+        { value: "variant17", label: "Variante 17" },
+        { value: "variant18", label: "Variante 18" },
+        { value: "variant19", label: "Variante 19" },
+        { value: "variant20", label: "Variante 20" },
+        { value: "variant21", label: "Variante 21" },
+        { value: "variant22", label: "Variante 22" },
+        { value: "variant23", label: "Variante 23" },
+        { value: "variant24", label: "Variante 24" },
+        { value: "variant25", label: "Variante 25" },
+        { value: "variant26", label: "Variante 26" },
       ],
 
       // Estados para as novas opções
@@ -580,6 +654,7 @@ export default {
       selectedBrowStyle: "flat",
       selectedGestureStyle: "open",
       selectedGlassesStyle: "none",
+      selectedGlassesVariant: "none", // Nova variante para os óculos específicos
       selectedLipStyle: "default",
       selectedNoseStyle: "default",
       selectedFaceFeature: "none",
@@ -595,11 +670,41 @@ export default {
         { value: "button-earrings", label: "Brincos Botão" },
       ],
 
+      // Variantes estendidas para acessórios
+      glassesVariants: [
+        { value: "none", label: "Nenhum" },
+        { value: "variant01", label: "Óculos 01" },
+        { value: "variant02", label: "Óculos 02" },
+        { value: "variant03", label: "Óculos 03" },
+        { value: "variant04", label: "Óculos 04" },
+        { value: "variant05", label: "Óculos 05" },
+      ],
+
       faceFeatures: [
         { value: "none", label: "Nenhum" },
         { value: "mole", label: "Pinta" },
         { value: "scar", label: "Cicatriz" },
         { value: "tattoo", label: "Tatuagem Facial" },
+      ],
+
+      // Recursos faciais estendidos
+      faceFeaturesExtended: [
+        { value: "none", label: "Nenhum" },
+        { value: "birthmark", label: "Sinal de Nascença" },
+        { value: "blush", label: "Rubor" },
+        { value: "freckles", label: "Sardas" },
+        { value: "mustache", label: "Bigode" },
+      ],
+
+      // Brincos estendidos
+      earringVariantsExtended: [
+        { value: "none", label: "Nenhum" },
+        { value: "variant01", label: "Brincos 01" },
+        { value: "variant02", label: "Brincos 02" },
+        { value: "variant03", label: "Brincos 03" },
+        { value: "variant04", label: "Brincos 04" },
+        { value: "variant05", label: "Brincos 05" },
+        { value: "variant06", label: "Brincos 06" },
       ],
 
       beardStyles: [
@@ -627,6 +732,25 @@ export default {
         { value: "raised", label: "Elevada" },
         { value: "angled", label: "Angulosa" },
         { value: "arched", label: "Arqueada" },
+      ],
+
+      // Variantes estendidas para sobrancelhas
+      eyebrowVariants: [
+        { value: "variant01", label: "Sobrancelha 01" },
+        { value: "variant02", label: "Sobrancelha 02" },
+        { value: "variant03", label: "Sobrancelha 03" },
+        { value: "variant04", label: "Sobrancelha 04" },
+        { value: "variant05", label: "Sobrancelha 05" },
+        { value: "variant06", label: "Sobrancelha 06" },
+        { value: "variant07", label: "Sobrancelha 07" },
+        { value: "variant08", label: "Sobrancelha 08" },
+        { value: "variant09", label: "Sobrancelha 09" },
+        { value: "variant10", label: "Sobrancelha 10" },
+        { value: "variant11", label: "Sobrancelha 11" },
+        { value: "variant12", label: "Sobrancelha 12" },
+        { value: "variant13", label: "Sobrancelha 13" },
+        { value: "variant14", label: "Sobrancelha 14" },
+        { value: "variant15", label: "Sobrancelha 15" },
       ],
 
       gestureStyles: [
@@ -680,14 +804,31 @@ export default {
         { value: "variant03", label: "Variante 3" },
         { value: "variant04", label: "Variante 4" },
         { value: "variant05", label: "Variante 5" },
-        { value: "concerned", label: "Preocupado" },
-        { value: "default", label: "Padrão" },
-        { value: "eating", label: "Comendo" },
-        { value: "gulp", label: "Engolindo" },
-        { value: "lol", label: "Rindo" },
-        { value: "relaxed", label: "Relaxado" },
-        { value: "sad", label: "Triste" },
-        { value: "smile", label: "Sorrindo" },
+        { value: "variant06", label: "Variante 6" },
+        { value: "variant07", label: "Variante 7" },
+        { value: "variant08", label: "Variante 8" },
+        { value: "variant09", label: "Variante 9" },
+        { value: "variant10", label: "Variante 10" },
+        { value: "variant11", label: "Variante 11" },
+        { value: "variant12", label: "Variante 12" },
+        { value: "variant13", label: "Variante 13" },
+        { value: "variant14", label: "Variante 14" },
+        { value: "variant15", label: "Variante 15" },
+        { value: "variant16", label: "Variante 16" },
+        { value: "variant17", label: "Variante 17" },
+        { value: "variant18", label: "Variante 18" },
+        { value: "variant19", label: "Variante 19" },
+        { value: "variant20", label: "Variante 20" },
+        { value: "variant21", label: "Variante 21" },
+        { value: "variant22", label: "Variante 22" },
+        { value: "variant23", label: "Variante 23" },
+        { value: "variant24", label: "Variante 24" },
+        { value: "variant25", label: "Variante 25" },
+        { value: "variant26", label: "Variante 26" },
+        { value: "variant27", label: "Variante 27" },
+        { value: "variant28", label: "Variante 28" },
+        { value: "variant29", label: "Variante 29" },
+        { value: "variant30", label: "Variante 30" },
       ],
 
       backgroundColors: [
@@ -764,10 +905,14 @@ export default {
         if (this.selectedBeardStyle !== "none") {
           params.append("beard", this.selectedBeardStyle);
         }
+        // Adicionar o parâmetro eyebrows se não for o padrão
         if (this.selectedBrowStyle !== "flat") {
-          params.append("eyebrow", this.selectedBrowStyle);
+          params.append("eyebrows", this.selectedBrowStyle);
         }
-        if (this.selectedGlassesStyle !== "none") {
+        // Usar o novo parâmetro de óculos específicos se estiver selecionado
+        if (this.selectedGlassesVariant !== "none") {
+          params.append("glasses", this.selectedGlassesVariant);
+        } else if (this.selectedGlassesStyle !== "none") {
           params.append("glasses", this.selectedGlassesStyle);
         }
         // Adicionando outras opções
@@ -790,6 +935,10 @@ export default {
         if (this.selectedFaceFeature !== "none") {
           params.append("faceFeature", this.selectedFaceFeature);
         }
+        // Adicionando brincos específicos se estiverem selecionados
+        if (this.selectedEarringVariant && this.selectedEarringVariant !== "none") {
+          params.append("earrings", this.selectedEarringVariant);
+        }
       } else if (this.selectedStyle === "avataaars") {
         if (this.selectedHairStyle !== "any") {
           params.append("top", this.selectedHairStyle);
@@ -804,8 +953,9 @@ export default {
         if (this.selectedBeardStyle !== "none") {
           params.append("facialHair", this.selectedBeardStyle);
         }
+        // Adicionar o parâmetro eyebrows se não for o padrão
         if (this.selectedBrowStyle !== "flat") {
-          params.append("eyebrow", this.selectedBrowStyle);
+          params.append("eyebrows", this.selectedBrowStyle);
         }
         if (this.selectedGlassesStyle !== "none") {
           params.append("glasses", this.selectedGlassesStyle);
@@ -944,6 +1094,7 @@ export default {
           { id: "estilo", title: "Estilo", icon: "fas fa-paint-brush" },
           { id: "cabelo", title: "Cabelo", icon: "fas fa-cut" }, // <-- Cabelo logo após Estilo
           { id: "background", title: "Fundo", icon: "fas fa-fill-drip" },
+          { id: "boca", title: "Boca", icon: "fas fa-smile" }, // <-- Boca após Fundo
           { id: "brincos", title: "Brincos", icon: "fas fa-gem" },
           {
             id: "sobrancelhas",
@@ -953,7 +1104,6 @@ export default {
           { id: "olhos", title: "Olhos", icon: "fas fa-eye" },
           { id: "recursos", title: "Recursos", icon: "fas fa-star" },
           { id: "oculos", title: "Óculos", icon: "fas fa-glasses" },
-          { id: "boca", title: "Boca", icon: "fas fa-smile" },
           { id: "cor_pele", title: "Cor da Pele", icon: "fas fa-tint" },
         ];
       } else {
@@ -961,6 +1111,7 @@ export default {
         return [
           { id: "estilo", title: "Estilo", icon: "fas fa-paint-brush" },
           { id: "background", title: "Fundo", icon: "fas fa-fill-drip" },
+          { id: "boca", title: "Boca", icon: "fas fa-smile" }, // <-- Boca após Fundo
           {
             id: "sobrancelhas",
             title: "Sobrancelhas",
@@ -969,7 +1120,6 @@ export default {
           { id: "olhos", title: "Olhos", icon: "fas fa-eye" },
           { id: "oculos", title: "Óculos", icon: "fas fa-glasses" },
           { id: "cabelo", title: "Cabelo", icon: "fas fa-cut" },
-          { id: "boca", title: "Boca", icon: "fas fa-smile" },
           { id: "cor_pele", title: "Cor da Pele", icon: "fas fa-tint" },
         ];
       }
@@ -1032,7 +1182,7 @@ export default {
           previewParams += `&beard=${this.selectedBeardStyle}`;
         }
         if (this.selectedBrowStyle !== "flat") {
-          previewParams += `&eyebrow=${this.selectedBrowStyle}`;
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
         }
         if (this.selectedGlassesStyle !== "none") {
           previewParams += `&glasses=${this.selectedGlassesStyle}`;
@@ -1171,6 +1321,10 @@ export default {
       this.selectedEarringVariant = variant;
     },
 
+    selectGlassesVariant(variant) {
+      this.selectedGlassesVariant = variant;
+    },
+
     generateEarringPreviewUrl(variant) {
       // Gerar URL de preview para brincos com base nas configurações atuais do avatar
       let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
@@ -1202,7 +1356,175 @@ export default {
           previewParams += `&beard=${this.selectedBeardStyle}`;
         }
         if (this.selectedBrowStyle !== "flat") {
-          previewParams += `&eyebrow=${this.selectedBrowStyle}`;
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        // Usar o novo parâmetro de óculos específicos se estiver selecionado
+        if (this.selectedGlassesVariant !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesVariant}`;
+        } else if (this.selectedGlassesStyle !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesStyle}`;
+        }
+        if (this.selectedFaceFeature !== "none") {
+          previewParams += `&faceFeature=${this.selectedFaceFeature}`;
+        }
+        // Adicionando brincos específicos se estiverem selecionados
+        if (this.selectedEarringVariant && this.selectedEarringVariant !== "none") {
+          previewParams += `&earrings=${this.selectedEarringVariant}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateGlassesPreviewUrl(glassesValue) {
+      // Gerar URL de preview para óculos com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar o tipo de óculos específico
+      if (glassesValue !== "none") {
+        previewParams += `&glasses=${glassesValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedEyeStyle !== "any") {
+          previewParams += `&eyes=${this.selectedEyeStyle}`;
+        }
+        if (this.selectedMouthStyle !== "any") {
+          previewParams += `&mouth=${this.selectedMouthStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
+        }
+        if (this.selectedBrowStyle !== "flat") {
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        if (this.selectedFaceFeature !== "none") {
+          previewParams += `&faceFeature=${this.selectedFaceFeature}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateFeaturePreviewUrl(featureValue) {
+      // Gerar URL de preview para recursos faciais com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar o recurso facial específico
+      if (featureValue !== "none") {
+        previewParams += `&faceFeature=${featureValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedEyeStyle !== "any") {
+          previewParams += `&eyes=${this.selectedEyeStyle}`;
+        }
+        if (this.selectedMouthStyle !== "any") {
+          previewParams += `&mouth=${this.selectedMouthStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
+        }
+        if (this.selectedBrowStyle !== "flat") {
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        // Usar o novo parâmetro de óculos específicos se estiver selecionado
+        if (this.selectedGlassesVariant !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesVariant}`;
+        } else if (this.selectedGlassesStyle !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesStyle}`;
+        }
+        // Adicionando brincos específicos se estiverem selecionados
+        if (this.selectedEarringVariant && this.selectedEarringVariant !== "none") {
+          previewParams += `&earrings=${this.selectedEarringVariant}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateEarringsPreviewUrl(earringsValue) {
+      // Gerar URL de preview para brincos com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar os brincos específicos
+      if (earringsValue !== "none") {
+        previewParams += `&earrings=${earringsValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedEyeStyle !== "any") {
+          previewParams += `&eyes=${this.selectedEyeStyle}`;
+        }
+        if (this.selectedMouthStyle !== "any") {
+          previewParams += `&mouth=${this.selectedMouthStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
+        }
+        if (this.selectedBrowStyle !== "flat") {
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        // Usar o novo parâmetro de óculos específicos se estiver selecionado
+        if (this.selectedGlassesVariant !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesVariant}`;
+        } else if (this.selectedGlassesStyle !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesStyle}`;
+        }
+        if (this.selectedFaceFeature !== "none") {
+          previewParams += `&faceFeature=${this.selectedFaceFeature}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateEyebrowPreviewUrl(eyebrowValue) {
+      // Gerar URL de preview para estilos de sobrancelhas com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar o estilo de sobrancelha específico
+      if (eyebrowValue !== "flat") { // Usando flat como valor padrão
+        previewParams += `&eyebrows=${eyebrowValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedEyeStyle !== "any") {
+          previewParams += `&eyes=${this.selectedEyeStyle}`;
+        }
+        if (this.selectedMouthStyle !== "any") {
+          previewParams += `&mouth=${this.selectedMouthStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
         }
         if (this.selectedGlassesStyle !== "none") {
           previewParams += `&glasses=${this.selectedGlassesStyle}`;
@@ -1239,7 +1561,81 @@ export default {
           previewParams += `&beard=${this.selectedBeardStyle}`;
         }
         if (this.selectedBrowStyle !== "flat") {
-          previewParams += `&eyebrow=${this.selectedBrowStyle}`;
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        if (this.selectedGlassesStyle !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesStyle}`;
+        }
+        if (this.selectedFaceFeature !== "none") {
+          previewParams += `&faceFeature=${this.selectedFaceFeature}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateMouthPreviewUrl(mouthValue) {
+      // Gerar URL de preview para estilos de boca com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar o estilo de boca específico
+      if (mouthValue !== "any") {
+        previewParams += `&mouth=${mouthValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo, exceto a própria boca que estamos testando
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedEyeStyle !== "any") {
+          previewParams += `&eyes=${this.selectedEyeStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
+        }
+        if (this.selectedBrowStyle !== "flat") {
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
+        }
+        if (this.selectedGlassesStyle !== "none") {
+          previewParams += `&glasses=${this.selectedGlassesStyle}`;
+        }
+        if (this.selectedFaceFeature !== "none") {
+          previewParams += `&faceFeature=${this.selectedFaceFeature}`;
+        }
+      }
+
+      return `https://api.dicebear.com/9.x/adventurer/svg?${previewParams}`;
+    },
+
+    generateEyePreviewUrl(eyeValue) {
+      // Gerar URL de preview para estilos de olhos com base nas configurações atuais do avatar
+      let previewParams = `seed=${this.userSessionStore.getUsuarioId}&radius=50&size=64&backgroundColor=${this.selectedBackgroundColor}`;
+
+      // Adicionar outras configurações atuais do avatar
+      previewParams += `&skinColor=${this.selectedSkinColor}&hairColor=${this.selectedHairColor}`;
+
+      // Adicionar o estilo de olhos específico
+      if (eyeValue !== "any") {
+        previewParams += `&eyes=${eyeValue}`;
+      }
+
+      // Adicionar outras configurações com base no estilo, exceto os próprios olhos que estamos testando
+      if (this.selectedStyle === "adventurer") {
+        if (this.selectedHairStyle !== "any" && this.selectedHairStyle !== "bald") {
+          previewParams += `&hair=${this.selectedHairStyle}`;
+        }
+        if (this.selectedMouthStyle !== "any") {
+          previewParams += `&mouth=${this.selectedMouthStyle}`;
+        }
+        if (this.selectedBeardStyle !== "none") {
+          previewParams += `&beard=${this.selectedBeardStyle}`;
+        }
+        if (this.selectedBrowStyle !== "flat") {
+          previewParams += `&eyebrows=${this.selectedBrowStyle}`;
         }
         if (this.selectedGlassesStyle !== "none") {
           previewParams += `&glasses=${this.selectedGlassesStyle}`;
@@ -1386,6 +1782,9 @@ export default {
       // Exibir mensagem de sucesso
       this.showToast("Avatar criado com sucesso! 🎉", "success");
 
+      // Salvar as configurações atuais no localStorage
+      this.saveAvatarSettings();
+
       // Adicionar classe de animação ao componente
       document.body.classList.add("success-animation");
 
@@ -1407,37 +1806,111 @@ export default {
         }
       }, 2000);
     },
+
+    // Método para salvar as configurações do avatar no localStorage
+    saveAvatarSettings() {
+      const userId = this.userId || this.userSessionStore.getUsuarioId;
+      const settings = {
+        selectedStyle: this.selectedStyle,
+        selectedGender: this.selectedGender,
+        selectedSkinColor: this.selectedSkinColor,
+        selectedHairColor: this.selectedHairColor,
+        selectedHairStyle: this.selectedHairStyle,
+        selectedEyeStyle: this.selectedEyeStyle,
+        selectedMouthStyle: this.selectedMouthStyle,
+        selectedAccessories: this.selectedAccessories,
+        selectedBackgroundColor: this.selectedBackgroundColor,
+        selectedBeardStyle: this.selectedBeardStyle,
+        selectedBodyStyle: this.selectedBodyStyle,
+        selectedIconStyle: this.selectedIconStyle,
+        selectedBrowStyle: this.selectedBrowStyle,
+        selectedGestureStyle: this.selectedGestureStyle,
+        selectedGlassesStyle: this.selectedGlassesStyle,
+        selectedLipStyle: this.selectedLipStyle,
+        selectedNoseStyle: this.selectedNoseStyle,
+        selectedFaceFeature: this.selectedFaceFeature,
+        selectedEarringVariant: this.selectedEarringVariant,
+        activeTab: this.activeTab,
+      };
+
+      localStorage.setItem(`avatar_settings_${userId}`, JSON.stringify(settings));
+    },
+
+    // Método para carregar as configurações do avatar do localStorage
+    loadAvatarSettings() {
+      const userId = this.userId || this.userSessionStore.getUsuarioId;
+      const savedSettings = localStorage.getItem(`avatar_settings_${userId}`);
+
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+
+          // Restaurar todas as configurações salvas
+          this.selectedStyle = settings.selectedStyle || this.selectedStyle;
+          this.selectedGender = settings.selectedGender || this.selectedGender;
+          this.selectedSkinColor = settings.selectedSkinColor || this.selectedSkinColor;
+          this.selectedHairColor = settings.selectedHairColor || this.selectedHairColor;
+          this.selectedHairStyle = settings.selectedHairStyle || this.selectedHairStyle;
+          this.selectedEyeStyle = settings.selectedEyeStyle || this.selectedEyeStyle;
+          this.selectedMouthStyle = settings.selectedMouthStyle || this.selectedMouthStyle;
+          this.selectedAccessories = settings.selectedAccessories || this.selectedAccessories;
+          this.selectedBackgroundColor = settings.selectedBackgroundColor || this.selectedBackgroundColor;
+          this.selectedBeardStyle = settings.selectedBeardStyle || this.selectedBeardStyle;
+          this.selectedBodyStyle = settings.selectedBodyStyle || this.selectedBodyStyle;
+          this.selectedIconStyle = settings.selectedIconStyle || this.selectedIconStyle;
+          this.selectedBrowStyle = settings.selectedBrowStyle || this.selectedBrowStyle;
+          this.selectedGestureStyle = settings.selectedGestureStyle || this.selectedGestureStyle;
+          this.selectedGlassesStyle = settings.selectedGlassesStyle || this.selectedGlassesStyle;
+          this.selectedLipStyle = settings.selectedLipStyle || this.selectedLipStyle;
+          this.selectedNoseStyle = settings.selectedNoseStyle || this.selectedNoseStyle;
+          this.selectedFaceFeature = settings.selectedFaceFeature || this.selectedFaceFeature;
+          this.selectedEarringVariant = settings.selectedEarringVariant || this.selectedEarringVariant;
+          this.activeTab = settings.activeTab || this.activeTab;
+
+          return true;
+        } catch (error) {
+          console.error('Erro ao carregar configurações do avatar:', error);
+          return false;
+        }
+      }
+      return false;
+    },
   },
 
   mounted() {
-    // Aplicar configurações visuais padrão para o estilo inicial
-    const defaultSettings = this.defaultVisualSettings[this.selectedStyle];
-    if (defaultSettings) {
-      this.selectedGender = defaultSettings.gender;
-      this.selectedSkinColor = defaultSettings.skinColor;
-      this.selectedHairColor = defaultSettings.hairColor;
-      this.selectedHairStyle = defaultSettings.hairStyle;
-      this.selectedEyeStyle = defaultSettings.eyeStyle;
-      this.selectedMouthStyle = defaultSettings.mouthStyle;
-      this.selectedAccessories = [...defaultSettings.accessories];
+    // Tentar carregar configurações salvas antes de aplicar os padrões
+    const loaded = this.loadAvatarSettings();
+
+    if (!loaded) {
+      // Se não houver configurações salvas, aplicar configurações visuais padrão para o estilo inicial
+      const defaultSettings = this.defaultVisualSettings[this.selectedStyle];
+      if (defaultSettings) {
+        this.selectedGender = defaultSettings.gender;
+        this.selectedSkinColor = defaultSettings.skinColor;
+        this.selectedHairColor = defaultSettings.hairColor;
+        this.selectedHairStyle = defaultSettings.hairStyle;
+        this.selectedEyeStyle = defaultSettings.eyeStyle;
+        this.selectedMouthStyle = defaultSettings.mouthStyle;
+        this.selectedAccessories = [...defaultSettings.accessories];
+      }
+
+      // Inicializar as novas opções com seus valores padrão
+      this.selectedBeardStyle = "none";
+      this.selectedBodyStyle = "default";
+      this.selectedIconStyle = "default";
+      this.selectedBrowStyle = "flat";
+      this.selectedGestureStyle = "open";
+      this.selectedGlassesStyle = "none";
+      this.selectedLipStyle = "default";
+      this.selectedNoseStyle = "default";
+      this.selectedFaceFeature = "none";
+      this.selectedEarringVariant = null;
+
+      // Limpar brincos dos acessórios se estiverem presentes
+      this.selectedAccessories = this.selectedAccessories.filter(
+        (acc) => !acc.includes("earring"),
+      );
     }
-
-    // Inicializar as novas opções com seus valores padrão
-    this.selectedBeardStyle = "none";
-    this.selectedBodyStyle = "default";
-    this.selectedIconStyle = "default";
-    this.selectedBrowStyle = "flat";
-    this.selectedGestureStyle = "open";
-    this.selectedGlassesStyle = "none";
-    this.selectedLipStyle = "default";
-    this.selectedNoseStyle = "default";
-    this.selectedFaceFeature = "none";
-    this.selectedEarringVariant = null;
-
-    // Limpar brincos dos acessórios se estiverem presentes
-    this.selectedAccessories = this.selectedAccessories.filter(
-      (acc) => !acc.includes("earring"),
-    );
   },
 };
 </script>
@@ -2086,6 +2559,311 @@ export default {
   border-radius: 50%;
   width: 100%;
   height: 100%;
+}
+
+/* Estilos para a prévia de boca */
+.mouth-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.mouth-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.mouth-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.mouth-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-mouth {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-mouth img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.mouth-label {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #495057;
+}
+
+/* Estilos para a prévia de olhos */
+.eye-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.eye-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.eye-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.eye-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-eye {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-eye img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* Estilos para categorias de acessórios */
+.accessory-category {
+  margin-bottom: 25px;
+}
+
+.accessory-category h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 8px;
+}
+
+/* Estilos para a prévia de óculos */
+.glasses-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.glasses-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.glasses-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.glasses-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-glasses {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-glasses img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* Estilos para a prévia de recursos faciais */
+.features-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.feature-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.feature-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.feature-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-feature {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-feature img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* Estilos para a prévia de brincos */
+.earrings-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.earrings-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.earrings-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.earrings-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-earrings {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-earrings img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* Estilos para a prévia de sobrancelhas */
+.brow-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 20px;
+}
+
+.brow-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.brow-preview-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.brow-preview-item.active {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.avatar-preview-with-brow {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-with-brow img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .action-buttons {
