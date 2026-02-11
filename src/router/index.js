@@ -167,6 +167,13 @@ const routes = [
     component: TesteMetricas,
     meta: { requiresLoja: true }, // Apenas requer loja, sem autenticação
   },
+  {
+    path: "/personalizar-avatar/:userId?",
+    name: "PersonalizarAvatar",
+    component: () => import("@/views/PersonalizarAvatar.vue"),
+    props: true,
+    meta: { requiresLoja: false }, // Não requer loja específica
+  },
 
   // InfoSite routes
   {

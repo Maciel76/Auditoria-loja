@@ -37,18 +37,11 @@
               Imagens
             </button>
             <button
-              :class="['tab-button', { active: activeTab === 'badges' }]"
-              @click="activeTab = 'badges'"
+              :class="['tab-button', { active: activeTab === 'avatar-customizer' }]"
+              @click="goToAvatarCustomizer"
             >
-              <i class="fas fa-certificate"></i>
-              Selos
-            </button>
-            <button
-              :class="['tab-button', { active: activeTab === 'avatars' }]"
-              @click="activeTab = 'avatars'"
-            >
-              <i class="fas fa-user-circle"></i>
-              Avatares
+              <i class="fas fa-user-cog"></i>
+              Personalizar Avatar
             </button>
           </div>
 
@@ -129,51 +122,6 @@
               </div>
             </div>
 
-            <!-- Badges tab -->
-            <div v-show="activeTab === 'badges'" class="badges-tab">
-              <p class="tab-description">
-                Selecione até {{ maxBadges }} selos para seu perfil:
-              </p>
-              <div class="badges-grid">
-                <div
-                  v-for="badge in badges"
-                  :key="badge.id"
-                  class="badge-item"
-                  :class="{
-                    selected: isSelected(badge.id),
-                    disabled: isDisabled(badge.id),
-                  }"
-                  @click="toggleBadge(badge.id)"
-                >
-                  <div class="badge-content">
-                    <i class="fas badge-icon" :class="badge.icon"></i>
-                    <h4 class="badge-name">{{ badge.name }}</h4>
-                    <p class="badge-description">{{ badge.description }}</p>
-                  </div>
-                  <div class="badge-selection">
-                    <i
-                      v-if="isSelected(badge.id)"
-                      class="fas fa-check-circle selected-icon"
-                    ></i>
-                    <i v-else class="fas fa-plus-circle unselected-icon"></i>
-                  </div>
-                </div>
-              </div>
-              <div class="selected-badges-summary">
-                <p>
-                  Selos selecionados:
-                  <strong>{{ selectedBadges.length }}/{{ maxBadges }}</strong>
-                </p>
-              </div>
-            </div>
-
-            <!-- Avatars tab -->
-            <div v-show="activeTab === 'avatars'" class="avatars-tab">
-              <AvatarSelector
-                v-model="selectedAvatar"
-                @update:model-value="handleAvatarChange"
-              />
-            </div>
           </div>
         </div>
 
@@ -192,12 +140,9 @@
 </template>
 
 <script>
-import AvatarSelector from "./AvatarSelector.vue";
-
 export default {
   name: "UserCoverSelector",
   components: {
-    AvatarSelector,
   },
   props: {
     modelValue: {
@@ -213,7 +158,7 @@ export default {
       required: true,
     },
   },
-  emits: ["update:modelValue", "cover-selected"],
+  emits: ["update:modelValue", "cover-selected", "go-to-avatar-customizer"],
   data() {
     return {
       activeTab: "gradients",
@@ -427,12 +372,11 @@ export default {
         this.activeTab === "images"
       ) {
         payload.coverId = this.selectedCover;
-      } else if (this.activeTab === "badges") {
-        // Handle badge selection
-        payload.selectedBadges = [...this.selectedBadges]; // Copy the array
-      } else if (this.activeTab === "avatars") {
-        // Handle avatar selection
-        payload.selectedAvatar = this.selectedAvatar;
+      } else if (this.activeTab === "avatar-customizer") {
+        // Handle avatar customization - redirect to avatar customization page
+        this.$emit("go-to-avatar-customizer");
+        this.closeModal();
+        return; // Exit early to prevent emitting cover-selected
       }
 
       this.$emit("cover-selected", payload);
@@ -491,9 +435,16 @@ export default {
       }
     },
 
-    handleAvatarChange(value) {
-      // Atualiza o selectedAvatar quando o AvatarSelector emitir um novo valor
-      this.selectedAvatar = value;
+    handleAvatarSaved(avatarData) {
+      // Atualiza o selectedAvatar com o avatar personalizado
+      this.selectedAvatar = avatarData.avatarUrl;
+      console.log("Avatar personalizado salvo:", avatarData);
+    },
+
+    goToAvatarCustomizer() {
+      // Fecha o modal atual e redireciona para a página de personalização de avatar
+      this.$emit("go-to-avatar-customizer", this.userId);
+      this.closeModal();
     },
   },
 };

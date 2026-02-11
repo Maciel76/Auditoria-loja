@@ -44,11 +44,11 @@
               Editar Info
             </button>
             <button
-              :class="['tab-button', { active: activeTab === 'badges' }]"
-              @click="activeTab = 'badges'"
+              :class="['tab-button', { active: activeTab === 'avatar-customizer' }]"
+              @click="goToAvatarCustomizer"
             >
-              <i class="fas fa-certificate"></i>
-              Selos
+              <i class="fas fa-user-cog"></i>
+              Personalizar Avatar
             </button>
           </div>
 
@@ -160,43 +160,6 @@
             </div>
           </div>
 
-          <!-- Badges tab -->
-          <div v-show="activeTab === 'badges'" class="badges-tab">
-            <p class="tab-description">
-              Selecione até {{ maxBadges }} selos para sua loja:
-            </p>
-            <div class="badges-grid">
-              <div
-                v-for="badge in badges"
-                :key="badge.id"
-                class="badge-item"
-                :class="{
-                  selected: isSelected(badge.id),
-                  disabled: isDisabled(badge.id),
-                }"
-                @click="toggleBadge(badge.id)"
-              >
-                <div class="badge-content">
-                  <i class="fas badge-icon" :class="badge.icon"></i>
-                  <h4 class="badge-name">{{ badge.name }}</h4>
-                  <p class="badge-description">{{ badge.description }}</p>
-                </div>
-                <div class="badge-selection">
-                  <i
-                    v-if="isSelected(badge.id)"
-                    class="fas fa-check-circle selected-icon"
-                  ></i>
-                  <i v-else class="fas fa-plus-circle unselected-icon"></i>
-                </div>
-              </div>
-            </div>
-            <div class="selected-badges-summary">
-              <p>
-                Selos selecionados:
-                <strong>{{ selectedBadges.length }}/{{ maxBadges }}</strong>
-              </p>
-            </div>
-          </div>
 
           <!-- Edit Info tab -->
           <div v-show="activeTab === 'edit-info'" class="edit-info-tab">
@@ -298,6 +261,8 @@
 <script>
 export default {
   name: "CoverSelector",
+  components: {
+  },
   props: {
     modelValue: {
       type: Boolean,
@@ -312,10 +277,11 @@ export default {
       required: true,
     },
   },
-  emits: ["update:modelValue", "cover-selected"],
+  emits: ["update:modelValue", "cover-selected", "go-to-avatar-customizer"],
   data() {
     return {
       selectedCover: null,
+      selectedAvatar: null,
       saving: false,
       activeTab: "gradients", // Default to gradients tab
       imagePosition: "center", // Default image position
@@ -707,11 +673,19 @@ export default {
     selectCover(coverId) {
       this.selectedCover = coverId;
     },
+
+    goToAvatarCustomizer() {
+      // Fecha o modal atual e redireciona para a página de personalização de avatar
+      this.$emit("update:modelValue", false);
+      // Emite um evento para indicar que deve ir para a página de personalização de avatar
+      this.$emit("go-to-avatar-customizer");
+    },
+
     closeModal() {
       this.$emit("update:modelValue", false);
     },
     saveSelection() {
-      if (!this.selectedCover && this.activeTab !== "badges") return;
+      if (!this.selectedCover && this.activeTab !== "avatar-customizer") return;
 
       this.saving = true;
       try {
@@ -719,7 +693,7 @@ export default {
           coverType: this.activeTab,
           imagePosition: null,
           imageScale: null,
-          selectedBadges: [],
+          selectedAvatar: null,
         };
 
         if (
@@ -743,9 +717,11 @@ export default {
             this.activeTab === "images" ? this.imagePosition : null;
           payload.imageScale =
             this.activeTab === "images" ? this.imageScale : null;
-        } else if (this.activeTab === "badges") {
-          // Handle badge selection
-          payload.selectedBadges = [...this.selectedBadges]; // Copy the array
+        } else if (this.activeTab === "avatar-customizer") {
+          // Handle avatar customization - redirect to avatar customization page
+          this.$emit("go-to-avatar-customizer");
+          this.closeModal();
+          return; // Exit early to prevent emitting cover-selected
         }
 
         this.$emit("cover-selected", payload);
@@ -754,8 +730,8 @@ export default {
 
         // Mostrar mensagem de sucesso
         this.$toast?.success(
-          this.activeTab === "badges"
-            ? "Selos selecionados com sucesso!"
+          this.activeTab === "avatar-customizer"
+            ? "Avatar personalizado salvo com sucesso!"
             : "Cover selecionado com sucesso!"
         );
       } catch (error) {

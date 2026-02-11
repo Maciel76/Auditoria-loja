@@ -78,6 +78,7 @@
             :current-cover="usuario.coverId"
             :user-id="usuario.id"
             @cover-selected="handleCoverSelected"
+            @go-to-avatar-customizer="goToAvatarCustomizerFromSelector"
           />
 
           <div class="perfil-info">
@@ -2064,6 +2065,16 @@ export default {
 
     mudarAba(aba) {
       this.abaAtiva = aba;
+    },
+
+    goToAvatarCustomizer() {
+      // Navegar para a página de personalização de avatar, passando o ID do usuário
+      this.$router.push(`/personalizar-avatar/${this.usuario.id}`);
+    },
+
+    goToAvatarCustomizerFromSelector() {
+      // Navegar para a página de personalização de avatar
+      this.$router.push(`/personalizar-avatar/${this.usuario.id}`);
     },
 
     async handleCoverSelected(payload) {

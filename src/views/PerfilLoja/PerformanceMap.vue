@@ -51,6 +51,20 @@
           >
             Presença
           </button>
+          <button
+            class="action-btn"
+            :class="{ active: modoVisualizacao === 'grid' }"
+            @click="modoVisualizacao = 'grid'"
+          >
+            📊 Grid
+          </button>
+          <button
+            class="action-btn"
+            :class="{ active: modoVisualizacao === 'lista' }"
+            @click="modoVisualizacao = 'lista'"
+          >
+            📋 Lista
+          </button>
         </div>
       </div>
 
@@ -106,23 +120,88 @@
         </div>
       </div>
 
-      <!-- Grid de Corredores Agrupados por Setor -->
-      <div v-if="setorSelecionado === 'todos'">
-        <div v-for="setor in setores" :key="setor.id" class="setor-secao">
+      <!-- Visualização em Grade ou Lista -->
+      <div v-if="modoVisualizacao === 'grid'">
+        <!-- Grid de Corredores Agrupados por Setor -->
+        <div v-if="setorSelecionado === 'todos'">
+          <div v-for="setor in setores" :key="setor.id" class="setor-secao">
+            <div class="setor-header">
+              <div class="setor-title-wrapper">
+                <h4>{{ setor.icone }} {{ setor.nome }}</h4>
+                <span class="setor-percentual"
+                  >{{ getPercentualSetor(setor.id).toFixed(1) }}%</span
+                >
+              </div>
+              <span class="setor-badge"
+                >{{ getCorredoresPorSetor(setor.id).length }} corredores</span
+              >
+            </div>
+            <div class="corredores-grid">
+              <div
+                v-for="corredor in getCorredoresPorSetor(setor.id)"
+                :key="corredor.local"
+                class="corredor-card"
+                :class="getStatusCorredor(corredor)"
+                @click="verDetalhesCorredor(corredor)"
+              >
+                <div class="corredor-header">
+                  <div class="corredor-icon">
+                    {{ getIconeCorredor(corredor.local) }}
+                  </div>
+                  <div class="corredor-info">
+                    <h4 class="corredor-nome">
+                      {{ formatarNomeCorredor(corredor.local) }}
+                    </h4>
+                    <div class="corredor-score">
+                      {{ getPercentualLeitura(corredor).toFixed(2) }}%
+                    </div>
+                  </div>
+                  <div
+                    class="corredor-status"
+                    :class="getStatusCorredor(corredor)"
+                  >
+                    {{ getStatusLabel(getPercentualLeitura(corredor)) }}
+                  </div>
+                </div>
+                <div class="corredor-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :style="{ width: getPercentualLeitura(corredor) + '%' }"
+                      :class="getClasseDesempenho(getPercentualLeitura(corredor))"
+                    ></div>
+                  </div>
+                  <div class="progress-text">
+                    {{ getPercentualLeitura(corredor).toFixed(2) }}% concluído
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid de Corredores - Setor Específico -->
+        <div v-else class="setor-secao">
           <div class="setor-header">
             <div class="setor-title-wrapper">
-              <h4>{{ setor.icone }} {{ setor.nome }}</h4>
+              <h4>
+                {{ getSetorInfo(setorSelecionado)?.icone }}
+                {{ getSetorInfo(setorSelecionado)?.nome }}
+              </h4>
               <span class="setor-percentual"
-                >{{ getPercentualSetor(setor.id).toFixed(1) }}%</span
+                >{{ getPercentualSetor(setorSelecionado).toFixed(1) }}%</span
               >
             </div>
             <span class="setor-badge"
-              >{{ getCorredoresPorSetor(setor.id).length }} corredores</span
+              >{{
+                getCorredoresPorSetor(setorSelecionado).length
+              }}
+              corredores</span
             >
           </div>
           <div class="corredores-grid">
             <div
-              v-for="corredor in getCorredoresPorSetor(setor.id)"
+              v-for="corredor in getCorredoresPorSetor(setorSelecionado)"
               :key="corredor.local"
               class="corredor-card"
               :class="getStatusCorredor(corredor)"
@@ -140,13 +219,11 @@
                     {{ getPercentualLeitura(corredor).toFixed(2) }}%
                   </div>
                 </div>
-                <div
-                  class="corredor-status"
-                  :class="getStatusCorredor(corredor)"
-                >
+                <div class="corredor-status" :class="getStatusCorredor(corredor)">
                   {{ getStatusLabel(getPercentualLeitura(corredor)) }}
                 </div>
               </div>
+
               <div class="corredor-progress">
                 <div class="progress-bar">
                   <div
@@ -164,64 +241,65 @@
         </div>
       </div>
 
-      <!-- Grid de Corredores - Setor Específico -->
-      <div v-else class="setor-secao">
-        <div class="setor-header">
-          <div class="setor-title-wrapper">
-            <h4>
-              {{ getSetorInfo(setorSelecionado)?.icone }}
-              {{ getSetorInfo(setorSelecionado)?.nome }}
-            </h4>
-            <span class="setor-percentual"
-              >{{ getPercentualSetor(setorSelecionado).toFixed(1) }}%</span
+      <!-- Visualização em Lista - Mostra todos os corredores sem agrupamento por setor -->
+      <div v-else class="corredores-lista">
+        <table class="lista-corredores-table">
+          <thead>
+            <tr>
+              <th>Corredor</th>
+              <th>Setor</th>
+              <th>Ícone</th>
+              <th>Desempenho</th>
+              <th>Status</th>
+              <th>Total Itens</th>
+              <th>Itens Válidos</th>
+              <th>Itens Lidos</th>
+              <th>Colaboradores</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="corredor in dadosFiltrados"
+              :key="corredor.local"
+              :class="getStatusCorredor(corredor)"
+              @click="verDetalhesCorredor(corredor)"
             >
-          </div>
-          <span class="setor-badge"
-            >{{
-              getCorredoresPorSetor(setorSelecionado).length
-            }}
-            corredores</span
-          >
-        </div>
-        <div class="corredores-grid">
-          <div
-            v-for="corredor in getCorredoresPorSetor(setorSelecionado)"
-            :key="corredor.local"
-            class="corredor-card"
-            :class="getStatusCorredor(corredor)"
-            @click="verDetalhesCorredor(corredor)"
-          >
-            <div class="corredor-header">
-              <div class="corredor-icon">
-                {{ getIconeCorredor(corredor.local) }}
-              </div>
-              <div class="corredor-info">
-                <h4 class="corredor-nome">
-                  {{ formatarNomeCorredor(corredor.local) }}
-                </h4>
-                <div class="corredor-score">
-                  {{ getPercentualLeitura(corredor).toFixed(2) }}%
+              <td>
+                <div class="corredor-info-cell">
+                  <span class="corredor-icon-list">{{ getIconeCorredor(corredor.local) }}</span>
+                  <span class="corredor-nome-list">{{ formatarNomeCorredor(corredor.local) }}</span>
                 </div>
-              </div>
-              <div class="corredor-status" :class="getStatusCorredor(corredor)">
-                {{ getStatusLabel(getPercentualLeitura(corredor)) }}
-              </div>
-            </div>
-
-            <div class="corredor-progress">
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  :style="{ width: getPercentualLeitura(corredor) + '%' }"
-                  :class="getClasseDesempenho(getPercentualLeitura(corredor))"
-                ></div>
-              </div>
-              <div class="progress-text">
-                {{ getPercentualLeitura(corredor).toFixed(2) }}% concluído
-              </div>
-            </div>
-          </div>
-        </div>
+              </td>
+              <td>{{ getSetorDoCorredor(corredor.local) }}</td>
+              <td>{{ getIconeCorredor(corredor.local) }}</td>
+              <td>
+                <div class="desempenho-cell">
+                  <span class="desempenho-percentual">{{ getPercentualLeitura(corredor).toFixed(2) }}%</span>
+                  <div class="progress-bar-list">
+                    <div
+                      class="progress-fill-list"
+                      :style="{ width: getPercentualLeitura(corredor) + '%' }"
+                      :class="getClasseDesempenho(getPercentualLeitura(corredor))"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="status-tag" :class="getStatusCorredor(corredor)">
+                  {{ getStatusLabel(getPercentualLeitura(corredor)) }}
+                </span>
+              </td>
+              <td>{{ corredor.total }}</td>
+              <td>{{ corredor.itensValidos }}</td>
+              <td>{{ corredor.lidos }}</td>
+              <td>{{ Object.keys(corredor.usuarios || {}).length }}</td>
+              <td>
+                <button class="action-btn-small" @click.stop="verDetalhesCorredor(corredor)">Ver Detalhes</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Modal de Detalhes do Corredor -->
@@ -368,6 +446,7 @@ const carregando = ref(true);
 const erro = ref(null);
 const corredorSelecionado = ref(null);
 const setorSelecionado = ref("todos");
+const modoVisualizacao = ref("grid"); // "grid" ou "lista"
 
 // Definição dos setores e mapeamento de corredores
 const setores = ref([
@@ -1570,5 +1649,165 @@ onMounted(() => {
   font-size: 0.85rem;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Estilos para visualização em lista */
+.corredores-lista {
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.lista-corredores-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.lista-corredores-table th,
+.lista-corredores-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.lista-corredores-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #2c3e50;
+  position: sticky;
+  top: 0;
+}
+
+.lista-corredores-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.lista-corredores-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.lista-corredores-table tbody tr.excelente {
+  border-left: 4px solid #48bb78;
+}
+
+.lista-corredores-table tbody tr.bom {
+  border-left: 4px solid #4299e1;
+}
+
+.lista-corredores-table tbody tr.medio {
+  border-left: 4px solid #ed8936;
+}
+
+.lista-corredores-table tbody tr.baixo {
+  border-left: 4px solid #f56565;
+}
+
+.corredor-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.corredor-icon-list {
+  font-size: 1.2rem;
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.desempenho-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desempenho-percentual {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.progress-bar-list {
+  width: 100px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill-list {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-fill-list.excelente {
+  background: #48bb78;
+}
+
+.progress-fill-list.bom {
+  background: #4299e1;
+}
+
+.progress-fill-list.medio {
+  background: #ed8936;
+}
+
+.progress-fill-list.baixo {
+  background: #f56565;
+}
+
+.status-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-tag.excelente {
+  background: rgba(72, 187, 120, 0.1);
+  color: #48bb78;
+}
+
+.status-tag.bom {
+  background: rgba(66, 153, 225, 0.1);
+  color: #4299e1;
+}
+
+.status-tag.medio {
+  background: rgba(237, 137, 54, 0.1);
+  color: #ed8936;
+}
+
+.status-tag.baixo {
+  background: rgba(245, 101, 101, 0.1);
+  color: #f56565;
+}
+
+.action-btn-small {
+  padding: 0.4rem 0.8rem;
+  background: #667eea;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  border: 2px solid transparent;
+}
+
+.action-btn-small:hover {
+  background: #5a6fd8;
+  transform: translateY(-1px);
 }
 </style>
