@@ -12,7 +12,7 @@
           :src="currentAvatarUrl"
           :alt="`Avatar personalizado`"
           class="preview-image"
-          :class="{ 'loading': isLoading }"
+          :class="{ loading: isLoading }"
         />
         <div v-if="isLoading" class="loading-overlay">
           <div class="spinner"></div>
@@ -253,12 +253,12 @@ export default {
       selectedAccessories: [],
       selectedBackgroundColor: "d1d4f9",
       isLoading: false,
-      activeTab: 'style',
+      activeTab: "style",
       tabs: [
-        { id: 'style', label: 'Estilo', icon: 'fas fa-paint-brush' },
-        { id: 'appearance', label: 'Aparência', icon: 'fas fa-user' },
-        { id: 'features', label: 'Características', icon: 'fas fa-sliders-h' },
-        { id: 'accessories', label: 'Acessórios', icon: 'fas fa-gem' },
+        { id: "style", label: "Estilo", icon: "fas fa-paint-brush" },
+        { id: "appearance", label: "Aparência", icon: "fas fa-user" },
+        { id: "features", label: "Características", icon: "fas fa-sliders-h" },
+        { id: "accessories", label: "Acessórios", icon: "fas fa-gem" },
       ],
 
       // Opções disponíveis
@@ -732,21 +732,39 @@ export default {
     },
 
     showHairOptions() {
-      return ["adventurer", "avataaars", "lorelei", "micah", "notionists", "open-peeps", "toonloop"].includes(
-        this.selectedStyle,
-      );
+      return [
+        "adventurer",
+        "avataaars",
+        "lorelei",
+        "micah",
+        "notionists",
+        "open-peeps",
+        "toonloop",
+      ].includes(this.selectedStyle);
     },
 
     showEyeOptions() {
-      return ["adventurer", "avataaars", "lorelei", "micah", "notionists", "open-peeps", "toonloop"].includes(
-        this.selectedStyle,
-      );
+      return [
+        "adventurer",
+        "avataaars",
+        "lorelei",
+        "micah",
+        "notionists",
+        "open-peeps",
+        "toonloop",
+      ].includes(this.selectedStyle);
     },
 
     showMouthOptions() {
-      return ["adventurer", "avataaars", "lorelei", "micah", "notionists", "open-peeps", "toonloop"].includes(
-        this.selectedStyle,
-      );
+      return [
+        "adventurer",
+        "avataaars",
+        "lorelei",
+        "micah",
+        "notionists",
+        "open-peeps",
+        "toonloop",
+      ].includes(this.selectedStyle);
     },
 
     getHairStylesForCurrentStyle() {
@@ -758,7 +776,9 @@ export default {
     },
 
     getMouthStylesForCurrentStyle() {
-      return this.mouthStyles[this.selectedStyle] || this.mouthStyles.adventurer;
+      return (
+        this.mouthStyles[this.selectedStyle] || this.mouthStyles.adventurer
+      );
     },
   },
   methods: {
@@ -766,24 +786,29 @@ export default {
       // Gerar URL de preview para estilos
       const baseUrl = `https://api.dicebear.com/9.x/${style}/svg`;
       const params = new URLSearchParams();
-      params.append('seed', 'preview');
-      params.append('backgroundColor', 'd1d4f9');
-      params.append('radius', '50');
-      params.append('size', '64');
+      params.append("seed", "preview");
+      params.append("backgroundColor", "d1d4f9");
+      params.append("radius", "50");
+      params.append("size", "64");
 
       // Adicionar parâmetros específicos para cada estilo para melhor preview
-      if (style === 'avataaars' || style === 'notionists' || style === 'open-peeps' || style === 'toonloop') {
-        params.append('top', 'shortHair');
-        params.append('eyes', 'default');
-        params.append('mouth', 'smile');
-      } else if (style === 'lorelei') {
-        params.append('hair', 'flowing');
-        params.append('eyes', 'default');
-        params.append('mouth', 'smile');
-      } else if (style === 'micah') {
-        params.append('hair', 'medium');
-        params.append('eyes', 'default');
-        params.append('mouth', 'smile');
+      if (
+        style === "avataaars" ||
+        style === "notionists" ||
+        style === "open-peeps" ||
+        style === "toonloop"
+      ) {
+        params.append("top", "shortHair");
+        params.append("eyes", "default");
+        params.append("mouth", "smile");
+      } else if (style === "lorelei") {
+        params.append("hair", "flowing");
+        params.append("eyes", "default");
+        params.append("mouth", "smile");
+      } else if (style === "micah") {
+        params.append("hair", "medium");
+        params.append("eyes", "default");
+        params.append("mouth", "smile");
       }
 
       return `${baseUrl}?${params.toString()}`;
@@ -955,20 +980,20 @@ export default {
       if (navigator.share) {
         try {
           await navigator.share({
-            title: 'Meu Avatar Personalizado',
-            text: 'Confira meu avatar personalizado!',
+            title: "Meu Avatar Personalizado",
+            text: "Confira meu avatar personalizado!",
             url: this.currentAvatarUrl,
           });
         } catch (error) {
-          console.log('Erro ao compartilhar:', error);
+          console.log("Erro ao compartilhar:", error);
           // Fallback para copiar a URL
           this.copyToClipboard();
-          this.showToast('Link copiado! Compartilhe manualmente.', 'info');
+          this.showToast("Link copiado! Compartilhe manualmente.", "info");
         }
       } else {
         // Fallback para copiar a URL
         this.copyToClipboard();
-        this.showToast('Link copiado! Cole e compartilhe!', 'info');
+        this.showToast("Link copiado! Cole e compartilhe!", "info");
       }
 
       setTimeout(() => {
@@ -984,7 +1009,7 @@ export default {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
 
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
         link.download = `avatar-${this.userId}.svg`;
         document.body.appendChild(link);
@@ -994,10 +1019,10 @@ export default {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
 
-        this.showToast('Avatar baixado com sucesso!', 'success');
+        this.showToast("Avatar baixado com sucesso!", "success");
       } catch (error) {
-        console.error('Erro ao baixar avatar:', error);
-        this.showToast('Erro ao baixar avatar', 'error');
+        console.error("Erro ao baixar avatar:", error);
+        this.showToast("Erro ao baixar avatar", "error");
       }
 
       setTimeout(() => {
@@ -1014,7 +1039,7 @@ export default {
     }
 
     // Garantir que a aba ativa seja a primeira por padrão
-    this.activeTab = 'style';
+    this.activeTab = "style";
   },
 };
 </script>
@@ -1024,7 +1049,7 @@ export default {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .customizer-header {
@@ -1123,7 +1148,9 @@ export default {
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid #e9ecef;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .step-section:hover {
@@ -1173,7 +1200,7 @@ export default {
 }
 
 .style-option.active::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: -8px;
   right: -8px;
@@ -1260,7 +1287,7 @@ export default {
 }
 
 .color-option.active::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1354,20 +1381,21 @@ export default {
 /* Responsividade para dispositivos móveis */
 @media (max-width: 768px) {
   .avatar-customizer {
-    padding: 15px;
+    padding: 10px;
   }
 
   .customizer-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
   }
 
   .avatar-preview {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
   }
 
   .avatar-url-display {
     flex-direction: column;
+    display: none;
   }
 
   .btn-copy {
@@ -1375,7 +1403,7 @@ export default {
   }
 
   .style-options {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
 
@@ -1385,50 +1413,66 @@ export default {
   }
 
   .gender-options {
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .gender-btn {
     min-width: auto;
+    padding: 10px 14px;
+    font-size: 0.85rem;
   }
 
   .color-options {
-    justify-content: center;
+    gap: 8px;
+  }
+
+  .color-option {
+    width: 44px;
+    height: 44px;
   }
 
   .action-buttons {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
 
   .btn-reset,
   .btn-save {
     width: 100%;
-    max-width: 300px;
+    justify-content: center;
+    padding: 14px;
+    border-radius: 12px;
   }
 
   .step-section {
-    padding: 15px;
+    padding: 12px;
   }
 
   .step-section h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 400px) {
   .avatar-preview {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
   }
 
   .style-options {
     grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .style-preview {
+    width: 44px;
+    height: 44px;
   }
 
   .customizer-header h2 {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
   }
 }
 
@@ -1503,8 +1547,12 @@ export default {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .preview-image.loading {

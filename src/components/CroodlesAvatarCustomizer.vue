@@ -648,8 +648,13 @@ export default {
 /* ===== Mobile ===== */
 @media (max-width: 768px) {
   .option-grid {
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .option-item {
+    padding: 6px 4px;
+    border-radius: 10px;
   }
 
   .avatar-preview-circle {
@@ -658,7 +663,32 @@ export default {
   }
 
   .option-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
+  }
+
+  .color-option {
+    width: 44px;
+    height: 44px;
+  }
+
+  .color-options {
+    gap: 8px;
+  }
+
+  .tab-pane h3 {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .option-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .avatar-preview-circle {
+    width: 56px;
+    height: 56px;
   }
 }
 </style>

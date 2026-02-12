@@ -819,4 +819,83 @@ export default {
   object-fit: contain;
   border-radius: 50%;
 }
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  .hair-preview-container,
+  .earring-preview-container,
+  .eye-preview-container,
+  .mouth-preview-container,
+  .brow-preview-container,
+  .glasses-preview-container,
+  .features-preview-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .hair-preview-item,
+  .earring-preview-item,
+  .eye-preview-item,
+  .mouth-preview-item,
+  .brow-preview-item,
+  .glasses-preview-item,
+  .feature-preview-item {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .avatar-preview-with-hair,
+  .avatar-preview-with-earring,
+  .avatar-preview-with-eye,
+  .avatar-preview-with-mouth,
+  .avatar-preview-with-brow,
+  .avatar-preview-with-glasses,
+  .avatar-preview-with-feature {
+    width: 64px;
+    height: 64px;
+  }
+
+  .hair-label,
+  .earring-label,
+  .feature-label {
+    font-size: 0.6rem;
+  }
+
+  .color-option {
+    width: 44px;
+    height: 44px;
+  }
+
+  .color-options {
+    gap: 8px;
+  }
+
+  .tab-pane h3 {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .hair-preview-container,
+  .earring-preview-container,
+  .eye-preview-container,
+  .mouth-preview-container,
+  .brow-preview-container,
+  .glasses-preview-container,
+  .features-preview-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .avatar-preview-with-hair,
+  .avatar-preview-with-earring,
+  .avatar-preview-with-eye,
+  .avatar-preview-with-mouth,
+  .avatar-preview-with-brow,
+  .avatar-preview-with-glasses,
+  .avatar-preview-with-feature {
+    width: 56px;
+    height: 56px;
+  }
+}
 </style>

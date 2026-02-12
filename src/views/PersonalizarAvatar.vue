@@ -4,6 +4,14 @@
       <button @click="goBack" class="btn-back">
         <i class="fas fa-arrow-left"></i> Voltar
       </button>
+      <button
+        @click="randomizeAvatar"
+        class="btn-random-header"
+        :class="{ 'is-spinning': isRandomizing }"
+      >
+        <i class="fas fa-dice" :class="{ 'fa-spin': isRandomizing }"></i>
+        <span class="btn-random-label">Aleatório</span>
+      </button>
       <button @click="saveAvatar" class="btn-save-header">
         <i class="fas fa-save"></i> Salvar
       </button>
@@ -66,7 +74,7 @@
                 :key="style.value"
                 class="style-option"
                 :class="{ active: selectedStyle === style.value }"
-                @click="selectStyle(style.value)"
+                @click="selectStyleWithRandom(style.value)"
               >
                 <img
                   :src="generatePreviewUrl(style.value)"
@@ -666,6 +674,10 @@ export default {
       // Controle das setas de navegação das abas
       canScrollLeft: false,
       canScrollRight: false,
+
+      // Controle do botão aleatório
+      isRandomizing: false,
+      lastRandomSeed: null,
 
       selectedBeardStyle: "none",
       selectedBodyStyle: "default",
@@ -2617,6 +2629,767 @@ export default {
       }
     },
 
+    randomizeAvatar() {
+      // Animação de loading
+      this.isRandomizing = true;
+
+      // Escolher um estilo diferente do atual
+      const styles = this.avatarStyles.map((s) => s.value);
+      let newStyle;
+      if (this.lastRandomSeed) {
+        const otherStyles = styles.filter((s) => s !== this.selectedStyle);
+        newStyle =
+          otherStyles.length > 0
+            ? otherStyles[Math.floor(Math.random() * otherStyles.length)]
+            : styles[Math.floor(Math.random() * styles.length)];
+      } else {
+        newStyle = styles[Math.floor(Math.random() * styles.length)];
+      }
+      this.lastRandomSeed = Date.now();
+
+      // Selecionar o estilo (reseta defaults) e randomizar
+      this.selectStyle(newStyle);
+      this.randomizeForStyle(newStyle);
+
+      // Parar animação após breve delay
+      setTimeout(() => {
+        this.isRandomizing = false;
+      }, 600);
+    },
+
+    selectStyleWithRandom(style) {
+      // Animação
+      this.isRandomizing = true;
+
+      // Selecionar o estilo (reseta para defaults)
+      this.selectStyle(style);
+
+      // Gerar personalização aleatória para o estilo
+      this.randomizeForStyle(style);
+
+      // Parar animação
+      setTimeout(() => {
+        this.isRandomizing = false;
+      }, 600);
+    },
+
+    randomizeForStyle(style) {
+      // Helpers
+      const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const variant = (max) =>
+        "variant" +
+        String(Math.floor(Math.random() * max) + 1).padStart(2, "0");
+
+      // Cor de fundo aleatória
+      this.selectedBackgroundColor = pick(
+        this.backgroundColors.map((c) => c.value),
+      );
+
+      // Randomizar conforme o estilo
+      if (style === "adventurer") {
+        const skinColors = ["9e5622", "763900", "ecad80", "f2d3b1"];
+        const hairColors = [
+          "0e0e0e",
+          "3eac2c",
+          "6a4e35",
+          "85c2c6",
+          "796a45",
+          "562306",
+          "592454",
+          "ab2a18",
+          "ac6511",
+          "afafaf",
+          "b9a05f",
+          "cb6820",
+          "dba3be",
+          "e5d7a3",
+        ];
+        this.selectedSkinColor = pick(skinColors);
+        this.selectedHairColor = pick(hairColors);
+        // Cabelo: incluir 'bald' e estilos long/short
+        const hairOpts = [
+          "bald",
+          ...Array.from(
+            { length: 26 },
+            (_, i) => "long" + String(i + 1).padStart(2, "0"),
+          ),
+          ...Array.from(
+            { length: 19 },
+            (_, i) => "short" + String(i + 1).padStart(2, "0"),
+          ),
+        ];
+        this.selectedHairStyle = pick(hairOpts);
+        this.selectedEyeStyle = variant(26);
+        this.selectedMouthStyle = variant(30);
+        this.selectedBrowStyle = variant(15);
+        this.selectedGlassesVariant = pick([
+          "none",
+          "none",
+          "none",
+          ...Array.from({ length: 5 }, (_, i) => variant(5)),
+        ]);
+        this.selectedEarringVariant = pick([
+          "none",
+          "none",
+          ...Array.from(
+            { length: 6 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ]);
+        this.selectedFaceFeature = pick([
+          "none",
+          "none",
+          "none",
+          "birthmark",
+          "blush",
+          "freckles",
+          "mustache",
+        ]);
+      } else if (style === "avataaars") {
+        const skinColors = [
+          "614335",
+          "ae5d29",
+          "d08b5b",
+          "edb98a",
+          "f8d25c",
+          "fd9841",
+          "ffdbb4",
+        ];
+        const hairColors = [
+          "2c1b18",
+          "4a312c",
+          "724133",
+          "a55728",
+          "b58143",
+          "c93305",
+          "d6b370",
+          "e8e1e1",
+          "ecdcbf",
+          "f59797",
+        ];
+        this.selectedSkinColor = pick(skinColors);
+        this.selectedHairColor = pick(hairColors);
+        const topOpts = [
+          "bigHair",
+          "bob",
+          "bun",
+          "curly",
+          "curvy",
+          "dreads",
+          "dreads01",
+          "dreads02",
+          "frida",
+          "frizzle",
+          "fro",
+          "froBand",
+          "hat",
+          "hijab",
+          "longButNotTooLong",
+          "miaWallace",
+          "shaggy",
+          "shaggyMullet",
+          "shavedSides",
+          "shortCurly",
+          "shortFlat",
+          "shortRound",
+          "shortWaved",
+          "sides",
+          "straight01",
+          "straight02",
+          "straightAndStrand",
+          "theCaesar",
+          "theCaesarAndSidePart",
+          "turban",
+          "winterHat1",
+          "winterHat02",
+          "winterHat03",
+          "winterHat04",
+        ];
+        this.selectedTopStyle = pick(topOpts);
+        const eyeOpts = [
+          "closed",
+          "cry",
+          "default",
+          "eyeRoll",
+          "happy",
+          "hearts",
+          "side",
+          "squint",
+          "surprised",
+          "wink",
+          "winkWacky",
+          "xDizzy",
+        ];
+        this.selectedEyeStyle = pick(eyeOpts);
+        const browOpts = [
+          "angry",
+          "angryNatural",
+          "default",
+          "defaultNatural",
+          "flatNatural",
+          "frownNatural",
+          "raisedExcited",
+          "raisedExcitedNatural",
+          "sadConcerned",
+          "sadConcernedNatural",
+          "unibrowNatural",
+          "upDown",
+          "upDownNatural",
+        ];
+        this.selectedEyebrowStyle = pick(browOpts);
+        const mouthOpts = [
+          "concerned",
+          "default",
+          "disbelief",
+          "eating",
+          "grimace",
+          "sad",
+          "screamOpen",
+          "serious",
+          "smile",
+          "tongue",
+          "twinkle",
+          "vomit",
+        ];
+        this.selectedMouthStyle = pick(mouthOpts);
+        const facialOpts = [
+          "none",
+          "none",
+          "beardLight",
+          "beardMajestic",
+          "beardMedium",
+          "moustacheFancy",
+          "moustacheMagnum",
+        ];
+        this.selectedFacialHairStyle = pick(facialOpts);
+        this.selectedFacialHairColor = pick(hairColors);
+        const accOpts = [
+          "none",
+          "none",
+          "none",
+          "eyepatch",
+          "kurt",
+          "prescription01",
+          "prescription02",
+          "round",
+          "sunglasses",
+          "wayfarers",
+        ];
+        this.selectedAccessoryStyle = pick(accOpts);
+        const clothOpts = [
+          "blazerAndShirt",
+          "blazerAndSweater",
+          "collarAndSweater",
+          "graphicShirt",
+          "hoodie",
+          "overall",
+          "shirtCrewNeck",
+          "shirtScoopNeck",
+          "shirtVNeck",
+        ];
+        this.selectedClothingStyle = pick(clothOpts);
+        const colorOpts = [
+          "3c4f5c",
+          "65c9ff",
+          "262e33",
+          "5199e4",
+          "25557c",
+          "929598",
+          "a7ffc4",
+          "b1e2ff",
+          "e6e6e6",
+          "ff5c5c",
+          "ff488e",
+          "ffafb9",
+          "ffffb1",
+          "ffffff",
+        ];
+        this.selectedClothesColor = pick(colorOpts);
+        this.selectedHatColor = pick(colorOpts);
+        this.selectedAccessoriesColor = pick(colorOpts);
+        const graphicOpts = [
+          "bat",
+          "bear",
+          "cumbia",
+          "deer",
+          "diamond",
+          "hola",
+          "pizza",
+          "resist",
+          "skull",
+          "skullOutline",
+        ];
+        this.selectedClothingGraphic = pick(graphicOpts);
+        this.selectedAvatarStyle = pick(["default", "circle"]);
+      } else if (style === "Lorelei") {
+        const skinColors = [
+          "ffffff",
+          "f8d9c4",
+          "edb98a",
+          "d08b5b",
+          "ae5d29",
+          "8b5a3c",
+          "614335",
+        ];
+        const commonColors = [
+          "000000",
+          "2c1b18",
+          "4a312c",
+          "724133",
+          "a55728",
+          "b58143",
+          "d6b370",
+          "e8d4a2",
+          "c93305",
+          "e35d6a",
+          "9747ff",
+          "699bf7",
+          "0fa958",
+          "ffffff",
+          "d3d3d3",
+        ];
+        const eyeColors = [
+          "000000",
+          "2c1b18",
+          "724133",
+          "a55728",
+          "1c7ed6",
+          "2f9e44",
+          "868e96",
+          "495057",
+        ];
+        const mouthColors = [
+          "000000",
+          "d4554a",
+          "e88ca5",
+          "c0392b",
+          "b5651d",
+          "ff6b81",
+          "a55728",
+        ];
+        const accColors = [
+          "000000",
+          "262e33",
+          "868e96",
+          "c0c0c0",
+          "ffd700",
+          "e88ca5",
+          "1c7ed6",
+          "c93305",
+          "ffffff",
+        ];
+        this.selectedLoreleiSkinColor = pick(skinColors);
+        this.selectedLoreleiHairColor = pick(commonColors);
+        this.selectedLoreleiHair = variant(48);
+        this.selectedLoreleiHead = variant(4);
+        this.selectedLoreleiEyes = variant(24);
+        this.selectedLoreleiEyesColor = pick(eyeColors);
+        this.selectedLoreleiEyebrows = variant(13);
+        this.selectedLoreleiEyebrowsColor = pick(commonColors);
+        // Boca: happy01-18 ou sad01-09
+        const mouthOpts = [
+          ...Array.from(
+            { length: 18 },
+            (_, i) => "happy" + String(i + 1).padStart(2, "0"),
+          ),
+          ...Array.from(
+            { length: 9 },
+            (_, i) => "sad" + String(i + 1).padStart(2, "0"),
+          ),
+        ];
+        this.selectedLoreleiMouth = pick(mouthOpts);
+        this.selectedLoreleiMouthColor = pick(mouthColors);
+        this.selectedLoreleiNose = variant(6);
+        this.selectedLoreleiNoseColor = pick(skinColors);
+        this.selectedLoreleiBeard = pick([
+          "none",
+          "none",
+          "none",
+          "variant01",
+          "variant02",
+        ]);
+        this.selectedLoreleiGlasses = pick([
+          "none",
+          "none",
+          "none",
+          ...Array.from(
+            { length: 5 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ]);
+        this.selectedLoreleiGlassesColor = pick(commonColors);
+        this.selectedLoreleiEarrings = pick([
+          "none",
+          "none",
+          "variant01",
+          "variant02",
+          "variant03",
+        ]);
+        this.selectedLoreleiEarringsColor = pick(accColors);
+        this.selectedLoreleiFreckles = pick([
+          "none",
+          "none",
+          "none",
+          "variant01",
+        ]);
+        this.selectedLoreleiFrecklesColor = pick(commonColors);
+        this.selectedLoreleiHairAccessories = pick([
+          "none",
+          "none",
+          "none",
+          "flowers",
+        ]);
+        this.selectedLoreleiHairAccessoriesColor = pick(accColors);
+      } else if (style === "croodles-default") {
+        const topColors = [
+          "000000",
+          "0fa958",
+          "699bf7",
+          "9747ff",
+          "f24e1e",
+          "ffc700",
+        ];
+        this.selectedCroodlesTop = variant(29);
+        this.selectedCroodlesTopColor = pick(topColors);
+        this.selectedCroodlesFace = variant(8);
+        this.selectedCroodlesEyes = variant(16);
+        this.selectedCroodlesMouth = variant(18);
+        this.selectedCroodlesNose = variant(9);
+        this.selectedCroodlesBeard = pick([
+          "none",
+          "none",
+          "none",
+          ...Array.from(
+            { length: 5 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ]);
+        this.selectedCroodlesMustache = pick([
+          "none",
+          "none",
+          "none",
+          ...Array.from(
+            { length: 4 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ]);
+        this.selectedCroodlesBaseColor = pick([
+          "ffffff",
+          "f9c9b6",
+          "edb98a",
+          "d08b5b",
+        ]);
+      } else if (style === "micah") {
+        const baseColors = ["77311d", "ac6651", "f9c9b6"];
+        const micahColors = [
+          "000000",
+          "6bd9e9",
+          "9287ff",
+          "77311d",
+          "ac6651",
+          "d2eff3",
+          "e0ddff",
+          "f4d150",
+          "f9c9b6",
+          "fc909f",
+          "ffeba4",
+          "ffedef",
+          "ffffff",
+        ];
+        this.selectedMicahBaseColor = pick(baseColors);
+        const hairOpts = [
+          "dannyPhantom",
+          "dougFunny",
+          "fonze",
+          "full",
+          "mrClean",
+          "mrT",
+          "pixie",
+          "turban",
+        ];
+        this.selectedMicahHairStyle = pick(hairOpts);
+        this.selectedMicahHairColor = pick(micahColors);
+        const eyeOpts = [
+          "eyes",
+          "eyesShadow",
+          "round",
+          "smiling",
+          "smilingShadow",
+        ];
+        this.selectedMicahEyeStyle = pick(eyeOpts);
+        this.selectedMicahEyesColor = "000000";
+        const shadowColors = ["d2eff3", "e0ddff", "ffeba4", "ffedef", "ffffff"];
+        this.selectedMicahEyeShadowColor = pick(shadowColors);
+        const browOpts = ["down", "eyelashesDown", "eyelashesUp", "up"];
+        this.selectedMicahEyebrowStyle = pick(browOpts);
+        const mouthOpts = [
+          "frown",
+          "laughing",
+          "nervous",
+          "pucker",
+          "sad",
+          "smile",
+          "smirk",
+          "surprised",
+        ];
+        this.selectedMicahMouthStyle = pick(mouthOpts);
+        const noseOpts = ["curve", "pointed", "tound"];
+        this.selectedMicahNoseStyle = pick(noseOpts);
+        this.selectedMicahEarStyle = pick(["attached", "detached"]);
+        this.selectedMicahFacialHairStyle = pick([
+          "none",
+          "none",
+          "beard",
+          "scruff",
+        ]);
+        this.selectedMicahFacialHairColor = "000000";
+        this.selectedMicahGlassesStyle = pick([
+          "none",
+          "none",
+          "none",
+          "round",
+          "square",
+        ]);
+        this.selectedMicahGlassesColor = pick(micahColors);
+        this.selectedMicahEarringStyle = pick([
+          "none",
+          "none",
+          "none",
+          "hoop",
+          "stud",
+        ]);
+        this.selectedMicahEarringColor = pick(micahColors);
+        const shirtOpts = ["collared", "crew", "open"];
+        this.selectedMicahShirtStyle = pick(shirtOpts);
+        this.selectedMicahShirtColor = pick(micahColors);
+      } else if (style === "notionists") {
+        // Hair: hat + variant01-63
+        const hairOpts = [
+          "hat",
+          ...Array.from(
+            { length: 63 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ];
+        this.selectedHairStyle = pick(hairOpts);
+        // Lábios: variant01-30
+        this.selectedLipsStyle =
+          "variant" +
+          String(Math.floor(Math.random() * 30) + 1).padStart(2, "0");
+        // Nariz: variant01-20
+        this.selectedNoseStyle =
+          "variant" +
+          String(Math.floor(Math.random() * 20) + 1).padStart(2, "0");
+        // Sobrancelhas: variant01-13
+        this.selectedBrowStyle = variant(13);
+        // Olhos: variant01-05
+        this.selectedEyeStyle = variant(5);
+        // Barba
+        const beardOpts = [
+          "none",
+          "none",
+          "none",
+          ...Array.from(
+            { length: 12 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ];
+        this.selectedBeardStyle = pick(beardOpts);
+        // Gesto
+        const gestureOpts = [
+          "none",
+          "hand",
+          "handPhone",
+          "ok",
+          "okLongArm",
+          "point",
+          "pointLongArm",
+          "waveLongArm",
+          "waveLongArms",
+          "waveOkLongArms",
+          "wavePointLongArms",
+        ];
+        this.selectedGestureStyle = pick(gestureOpts);
+        // Óculos
+        const glassesOpts = [
+          "none",
+          "none",
+          "none",
+          ...Array.from(
+            { length: 11 },
+            (_, i) => "variant" + String(i + 1).padStart(2, "0"),
+          ),
+        ];
+        this.selectedGlassesVariant = pick(glassesOpts);
+        // Corpo
+        this.selectedBodyStyle =
+          "variant" +
+          String(Math.floor(Math.random() * 25) + 1).padStart(2, "0");
+        // Ícone corpo
+        this.selectedBodyIcon = pick([
+          "none",
+          "none",
+          "electric",
+          "galaxy",
+          "saturn",
+        ]);
+      } else if (style === "toon-head") {
+        const headOpts = [
+          "afro",
+          "bangs",
+          "bangs2",
+          "bantuKnots",
+          "bear",
+          "bun",
+          "bun2",
+          "buns",
+          "cornrows",
+          "cornrows2",
+          "dreads1",
+          "dreads2",
+          "flatTop",
+          "flatTopLong",
+          "grayBun",
+          "grayMedium",
+          "grayShort",
+          "hatBeanie",
+          "hatHip",
+          "hijab",
+          "long",
+          "longAfro",
+          "longBangs",
+          "longCurly",
+          "medium1",
+          "medium2",
+          "medium3",
+          "mediumBangs",
+          "mediumBangs2",
+          "mediumBangs3",
+          "mediumStraight",
+          "mohawk",
+          "mohawk2",
+          "noHair1",
+          "noHair2",
+          "noHair3",
+          "pomp",
+          "shaved1",
+          "shaved2",
+          "shaved3",
+          "short1",
+          "short2",
+          "short3",
+          "short4",
+          "short5",
+          "turban",
+          "twists",
+          "twists2",
+        ];
+        this.selectedOpenPeepsHead = pick(headOpts);
+        const hairColors = [
+          "2c1b18",
+          "4a312c",
+          "724133",
+          "a55728",
+          "b58143",
+          "c93305",
+          "d6b370",
+          "e8e1e1",
+          "ecdcbf",
+          "f59797",
+        ];
+        this.selectedOpenPeepsHeadContrastColor = pick(hairColors);
+        const faceOpts = [
+          "angryWithFang",
+          "awe",
+          "blank",
+          "calm",
+          "cheeky",
+          "concerned",
+          "concernedFear",
+          "contempt",
+          "cute",
+          "cyclops",
+          "driven",
+          "eatingHappy",
+          "explaining",
+          "eyesClosed",
+          "fear",
+          "hectic",
+          "lovingGrin1",
+          "lovingGrin2",
+          "monster",
+          "old",
+          "rage",
+          "serious",
+          "smile",
+          "smileBig",
+          "smileLOL",
+          "smileTeethGap",
+          "solemn",
+          "suspicious",
+          "tired",
+          "veryAngry",
+        ];
+        this.selectedOpenPeepsFace = pick(faceOpts);
+        const skinColors = ["694d3d", "ae5d29", "d08b5b", "edb98a", "ffdbb4"];
+        this.selectedOpenPeepsSkinColor = pick(skinColors);
+        const clothColors = [
+          "8fa7df",
+          "9ddadb",
+          "78e185",
+          "e279c7",
+          "e78276",
+          "fdea6b",
+          "ffcf77",
+        ];
+        this.selectedOpenPeepsClothingColor = pick(clothColors);
+        const facialOpts = [
+          "none",
+          "none",
+          "none",
+          "chin",
+          "full",
+          "full2",
+          "full3",
+          "full4",
+          "goatee1",
+          "goatee2",
+          "moustache1",
+          "moustache2",
+          "moustache3",
+          "moustache4",
+          "moustache5",
+          "moustache6",
+          "moustache7",
+          "moustache8",
+          "moustache9",
+        ];
+        this.selectedOpenPeepsFacialHair = pick(facialOpts);
+        const accOpts = [
+          "none",
+          "none",
+          "none",
+          "eyepatch",
+          "glasses",
+          "glasses2",
+          "glasses3",
+          "glasses4",
+          "glasses5",
+          "sunglasses",
+          "sunglasses2",
+        ];
+        this.selectedOpenPeepsAccessory = pick(accOpts);
+        this.selectedOpenPeepsMask = pick([
+          "none",
+          "none",
+          "none",
+          "none",
+          "medicalMask",
+          "respirator",
+        ]);
+      }
+    },
+
     goBack() {
       // Tenta voltar para a página anterior, senão vai para o perfil do usuário
       if (window.history.state && window.history.state.back) {
@@ -3923,9 +4696,336 @@ export default {
 
 /* Estilos responsivos para dispositivos móveis */
 @media (max-width: 768px) {
+  /* ===== Layout principal mobile ===== */
+  .avatar-customizer-page {
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: 80px; /* Espaço para botão flutuante */
+  }
+
+  /* ===== Header compacto ===== */
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: white;
+    margin-bottom: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .btn-back {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    margin-right: 6px;
+  }
+
+  .btn-random-header {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    margin-left: auto;
+  }
+
+  .btn-random-label {
+    display: none;
+  }
+
+  .btn-save-header {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  /* ===== Preview do avatar - sticky com efeito clean ===== */
+  .avatar-customizer {
+    padding: 0;
+  }
+
+  .avatar-preview-container {
+    position: relative;
+    top: auto;
+    z-index: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    margin-bottom: 0;
+    padding: 12px 0 8px;
+    gap: 8px;
+    box-shadow: none;
+  }
+
+  .avatar-preview {
+    width: 120px;
+    height: 120px;
+    border-width: 3px;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+    transition: all 0.3s ease;
+  }
+
   .avatar-url-display {
+    display: none; /* Ocultar URL no mobile */
+  }
+
+  /* ===== Abas - Navegação touch-friendly ===== */
+  .tabs-container {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .tabs-nav-wrapper {
+    position: sticky;
+    top: 51px; /* Logo abaixo do header */
+    z-index: 140;
+    background: #ffffff;
+    border-bottom: 2px solid #f0f0f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs-header {
+    flex-wrap: nowrap;
+    background: transparent;
+    padding: 4px 6px;
+    gap: 2px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    flex: 0 0 auto;
+    min-width: auto;
+    padding: 10px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 20px;
+    border-bottom: none;
+    gap: 4px;
+    color: #6c757d;
+    transition: all 0.25s ease;
+  }
+
+  .tab-button i {
+    font-size: 0.8rem;
+  }
+
+  .tab-button.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    transform: scale(1.02);
+  }
+
+  .tab-button:hover {
+    background: #f0f0f5;
+    color: #495057;
+  }
+
+  .tab-button.active:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .tabs-arrow {
+    min-width: 28px;
+    padding: 0 4px;
+    font-size: 0.85rem;
+  }
+
+  /* ===== Conteúdo da aba ===== */
+  .tab-content {
+    padding: 14px 12px;
+    margin-top: 0;
+  }
+
+  .tab-pane {
+    gap: 14px;
+  }
+
+  .tab-pane h3 {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f5;
+  }
+
+  /* ===== Grid de estilos de avatar ===== */
+  .style-options {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .style-option {
+    padding: 8px 6px;
+    border-radius: 12px;
+    border-width: 2px;
+  }
+
+  .style-option span {
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+
+  .style-preview {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* ===== Previews de fundo ===== */
+  .background-preview-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .background-preview-item {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .avatar-preview-with-bg {
+    width: 60px;
+    height: 60px;
+  }
+
+  .bg-label {
+    font-size: 0.65rem;
+  }
+
+  /* ===== Opções de cor ===== */
+  .color-options {
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .color-option {
+    width: 44px;
+    height: 44px;
+    /* Minimum touch target size */
+  }
+
+  .color-section h4 {
+    font-size: 0.85rem;
+  }
+
+  /* ===== Grid de previews (cabelo, olhos, boca, etc) ===== */
+  .hair-preview-container,
+  .mouth-preview-container,
+  .eye-preview-container,
+  .brow-preview-container,
+  .glasses-preview-container,
+  .features-preview-container,
+  .earring-preview-container,
+  .earrings-preview-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .hair-preview-item,
+  .mouth-preview-item,
+  .eye-preview-item,
+  .brow-preview-item,
+  .glasses-preview-item,
+  .feature-preview-item,
+  .earring-preview-item,
+  .earrings-preview-item {
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .avatar-preview-with-hair,
+  .avatar-preview-with-mouth,
+  .avatar-preview-with-eye,
+  .avatar-preview-with-brow,
+  .avatar-preview-with-glasses,
+  .avatar-preview-with-feature,
+  .avatar-preview-with-earring,
+  .avatar-preview-with-earrings {
+    width: 64px;
+    height: 64px;
+  }
+
+  .hair-label,
+  .mouth-label,
+  .earring-label {
+    font-size: 0.6rem;
+  }
+
+  /* ===== Opções de pills (barba, corpo, óculos, etc) ===== */
+  .beard-options,
+  .body-options,
+  .icon-options,
+  .brow-options,
+  .gesture-options,
+  .glasses-options,
+  .lip-options,
+  .nose-options,
+  .earring-options,
+  .feature-options,
+  .accessory-options {
+    gap: 8px;
+  }
+
+  .beard-option,
+  .body-option,
+  .icon-option,
+  .brow-option,
+  .gesture-option,
+  .glasses-option,
+  .lip-option,
+  .nose-option,
+  .earring-option,
+  .feature-option,
+  .accessory-option {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    border-radius: 10px;
+    min-height: 44px; /* Touch target */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== Gênero ===== */
+  .gender-options {
+    gap: 8px;
+  }
+
+  .gender-btn {
+    min-width: auto;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  /* ===== Color picker personalizado ===== */
+  .custom-color-picker {
+    padding: 8px;
+  }
+
+  .gradient-color-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* ===== Background cor ===== */
+  .background-color-option {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+  }
+
+  /* ===== Botões de ação ===== */
+  .action-buttons {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
+    margin-top: 20px;
   }
 
   .action-buttons-inline {
@@ -3935,7 +5035,7 @@ export default {
 
   .action-buttons-inline button {
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .save-button-container {
@@ -3946,34 +5046,113 @@ export default {
     width: 100%;
   }
 
-  /* Estilos específicos para os tabs em dispositivos móveis */
-  .tabs-nav-wrapper {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    transition: transform 0.3s ease;
+  .btn-reset,
+  .btn-save {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 0.95rem;
+    border-radius: 12px;
   }
 
-  .tabs-header {
-    flex-wrap: nowrap;
-    background: #f8f9fa;
+  /* ===== Categorias de acessórios ===== */
+  .accessory-category h4 {
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== Extra small devices (< 400px) ===== */
+@media (max-width: 400px) {
+  .avatar-preview {
+    width: 100px;
+    height: 100px;
+  }
+
+  .avatar-preview-container {
+    padding: 8px 0 6px;
+  }
+
+  .tabs-nav-wrapper {
+    top: 45px;
   }
 
   .tab-button {
-    flex: 0 0 auto;
-    min-width: 100px;
-    padding: 12px 10px;
-    font-size: 0.8rem;
+    padding: 8px 10px;
+    font-size: 0.68rem;
   }
 
-  .tabs-arrow {
-    min-width: 30px;
-    padding: 0 4px;
+  .tab-button i {
+    font-size: 0.72rem;
   }
 
-  /* Adiciona espaço para o conteúdo não ficar atrás do menu fixo */
   .tab-content {
-    margin-top: 60px; /* Altura aproximada do menu fixo */
+    padding: 10px 8px;
+  }
+
+  .style-options {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .style-preview {
+    width: 44px;
+    height: 44px;
+  }
+
+  .style-option span {
+    font-size: 0.62rem;
+  }
+
+  .background-preview-container,
+  .hair-preview-container,
+  .mouth-preview-container,
+  .eye-preview-container,
+  .brow-preview-container,
+  .glasses-preview-container,
+  .features-preview-container,
+  .earring-preview-container,
+  .earrings-preview-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .avatar-preview-with-bg,
+  .avatar-preview-with-hair,
+  .avatar-preview-with-mouth,
+  .avatar-preview-with-eye,
+  .avatar-preview-with-brow,
+  .avatar-preview-with-glasses,
+  .avatar-preview-with-feature,
+  .avatar-preview-with-earring,
+  .avatar-preview-with-earrings {
+    width: 56px;
+    height: 56px;
+  }
+
+  .color-option {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* ===== Landscape mobile ===== */
+@media (max-width: 768px) and (orientation: landscape) {
+  .avatar-preview-container {
+    position: relative;
+    top: auto;
+    flex-direction: row;
+    padding: 8px 12px;
+    gap: 12px;
+  }
+
+  .avatar-preview {
+    width: 80px;
+    height: 80px;
+  }
+
+  .tabs-nav-wrapper {
+    position: sticky;
+    top: 51px;
   }
 }
 
@@ -4009,6 +5188,46 @@ export default {
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
+.btn-random-header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  height: fit-content;
+  margin-left: auto;
+}
+
+.btn-random-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(245, 87, 108, 0.3);
+}
+
+.btn-random-header.is-spinning {
+  animation: randomPulse 0.6s ease;
+}
+
+@keyframes randomPulse {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.1);
+  }
+  60% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .btn-save-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -4022,6 +5241,7 @@ export default {
   font-weight: 600;
   transition: all 0.3s ease;
   height: fit-content;
+  margin-left: 8px;
 }
 
 .btn-save-header:hover {
