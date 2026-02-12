@@ -59,6 +59,7 @@ export const useUserSessionStore = defineStore("userSession", () => {
       "RankingLojas",
       "ListaLojas",
       "Home", // Comunidade completa: posts, sugestões, votações, reações e comentários
+      "PersonalizarAvatar",
     ];
 
     return rotasPermitidas.includes(routeName);
