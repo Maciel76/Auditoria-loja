@@ -3419,32 +3419,79 @@ export default {
 
     // Método para mostrar animação de sucesso e redirecionar
     showSuccessAndRedirect() {
-      // Exibir mensagem de sucesso
-      this.showToast("Avatar criado com sucesso! 🎉", "success");
-
       // Salvar as configurações atuais no localStorage
       this.saveAvatarSettings();
 
-      // Adicionar classe de animação ao componente
-      document.body.classList.add("success-animation");
+      // Criar overlay de sucesso
+      const overlay = document.createElement("div");
+      overlay.className = "save-success-overlay";
+      overlay.innerHTML = `
+        <div class="save-success-content">
+          <div class="save-success-circle">
+            <svg class="save-success-check" viewBox="0 0 52 52">
+              <circle class="save-success-check-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="save-success-check-path" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+          </div>
+          <h2 class="save-success-title">Avatar Salvo!</h2>
+          <p class="save-success-subtitle">🎉 Personalização aplicada com sucesso</p>
+        </div>
+        <div class="save-confetti-container"></div>
+      `;
+      document.body.appendChild(overlay);
 
-      // Remover a classe após um tempo
-      setTimeout(() => {
-        document.body.classList.remove("success-animation");
-      }, 2000);
+      // Gerar partículas de confetti
+      const confettiContainer = overlay.querySelector(
+        ".save-confetti-container",
+      );
+      const colors = [
+        "#667eea",
+        "#764ba2",
+        "#f093fb",
+        "#f5576c",
+        "#43e97b",
+        "#38f9d7",
+        "#fee140",
+        "#4facfe",
+      ];
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement("div");
+        particle.className = "save-confetti-particle";
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.5;
+        const size = Math.random() * 8 + 4;
+        const rotation = Math.random() * 360;
+        particle.style.cssText = `
+          left: ${left}%;
+          width: ${size}px;
+          height: ${size * (Math.random() > 0.5 ? 1 : 0.4)}px;
+          background: ${color};
+          animation-delay: ${delay}s;
+          transform: rotate(${rotation}deg);
+        `;
+        confettiContainer.appendChild(particle);
+      }
 
-      // Redirecionar após um pequeno delay
+      // Ativar animação
+      requestAnimationFrame(() => {
+        overlay.classList.add("active");
+      });
+
+      // Redirecionar após a animação
       setTimeout(() => {
-        // Tenta voltar para a página anterior, senão vai para o perfil do usuário
-        if (window.history.state && window.history.state.back) {
-          this.router.go(-1);
-        } else {
-          // Se não houver página anterior, redireciona para o perfil do usuário
-          this.router.push(
-            `/perfil/${this.userId || this.userSessionStore.getUsuarioId}`,
-          );
-        }
-      }, 2000);
+        overlay.classList.add("fade-out");
+        setTimeout(() => {
+          overlay.remove();
+          if (window.history.state && window.history.state.back) {
+            this.router.go(-1);
+          } else {
+            this.router.push(
+              `/perfil/${this.userId || this.userSessionStore.getUsuarioId}`,
+            );
+          }
+        }, 400);
+      }, 2200);
     },
 
     // Método para salvar as configurações do avatar no localStorage
@@ -5251,47 +5298,154 @@ export default {
 </style>
 
 <style>
-/* Animação de sucesso */
-body.success-animation::after {
-  content: "";
+/* ===== Overlay de sucesso ao salvar ===== */
+.save-success-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(
-    circle,
-    rgba(102, 126, 234, 0.3) 0%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  pointer-events: none;
-  z-index: 9999;
-  animation: successPulse 0.6s ease-out;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-@keyframes successPulse {
+.save-success-overlay.active {
+  opacity: 1;
+}
+
+.save-success-overlay.fade-out {
+  opacity: 0;
+}
+
+.save-success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transform: scale(0.5);
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.save-success-overlay.active .save-success-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.save-success-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.5);
+}
+
+.save-success-check {
+  width: 52px;
+  height: 52px;
+}
+
+.save-success-check-circle {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: saveCheckCircle 0.6s 0.3s ease-in-out forwards;
+}
+
+.save-success-check-path {
+  stroke: white;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: saveCheckMark 0.4s 0.7s ease-in-out forwards;
+}
+
+@keyframes saveCheckCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes saveCheckMark {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.save-success-title {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(10px);
+  animation: saveTextAppear 0.4s 0.8s ease-out forwards;
+}
+
+.save-success-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: saveTextAppear 0.4s 1s ease-out forwards;
+}
+
+@keyframes saveTextAppear {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Confetti */
+.save-confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.save-confetti-particle {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: saveConfettiFall 2.5s ease-in forwards;
+}
+
+@keyframes saveConfettiFall {
   0% {
-    transform: scale(0);
+    top: -10px;
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
     opacity: 1;
   }
-  70% {
-    transform: scale(1.5);
-    opacity: 0.7;
-  }
   100% {
-    transform: scale(2);
+    top: 110%;
     opacity: 0;
+    transform: translateX(calc(-50px + 100px * var(--random, 0.5)))
+      rotate(720deg);
   }
-}
-
-/* Confetti effect para sucesso */
-.confetti-success {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10000;
 }
 </style>
