@@ -1,284 +1,249 @@
 <template>
-  <div class="lista-usuarios-container">
-    <!-- Seletor de Loja Obrigatório -->
-    <div v-if="!lojaStore.isLojaSelected" class="loja-selection">
-      <div class="loja-selection-content">
-        <div class="loja-icon">
+  <div class="lu-page">
+    <!-- Seletor de Loja -->
+    <div v-if="!lojaStore.isLojaSelected" class="lu-store-select">
+      <div class="lu-store-select__card">
+        <div class="lu-store-select__icon">
           <i class="fas fa-store"></i>
         </div>
-        <h2>Selecione uma Loja</h2>
-        <p>Para visualizar os colaboradores, você precisa selecionar uma loja primeiro.</p>
+        <h2 class="lu-store-select__title">Selecione uma Loja</h2>
+        <p class="lu-store-select__desc">
+          Escolha a loja para visualizar os colaboradores.
+        </p>
 
-        <div class="lojas-grid">
+        <div class="lu-store-grid">
           <div
             v-for="loja in lojaStore.lojas"
             :key="loja.codigo"
-            class="loja-card"
+            class="lu-store-item"
             @click="selecionarLoja(loja)"
-            :class="{ loading: lojaStore.loading }"
           >
-            <div class="loja-image">
+            <div class="lu-store-item__img">
               <img :src="loja.imagem" :alt="loja.nome" />
             </div>
-            <div class="loja-info">
-              <h3>{{ loja.nome }}</h3>
-              <p><i class="fas fa-map-marker-alt"></i> {{ loja.cidade }}</p>
-              <span class="loja-codigo">{{ loja.codigo }}</span>
-            </div>
+            <h3 class="lu-store-item__name">{{ loja.nome }}</h3>
+            <p class="lu-store-item__city">
+              <i class="fas fa-map-marker-alt"></i> {{ loja.cidade }}
+            </p>
+            <span class="lu-store-item__code">{{ loja.codigo }}</span>
           </div>
         </div>
 
-        <div v-if="lojaStore.error" class="error-message">
-          <i class="fas fa-exclamation-triangle"></i>
-          {{ lojaStore.error }}
+        <div v-if="lojaStore.error" class="lu-alert lu-alert--error">
+          <i class="fas fa-exclamation-triangle"></i> {{ lojaStore.error }}
         </div>
       </div>
     </div>
 
     <!-- Conteúdo Principal -->
-    <div v-else>
-      <!-- Header com Loja Selecionada -->
-      <div class="header-section">
-        <div class="header-content">
-          <div class="header-left">
-            <h1 class="header-title">
-              <i class="fas fa-users"></i>
-              Colaboradores - {{ lojaStore.nomeLojaAtual }}
-            </h1>
-            <p class="header-subtitle">
-              Loja {{ lojaStore.codigoLojaAtual }} • {{ usuarios.length }} colaboradores ativos
-            </p>
+    <div v-else class="lu-main">
+      <!-- Header -->
+      <header class="lu-header">
+        <!-- Círculos decorativos -->
+        <div class="lu-header__circle lu-header__circle--1"></div>
+        <div class="lu-header__circle lu-header__circle--2"></div>
+        <div class="lu-header__circle lu-header__circle--3"></div>
+        <div class="lu-header__circle lu-header__circle--4"></div>
+        <div class="lu-header__circle lu-header__circle--5"></div>
+        <div class="lu-header__circle lu-header__circle--6"></div>
+
+        <div class="lu-header__content">
+          <div class="lu-header__left">
+            <div class="lu-header__img">
+              <img
+                :src="lojaStore.imagemLojaAtual"
+                :alt="lojaStore.nomeLojaAtual"
+                @error="$event.target.src = '/images/lojas/default.jpg'"
+              />
+            </div>
+            <div class="lu-header__text">
+              <h1>
+                <i class="fas fa-users-cog"></i>
+                Colaboradores -
+                {{ extrairNomeSimples(lojaStore.nomeLojaAtual) }}
+              </h1>
+              <p>
+                Gestão de colaboradores da loja
+                {{ lojaStore.codigoLojaAtual }} &middot;
+                {{ usuarios.length }} ativos
+              </p>
+            </div>
           </div>
-          <div class="header-actions">
-            <button @click="carregarUsuarios" class="btn-refresh" :disabled="carregando">
-              <i class="fas fa-sync-alt" :class="{ spinning: carregando }"></i>
-              Atualizar
+          <div class="lu-header__actions">
+            <button
+              @click="carregarUsuarios"
+              class="lu-header__btn lu-header__btn--icon"
+              title="Atualizar dados"
+              :disabled="carregando"
+            >
+              <i class="fas fa-sync-alt" :class="{ 'fa-spin': carregando }"></i>
             </button>
-            <button @click="trocarLoja" class="btn-change-store">
+            <button @click="trocarLoja" class="lu-header__btn">
               <i class="fas fa-exchange-alt"></i>
-              Trocar Loja
+              <span>Trocar Loja</span>
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <!-- Métricas Rápidas -->
-      <div class="metrics-grid">
-        <div class="metric-card primary">
-          <div class="metric-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ usuarios.length }}</span>
-            <span class="metric-label">Colaboradores</span>
-          </div>
+      <!-- Métricas -->
+      <section class="lu-metrics">
+        <div class="lu-metric">
+          <span class="lu-metric__value">{{ usuarios.length }}</span>
+          <span class="lu-metric__label">Colaboradores</span>
         </div>
-        <div class="metric-card success">
-          <div class="metric-icon">
-            <i class="fas fa-trophy"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ usuariosComMeta }}</span>
-            <span class="metric-label">Meta Batida</span>
-          </div>
+        <div class="lu-metric">
+          <span class="lu-metric__value">{{ mediaItens }}</span>
+          <span class="lu-metric__label">Média Itens</span>
         </div>
-        <div class="metric-card info">
-          <div class="metric-icon">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ mediaItens }}</span>
-            <span class="metric-label">Média Itens</span>
-          </div>
+        <div class="lu-metric">
+          <span class="lu-metric__value">{{ maiorNivel }}</span>
+          <span class="lu-metric__label">Maior Nível</span>
         </div>
-        <div class="metric-card warning">
-          <div class="metric-icon">
-            <i class="fas fa-crown"></i>
-          </div>
-          <div class="metric-data">
-            <span class="metric-value">{{ maiorNivel }}</span>
-            <span class="metric-label">Maior Nível</span>
-          </div>
+        <div class="lu-metric">
+          <span class="lu-metric__value">{{ totalConquistas }}</span>
+          <span class="lu-metric__label">Conquistas</span>
         </div>
-      </div>
+      </section>
 
-      <!-- Filtros Avançados -->
-      <div class="filters-section">
-        <div class="search-container">
-          <i class="fas fa-search search-icon"></i>
+      <!-- Toolbar -->
+      <section class="lu-toolbar">
+        <div class="lu-search">
+          <i class="fas fa-search lu-search__icon"></i>
           <input
             v-model="filtro"
             type="text"
-            placeholder="Buscar por nome ou matrícula..."
-            class="search-input"
+            placeholder="Buscar nome ou matrícula..."
+            class="lu-search__input"
           />
-          <button v-if="filtro" @click="filtro = ''" class="clear-search">
+          <button v-if="filtro" @click="filtro = ''" class="lu-search__clear">
             <i class="fas fa-times"></i>
           </button>
         </div>
 
-        <div class="filter-tabs">
+        <div class="lu-filters">
           <button
             v-for="tab in filtroTabs"
             :key="tab.id"
             @click="filtroAtivo = tab.id"
-            :class="['filter-tab', { active: filtroAtivo === tab.id }]"
+            :class="['lu-chip', { 'lu-chip--active': filtroAtivo === tab.id }]"
           >
-            <i :class="tab.icon"></i>
             {{ tab.label }}
-            <span class="tab-count">{{ getTabCount(tab.id) }}</span>
+            <span class="lu-chip__count">{{ getTabCount(tab.id) }}</span>
           </button>
         </div>
 
-        <div class="filter-options">
-          <div class="sort-container">
-            <label>Ordenar por:</label>
-            <select v-model="ordenacao" class="sort-select">
-              <option value="nivel">Nível (maior)</option>
-              <option value="contador">Itens lidos</option>
-              <option value="nome">Nome</option>
-              <option value="recente">Mais recente</option>
-            </select>
-          </div>
-
-          <div class="view-toggle">
-            <button
-              @click="visualizacao = 'grid'"
-              :class="['view-btn', { active: visualizacao === 'grid' }]"
-            >
-              <i class="fas fa-th-large"></i>
-            </button>
-            <button
-              @click="visualizacao = 'lista'"
-              :class="['view-btn', { active: visualizacao === 'lista' }]"
-            >
-              <i class="fas fa-list"></i>
-            </button>
-          </div>
+        <div class="lu-toolbar__right">
+          <select v-model="ordenacao" class="lu-select">
+            <option value="ranking">Ranking</option>
+            <option value="nivel">Nível</option>
+            <option value="xp">XP Total</option>
+            <option value="contador">Itens lidos</option>
+            <option value="nome">Nome</option>
+          </select>
         </div>
-      </div>
+      </section>
 
-      <!-- Loading State -->
-      <div v-if="carregando" class="loading-state">
-        <div class="loader"></div>
+      <!-- Loading -->
+      <div v-if="carregando" class="lu-state">
+        <div class="lu-spinner"></div>
         <p>Carregando colaboradores...</p>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="erro" class="error-state">
-        <div class="error-icon">
-          <i class="fas fa-exclamation-circle"></i>
-        </div>
+      <!-- Error -->
+      <div v-else-if="erro" class="lu-state lu-state--error">
+        <i class="fas fa-exclamation-circle"></i>
         <h3>Erro ao carregar dados</h3>
         <p>{{ erro }}</p>
-        <button @click="carregarUsuarios" class="btn-retry">
+        <button @click="carregarUsuarios" class="lu-btn lu-btn--primary">
           <i class="fas fa-redo-alt"></i> Tentar Novamente
         </button>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="usuariosFiltrados.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <i class="fas fa-users-slash"></i>
-        </div>
+      <!-- Empty -->
+      <div v-else-if="usuariosFiltrados.length === 0" class="lu-state">
+        <i class="fas fa-users-slash"></i>
         <h3>Nenhum colaborador encontrado</h3>
         <p v-if="filtro">Tente ajustar os filtros de busca</p>
-        <p v-else>Nenhum colaborador cadastrado para esta loja</p>
-        <button v-if="filtro" @click="limparFiltros" class="btn-clear">
-          <i class="fas fa-times"></i> Limpar Filtros
+        <button
+          v-if="filtro"
+          @click="limparFiltros"
+          class="lu-btn lu-btn--primary"
+        >
+          Limpar Filtros
         </button>
       </div>
 
-      <!-- Lista/Grid de Usuários -->
-      <div v-else :class="['usuarios-container', visualizacao]">
+      <!-- Lista de Usuários -->
+      <div v-else class="lu-grid">
         <div
           v-for="usuario in usuariosFiltrados"
           :key="usuario.id"
-          :class="['usuario-card', visualizacao]"
+          class="lu-card"
           @click="irParaPerfil(usuario)"
         >
-          <!-- Card Header -->
-          <div class="card-header">
-            <div class="usuario-avatar">
-              <img v-if="usuario.foto" :src="usuario.foto" :alt="usuario.nome" />
-              <div v-else class="avatar-placeholder">
-                {{ usuario.iniciais }}
-              </div>
+          <!-- Ranking badge -->
+          <div
+            class="lu-card__rank"
+            :class="getRankClass(usuario.posicaoRanking)"
+          >
+            #{{ usuario.posicaoRanking }}
+          </div>
 
-              <!-- Nível Badge -->
-              <div class="nivel-badge">
-                <span class="nivel-numero">{{ usuario.nivel }}</span>
-              </div>
+          <!-- Avatar + Info -->
+          <div class="lu-card__top">
+            <div class="lu-avatar">
+              <img
+                v-if="usuario.foto"
+                :src="usuario.foto"
+                :alt="usuario.nome"
+              />
+              <span v-else class="lu-avatar__initials">{{
+                usuario.iniciais
+              }}</span>
+              <span class="lu-avatar__level">{{ usuario.nivel }}</span>
             </div>
-
-            <div class="usuario-info">
-              <h3 class="usuario-nome">{{ usuario.nome }}</h3>
-              <p class="usuario-matricula">{{ usuario.id }}</p>
-              <p class="usuario-titulo">{{ usuario.titulo }}</p>
-            </div>
-
-            <div class="usuario-stats">
-              <div class="ranking-position">
-                #{{ usuario.posicaoRanking }}
-              </div>
+            <div class="lu-card__info">
+              <h3 class="lu-card__name">{{ usuario.nome }}</h3>
+              <span class="lu-card__title">{{ usuario.titulo }}</span>
+              <span class="lu-card__id">{{ usuario.id }}</span>
             </div>
           </div>
 
-          <!-- Card Stats -->
-          <div class="card-stats">
-            <div class="stat-item nivel">
-              <i class="fas fa-level-up-alt"></i>
-              <div class="stat-content">
-                <span class="stat-number">{{ usuario.nivel }}</span>
-                <span class="stat-label">Nível</span>
-              </div>
+          <!-- Stats -->
+          <div class="lu-card__stats">
+            <div class="lu-stat">
+              <span class="lu-stat__val">{{
+                formatNumber(usuario.xpTotal)
+              }}</span>
+              <span class="lu-stat__lbl">XP</span>
             </div>
-
-            <div class="stat-item itens">
-              <i class="fas fa-clipboard-list"></i>
-              <div class="stat-content">
-                <span class="stat-number">{{ usuario.contador }}</span>
-                <span class="stat-label">Itens</span>
-              </div>
+            <div class="lu-stat">
+              <span class="lu-stat__val">{{
+                formatNumber(usuario.contador)
+              }}</span>
+              <span class="lu-stat__lbl">Itens</span>
             </div>
-
-            <div class="stat-item xp">
-              <i class="fas fa-star"></i>
-              <div class="stat-content">
-                <span class="stat-number">{{ usuario.xpTotal }}</span>
-                <span class="stat-label">XP</span>
-              </div>
+            <div class="lu-stat">
+              <span class="lu-stat__val">{{ usuario.totalAuditorias }}</span>
+              <span class="lu-stat__lbl">Auditorias</span>
             </div>
-
-            <div class="stat-item auditorias">
-              <i class="fas fa-check-circle"></i>
-              <div class="stat-content">
-                <span class="stat-number">{{ usuario.totalAuditorias }}</span>
-                <span class="stat-label">Auditorias</span>
-              </div>
+            <div class="lu-stat">
+              <span class="lu-stat__val">{{ usuario.totalConquistas }}</span>
+              <span class="lu-stat__lbl">Conquistas</span>
             </div>
           </div>
 
-          <!-- XP Progress Bar -->
-          <div class="xp-progress">
-            <div class="xp-bar">
-              <div
-                class="xp-fill"
-                :style="{ width: `${usuario.progressoXp}%` }"
-              ></div>
-            </div>
-            <span class="xp-text">
-              {{ usuario.xpAtual % 100 }}/100 XP para nível {{ usuario.nivel + 1 }}
-            </span>
+          <!-- XP Bar -->
+          <div class="lu-xp-bar">
+            <div
+              class="lu-xp-bar__fill"
+              :style="{ width: usuario.progressoXp + '%' }"
+            ></div>
           </div>
-
-          <!-- Card Actions -->
-          <div class="card-actions">
-            <button class="action-btn primary" @click.stop="irParaPerfil(usuario)">
-              <i class="fas fa-eye"></i>
-              Ver Perfil Completo
-            </button>
-          </div>
+          <span class="lu-xp-bar__text"
+            >Nível {{ usuario.nivel }} &rarr; {{ usuario.nivel + 1 }}</span
+          >
         </div>
       </div>
     </div>
@@ -286,73 +251,40 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from "vue-router";
 import { useLojaStore } from "@/store/lojaStore";
-import { useNivelStore } from "@/store/nivelStore";
-import axios from "axios";
+import api from "@/config/api";
 
 export default {
   name: "ListaUsuarios",
   setup() {
     const router = useRouter();
     const lojaStore = useLojaStore();
-    const nivelStore = useNivelStore();
-
-    // Reactive data
-    const usuarios = ref([]);
-    const filtro = ref("");
-    const carregando = ref(false);
-    const erro = ref("");
-    const filtroAtivo = ref("todos");
-    const ordenacao = ref("nivel");
-    const visualizacao = ref("grid");
-
-    // Filter tabs
-    const filtroTabs = ref([
-      { id: "todos", label: "Todos", icon: "fas fa-users" },
-      { id: "meta", label: "Meta Batida", icon: "fas fa-trophy" },
-      { id: "elite", label: "Elite", icon: "fas fa-crown" },
-      { id: "novatos", label: "Novatos", icon: "fas fa-seedling" },
-    ]);
 
     const irParaPerfil = (usuario) => {
       router.push(`/perfil/${usuario.id}`);
     };
 
-    const selecionarLoja = async (loja) => {
-      const sucesso = await lojaStore.selecionarLoja(loja);
-      if (sucesso) {
-        await carregarUsuarios();
-      }
-    };
-
-    const trocarLoja = () => {
-      lojaStore.limparLoja();
-      usuarios.value = [];
-    };
-
-    const limparFiltros = () => {
-      filtro.value = "";
-      filtroAtivo.value = "todos";
-    };
-
     return {
       router,
       lojaStore,
-      nivelStore,
-      usuarios,
-      filtro,
-      carregando,
-      erro,
-      filtroAtivo,
-      ordenacao,
-      visualizacao,
-      filtroTabs,
       irParaPerfil,
-      selecionarLoja,
-      trocarLoja,
-      limparFiltros,
+    };
+  },
+  data() {
+    return {
+      usuarios: [],
+      filtro: "",
+      carregando: false,
+      erro: "",
+      filtroAtivo: "todos",
+      ordenacao: "ranking",
+      filtroTabs: [
+        { id: "todos", label: "Todos", icon: "fas fa-users" },
+        { id: "meta", label: "Meta Batida", icon: "fas fa-trophy" },
+        { id: "elite", label: "Elite", icon: "fas fa-crown" },
+        { id: "novatos", label: "Novatos", icon: "fas fa-seedling" },
+      ],
     };
   },
   computed: {
@@ -363,29 +295,35 @@ export default {
       if (this.filtro) {
         const termo = this.filtro.toLowerCase();
         filtrados = filtrados.filter(
-          (usuario) =>
-            usuario.nome.toLowerCase().includes(termo) ||
-            usuario.id.toLowerCase().includes(termo)
+          (u) =>
+            u.nome.toLowerCase().includes(termo) ||
+            u.id.toLowerCase().includes(termo),
         );
       }
 
       // Filtros por categoria
       switch (this.filtroAtivo) {
         case "meta":
-          filtrados = filtrados.filter((usuario) => usuario.contador >= 500);
+          filtrados = filtrados.filter((u) => u.contador >= 500);
           break;
         case "elite":
-          filtrados = filtrados.filter((usuario) => usuario.nivel >= 10);
+          filtrados = filtrados.filter((u) => u.nivel >= 10);
           break;
         case "novatos":
-          filtrados = filtrados.filter((usuario) => usuario.nivel <= 3);
+          filtrados = filtrados.filter((u) => u.nivel <= 3);
           break;
       }
 
       // Ordenação
       switch (this.ordenacao) {
+        case "ranking":
+          filtrados.sort((a, b) => a.posicaoRanking - b.posicaoRanking);
+          break;
         case "nivel":
           filtrados.sort((a, b) => b.nivel - a.nivel);
+          break;
+        case "xp":
+          filtrados.sort((a, b) => b.xpTotal - a.xpTotal);
           break;
         case "contador":
           filtrados.sort((a, b) => b.contador - a.contador);
@@ -393,27 +331,31 @@ export default {
         case "nome":
           filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
           break;
-        case "recente":
-          filtrados.sort((a, b) => (b.ultimaAtividade || 0) - (a.ultimaAtividade || 0));
-          break;
       }
 
       return filtrados;
     },
 
     usuariosComMeta() {
-      return this.usuarios.filter(u => u.contador >= 500).length;
+      return this.usuarios.filter((u) => u.contador >= 500).length;
     },
 
     mediaItens() {
       if (this.usuarios.length === 0) return 0;
       const total = this.usuarios.reduce((sum, u) => sum + u.contador, 0);
-      return Math.round(total / this.usuarios.length);
+      return this.formatNumber(Math.round(total / this.usuarios.length));
     },
 
     maiorNivel() {
       if (this.usuarios.length === 0) return 0;
-      return Math.max(...this.usuarios.map(u => u.nivel));
+      return Math.max(...this.usuarios.map((u) => u.nivel));
+    },
+
+    totalConquistas() {
+      return this.usuarios.reduce(
+        (sum, u) => sum + (u.totalConquistas || 0),
+        0,
+      );
     },
 
     getTabCount() {
@@ -424,40 +366,68 @@ export default {
           case "meta":
             return this.usuariosComMeta;
           case "elite":
-            return this.usuarios.filter(u => u.nivel >= 10).length;
+            return this.usuarios.filter((u) => u.nivel >= 10).length;
           case "novatos":
-            return this.usuarios.filter(u => u.nivel <= 3).length;
+            return this.usuarios.filter((u) => u.nivel <= 3).length;
           default:
             return 0;
         }
       };
     },
   },
+
   async mounted() {
-    // Carregar loja do localStorage se existir
     this.lojaStore.carregarLoja();
-
-    // Inicializar nivel store
-    await this.nivelStore.carregarUsuarios();
-
-    // Se tem loja selecionada, carregar dados
     if (this.lojaStore.isLojaSelected) {
       await this.carregarUsuarios();
     }
   },
 
   watch: {
-    // Watch para recarregar dados quando loja mudar
-    'lojaStore.lojaSelecionada': async function(novaLoja) {
+    "lojaStore.lojaSelecionada": async function (novaLoja) {
       if (novaLoja) {
         await this.carregarUsuarios();
       } else {
         this.usuarios = [];
       }
-    }
+    },
   },
 
   methods: {
+    async selecionarLoja(loja) {
+      const sucesso = await this.lojaStore.selecionarLoja(loja);
+      if (sucesso) {
+        await this.carregarUsuarios();
+      }
+    },
+
+    trocarLoja() {
+      this.lojaStore.limparLoja();
+      this.usuarios = [];
+    },
+
+    limparFiltros() {
+      this.filtro = "";
+      this.filtroAtivo = "todos";
+    },
+
+    extrairNomeSimples(nome) {
+      if (!nome) return "";
+      return nome.replace(/^Loja\s+\d+\s*-\s*/, "").trim();
+    },
+
+    formatNumber(n) {
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+      return n;
+    },
+
+    getRankClass(pos) {
+      if (pos === 1) return "lu-card__rank--gold";
+      if (pos === 2) return "lu-card__rank--silver";
+      if (pos === 3) return "lu-card__rank--bronze";
+      return "";
+    },
+
     async carregarUsuarios() {
       if (!this.lojaStore.isLojaSelected) return;
 
@@ -465,60 +435,69 @@ export default {
         this.carregando = true;
         this.erro = "";
 
-        const response = await axios.get("http://localhost:3000/usuarios", {
+        const response = await api.get("/metricas/usuarios", {
           headers: {
-            'x-loja': this.lojaStore.codigoLojaAtual
-          }
+            "x-loja": this.lojaStore.codigoLojaAtual,
+          },
         });
 
-        const usuariosData = response.data.map((user) => {
-          const xpConquistas = this.nivelStore.calcularXpConquistas(user);
-          const xpTotal = (user.contador || 0) + xpConquistas;
-          const nivel = this.nivelStore.calcularNivel(xpTotal);
-          const titulo = this.nivelStore.obterTitulo(nivel);
-          const progressoXp = xpTotal % 100;
+        const data = response.data;
+        const usuariosRaw = data.usuarios || data || [];
 
-          return {
-            ...user,
-            iniciais: this.obterIniciais(user.nome),
-            xpConquistas,
-            xpTotal,
-            nivel,
-            titulo,
-            progressoXp,
-            xpAtual: xpTotal,
-            posicaoRanking: 1, // Será calculado depois
-            totalAuditorias: user.totalAuditorias || Math.floor(Math.random() * 20) + 1,
-          };
-        });
+        // Mapear os dados do endpoint /metricas/usuarios (MetricasUsuario model)
+        this.usuarios = usuariosRaw.map((u) => ({
+          id: u.id,
+          nome: u.nome,
+          iniciais: u.iniciais || this.obterIniciais(u.nome),
+          foto: u.foto || null,
+          contador: u.contador || 0,
+          totalAuditorias: u.totalAuditorias || 0,
+          nivel: u.conquistas?.nivel || 1,
+          titulo: u.conquistas?.titulo || "Novato",
+          xpTotal: u.conquistas?.xpTotal || 0,
+          totalConquistas: u.conquistas?.totalConquistas || 0,
+          posicaoRanking: u.desempenho?.posicaoLoja || 0,
+          pontuacaoTotal: u.desempenho?.pontuacaoTotal || 0,
+          progressoXp: this.calcularProgressoXp(u.conquistas?.xpTotal || 0),
+        }));
 
-        // Calcular posições no ranking
-        const usuariosOrdenados = [...usuariosData].sort((a, b) => b.xpTotal - a.xpTotal);
-        usuariosOrdenados.forEach((usuario, index) => {
-          const usuarioOriginal = usuariosData.find(u => u.id === usuario.id);
-          if (usuarioOriginal) {
-            usuarioOriginal.posicaoRanking = index + 1;
-          }
-        });
+        // Recalcular ranking se posicaoLoja vier zerado
+        const temRanking = this.usuarios.some((u) => u.posicaoRanking > 0);
+        if (!temRanking) {
+          const ordenados = [...this.usuarios].sort(
+            (a, b) => b.xpTotal - a.xpTotal,
+          );
+          ordenados.forEach((u, i) => {
+            const original = this.usuarios.find((o) => o.id === u.id);
+            if (original) original.posicaoRanking = i + 1;
+          });
+        }
 
-        this.usuarios = usuariosData;
-
-        console.log(`✅ ${this.usuarios.length} usuários carregados da loja ${this.lojaStore.codigoLojaAtual}`);
+        console.log(
+          `✅ ${this.usuarios.length} colaboradores carregados via /metricas/usuarios`,
+        );
       } catch (error) {
         console.error("Erro ao carregar usuários:", error);
-        this.erro = error.response?.data?.erro || "Erro ao carregar dados do servidor";
+        this.erro =
+          error.response?.data?.erro || "Erro ao carregar dados do servidor";
       } finally {
         this.carregando = false;
       }
     },
 
+    calcularProgressoXp(xpTotal) {
+      // Mesma lógica do MetricasUsuario model
+      const xpInCurrentLevel = xpTotal % 100;
+      return Math.round(xpInCurrentLevel);
+    },
+
     obterIniciais(nome) {
       if (!nome) return "??";
-      const nomeLimpo = nome.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
       return (
-        nomeLimpo
+        nome
+          .replace(/[^a-zA-ZÀ-ÿ\s]/g, "")
           .split(" ")
-          .map((part) => part[0])
+          .map((p) => p[0])
           .join("")
           .toUpperCase()
           .substring(0, 2) || "??"
@@ -529,141 +508,235 @@ export default {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.lista-usuarios-container {
+/* ===== BASE ===== */
+.lu-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem;
-  font-family: 'Inter', sans-serif;
+  background: #f0f2f5;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: #1a1a2e;
 }
 
 /* ===== SELEÇÃO DE LOJA ===== */
-.loja-selection {
+.lu-store-select {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
+  min-height: 85vh;
+  padding: 1.5rem;
 }
 
-.loja-selection-content {
-  background: white;
-  border-radius: 20px;
-  padding: 3rem;
+.lu-store-select__card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  max-width: 1000px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  max-width: 960px;
   width: 100%;
 }
 
-.loja-icon {
-  font-size: 4rem;
-  color: #667eea;
-  margin-bottom: 2rem;
-}
-
-.loja-selection-content h2 {
-  font-size: 2.5rem;
-  color: #1e293b;
+.lu-store-select__icon {
+  font-size: 3rem;
+  color: #6c5ce7;
   margin-bottom: 1rem;
 }
 
-.loja-selection-content p {
-  font-size: 1.2rem;
-  color: #64748b;
-  margin-bottom: 3rem;
+.lu-store-select__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
-.lojas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+.lu-store-select__desc {
+  color: #6b7280;
   margin-bottom: 2rem;
 }
 
-.loja-card {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 15px;
-  padding: 1.5rem;
+.lu-store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.lu-store-item {
+  background: #fafbfc;
+  border: 2px solid #eef0f4;
+  border-radius: 16px;
+  padding: 1.25rem 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
+  text-align: center;
 }
 
-.loja-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
-  border-color: #667eea;
+.lu-store-item:hover {
+  border-color: #6c5ce7;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.12);
 }
 
-.loja-image {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1rem;
+.lu-store-item__img {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 0.75rem;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #e2e8f0;
+  border: 2px solid #eef0f4;
 }
 
-.loja-image img {
+.lu-store-item__img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.loja-info h3 {
-  font-size: 1.1rem;
-  color: #1e293b;
+.lu-store-item__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #1a1a2e;
+}
+
+.lu-store-item__city {
+  font-size: 0.75rem;
+  color: #6b7280;
   margin-bottom: 0.5rem;
+}
+
+.lu-store-item__code {
+  display: inline-block;
+  background: #6c5ce7;
+  color: #fff;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
-.loja-info p {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.loja-codigo {
-  background: #667eea;
-  color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.error-message {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 1rem 1.5rem;
-  border-radius: 10px;
+/* ===== ALERT ===== */
+.lu-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.lu-alert--error {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ===== MAIN ===== */
+.lu-main {
+  padding: 1.5rem;
 }
 
 /* ===== HEADER ===== */
-.header-section {
+.lu-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 20px;
   padding: 2.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
   position: relative;
   overflow: hidden;
 }
 
-.header-content {
+.lu-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  animation: lu-pulse 15s ease-in-out infinite;
+}
+
+@keyframes lu-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Círculos decorativos */
+.lu-header__circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: lu-float 6s ease-in-out infinite;
+}
+
+.lu-header__circle--1 {
+  width: 200px;
+  height: 200px;
+  top: -100px;
+  right: -50px;
+  animation-delay: 0s;
+}
+.lu-header__circle--2 {
+  width: 150px;
+  height: 150px;
+  bottom: -75px;
+  left: -40px;
+  animation-delay: 1s;
+}
+.lu-header__circle--3 {
+  width: 100px;
+  height: 100px;
+  top: 20%;
+  right: 15%;
+  animation-delay: 2s;
+}
+.lu-header__circle--4 {
+  width: 80px;
+  height: 80px;
+  bottom: 20%;
+  left: 10%;
+  animation-delay: 3s;
+}
+.lu-header__circle--5 {
+  width: 60px;
+  height: 60px;
+  top: 60%;
+  left: 5%;
+  animation-delay: 4s;
+}
+.lu-header__circle--6 {
+  width: 90px;
+  height: 90px;
+  top: 10%;
+  left: 20%;
+  animation-delay: 5s;
+}
+
+@keyframes lu-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+  }
+}
+
+.lu-header__content {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -671,712 +744,596 @@ export default {
   z-index: 1;
 }
 
-.header-left {
-  flex: 1;
-}
-
-.header-title {
-  color: white;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
+.lu-header__left {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.header-subtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.1rem;
-  font-weight: 300;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.btn-refresh,
-.btn-change-store {
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-}
-
-.btn-refresh:hover,
-.btn-change-store:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.btn-refresh:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ===== MÉTRICAS ===== */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
-.metric-card {
-  background: white;
-  border-radius: 15px;
-  padding: 1.75rem;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
+.lu-header__img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
   overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 }
 
-.metric-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+.lu-header__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.metric-card.primary {
-  border-left: 4px solid #667eea;
-}
-.metric-card.primary .metric-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.metric-card.success {
-  border-left: 4px solid #10b981;
-}
-.metric-card.success .metric-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.metric-card.info {
-  border-left: 4px solid #3b82f6;
-}
-.metric-card.info .metric-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.metric-card.warning {
-  border-left: 4px solid #f59e0b;
-}
-.metric-card.warning .metric-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.metric-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.metric-data {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.metric-value {
+.lu-header__text h1 {
+  color: #fff;
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
-}
-
-.metric-label {
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* ===== FILTROS ===== */
-.filters-section {
-  background: white;
-  border-radius: 15px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-}
-
-.search-container {
-  position: relative;
-  max-width: 500px;
-  margin: 0 auto 2rem;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  font-size: 1rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.875rem 3rem 0.875rem 3rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.clear-search {
-  position: absolute;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.clear-search:hover {
-  color: #ef4444;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-
-.filter-tab {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.filter-tab:hover {
-  border-color: #667eea;
-  background: #f1f5f9;
-}
-
-.filter-tab.active {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
-}
-
-.tab-count {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.filter-tab.active .tab-count {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.filter-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sort-container {
+  margin-bottom: 0.35rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.sort-container label {
-  color: #64748b;
-  font-weight: 500;
-  font-size: 0.95rem;
+.lu-header__text p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 300;
 }
 
-.sort-select {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-}
-
-.sort-select:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.view-toggle {
+.lu-header__actions {
   display: flex;
-  gap: 0.25rem;
-  background: #f8fafc;
-  padding: 0.25rem;
-  border-radius: 8px;
+  gap: 0.75rem;
+  align-items: center;
 }
 
-.view-btn {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #64748b;
-}
-
-.view-btn:hover {
-  background: #e2e8f0;
-}
-
-.view-btn.active {
-  background: #667eea;
-  color: white;
-}
-
-/* ===== ESTADOS DE LOADING/ERROR ===== */
-.loading-state, .error-state, .empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  margin: 2rem 0;
-}
-
-.loader {
-  width: 60px;
-  height: 60px;
-  border: 4px solid #f3f4f6;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1.5rem;
-}
-
-.error-icon, .empty-icon {
-  font-size: 4rem;
-  color: #ef4444;
-  margin-bottom: 1.5rem;
-}
-
-.empty-icon {
-  color: #cbd5e1;
-}
-
-.error-state h3, .empty-state h3 {
-  color: #1e293b;
-  font-size: 1.75rem;
-  margin-bottom: 1rem;
-}
-
-.error-state p, .empty-state p {
-  color: #64748b;
-  margin-bottom: 2rem;
-}
-
-.btn-retry, .btn-clear {
-  padding: 0.875rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
+.lu-header__btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
   border-radius: 12px;
-  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.25s ease;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.lu-header__btn--icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.lu-header__btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.lu-header__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== BUTTONS ===== */
+.lu-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-}
-
-.btn-retry:hover, .btn-clear:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-}
-
-/* ===== CONTAINER DE USUÁRIOS ===== */
-.usuarios-container.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
-.usuarios-container.lista {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* ===== CARDS DE USUÁRIO ===== */
-.usuario-card {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid transparent;
-}
-
-.usuario-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
-.usuario-card:hover::before {
-  transform: scaleX(1);
-}
-
-.usuario-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
-}
-
-.usuario-card.lista {
-  padding: 1.5rem;
-  border-radius: 15px;
-}
-
-.usuario-card.lista .card-header {
-  flex-direction: row;
-  align-items: center;
-}
-
-.usuario-card.lista .card-stats {
-  display: flex;
-  gap: 2rem;
-  margin: 1rem 0;
-}
-
-.usuario-card.lista .stat-item {
-  flex-direction: row;
-  gap: 0.5rem;
-}
-
-/* ===== HEADER DO CARD ===== */
-.card-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.usuario-avatar {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.usuario-avatar img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.avatar-placeholder {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 2rem;
-  border: 4px solid white;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.nivel-badge {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  background: linear-gradient(135deg, #ffd43b 0%, #ffb800 100%);
-  color: #000;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 3px solid white;
-  font-weight: 900;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 15px rgba(255, 212, 59, 0.4);
-}
-
-.usuario-info {
-  flex: 1;
-}
-
-.usuario-nome {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.usuario-matricula {
-  color: #64748b;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-
-.usuario-titulo {
-  color: #667eea;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
   font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-.usuario-stats {
+.lu-btn--ghost {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.lu-btn--ghost:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.lu-btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lu-btn--primary {
+  background: #6c5ce7;
+  color: #fff;
+}
+
+.lu-btn--primary:hover {
+  background: #5a4bd1;
+}
+
+.lu-btn__label {
+  display: inline;
+}
+
+/* ===== METRICS ===== */
+.lu-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.lu-metric {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f4;
+}
+
+.lu-metric__value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #6c5ce7;
+  line-height: 1.2;
+}
+
+.lu-metric__label {
+  display: block;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.25rem;
+}
+
+/* ===== TOOLBAR ===== */
+.lu-toolbar {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f0f0f4;
+}
+
+.lu-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.lu-search__icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.lu-search__input {
+  width: 100%;
+  padding: 0.6rem 0.6rem 0.6rem 2.2rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: #fafbfc;
+  transition: all 0.2s;
+}
+
+.lu-search__input:focus {
+  outline: none;
+  border-color: #6c5ce7;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.08);
+}
+
+.lu-search__clear {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.lu-search__clear:hover {
+  color: #ef4444;
+}
+
+.lu-filters {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.lu-chip {
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: inherit;
+}
+
+.lu-chip:hover {
+  border-color: #6c5ce7;
+  color: #6c5ce7;
+}
+
+.lu-chip--active {
+  background: #6c5ce7;
+  border-color: #6c5ce7;
+  color: #fff;
+}
+
+.lu-chip__count {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+.lu-toolbar__right {
   margin-left: auto;
 }
 
-.ranking-position {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  padding: 0.5rem 1rem;
+.lu-select {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  background: #fafbfc;
+  cursor: pointer;
+}
+
+.lu-select:focus {
+  outline: none;
+  border-color: #6c5ce7;
+}
+
+/* ===== STATES ===== */
+.lu-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #fff;
   border-radius: 20px;
-  font-weight: 700;
-  font-size: 1.1rem;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  border: 1px solid #f0f0f4;
 }
 
-/* ===== ESTATÍSTICAS DO CARD ===== */
-.card-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+.lu-state i {
+  font-size: 2.5rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+  display: block;
 }
 
-.stat-item {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  text-align: center;
+.lu-state--error i {
+  color: #ef4444;
 }
 
-.stat-item i {
+.lu-state h3 {
   font-size: 1.2rem;
-  margin-bottom: 0.25rem;
-}
-
-.stat-item.nivel i { color: #8b5cf6; }
-.stat-item.itens i { color: #10b981; }
-.stat-item.xp i { color: #ffd43b; }
-.stat-item.auditorias i { color: #3b82f6; }
-
-.stat-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stat-number {
-  font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-/* ===== BARRA DE XP ===== */
-.xp-progress {
-  margin-bottom: 1.5rem;
-}
-
-.xp-bar {
-  width: 100%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
   margin-bottom: 0.5rem;
 }
 
-.xp-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ffd43b 0%, #ffb800 100%);
-  border-radius: 4px;
-  transition: width 0.5s ease;
+.lu-state p {
+  color: #6b7280;
+  margin-bottom: 1.5rem;
 }
 
-.xp-text {
-  font-size: 0.8rem;
-  color: #64748b;
-  text-align: center;
-  font-weight: 500;
+.lu-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #6c5ce7;
+  border-radius: 50%;
+  animation: lu-spin 0.7s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-/* ===== AÇÕES DO CARD ===== */
-.card-actions {
-  text-align: center;
+@keyframes lu-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.action-btn {
-  width: 100%;
-  padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
+/* ===== GRID ===== */
+.lu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* ===== CARD ===== */
+.lu-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid #f0f0f4;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.lu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  border-color: #e0dcf9;
+}
+
+/* Rank badge */
+.lu-card__rank {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.lu-card__rank--gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+}
+
+.lu-card__rank--silver {
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  color: #fff;
+}
+
+.lu-card__rank--bronze {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+}
+
+/* Top section */
+.lu-card__top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Avatar */
+.lu-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.lu-avatar img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.lu-avatar__initials {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.lu-avatar__level {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #fbbf24;
+  color: #1a1a2e;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  border: 2px solid #fff;
+}
+
+/* Info */
+.lu-card__info {
+  min-width: 0;
+  flex: 1;
+}
+
+.lu-card__name {
   font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.1rem;
 }
 
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+.lu-card__title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c5ce7;
+  margin-bottom: 0.1rem;
 }
 
-/* ===== RESPONSIVO ===== */
-@media (max-width: 1024px) {
-  .usuarios-container.grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  }
-
-  .header-content {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .filter-options {
-    justify-content: center;
-  }
+.lu-card__id {
+  font-size: 0.7rem;
+  color: #9ca3af;
 }
 
+/* Stats grid */
+.lu-card__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.lu-stat {
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  background: #fafbfc;
+  border-radius: 10px;
+}
+
+.lu-stat__val {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.lu-stat__lbl {
+  display: block;
+  font-size: 0.6rem;
+  color: #9ca3af;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 0.1rem;
+}
+
+/* XP Bar */
+.lu-xp-bar {
+  height: 4px;
+  background: #f0f0f4;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.lu-xp-bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.lu-xp-bar__text {
+  display: block;
+  font-size: 0.65rem;
+  color: #9ca3af;
+  text-align: right;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .lista-usuarios-container {
+  .lu-main {
     padding: 1rem;
   }
 
-  .header-title {
-    font-size: 1.75rem;
+  .lu-header {
+    padding: 1.5rem;
   }
 
-  .usuarios-container.grid {
-    grid-template-columns: 1fr;
+  .lu-header__content {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
   }
 
-  .metrics-grid {
+  .lu-header__left {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .lu-header__text h1 {
+    font-size: 1.35rem;
+    justify-content: center;
+  }
+
+  .lu-header__text p {
+    font-size: 0.85rem;
+  }
+
+  .lu-header__circle--3,
+  .lu-header__circle--4,
+  .lu-header__circle--5,
+  .lu-header__circle--6 {
+    display: none;
+  }
+
+  .lu-metrics {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .filter-tabs {
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
+  .lu-grid {
+    grid-template-columns: 1fr;
   }
 
-  .filter-options {
+  .lu-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .card-stats {
-    grid-template-columns: repeat(2, 1fr);
+  .lu-toolbar__right {
+    margin-left: 0;
   }
 }
 
 @media (max-width: 480px) {
-  .metrics-grid {
-    grid-template-columns: 1fr;
+  .lu-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
 
-  .usuario-avatar img,
-  .avatar-placeholder {
-    width: 80px;
-    height: 80px;
+  .lu-metric {
+    padding: 0.75rem;
   }
 
-  .nivel-badge {
-    width: 30px;
-    height: 30px;
-    font-size: 0.8rem;
+  .lu-metric__value {
+    font-size: 1.25rem;
   }
 
-  .card-stats {
-    grid-template-columns: 1fr;
+  .lu-store-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lu-card__stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
-
 </style>
