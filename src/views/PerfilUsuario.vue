@@ -2,8 +2,26 @@
   <div>
     <div class="perfil-usuario-container">
       <div v-if="carregando" class="loading-container">
-        <div class="spinner"></div>
-        <p>Carregando perfil...</p>
+        <div class="skeleton-profile">
+          <div class="skeleton-cover skeleton-pulse"></div>
+          <div class="skeleton-avatar-area">
+            <div class="skeleton-avatar skeleton-pulse"></div>
+            <div class="skeleton-info">
+              <div class="skeleton-line skeleton-pulse" style="width: 200px; height: 24px;"></div>
+              <div class="skeleton-line skeleton-pulse" style="width: 150px; height: 16px; margin-top: 8px;"></div>
+              <div class="skeleton-line skeleton-pulse" style="width: 250px; height: 12px; margin-top: 12px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-stats">
+            <div class="skeleton-stat skeleton-pulse" v-for="n in 3" :key="n"></div>
+          </div>
+          <div class="skeleton-tabs">
+            <div class="skeleton-tab skeleton-pulse" v-for="n in 4" :key="n"></div>
+          </div>
+          <div class="skeleton-cards">
+            <div class="skeleton-card skeleton-pulse" v-for="n in 6" :key="n"></div>
+          </div>
+        </div>
       </div>
 
       <div v-else-if="!usuario.id" class="error-container">
@@ -84,10 +102,15 @@
           <div class="perfil-info">
             <div class="avatar-container">
               <div class="avatar-wrapper">
+                <div v-if="!imagemCarregada" class="avatar-placeholder skeleton-pulse"></div>
                 <img
                   :src="usuario.foto"
                   :alt="usuario.nome"
                   class="avatar-img"
+                  loading="lazy"
+                  decoding="async"
+                  @load="imagemCarregada = true"
+                  :class="{ 'avatar-loaded': imagemCarregada }"
                 />
                 <div class="level-badge">
                   <span class="level-icon">⭐</span>
@@ -254,9 +277,25 @@
                 <select v-model="filtroCategoria" class="ordenacao-select">
                   <option value="">Todas</option>
                   <option value="static">Conquistas Gerais</option>
+                  <option value="ranking">Ranking</option>
+                  <option value="quality-financial">Qualidade & Financeiro</option>
+                  <option value="specialization">Especialização</option>
+                  <option value="community">Comunidade</option>
                   <option value="dynamic-class">Classes de Produto</option>
                   <option value="dynamic-local">Locais da Loja</option>
                 </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skeleton de conquistas carregando -->
+          <div v-if="carregandoConquistas" class="conquistas-skeleton">
+            <div class="conquistas-grid">
+              <div class="skeleton-achievement-card skeleton-pulse" v-for="n in 6" :key="n">
+                <div class="skeleton-ach-icon"></div>
+                <div class="skeleton-ach-title"></div>
+                <div class="skeleton-ach-desc"></div>
+                <div class="skeleton-ach-footer"></div>
               </div>
             </div>
           </div>
@@ -268,7 +307,7 @@
             </h3>
             <div class="conquistas-grid">
               <div
-                v-for="conquista in conquistasGeraisFiltradas"
+                v-for="conquista in cardsVisiveis('gerais', conquistasGeraisFiltradas)"
                 :key="conquista.achievementId"
                 class="achievement-card"
                 :class="{
@@ -307,6 +346,218 @@
                 </div>
               </div>
             </div>
+            <button v-if="conquistasGeraisFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('gerais')">
+              <i :class="secoesExpandidas['gerais'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['gerais'] ? 'Ver menos' : `Ver mais (${conquistasGeraisFiltradas.length - limiteCards} restantes)` }}
+            </button>
+          </div>
+
+          <!-- Seção de Conquistas de Ranking -->
+          <div v-if="conquistasRankingFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'ranking')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-crown"></i> Conquistas de Ranking
+              <span class="section-badge ranking-badge">Competitivo</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in cardsVisiveis('ranking', conquistasRankingFiltradas)"
+                :key="conquista.achievementId"
+                class="achievement-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+                <div class="achievement-content">
+                  <h4 class="achievement-title" :class="conquista.rarity.toLowerCase() + '-title'">
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">{{ conquista.description }}</p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.current || 0 }}/{{ conquista.progress.target || 0 }}</span>
+                  </div>
+                </div>
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge ranking-type-badge">
+                    <i class="fas fa-crown"></i> Ranking
+                  </span>
+                  <div class="achievement-rarity" :class="conquista.rarity.toLowerCase()">
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button v-if="conquistasRankingFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('ranking')">
+              <i :class="secoesExpandidas['ranking'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['ranking'] ? 'Ver menos' : `Ver mais (${conquistasRankingFiltradas.length - limiteCards} restantes)` }}
+            </button>
+          </div>
+
+          <!-- Seção de Conquistas de Qualidade & Financeiro -->
+          <div v-if="conquistasQualidadeFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'quality-financial')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-chart-line"></i> Qualidade & Financeiro
+              <span class="section-badge quality-badge">Impacto</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in cardsVisiveis('qualidade', conquistasQualidadeFiltradas)"
+                :key="conquista.achievementId"
+                class="achievement-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+                <div class="achievement-content">
+                  <h4 class="achievement-title" :class="conquista.rarity.toLowerCase() + '-title'">
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">{{ conquista.description }}</p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.current || 0 }}/{{ conquista.progress.target || 0 }}</span>
+                  </div>
+                </div>
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge quality-type-badge">
+                    <i class="fas fa-shield-alt"></i> {{ conquista.category === 'financial' ? 'Financeiro' : 'Qualidade' }}
+                  </span>
+                  <div class="achievement-rarity" :class="conquista.rarity.toLowerCase()">
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button v-if="conquistasQualidadeFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('qualidade')">
+              <i :class="secoesExpandidas['qualidade'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['qualidade'] ? 'Ver menos' : `Ver mais (${conquistasQualidadeFiltradas.length - limiteCards} restantes)` }}
+            </button>
+          </div>
+
+          <!-- Seção de Conquistas de Especialização -->
+          <div v-if="conquistasEspecializacaoFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'specialization')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-user-graduate"></i> Especialização
+              <span class="section-badge specialization-badge">Foco</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in cardsVisiveis('especializacao', conquistasEspecializacaoFiltradas)"
+                :key="conquista.achievementId"
+                class="achievement-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+                <div class="achievement-content">
+                  <h4 class="achievement-title" :class="conquista.rarity.toLowerCase() + '-title'">
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">{{ conquista.description }}</p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.current || 0 }}/{{ conquista.progress.target || 0 }}</span>
+                  </div>
+                </div>
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge specialization-type-badge">
+                    <i class="fas fa-bullseye"></i> {{ conquista.category === 'versatility' ? 'Versátil' : 'Especialista' }}
+                  </span>
+                  <div class="achievement-rarity" :class="conquista.rarity.toLowerCase()">
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button v-if="conquistasEspecializacaoFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('especializacao')">
+              <i :class="secoesExpandidas['especializacao'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['especializacao'] ? 'Ver menos' : `Ver mais (${conquistasEspecializacaoFiltradas.length - limiteCards} restantes)` }}
+            </button>
+          </div>
+
+          <!-- Seção de Conquistas de Comunidade -->
+          <div v-if="conquistasComunidadeFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'community')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-users"></i> Participação Comunitária
+              <span class="section-badge community-badge">Social</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in cardsVisiveis('comunidade', conquistasComunidadeFiltradas)"
+                :key="conquista.achievementId"
+                class="achievement-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+                <div class="achievement-content">
+                  <h4 class="achievement-title" :class="conquista.rarity.toLowerCase() + '-title'">
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">{{ conquista.description }}</p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.current || 0 }}/{{ conquista.progress.target || 0 }}</span>
+                  </div>
+                </div>
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge community-type-badge">
+                    <i class="fas fa-comments"></i> Comunidade
+                  </span>
+                  <div class="achievement-rarity" :class="conquista.rarity.toLowerCase()">
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button v-if="conquistasComunidadeFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('comunidade')">
+              <i :class="secoesExpandidas['comunidade'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['comunidade'] ? 'Ver menos' : `Ver mais (${conquistasComunidadeFiltradas.length - limiteCards} restantes)` }}
+            </button>
           </div>
 
           <!-- Seção de Conquistas Dinâmicas - Classes de Produto -->
@@ -317,7 +568,7 @@
             </h3>
             <div class="conquistas-grid">
               <div
-                v-for="conquista in conquistasClasseFiltradas"
+                v-for="conquista in cardsVisiveis('classe', conquistasClasseFiltradas)"
                 :key="conquista.achievementId"
                 class="achievement-card dynamic-card"
                 :class="{
@@ -368,6 +619,10 @@
                 </div>
               </div>
             </div>
+            <button v-if="conquistasClasseFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('classe')">
+              <i :class="secoesExpandidas['classe'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['classe'] ? 'Ver menos' : `Ver mais (${conquistasClasseFiltradas.length - limiteCards} restantes)` }}
+            </button>
           </div>
 
           <!-- Seção de Conquistas Dinâmicas - Locais -->
@@ -378,7 +633,7 @@
             </h3>
             <div class="conquistas-grid">
               <div
-                v-for="conquista in conquistasLocalFiltradas"
+                v-for="conquista in cardsVisiveis('local', conquistasLocalFiltradas)"
                 :key="conquista.achievementId"
                 class="achievement-card dynamic-card"
                 :class="{
@@ -429,6 +684,10 @@
                 </div>
               </div>
             </div>
+            <button v-if="conquistasLocalFiltradas.length > limiteCards" class="ver-mais-btn" @click="toggleSecao('local')">
+              <i :class="secoesExpandidas['local'] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+              {{ secoesExpandidas['local'] ? 'Ver menos' : `Ver mais (${conquistasLocalFiltradas.length - limiteCards} restantes)` }}
+            </button>
           </div>
 
           <!-- Mensagem quando não há conquistas -->
@@ -1188,6 +1447,7 @@
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1223,6 +1483,37 @@
   margin-bottom: 1.5rem;
 }
 
+.ver-mais-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+  color: #4a5568;
+  border: 1px dashed #cbd5e0;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.ver-mais-btn:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #dbe2ef 100%);
+  border-color: #a0aec0;
+  color: #2d3748;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ver-mais-btn i {
+  font-size: 0.75rem;
+  transition: transform 0.25s ease;
+}
+
 .section-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -1248,6 +1539,43 @@
   border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.ranking-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.quality-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.specialization-badge {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.community-badge {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+/* Type badges para novas categorias */
+.ranking-type-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: white;
+}
+
+.quality-type-badge {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white;
+}
+
+.specialization-type-badge {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white;
+}
+
+.community-type-badge {
+  background: linear-gradient(135deg, #ec4899, #db2777) !important;
+  color: white;
 }
 
 /* Card dinâmico */
@@ -1767,18 +2095,21 @@
 </style>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import { useRouter } from "vue-router";
 import { useNivelStore } from "@/store/nivelStore";
 import { useLojaStore } from "@/store/lojaStore";
 import { useUserSessionStore } from "@/store/userSessionStore";
-import UserCoverSelector from "@/components/UserCoverSelector.vue";
-import ColegasLoja from "@/components/ColegasLoja.vue";
-import NavegacaoRankings from "@/components/NavegacaoRankings.vue";
 import PerfilNavegacao from "@/views/Perfiltemplate/PerfilNavegacao.vue";
-import MinhaAuditoria from "@/views/Perfiltemplate/MinhaAuditoria.vue";
-import ProgressoUsuario from "@/views/Perfiltemplate/ProgressoUsuario.vue";
 import api from "@/config/api";
 import axios from "axios";
+
+// Lazy load de componentes pesados - só carregam quando necessários
+const UserCoverSelector = defineAsyncComponent(() => import("@/components/UserCoverSelector.vue"));
+const ColegasLoja = defineAsyncComponent(() => import("@/components/ColegasLoja.vue"));
+const NavegacaoRankings = defineAsyncComponent(() => import("@/components/NavegacaoRankings.vue"));
+const MinhaAuditoria = defineAsyncComponent(() => import("@/views/Perfiltemplate/MinhaAuditoria.vue"));
+const ProgressoUsuario = defineAsyncComponent(() => import("@/views/Perfiltemplate/ProgressoUsuario.vue"));
 
 export default {
   name: "PerfilUsuario",
@@ -1839,15 +2170,19 @@ export default {
         loja: null, // Informação da loja do usuário
       },
       carregando: true,
+      carregandoConquistas: true,
       todasConquistas: [],
       showCoverSelector: false,
       filtroAtivo: "desbloqueadas", // Alterado de "todas" para "desbloqueadas"
       filtroRaridade: "", // Filtro por raridade específico
       filtroCategoria: "", // Filtro por categoria (static, dynamic-class, dynamic-local)
+      limiteCards: 6, // Quantidade inicial de cards por seção
+      secoesExpandidas: {}, // Controle de quais seções estão expandidas
       ordenacaoAtiva: "padrao",
       abaAtiva: "conquistas",
       mostrarModalDetalhes: false,
       conquistaSelecionada: null,
+      imagemCarregada: false, // Controle de lazy load da foto de perfil
     };
   },
   watch: {
@@ -1876,10 +2211,15 @@ export default {
           };
           this.todasConquistas = [];
           this.carregando = true;
+          this.carregandoConquistas = true;
+          this.imagemCarregada = false;
           
+          // Carregar perfil primeiro, conquistas em paralelo após ter o ID
           this.carregarUsuarioPorId(novoId).then(() => {
+            this.carregando = false;
+            // Conquistas carregam de forma independente após o perfil
             return this.carregarConquistasUsuario();
-          }).finally(() => {
+          }).catch(() => {
             this.carregando = false;
           });
         }
@@ -1988,7 +2328,15 @@ export default {
       // Aplicar filtro por categoria
       if (this.filtroCategoria) {
         if (this.filtroCategoria === "static") {
-          conquistas = conquistas.filter((c) => !c.isDynamic);
+          conquistas = conquistas.filter((c) => !c.isDynamic && ["audits", "consistency", "performance"].includes(c.category));
+        } else if (this.filtroCategoria === "ranking") {
+          conquistas = conquistas.filter((c) => c.category === "ranking");
+        } else if (this.filtroCategoria === "quality-financial") {
+          conquistas = conquistas.filter((c) => ["quality", "financial"].includes(c.category));
+        } else if (this.filtroCategoria === "specialization") {
+          conquistas = conquistas.filter((c) => ["specialization", "versatility"].includes(c.category));
+        } else if (this.filtroCategoria === "community") {
+          conquistas = conquistas.filter((c) => c.category === "community");
         } else {
           conquistas = conquistas.filter((c) => c.category === this.filtroCategoria);
         }
@@ -2024,9 +2372,29 @@ export default {
       }
     },
 
-    // Conquistas gerais (estáticas) filtradas
+    // Conquistas gerais (auditorias, performance, consistency)
     conquistasGeraisFiltradas() {
-      return this.conquistasFiltradas.filter((c) => !c.isDynamic);
+      return this.conquistasFiltradas.filter((c) => !c.isDynamic && ["audits", "consistency", "performance"].includes(c.category));
+    },
+
+    // Conquistas de ranking
+    conquistasRankingFiltradas() {
+      return this.conquistasFiltradas.filter((c) => c.category === "ranking");
+    },
+
+    // Conquistas de qualidade e financeiro
+    conquistasQualidadeFiltradas() {
+      return this.conquistasFiltradas.filter((c) => ["quality", "financial"].includes(c.category));
+    },
+
+    // Conquistas de especialização e versatilidade
+    conquistasEspecializacaoFiltradas() {
+      return this.conquistasFiltradas.filter((c) => ["specialization", "versatility"].includes(c.category));
+    },
+
+    // Conquistas de comunidade (cross-model)
+    conquistasComunidadeFiltradas() {
+      return this.conquistasFiltradas.filter((c) => c.category === "community");
     },
 
     // Conquistas dinâmicas de classe filtradas
@@ -2259,6 +2627,7 @@ export default {
     },
 
     async carregarConquistasUsuario() {
+      this.carregandoConquistas = true;
       try {
         // Buscar conquistas do usuário diretamente do modelo MetricasUsuario via endpoint específico
         const config = {
@@ -2283,8 +2652,8 @@ export default {
             response.data.achievements.achievements || [];
 
           // Mapear as conquistas do usuário para o formato esperado pelo template
-          this.todasConquistas = conquistasUsuario.map((conquista) => {
-            return {
+          this.todasConquistas = Object.freeze(conquistasUsuario.map((conquista) => {
+            return Object.freeze({
               achievementId: conquista.achievementId,
               title:
                 conquista.achievementData?.title ||
@@ -2305,18 +2674,18 @@ export default {
                 0,
               desbloqueada: conquista.unlocked || false,
               unlockedAt: conquista.unlockedAt,
-              progress: conquista.progress || {},
+              progress: Object.freeze(conquista.progress || {}),
               progresso: conquista.progress?.percentage || 0,
-              criteria:
-                conquista.achievementData?.criteria || conquista.criteria || {},
+              criteria: Object.freeze(
+                conquista.achievementData?.criteria || conquista.criteria || {}),
               // Campos dinâmicos
               isDynamic: conquista.achievementData?.isDynamic || false,
               dynamicType: conquista.achievementData?.dynamicType || null,
               dynamicKey: conquista.achievementData?.dynamicKey || null,
               dynamicLevel: conquista.achievementData?.dynamicLevel || null,
               category: conquista.achievementData?.category || "audits",
-            };
-          });
+            });
+          }));
 
           // Atualizar também os dados de achievements no objeto do usuário para garantir consistência
           if (response.data.achievements) {
@@ -2336,6 +2705,8 @@ export default {
         );
         // Em caso de erro, usar as conquistas do modelo MetricasUsuario como fallback
         this.processarConquistasUsuario();
+      } finally {
+        this.carregandoConquistas = false;
       }
     },
 
@@ -2344,8 +2715,8 @@ export default {
       const conquistasUsuario = this.usuario.achievements?.achievements || [];
 
       // Mapear as conquistas do usuário para o formato esperado pelo template
-      this.todasConquistas = conquistasUsuario.map((conquista) => {
-        return {
+      this.todasConquistas = Object.freeze(conquistasUsuario.map((conquista) => {
+        return Object.freeze({
           achievementId: conquista.achievementId,
           title:
             conquista.achievementData?.title ||
@@ -2362,18 +2733,18 @@ export default {
             conquista.fixedXpValue || conquista.achievementData?.points || 0,
           desbloqueada: conquista.unlocked || false,
           unlockedAt: conquista.unlockedAt,
-          progress: conquista.progress || {},
+          progress: Object.freeze(conquista.progress || {}),
           progresso: conquista.progress?.percentage || 0,
-          criteria:
-            conquista.achievementData?.criteria || conquista.criteria || {},
+          criteria: Object.freeze(
+            conquista.achievementData?.criteria || conquista.criteria || {}),
           // Campos dinâmicos
           isDynamic: conquista.achievementData?.isDynamic || false,
           dynamicType: conquista.achievementData?.dynamicType || null,
           dynamicKey: conquista.achievementData?.dynamicKey || null,
           dynamicLevel: conquista.achievementData?.dynamicLevel || null,
           category: conquista.achievementData?.category || "audits",
-        };
-      });
+        });
+      }));
     },
 
     obterIniciais(nome) {
@@ -2526,6 +2897,21 @@ export default {
       }
     },
 
+    // Controle de "ver mais" por seção
+    toggleSecao(secao) {
+      this.secoesExpandidas = {
+        ...this.secoesExpandidas,
+        [secao]: !this.secoesExpandidas[secao],
+      };
+    },
+
+    cardsVisiveis(secao, lista) {
+      if (this.secoesExpandidas[secao]) {
+        return lista;
+      }
+      return lista.slice(0, this.limiteCards);
+    },
+
     // Método para abrir o modal de detalhes da conquista
     abrirModalDetalhes(conquista) {
       this.conquistaSelecionada = conquista;
@@ -2555,7 +2941,158 @@ export default {
 .loading-container,
 .error-container {
   text-align: center;
-  padding: 60px 20px;
+  padding: 0;
+}
+
+/* ===== SKELETON LOADING ===== */
+@keyframes skeletonPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.skeleton-pulse {
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-profile {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.skeleton-cover {
+  height: 180px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.skeleton-avatar-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 0 24px;
+  margin-top: -40px;
+}
+
+.skeleton-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #d1d5db;
+  border: 4px solid #fff;
+  flex-shrink: 0;
+}
+
+.skeleton-info {
+  padding-bottom: 12px;
+}
+
+.skeleton-line {
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+
+.skeleton-stats {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.skeleton-stat {
+  flex: 1;
+  height: 60px;
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px 16px;
+}
+
+.skeleton-tab {
+  width: 100px;
+  height: 36px;
+  background: #e2e8f0;
+  border-radius: 8px;
+}
+
+.skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.skeleton-card {
+  height: 140px;
+  background: #e2e8f0;
+  border-radius: 12px;
+}
+
+/* Skeleton de conquistas carregando */
+.conquistas-skeleton {
+  padding: 1rem 0;
+}
+
+.skeleton-achievement-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+}
+
+.skeleton-ach-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.skeleton-ach-title {
+  width: 70%;
+  height: 16px;
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.skeleton-ach-desc {
+  width: 90%;
+  height: 12px;
+  background: #dde3ea;
+  border-radius: 4px;
+}
+
+.skeleton-ach-footer {
+  width: 50%;
+  height: 14px;
+  background: #d1d5db;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+/* ===== AVATAR LAZY LOADING ===== */
+.avatar-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  border: 4px solid white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== TRANSIÇÃO SUAVE DO VER MAIS ===== */
+.conquistas-grid {
+  transition: max-height 0.4s ease;
 }
 
 @keyframes spin {
@@ -2834,7 +3371,7 @@ export default {
   object-fit: cover;
   border: 4px solid white;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.4s ease;
 }
 
 .avatar-img:hover {
