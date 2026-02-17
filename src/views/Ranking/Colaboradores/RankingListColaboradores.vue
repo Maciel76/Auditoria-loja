@@ -171,13 +171,6 @@
 
             <template v-if="tipoAuditoria === 'todos'">
               <div class="metric-item">
-                <i class="fas fa-clipboard-list"></i>
-                <span
-                  >{{ formatarPorcentagem(usuario.eficiencia) }}%
-                  eficiência</span
-                >
-              </div>
-              <div class="metric-item">
                 <i class="fas fa-star"></i>
                 <span>{{ usuario.pontuacao }} itens tota</span>
               </div>

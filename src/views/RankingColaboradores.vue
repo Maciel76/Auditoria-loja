@@ -65,6 +65,7 @@
             @change="buscarDados"
             class="filter-select"
           >
+            <option value="todos">🔍 Todas as auditorias</option>
             <option value="etiqueta">🏷️ Etiqueta</option>
             <option value="presenca">👥 Presença</option>
             <option value="ruptura">📦 Ruptura</option>
@@ -82,6 +83,7 @@
             @change="buscarDados"
             class="filter-select"
           >
+            <option value="todos">🔍 Todas as auditorias</option>
             <option value="etiqueta">🏷️ Etiqueta</option>
             <option value="presenca">👥 Presença</option>
             <option value="ruptura">📦 Ruptura</option>

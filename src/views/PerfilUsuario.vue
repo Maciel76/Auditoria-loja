@@ -228,71 +228,214 @@
               </button>
             </div>
 
-            <div class="ordenacao">
-              <label>
-                <i class="fas fa-filter"></i>
-                Filtrar por Raridade:
-              </label>
-              <select v-model="filtroRaridade" class="ordenacao-select">
-                <option value="">Todas as Raridades</option>
-                <option value="Basica">Básica</option>
-                <option value="Comum">Comum</option>
-                <option value="Raro">Raro</option>
-                <option value="Epico">Épico</option>
-                <option value="Lendario">Lendário</option>
-                <option value="Diamante">Diamante</option>
-                <option value="Especial">Especial</option>
-              </select>
+            <div class="filtros-extra">
+              <div class="ordenacao">
+                <label>
+                  <i class="fas fa-gem"></i>
+                  Raridade:
+                </label>
+                <select v-model="filtroRaridade" class="ordenacao-select">
+                  <option value="">Todas</option>
+                  <option value="Basica">Básica</option>
+                  <option value="Comum">Comum</option>
+                  <option value="Raro">Raro</option>
+                  <option value="Epico">Épico</option>
+                  <option value="Lendario">Lendário</option>
+                  <option value="Diamante">Diamante</option>
+                  <option value="Especial">Especial</option>
+                </select>
+              </div>
+
+              <div class="ordenacao">
+                <label>
+                  <i class="fas fa-layer-group"></i>
+                  Categoria:
+                </label>
+                <select v-model="filtroCategoria" class="ordenacao-select">
+                  <option value="">Todas</option>
+                  <option value="static">Conquistas Gerais</option>
+                  <option value="dynamic-class">Classes de Produto</option>
+                  <option value="dynamic-local">Locais da Loja</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <!-- Grid de Conquistas -->
+          <!-- Seção de Conquistas Gerais -->
+          <div v-if="conquistasGeraisFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'static')" class="conquistas-section">
+            <h3 class="section-title" v-if="filtroCategoria === ''">
+              <i class="fas fa-trophy"></i> Conquistas Gerais
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in conquistasGeraisFiltradas"
+                :key="conquista.achievementId"
+                class="achievement-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+
+                <div class="achievement-content">
+                  <h4
+                    class="achievement-title"
+                    :class="conquista.rarity.toLowerCase() + '-title'"
+                  >
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">
+                    {{ conquista.description }}
+                  </p>
+                </div>
+
+                <div class="achievement-footer">
+                  <div
+                    class="achievement-rarity"
+                    :class="conquista.rarity.toLowerCase()"
+                  >
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Conquistas Dinâmicas - Classes de Produto -->
+          <div v-if="conquistasClasseFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'dynamic-class')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-boxes"></i> Conquistas por Classe de Produto
+              <span class="section-badge">Dinâmicas</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in conquistasClasseFiltradas"
+                :key="conquista.achievementId"
+                class="achievement-card dynamic-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div class="dynamic-level-indicator" v-if="conquista.dynamicLevel">
+                  Nv. {{ conquista.dynamicLevel }}
+                </div>
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+
+                <div class="achievement-content">
+                  <h4
+                    class="achievement-title"
+                    :class="conquista.rarity.toLowerCase() + '-title'"
+                  >
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">
+                    {{ conquista.description }}
+                  </p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.percentage || 0 }}%</span>
+                  </div>
+                </div>
+
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge classe-badge">
+                    <i class="fas fa-box"></i> Classe
+                  </span>
+                  <div
+                    class="achievement-rarity"
+                    :class="conquista.rarity.toLowerCase()"
+                  >
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção de Conquistas Dinâmicas - Locais -->
+          <div v-if="conquistasLocalFiltradas.length > 0 && (filtroCategoria === '' || filtroCategoria === 'dynamic-local')" class="conquistas-section">
+            <h3 class="section-title">
+              <i class="fas fa-map-marker-alt"></i> Conquistas por Local
+              <span class="section-badge">Dinâmicas</span>
+            </h3>
+            <div class="conquistas-grid">
+              <div
+                v-for="conquista in conquistasLocalFiltradas"
+                :key="conquista.achievementId"
+                class="achievement-card dynamic-card"
+                :class="{
+                  earned: conquista.desbloqueada,
+                  [conquista.rarity.toLowerCase()]: true,
+                }"
+                @click="abrirModalDetalhes(conquista)"
+                style="cursor: pointer"
+              >
+                <div class="dynamic-level-indicator" v-if="conquista.dynamicLevel">
+                  Nv. {{ conquista.dynamicLevel }}
+                </div>
+                <div
+                  class="achievement-icon"
+                  :class="conquista.rarity.toLowerCase() + '-icon'"
+                >
+                  {{ conquista.icon }}
+                </div>
+
+                <div class="achievement-content">
+                  <h4
+                    class="achievement-title"
+                    :class="conquista.rarity.toLowerCase() + '-title'"
+                  >
+                    {{ conquista.title }}
+                  </h4>
+                  <p class="achievement-description">
+                    {{ conquista.description }}
+                  </p>
+                  <div class="dynamic-progress-mini" v-if="conquista.progress && !conquista.desbloqueada">
+                    <div class="mini-progress-bar">
+                      <div class="mini-progress-fill" :style="{ width: (conquista.progress.percentage || 0) + '%' }"></div>
+                    </div>
+                    <span class="mini-progress-text">{{ conquista.progress.percentage || 0 }}%</span>
+                  </div>
+                </div>
+
+                <div class="achievement-footer">
+                  <span class="dynamic-type-badge local-badge">
+                    <i class="fas fa-map-pin"></i> Local
+                  </span>
+                  <div
+                    class="achievement-rarity"
+                    :class="conquista.rarity.toLowerCase()"
+                  >
+                    {{ conquista.rarity }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mensagem quando não há conquistas -->
           <div v-if="conquistasFiltradas.length === 0" class="conquistas-empty">
             <i class="fas fa-medal"></i>
             <p>Nenhuma conquista encontrada nesta categoria.</p>
           </div>
-
-          <div v-else class="conquistas-grid">
-            <div
-              v-for="conquista in conquistasFiltradas"
-              :key="conquista.achievementId"
-              class="achievement-card"
-              :class="{
-                earned: conquista.desbloqueada,
-                [conquista.rarity.toLowerCase()]: true,
-              }"
-              @click="abrirModalDetalhes(conquista)"
-              style="cursor: pointer"
-            >
-              <div
-                class="achievement-icon"
-                :class="conquista.rarity.toLowerCase() + '-icon'"
-              >
-                {{ conquista.icon }}
-              </div>
-
-              <div class="achievement-content">
-                <h4
-                  class="achievement-title"
-                  :class="conquista.rarity.toLowerCase() + '-title'"
-                >
-                  {{ conquista.title }}
-                </h4>
-                <p class="achievement-description">
-                  {{ conquista.description }}
-                </p>
-              </div>
-
-              <div
-                class="achievement-rarity"
-                :class="conquista.rarity.toLowerCase()"
-              >
-                {{ conquista.rarity }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Estatísticas Adicionais -->
           <div class="conquistas-stats">
             <div class="stat-box">
               <i class="fas fa-fire"></i>
@@ -351,6 +494,20 @@
           <p class="modal-description">
             {{ conquistaSelecionada?.description }}
           </p>
+
+          <!-- Info de conquista dinâmica -->
+          <div v-if="conquistaSelecionada?.isDynamic" class="dynamic-info-banner">
+            <div class="dynamic-banner-content">
+              <i :class="conquistaSelecionada?.dynamicType === 'classe' ? 'fas fa-boxes' : 'fas fa-map-marker-alt'"></i>
+              <span>
+                {{ conquistaSelecionada?.dynamicType === 'classe' ? 'Classe de Produto' : 'Local da Loja' }}:
+                <strong>{{ conquistaSelecionada?.dynamicKey }}</strong>
+              </span>
+              <span class="dynamic-level-badge" v-if="conquistaSelecionada?.dynamicLevel">
+                Nível {{ conquistaSelecionada?.dynamicLevel }}
+              </span>
+            </div>
+          </div>
 
           <div class="modal-info-grid">
             <div class="info-item">
@@ -1027,14 +1184,28 @@
 .achievement-description {
   font-size: 0.9rem;
   color: #555;
-  line-height: 1.6;
+  line-height: 1.4;
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.8em;
+  max-height: 2.8em;
 }
 
-.achievement-rarity {
+.achievement-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.achievement-rarity {
   padding: 0.4rem 1.2rem;
   font-size: 0.75rem;
   font-weight: 600;
@@ -1045,6 +1216,157 @@
   justify-content: center;
   text-transform: uppercase;
   z-index: 2;
+}
+
+/* Seções de conquista */
+.conquistas-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #eee;
+}
+
+.section-title i {
+  color: #f59e0b;
+}
+
+.section-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Card dinâmico */
+.dynamic-card {
+  position: relative;
+}
+
+.dynamic-level-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-bottom-right-radius: 10px;
+  z-index: 3;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Mini progress bar nos cards dinâmicos */
+.dynamic-progress-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.mini-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.mini-progress-text {
+  font-size: 0.65rem;
+  color: #888;
+  font-weight: 600;
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Badges de tipo dinâmico */
+.dynamic-type-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  border-bottom-left-radius: 0;
+}
+
+.classe-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.local-badge {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+/* Filtros extras */
+.filtros-extra {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.filtros-extra .ordenacao {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Banner de info dinâmica no modal */
+.dynamic-info-banner {
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #c7d2fe;
+}
+
+.dynamic-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #4338ca;
+  flex-wrap: wrap;
+}
+
+.dynamic-banner-content i {
+  font-size: 1rem;
+}
+
+.dynamic-level-badge {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-left: auto;
 }
 
 /* Cores de Raridade */
@@ -1391,6 +1713,8 @@
 
   .achievement-description {
     font-size: 0.85rem;
+    min-height: 2.6em;
+    max-height: 2.6em;
   }
 
   .achievement-rarity {
@@ -1429,7 +1753,9 @@
 
   .achievement-description {
     font-size: 0.8rem;
-    line-height: 1.5;
+    line-height: 1.4;
+    min-height: 2.5em;
+    max-height: 2.5em;
   }
 
   .achievement-rarity {
@@ -1517,6 +1843,7 @@ export default {
       showCoverSelector: false,
       filtroAtivo: "desbloqueadas", // Alterado de "todas" para "desbloqueadas"
       filtroRaridade: "", // Filtro por raridade específico
+      filtroCategoria: "", // Filtro por categoria (static, dynamic-class, dynamic-local)
       ordenacaoAtiva: "padrao",
       abaAtiva: "conquistas",
       mostrarModalDetalhes: false,
@@ -1658,6 +1985,15 @@ export default {
         conquistas = conquistas.filter((c) => c.rarity === this.filtroRaridade);
       }
 
+      // Aplicar filtro por categoria
+      if (this.filtroCategoria) {
+        if (this.filtroCategoria === "static") {
+          conquistas = conquistas.filter((c) => !c.isDynamic);
+        } else {
+          conquistas = conquistas.filter((c) => c.category === this.filtroCategoria);
+        }
+      }
+
       // Aplicar ordenação
       switch (this.ordenacaoAtiva) {
         case "xp-desc":
@@ -1686,6 +2022,21 @@ export default {
         default:
           return conquistas;
       }
+    },
+
+    // Conquistas gerais (estáticas) filtradas
+    conquistasGeraisFiltradas() {
+      return this.conquistasFiltradas.filter((c) => !c.isDynamic);
+    },
+
+    // Conquistas dinâmicas de classe filtradas
+    conquistasClasseFiltradas() {
+      return this.conquistasFiltradas.filter((c) => c.category === "dynamic-class");
+    },
+
+    // Conquistas dinâmicas de local filtradas
+    conquistasLocalFiltradas() {
+      return this.conquistasFiltradas.filter((c) => c.category === "dynamic-local");
     },
 
     xpTotal() {
@@ -1954,10 +2305,16 @@ export default {
                 0,
               desbloqueada: conquista.unlocked || false,
               unlockedAt: conquista.unlockedAt,
-              progress: conquista.progress || {}, // Manter o objeto completo de progresso
-              progresso: conquista.progress?.percentage || 0, // Manter para compatibilidade
+              progress: conquista.progress || {},
+              progresso: conquista.progress?.percentage || 0,
               criteria:
                 conquista.achievementData?.criteria || conquista.criteria || {},
+              // Campos dinâmicos
+              isDynamic: conquista.achievementData?.isDynamic || false,
+              dynamicType: conquista.achievementData?.dynamicType || null,
+              dynamicKey: conquista.achievementData?.dynamicKey || null,
+              dynamicLevel: conquista.achievementData?.dynamicLevel || null,
+              category: conquista.achievementData?.category || "audits",
             };
           });
 
@@ -2005,10 +2362,16 @@ export default {
             conquista.fixedXpValue || conquista.achievementData?.points || 0,
           desbloqueada: conquista.unlocked || false,
           unlockedAt: conquista.unlockedAt,
-          progress: conquista.progress || {}, // Manter o objeto completo de progresso
-          progresso: conquista.progress?.percentage || 0, // Manter para compatibilidade
+          progress: conquista.progress || {},
+          progresso: conquista.progress?.percentage || 0,
           criteria:
             conquista.achievementData?.criteria || conquista.criteria || {},
+          // Campos dinâmicos
+          isDynamic: conquista.achievementData?.isDynamic || false,
+          dynamicType: conquista.achievementData?.dynamicType || null,
+          dynamicKey: conquista.achievementData?.dynamicKey || null,
+          dynamicLevel: conquista.achievementData?.dynamicLevel || null,
+          category: conquista.achievementData?.category || "audits",
         };
       });
     },

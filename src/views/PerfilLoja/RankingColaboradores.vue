@@ -195,7 +195,16 @@
 
     <!-- Top 3 Pódio -->
     <div class="podium-section">
-      <h3 class="section-title">Top Performers</h3>
+      <h3 class="section-title">
+        <template v-if="usarPeriodoCompleto ? filtroTipoAuditoriaCompleto === 'todos' : filtroTipoAuditoria === 'todos'">
+          Top Colaboradores de todas as Auditorias
+        </template>
+        <template v-else>
+          Top Performers Auditoria {{ getTipoAuditoriaName(usarPeriodoCompleto ? filtroTipoAuditoriaCompleto : filtroTipoAuditoria) }}
+          <template v-if="!usarPeriodoCompleto">Diária</template>
+          <template v-else>Período Completo</template>
+        </template>
+      </h3>
       <div class="podium-container">
         <!-- Segundo Lugar -->
         <div class="podium-item segundo" v-if="colaboradores.length >= 2">

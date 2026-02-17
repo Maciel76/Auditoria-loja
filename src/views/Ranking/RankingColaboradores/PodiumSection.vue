@@ -1,13 +1,13 @@
 <template>
   <div class="podium-section">
     <h2 class="section-title">
-      <template v-if="filtroTipo === 'diario'">
-        Top Performers Auditoria
-        {{ getTipoAuditoriaName(tipoAuditoria) }} Diária
+      <template v-if="tipoAuditoria === 'todos'">
+        Top Colaboradores de todas as Auditorias
       </template>
       <template v-else>
-        Top Performers {{ getTipoAuditoriaName(tipoAuditoria) }} Período
-        Completo
+        Top Performers Auditoria {{ getTipoAuditoriaName(tipoAuditoria) }}
+        <template v-if="filtroTipo === 'diario'">Diária</template>
+        <template v-else>Período Completo</template>
       </template>
     </h2>
     <div class="podium-container">
