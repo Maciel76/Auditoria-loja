@@ -151,22 +151,7 @@
                   }}</span
                 >
               </div>
-              <div class="metric-item">
-                <i class="fas fa-chart-bar"></i>
-                <span
-                  >R$
-                  {{
-                    formatarMoeda(
-                      getMetricaEspecifica(
-                        usuario,
-                        "rupturas",
-                        "custoMedioRuptura"
-                      )
-                    )
-                  }}
-                  médio</span
-                >
-              </div>
+              <!-- Valor médio oculto temporariamente -->
             </template>
 
             <template v-if="tipoAuditoria === 'todos'">

@@ -2,6 +2,15 @@
   <div class="hero-section">
     <div class="hero-cover">
       <div class="cover-pattern"></div>
+      <div class="hero-cover-actions">
+        <button @click="$emit('trocarLoja')" class="btn-trocar-loja" title="Trocar Loja">
+          <i class="fas fa-exchange-alt"></i>
+          Trocar Loja
+        </button>
+        <button @click="$emit('recarregar')" class="btn-icon-refresh" title="Recarregar">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
       <div class="hero-medals">
         <div class="medal silver floating">
           <img
@@ -97,6 +106,7 @@ export default {
       default: "todos",
     },
   },
+  emits: ['trocarLoja', 'recarregar'],
   methods: {
     getTipoAuditoriaName(tipo) {
       const tipos = {
@@ -134,6 +144,60 @@ export default {
   align-items: center;
   justify-content: flex-end;
   padding: 1rem 2rem;
+}
+
+.hero-cover-actions {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.btn-trocar-loja {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.85rem;
+  backdrop-filter: blur(10px);
+}
+
+.btn-trocar-loja:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-icon-refresh {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+}
+
+.btn-icon-refresh:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .cover-pattern {

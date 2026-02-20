@@ -27,6 +27,14 @@
       </button>
       <button
         class="nav-tab"
+        :class="{ active: abaAtiva === 'tarefas' }"
+        @click="$emit('mudar-aba', 'tarefas')"
+      >
+        <i class="fas fa-tasks"></i>
+        <span>Tarefas</span>
+      </button>
+      <button
+        class="nav-tab"
         :class="{ active: abaAtiva === 'colegas' }"
         @click="$emit('mudar-aba', 'colegas')"
       >

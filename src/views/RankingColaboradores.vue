@@ -1,5 +1,45 @@
 <template>
   <div class="ranking-colaboradores-container">
+    <!-- Seletor de Loja (quando nenhuma loja selecionada) -->
+    <div v-if="!lojaStore.isLojaSelected" class="loja-selection">
+      <div class="loja-selection-content">
+        <div class="loja-selection-icon">
+          <i class="fas fa-store"></i>
+        </div>
+        <h2>Selecione uma Loja</h2>
+        <p>
+          Para visualizar o ranking de colaboradores, selecione uma loja
+          primeiro.
+        </p>
+
+        <div class="lojas-grid">
+          <div
+            v-for="loja in lojasDisponiveis"
+            :key="loja.codigo"
+            class="loja-card"
+            @click="selecionarLoja(loja)"
+            :class="{ loading: carregando }"
+          >
+            <div class="loja-image">
+              <img :src="loja.imagem" :alt="loja.nome" @error="handleImageError" />
+            </div>
+            <div class="loja-info">
+              <h3>{{ loja.nome }}</h3>
+              <p><i class="fas fa-map-marker-alt"></i> {{ loja.cidade }}</p>
+              <span class="loja-codigo">{{ loja.codigo }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="erro" class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          {{ erro }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteúdo Principal (apenas quando loja selecionada) -->
+    <div v-else>
     <!-- Indicador de Período -->
     <div v-if="usarPeriodoCompleto" class="periodo-indicator">
       <i class="fas fa-calendar-alt"></i>
@@ -24,6 +64,8 @@
       :totalItensLidos="totalItensLidos"
       :mediaItensPorUsuario="mediaItensPorUsuario"
       :tipoAuditoria="filtroTipoAuditoria"
+      @trocarLoja="trocarLoja"
+      @recarregar="buscarDados"
     />
 
     <!-- Controles e Filtros Unificados -->
@@ -88,6 +130,30 @@
             <option value="presenca">👥 Presença</option>
             <option value="ruptura">📦 Ruptura</option>
           </select>
+        </div>
+
+        <!-- Ordenação por Ruptura (visível apenas quando tipo = ruptura) -->
+        <div v-if="tipoAuditoriaAtual === 'ruptura'" class="filter-group">
+          <label class="filter-label">
+            <i class="fas fa-sort-amount-down"></i>
+            Ordenar por:
+          </label>
+          <div class="view-options">
+            <button
+              @click="ordenacaoRuptura = 'itens'"
+              :class="['view-btn', { active: ordenacaoRuptura === 'itens' }]"
+            >
+              <i class="fas fa-box-open"></i>
+              Itens
+            </button>
+            <button
+              @click="ordenacaoRuptura = 'valor'"
+              :class="['view-btn', { active: ordenacaoRuptura === 'valor' }]"
+            >
+              <i class="fas fa-dollar-sign"></i>
+              Valor (R$)
+            </button>
+          </div>
         </div>
 
         <!-- Controles de Visualização -->
@@ -206,6 +272,7 @@
         Verifique se há planilhas processadas para esta loja.
       </p>
     </div>
+    </div><!-- fim v-else conteúdo principal -->
   </div>
 </template>
 
@@ -241,13 +308,41 @@ export default {
     const filtroTipoAuditoria = ref("etiqueta"); // Para UserDailyMetrics
     const filtroTipoAuditoriaCompleto = ref("etiqueta"); // Para MetricasUsuario
     const usarPeriodoCompleto = ref(false);
+    const ordenacaoRuptura = ref("itens"); // 'itens' ou 'valor'
 
     const carregando = ref(false);
     const erro = ref("");
 
+    const lojasDisponiveis = ref([
+      { codigo: "056", nome: "Loja 056 - Goiania Burits", cidade: "Goiânia", imagem: "/images/lojas/056.jpg" },
+      { codigo: "084", nome: "Loja 084 - Goiania Independência", cidade: "Goiânia", imagem: "/images/lojas/084.jpg" },
+      { codigo: "105", nome: "Loja 105 - T9", cidade: "Goiânia", imagem: "/images/lojas/105.jpg" },
+      { codigo: "111", nome: "Loja 111 - Rio Verde", cidade: "Rio Verde", imagem: "/images/lojas/111.jpg" },
+      { codigo: "140", nome: "Loja 140 - Perimetral", cidade: "Goiânia", imagem: "/images/lojas/140.jpg" },
+      { codigo: "214", nome: "Loja 214 - Caldas Novas", cidade: "Caldas Novas", imagem: "/images/lojas/214.jpg" },
+      { codigo: "176", nome: "Loja 176 - Palmas Teotônio", cidade: "Palmas", imagem: "/images/lojas/176.jpg" },
+      { codigo: "194", nome: "Loja 194 - Anápolis", cidade: "Anápolis", imagem: "/images/lojas/194.jpg" },
+      { codigo: "310", nome: "Loja 310 - Portugal", cidade: "Goiânia", imagem: "/images/lojas/310.jpg" },
+      { codigo: "320", nome: "Loja 320 - Palmas cesamar", cidade: "Palmas", imagem: "/images/lojas/320.jpg" },
+      { codigo: "347", nome: "Loja 347 - Araguaina", cidade: "Araguaina", imagem: "/images/lojas/347.jpeg" },
+      { codigo: "348", nome: "Loja 348 - Aparecida", cidade: "Aparecida", imagem: "/images/lojas/348.jpg" },
+    ]);
+
     // Computadas
+    const tipoAuditoriaAtual = computed(() => {
+      return usarPeriodoCompleto.value ? filtroTipoAuditoriaCompleto.value : filtroTipoAuditoria.value;
+    });
+
     const usuariosOrdenados = computed(() => {
-      return [...usuarios.value].sort((a, b) => b.contador - a.contador);
+      const lista = [...usuarios.value];
+      if (tipoAuditoriaAtual.value === 'ruptura' && ordenacaoRuptura.value === 'valor') {
+        return lista.sort((a, b) => {
+          const valorA = a.metricas?.rupturas?.custoTotalRuptura || 0;
+          const valorB = b.metricas?.rupturas?.custoTotalRuptura || 0;
+          return valorB - valorA;
+        });
+      }
+      return lista.sort((a, b) => b.contador - a.contador);
     });
 
     const usuariosFiltradosOrdenados = computed(() => {
@@ -384,6 +479,33 @@ export default {
       } finally {
         carregando.value = false;
       }
+    };
+
+    const trocarLoja = () => {
+      lojaStore.limparLoja();
+      usuarios.value = [];
+    };
+
+    const selecionarLoja = async (loja) => {
+      try {
+        carregando.value = true;
+        erro.value = "";
+        const sucesso = await lojaStore.selecionarLoja(loja);
+        if (sucesso) {
+          await buscarDados();
+        } else {
+          erro.value = "Erro ao validar loja. Tente novamente.";
+        }
+      } catch (error) {
+        erro.value = "Erro ao validar loja. Tente novamente.";
+        console.error("Erro ao selecionar loja:", error);
+      } finally {
+        carregando.value = false;
+      }
+    };
+
+    const handleImageError = (event) => {
+      event.target.src = "/images/lojas/default.jpg";
     };
 
     const obterIniciais = (nome) => {
@@ -702,11 +824,13 @@ export default {
       filtroTipoAuditoria,
       filtroTipoAuditoriaCompleto,
       usarPeriodoCompleto,
+      ordenacaoRuptura,
       carregando,
       erro,
       lojaStore,
 
       // Computadas
+      tipoAuditoriaAtual,
       usuariosOrdenados,
       usuariosFiltradosOrdenados,
       totalItensLidos,
@@ -714,12 +838,18 @@ export default {
       topPerformer,
       percentualAboveAverage,
 
+      // Dados
+      lojasDisponiveis,
+
       // Métodos
       getTipoAuditoriaName,
       buscarDados,
       setPeriodo,
       exportarRanking,
       gerarImagemParaCompartilhar,
+      trocarLoja,
+      selecionarLoja,
+      handleImageError,
     };
   },
 };
@@ -735,6 +865,120 @@ export default {
   font-family: "Inter", sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
+}
+
+/* ===== SELEÇÃO DE LOJA ===== */
+.loja-selection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.loja-selection-content {
+  background: white;
+  border-radius: 20px;
+  padding: 3rem;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
+  width: 100%;
+}
+
+.loja-selection-icon {
+  font-size: 4rem;
+  color: #667eea;
+  margin-bottom: 2rem;
+}
+
+.loja-selection-content h2 {
+  font-size: 2.5rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.loja-selection-content p {
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-bottom: 3rem;
+}
+
+.lojas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.loja-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 15px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.loja-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+.loja-card.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loja-image {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #e2e8f0;
+}
+
+.loja-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loja-info h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.loja-info p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.loja-codigo {
+  background: #667eea;
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: center;
 }
 
 /* ===== INDICADOR DE PERÍODO ===== */

@@ -185,6 +185,9 @@
         <!-- Minha Auditoria -->
         <MinhaAuditoria v-if="abaAtiva === 'auditoria'" :usuario="usuario" />
 
+        <!-- Minhas Tarefas de Auditoria -->
+        <MinhasTarefas v-if="abaAtiva === 'tarefas'" :usuario="usuario" />
+
         <!-- Colegas da Mesma Loja -->
         <ColegasLoja
           v-if="abaAtiva === 'colegas' && usuario.loja && usuario.loja.nome"
@@ -2109,6 +2112,7 @@ const UserCoverSelector = defineAsyncComponent(() => import("@/components/UserCo
 const ColegasLoja = defineAsyncComponent(() => import("@/components/ColegasLoja.vue"));
 const NavegacaoRankings = defineAsyncComponent(() => import("@/components/NavegacaoRankings.vue"));
 const MinhaAuditoria = defineAsyncComponent(() => import("@/views/Perfiltemplate/MinhaAuditoria.vue"));
+const MinhasTarefas = defineAsyncComponent(() => import("@/views/Perfiltemplate/MinhasTarefas.vue"));
 const ProgressoUsuario = defineAsyncComponent(() => import("@/views/Perfiltemplate/ProgressoUsuario.vue"));
 
 export default {
@@ -2119,6 +2123,7 @@ export default {
     NavegacaoRankings,
     PerfilNavegacao,
     MinhaAuditoria,
+    MinhasTarefas,
     ProgressoUsuario,
   },
   props: {

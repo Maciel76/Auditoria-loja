@@ -40,6 +40,10 @@
             <span class="icon">📊</span>
             {{ usuariosOrdenados[1].contador }} itens
           </div>
+          <div v-if="tipoAuditoria === 'ruptura'" class="ruptura-value silver">
+            <i class="fas fa-dollar-sign"></i>
+            R$ {{ formatarMoeda(getMetricaRuptura(usuariosOrdenados[1], 'custoTotalRuptura')) }}
+          </div>
         </div>
       </div>
 
@@ -76,6 +80,10 @@
             />
             {{ usuariosOrdenados[0].contador }} itens
           </div>
+          <div v-if="tipoAuditoria === 'ruptura'" class="ruptura-value gold">
+            <i class="fas fa-dollar-sign"></i>
+            R$ {{ formatarMoeda(getMetricaRuptura(usuariosOrdenados[0], 'custoTotalRuptura')) }}
+          </div>
         </div>
       </div>
 
@@ -107,6 +115,10 @@
           <div class="score-badge bronze">
             <span class="icon">📊</span>
             {{ usuariosOrdenados[2].contador }} itens
+          </div>
+          <div v-if="tipoAuditoria === 'ruptura'" class="ruptura-value bronze">
+            <i class="fas fa-dollar-sign"></i>
+            R$ {{ formatarMoeda(getMetricaRuptura(usuariosOrdenados[2], 'custoTotalRuptura')) }}
           </div>
         </div>
       </div>
@@ -143,6 +155,17 @@ export default {
     },
     irParaPerfil(usuarioId) {
       window.location.href = `/perfil/${usuarioId}`;
+    },
+    getMetricaRuptura(usuario, campo) {
+      if (!usuario.metricas || !usuario.metricas.rupturas) return 0;
+      return usuario.metricas.rupturas[campo] || 0;
+    },
+    formatarMoeda(valor) {
+      if (!valor) return "0,00";
+      return new Intl.NumberFormat("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(valor);
     },
   },
 };
@@ -337,6 +360,40 @@ export default {
 
 .clickable-profile:active {
   transform: scale(0.98);
+}
+
+/* ===== VALOR RUPTURA NO PÓDIO ===== */
+.ruptura-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.ruptura-value i {
+  font-size: 0.8rem;
+}
+
+.ruptura-value.gold {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #b45309;
+  border: 1px solid #f59e0b;
+}
+
+.ruptura-value.silver {
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  color: #475569;
+  border: 1px solid #94a3b8;
+}
+
+.ruptura-value.bronze {
+  background: linear-gradient(135deg, #fff7ed, #fed7aa);
+  color: #c2410c;
+  border: 1px solid #fb923c;
 }
 
 @media (max-width: 768px) {
