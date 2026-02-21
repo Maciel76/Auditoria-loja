@@ -1,27 +1,28 @@
 <template>
-  <div class="insights-container">
+  <div class="insights-container" ref="insightsContainerRef">
     <!-- Header -->
     <div class="header">
       <div class="header-left">
         <div class="icon-title">
-          <div class="icon-area">
+            <div class="icon-area">
             <svg
-              width="28"
-              height="28"
+              width="52"
+              height="48"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M21 8C19.55 8 18.74 9.44 19.07 10.51L15.52 14.07C15.22 13.98 14.78 13.98 14.48 14.07L11.93 11.52C12.27 10.45 11.46 9 10 9C8.55 9 7.73 10.44 8.07 11.52L3.51 16.07C2.44 15.74 1 16.55 1 18C1 19.65 2.35 21 4 21C5.45 21 6.26 19.56 5.93 18.49L10.49 13.93C10.79 14.02 11.21 14.02 11.51 13.93L14.07 16.49C13.73 17.55 14.54 19 16 19C17.65 19 19 17.65 19 16C19 14.35 17.65 13 16 13C14.55 13 13.73 14.44 14.07 15.52L11.52 18.07C11.22 17.98 10.78 17.98 10.48 18.07L5.93 13.51C6.26 12.44 5.45 11 4 11C2.35 11 1 12.35 1 14C1 15.55 2.45 16 4 16C4.78 16 5.91 15.73 6.48 15.07L11.04 10.51C11.36 10.81 11.79 11 12.25 11C12.71 11 13.14 10.81 13.46 10.51L18.02 15.07C18.59 15.73 19.72 16 20.5 16C21.33 16 22 15.33 22 14.5C22 13.67 21.33 13 20.5 13C19.67 13 19 13.67 19 14.5C19 14.78 19.09 15.05 19.26 15.26L16.74 12.74C16.95 12.91 17.22 13 17.5 13C18.33 13 19 12.33 19 11.5C19 10.67 18.33 10 17.5 10C16.67 10 16 10.67 16 11.5C16 11.78 16.09 12.05 16.26 12.26L12.74 8.74C12.95 8.91 13.22 9 13.5 9C14.33 9 15 8.33 15 7.5C15 6.67 14.33 6 13.5 6C12.67 6 12 6.67 12 7.5C12 7.78 12.09 8.05 12.26 8.26L8.74 4.74C8.95 4.91 9.22 5 9.5 5C10.33 5 11 4.33 11 3.5C11 2.67 10.33 2 9.5 2C8.67 2 8 2.67 8 3.5C8 3.78 8.09 4.05 8.26 4.26L4.74 7.78C4.95 7.61 5.22 7.5 5.5 7.5C6.33 7.5 7 6.83 7 6C7 5.17 6.33 4.5 5.5 4.5C4.67 4.5 4 5.17 4 6C4 6.28 4.09 6.55 4.26 6.76L1.74 9.28C1.55 9.09 1.28 9 1 9C0.45 9 0 9.45 0 10C0 10.55 0.45 11 1 11C1.28 11 1.55 10.91 1.74 10.72L4.26 13.24C4.09 13.45 4 13.72 4 14C4 14.55 4.45 15 5 15C5.55 15 6 14.55 6 14C6 13.72 5.91 13.45 5.72 13.28L9.24 9.76C9.45 9.91 9.72 10 10 10C10.55 10 11 9.55 11 9C11 8.45 10.55 8 10 8C9.72 8 9.45 8.09 9.24 8.28L12.76 11.8C12.59 12.01 12.5 12.28 12.5 12.5C12.5 13.05 12.95 13.5 13.5 13.5C14.05 13.5 14.5 13.05 14.5 12.5C14.5 11.95 14.05 11.5 13.5 11.5C13.28 11.5 13.01 11.59 12.8 11.76L16.32 15.28C16.13 15.09 15.86 15 15.5 15C14.95 15 14.5 15.45 14.5 16C14.5 16.55 14.95 17 15.5 17C16.05 17 16.5 16.55 16.5 16C16.5 15.72 16.41 15.45 16.22 15.28L19.74 11.76C19.55 11.91 19.28 12 19 12C18.45 12 18 11.55 18 11C18 10.45 18.45 10 19 10C19.28 10 19.55 10.09 19.74 10.28L21.72 12.26C21.91 12.45 22 12.72 22 13C22 13.55 22.45 14 23 14C23.55 14 24 13.55 24 13C24 12.45 23.55 12 23 12C22.72 12 22.45 12.09 22.26 12.28L20.28 14.26C20.09 14.45 20 14.72 20 15C20 15.55 20.45 16 21 16C21.55 16 22 15.55 22 15C22 14.45 21.55 14 21 14C20.72 14 20.45 14.09 20.26 14.28L18.28 16.26C18.09 16.45 18 16.72 18 17C18 17.55 18.45 18 19 18C19.55 18 20 17.55 20 17C20 16.72 19.91 16.45 19.72 16.28L21.72 14.28C21.91 14.45 22 14.72 22 15C22 15.55 22.45 16 23 16C23.55 16 24 15.55 24 15C24 14.45 23.55 14 23 14Z"
-                fill="currentColor"
+              d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM9 17H7V10H9V17ZM13 17H11V7H13V17ZM17 17H15V12H17V17Z"
+              fill="currentColor"
               />
             </svg>
-          </div>
+            </div>
           <div class="text-content">
-            <div class="titulo">Insights da Loja</div>
+            <div class="titulo" style="text-transform: capitalize;">Insights Auditoria de <span class="stileTipoAudit">{{ tipoInsightAtual }}</span>  {{ dataUltimaAuditoria || 'dd/mês/ano' }}</div>
+            
             <div class="descricao">
-              Análises inteligentes e recomendações para melhorar o desempenho
+              Analize da última auditoria de <span class="stileTipoAudit">{{ tipoInsightAtual }}</span> destacando pontos fortes e áreas de melhoria para otimizar a operação.
             </div>
           </div>
         </div>
@@ -50,437 +51,311 @@
             Ruptura
           </button>
         </div>
+        <button @click="gerarImagemParaCompartilhar" class="share-button" :disabled="compartilhando">
+          <svg v-if="!compartilhando" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.35C15.11 18.56 15.08 18.78 15.08 19C15.08 20.61 16.39 21.92 18 21.92C19.61 21.92 20.92 20.61 20.92 19C20.92 17.39 19.61 16.08 18 16.08Z" fill="currentColor" />
+          </svg>
+          <svg v-else class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor" />
+          </svg>
+          {{ compartilhando ? 'Gerando...' : 'Compartilhar' }}
+        </button>
       </div>
     </div>
 
-    <!-- Stats Overview -->
+    <!-- Stats Overview - Dinâmico por filtro -->
     <div class="stats-overview">
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon primary">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM10.5 17.5L8 15L9.41 13.59L10.5 14.67L13.59 11.59L15 13L10.5 17.5Z"
-                fill="currentColor"
-              />
+        <div class="stat-card" v-for="(card, index) in statsCardsConfig" :key="tipoInsightAtual + '-' + index">
+          <div class="stat-icon" :class="card.iconType">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path :d="card.iconPath" fill="currentColor" />
             </svg>
           </div>
           <div class="stat-content">
-            <span class="stat-value">{{ itensAuditados }}</span>
-            <span class="stat-label">Itens Auditados</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon warning">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">{{ valorRuptura }}</span>
-            <span class="stat-label">Ruptura</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon success">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">{{ aderencia }}</span>
-            <span class="stat-label">Aderência</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon info">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"
-                fill="currentColor"
-              />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">{{ itensPorColaborador }}</span>
-            <span class="stat-label">Itens / Colaborador</span>
+            <span class="stat-value">{{ card.value }}</span>
+            <span class="stat-label">{{ card.label }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Grid de Insights -->
+    <!-- Grid de Insights - Dinâmico por filtro -->
     <div class="insights-grid">
-      <!-- Performance -->
+
+      <!-- 1. Performance -->
       <div class="insight-card performance">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Performance</h3>
-            <p class="card-subtitle">Desempenho por setor</p>
+            <h3>{{ perfData.titulo }}</h3>
+            <p class="card-subtitle">{{ perfData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
           <div class="metric-list">
             <div class="metric-item">
               <div class="metric-info">
-                <span class="metric-label">Setor Destaque</span>
-                <span class="metric-value">{{ setorDestaque.nome }}</span>
+                <span class="metric-label">{{ perfData.destaque.label }}</span>
+                <span class="metric-value">{{ perfData.destaque.nome }}</span>
               </div>
-              <div class="metric-badge positive">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-                </svg>
-                {{ setorDestaque.valor }}
+              <div class="metric-right">
+                <span class="fraction-text">{{ perfData.destaque.lidos }}/{{ perfData.destaque.total }}</span>
+                <div class="metric-badge" :class="calcPercent(perfData.destaque.lidos, perfData.destaque.total) >= 50 ? 'positive' : 'negative'">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path :d="calcPercent(perfData.destaque.lidos, perfData.destaque.total) >= 50 ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
+                  </svg>
+                  {{ calcPercent(perfData.destaque.lidos, perfData.destaque.total) }}%
+                </div>
               </div>
             </div>
             <div class="metric-item">
               <div class="metric-info">
-                <span class="metric-label">Setor Crítico</span>
-                <span class="metric-value">{{ setorCritico.nome }}</span>
+                <span class="metric-label">{{ perfData.critico.label }}</span>
+                <span class="metric-value">{{ perfData.critico.nome }}</span>
               </div>
-              <div class="metric-badge negative">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
-                </svg>
-                {{ setorCritico.valor }}
+              <div class="metric-right">
+                <span class="fraction-text">{{ perfData.critico.lidos }}/{{ perfData.critico.total }}</span>
+                <div class="metric-badge" :class="calcPercent(perfData.critico.lidos, perfData.critico.total) >= 50 ? 'positive' : 'negative'">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path :d="calcPercent(perfData.critico.lidos, perfData.critico.total) >= 50 ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
+                  </svg>
+                  {{ calcPercent(perfData.critico.lidos, perfData.critico.total) }}%
+                </div>
               </div>
             </div>
           </div>
-           <div class="progress-section">
+          <div class="progress-section">
             <div class="progress-header">
-              <span class="progress-label">Aderência Geral</span>
-              <span class="progress-value">{{ aderencia }}</span>
+              <span class="progress-label">{{ perfData.aderencia.label }}</span>
+              <span class="progress-value">{{ perfData.aderencia.valor }}%</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: aderencia }"></div>
+              <div class="progress-fill" :style="{ width: perfData.aderencia.valor + '%' }"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Alertas -->
+      <!-- 2. Alertas -->
       <div class="insight-card alertas">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Alertas Críticos</h3>
-            <p class="card-subtitle">Atenção necessária</p>
+            <h3>{{ alertasData.titulo }}</h3>
+            <p class="card-subtitle">{{ alertasData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
           <div class="alert-list">
-            <div class="alert-item critical" v-if="setorCritico.nome !== 'N/A'">
+            <div v-for="(alerta, idx) in alertasData.items" :key="'alert-' + idx" class="alert-item" :class="alerta.tipo">
               <div class="alert-indicator"></div>
               <div class="alert-content">
-                <span class="alert-title">Baixo Desempenho</span>
-                <span class="alert-description">O {{ setorCritico.nome }} está com {{ setorCritico.valor }} de aderência.</span>
-              </div>
-            </div>
-            <div class="alert-item medium" v-if="valorRuptura !== 'R$ 0,00'">
-              <div class="alert-indicator"></div>
-              <div class="alert-content">
-                <span class="alert-title">Valor de Ruptura</span>
-                <span class="alert-description">Total de {{ valorRuptura }} em produtos de ruptura.</span>
-              </div>
-            </div>
-             <div v-if="setorCritico.nome === 'N/A' && valorRuptura === 'R$ 0,00'" class="alert-item low">
-                <div class="alert-indicator"></div>
-                <div class="alert-content">
-                  <span class="alert-title">Tudo Certo!</span>
-                  <span class="alert-description">Nenhum alerta crítico para hoje.</span>
+                <span class="alert-title">{{ alerta.titulo }}</span>
+                <span class="alert-description">{{ alerta.descricao }}</span>
+                <div class="alert-progress" v-if="alerta.total">
+                  <div class="mini-progress-bar">
+                    <div class="mini-progress-fill" :class="alerta.tipo" :style="{ width: Math.round((alerta.valor / alerta.total) * 100) + '%' }"></div>
+                  </div>
+                  <span class="alert-progress-text">{{ Math.round((alerta.valor / alerta.total) * 100) }}%</span>
                 </div>
               </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Tendências -->
+      <!-- 3. Tendências / Evolução -->
       <div class="insight-card tendencias">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 6L18.29 8.29L13.41 13.17L9.41 9.17L2 16.59L3.41 18L9.41 12L13.41 16L19.71 9.71L22 12V6H16Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Tendências</h3>
-            <p class="card-subtitle">Direção do negócio</p>
+            <h3>{{ tendenciasData.titulo }}</h3>
+            <p class="card-subtitle">{{ tendenciasData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
           <div class="trend-list">
-            <div class="trend-item">
-               <div class="trend-indicator" :class="variacaoAuditorias >= 0 ? 'positive' : 'negative'">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path :d="variacaoAuditorias >= 0 ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
+            <div v-for="(item, idx) in tendenciasData.items" :key="'trend-' + idx" class="trend-item">
+              <div class="trend-indicator" :class="item.positivo ? 'positive' : 'negative'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path :d="item.positivo ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
                 </svg>
               </div>
               <div class="trend-content">
-                <span class="trend-title">Variação de Auditorias</span>
-                <span class="trend-value">{{ variacaoAuditorias }}% em relação ao período anterior</span>
+                <div class="trend-header-row">
+                  <span class="trend-title">{{ item.label }}</span>
+                  <span class="trend-badge" :class="item.positivo ? 'positive' : 'negative'">{{ item.valor }}</span>
+                </div>
+                <span class="trend-value">{{ item.descricao }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Recomendações (ainda estático) -->
+      <!-- 4. Plano de Ação / Recomendações -->
       <div class="insight-card recomendacoes">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM10.5 17.5L8 15L9.41 13.59L10.5 14.67L13.59 11.59L15 13L10.5 17.5Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Recomendações</h3>
-            <p class="card-subtitle">Ações sugeridas</p>
+            <h3>{{ recomendacoesData.titulo }}</h3>
+            <p class="card-subtitle">{{ recomendacoesData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
           <div class="recommendation-list">
-            <div class="recommendation-item">
+            <div v-for="(rec, idx) in recomendacoesData.items" :key="'rec-' + idx" class="recommendation-item">
+              <div class="rec-priority-indicator" :class="rec.cor"></div>
               <div class="recommendation-content">
-                <span class="recommendation-text"
-                  >Reforçar o time no setor {{ setorCritico.nome }}</span
-                >
-                <span class="recommendation-priority">Alta prioridade</span>
+                <span class="recommendation-text">{{ rec.texto }}</span>
+                <span class="recommendation-priority" :class="rec.cor">{{ rec.prioridade }}</span>
               </div>
-              <button class="action-btn primary">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                Aplicar
-              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Reconhecimentos -->
+      <!-- 5. Destaques da Equipe / Reconhecimentos -->
       <div class="insight-card reconhecimentos">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Reconhecimentos</h3>
-            <p class="card-subtitle">Destaques da equipe</p>
+            <h3>{{ reconhecimentosData.titulo }}</h3>
+            <p class="card-subtitle">{{ reconhecimentosData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
           <div class="recognition-list">
-            <div class="recognition-item" v-if="colaboradorDestaque.nome !== 'N/A'">
+            <div v-for="(pessoa, idx) in reconhecimentosData.items" :key="'rec-pessoa-' + idx" class="recognition-item">
               <div class="employee-avatar">
-                <!-- Avatar pode ser implementado no futuro -->
-                <img
-                  :src="`https://ui-avatars.com/api/?name=${colaboradorDestaque.nome}&background=random`"
-                  :alt="colaboradorDestaque.nome"
-                />
+                <img :src="`https://ui-avatars.com/api/?name=${pessoa.nome}&background=random`" :alt="pessoa.nome" />
               </div>
               <div class="employee-info">
-                <span class="employee-name">{{ colaboradorDestaque.nome }}</span>
-                <span class="employee-role">Colaborador Destaque</span>
-                <span class="achievement">{{ colaboradorDestaque.conquista }}</span>
+                <span class="employee-name">{{ pessoa.nome }}</span>
+                <span class="employee-role">{{ pessoa.role }}</span>
+                <span class="achievement">{{ pessoa.conquista }}</span>
               </div>
-              <div class="achievement-badge">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
-            </div>
-             <div v-else class="recognition-item">
-                <div class="employee-info">
-                    <span class="employee-name">Sem destaques hoje.</span>
-                </div>
+              <div class="achievement-badge-emoji">{{ pessoa.badge }}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Auditorias (ainda estático) -->
-      <div class="insight-card auditorias">
+      <!-- 6. Distribuição por Classe -->
+      <div class="insight-card distribuicao">
         <div class="card-header">
           <div class="card-icon">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM7 12H9V17H7V12ZM11 7H13V17H11V7ZM15 10H17V17H15V10Z"
-                fill="currentColor"
-              />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 2V22C5.9 21.5 2 17.2 2 12C2 6.8 5.9 2.5 11 2ZM13 2V11H22C21.5 6.2 17.8 2.5 13 2ZM13 13V22C17.7 21.5 21.5 17.8 22 13H13Z" fill="currentColor" />
             </svg>
           </div>
           <div class="card-title">
-            <h3>Última Auditoria</h3>
-            <p class="card-subtitle">Resultados recentes</p>
+            <h3>{{ distribuicaoData.titulo }}</h3>
+            <p class="card-subtitle">{{ distribuicaoData.subtitulo }}</p>
           </div>
         </div>
         <div class="card-content">
-          <div class="audit-stats">
-            <div class="stat-item">
-              <span class="stat-value">94%</span>
-              <span class="stat-label">Pontuação</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">12</span>
-              <span class="stat-label">Itens OK</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-value">2</span>
-              <span class="stat-label">Ajustes</span>
-            </div>
-          </div>
-          <div class="improvement-section">
-            <div class="improvement-indicator positive">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-              </svg>
-            </div>
-            <div class="improvement-content">
-              <span class="improvement-title">Melhoria Significativa</span>
-              <span class="improvement-description"
-                >Organização de estoque melhorou 30%</span
-              >
+          <div class="distribution-list">
+            <div v-for="(item, idx) in distribuicaoData.items" :key="'dist-' + idx" class="distribution-item">
+              <div class="distribution-header">
+                <span class="distribution-label">{{ item.classe }}</span>
+                <span class="distribution-values">{{ item.valor }}/{{ item.total }}</span>
+              </div>
+              <div class="distribution-bar">
+                <div class="distribution-fill" :style="{ width: calcPercent(item.valor, item.total) + '%', background: item.cor }"></div>
+              </div>
+              <span class="distribution-percent" :style="{ color: item.cor }">{{ calcPercent(item.valor, item.total) }}%</span>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- 7. Ranking por Local -->
+      <div class="insight-card ranking">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.5 21H2V9H7.5V21ZM14.75 3H9.25V21H14.75V3ZM22 11H16.5V21H22V11Z" fill="currentColor" />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>{{ rankingLocalData.titulo }}</h3>
+            <p class="card-subtitle">{{ rankingLocalData.subtitulo }}</p>
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="ranking-list">
+            <div v-for="(item, idx) in rankingLocalData.items" :key="'rank-' + idx" class="ranking-item">
+              <div class="ranking-position" :class="item.status">{{ item.posicao }}º</div>
+              <div class="ranking-info">
+                <span class="ranking-name">{{ item.nome }}</span>
+                <div class="ranking-bar-container">
+                  <div class="ranking-bar">
+                    <div class="ranking-bar-fill" :class="item.status" :style="{ width: item.valor + '%' }"></div>
+                  </div>
+                </div>
+              </div>
+              <span class="ranking-value" :class="item.status">{{ item.valor }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Resumo da Auditoria -->
+      <div class="insight-card auditorias">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM7 12H9V17H7V12ZM11 7H13V17H11V7ZM15 10H17V17H15V10Z" fill="currentColor" />
+            </svg>
+          </div>
+          <div class="card-title">
+            <h3>{{ auditoriaData.titulo }}</h3>
+            <p class="card-subtitle">{{ auditoriaData.subtitulo }}</p>
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="audit-stats">
+            <div v-for="(stat, idx) in auditoriaData.stats" :key="'audit-' + idx" class="stat-item">
+              <span class="stat-value">{{ stat.valor }}</span>
+              <span class="stat-label">{{ stat.label }}</span>
+            </div>
+          </div>
+          <div class="improvement-section" :class="auditoriaData.melhoria.positivo ? 'positive-bg' : 'negative-bg'">
+            <div class="improvement-indicator" :class="auditoriaData.melhoria.positivo ? 'positive' : 'negative'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path :d="auditoriaData.melhoria.positivo ? 'M7 14L12 9L17 14H7Z' : 'M7 10L12 15L17 10H7Z'" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="improvement-content">
+              <span class="improvement-title">{{ auditoriaData.melhoria.titulo }}</span>
+              <span class="improvement-description">{{ auditoriaData.melhoria.descricao }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Loading State -->
@@ -508,23 +383,478 @@ const carregando = computed(() => insightsStore.loading);
 const error = computed(() => insightsStore.error);
 const loja = computed(() => insightsStore.loja);
 
-// Cards de resumo
+// Cards de resumo (mantidos para uso em outros cards)
 const itensAuditados = computed(() => insightsStore.itensAuditados);
 const valorRuptura = computed(() => insightsStore.valorRuptura);
 const aderencia = computed(() => insightsStore.aderencia);
 const itensPorColaborador = computed(() => insightsStore.itensPorColaborador);
 
-// Cards de insights
+// Caminhos SVG dos ícones dos stat-cards
+const iconPaths = {
+  document: 'M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20ZM10.5 17.5L8 15L9.41 13.59L10.5 14.67L13.59 11.59L15 13L10.5 17.5Z',
+  alert: 'M1 21H23L12 2L1 21ZM13 18H11V16H13V18ZM13 14H11V10H13V14Z',
+  check: 'M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM10 17L5 12L6.41 10.59L10 14.17L17.59 6.58L19 8L10 17Z',
+  person: 'M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z',
+};
+
+// Cards de resumo dinâmicos por filtro
+const statsCardsConfig = computed(() => {
+  const metricas = insightsStore.metricasDiarias;
+  const etiquetas = metricas?.etiquetas || {};
+  const presencas = metricas?.presencas || {};
+  const rupturas = metricas?.rupturas || {};
+
+  switch (tipoInsightAtual.value) {
+    case 'etiqueta':
+      return [
+        { label: 'Total Etiquetas', value: etiquetas.totalItens ?? 0, iconType: 'primary', iconPath: iconPaths.document },
+        { label: 'Etiquetas Lidas', value: etiquetas.itensAtualizados ?? 0, iconType: 'success', iconPath: iconPaths.check },
+        { label: 'Etiquetas Não Lidas', value: etiquetas.itensNaolidos ?? 0, iconType: 'warning', iconPath: iconPaths.alert },
+        { label: 'Colaboradores Atuando', value: etiquetas.usuariosAtivos ?? 0, iconType: 'info', iconPath: iconPaths.person },
+      ];
+    case 'presenca':
+      return [
+        { label: 'Total de Itens', value: presencas.totalItens ?? 0, iconType: 'primary', iconPath: iconPaths.document },
+        { label: 'Itens Auditados', value: presencas.itensAtualizados ?? 0, iconType: 'success', iconPath: iconPaths.check },
+        { label: 'Itens Não Auditados', value: presencas.itensNaoLidos ?? 0, iconType: 'warning', iconPath: iconPaths.alert },
+        { label: 'Colaboradores Atuando', value: presencas.usuariosAtivos ?? 0, iconType: 'info', iconPath: iconPaths.person },
+      ];
+    case 'ruptura':
+      return [
+        { label: 'Itens em Ruptura', value: rupturas.totalItens ?? 0, iconType: 'primary', iconPath: iconPaths.document },
+        { label: 'Ruptura Evitada', value: rupturas.itensLidos ?? 0, iconType: 'success', iconPath: iconPaths.check },
+        { label: 'Ruptura Não Evitada', value: rupturas.itensNaoLidos ?? 0, iconType: 'warning', iconPath: iconPaths.alert },
+        { label: 'Colaboradores Atuando', value: rupturas.usuariosAtivos ?? 0, iconType: 'info', iconPath: iconPaths.person },
+      ];
+    default:
+      return [];
+  }
+});
+
+// Cards de insights (store)
 const setorDestaque = computed(() => insightsStore.setorDestaque);
 const setorCritico = computed(() => insightsStore.setorCritico);
 const colaboradorDestaque = computed(() => insightsStore.colaboradorDestaque);
 const variacaoAuditorias = computed(() => insightsStore.metricasAgregadas?.variacaoAuditorias || 0);
 
-// TODO: Adicionar mais getters para os outros cards (Tendências, Recomendações)
+// Data da última auditoria
+const dataUltimaAuditoria = computed(() => {
+  return new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+});
+
+// Helper para calcular percentual
+const calcPercent = (lidos, total) => total > 0 ? Math.round((lidos / total) * 100) : 0;
+
+// ============================================
+// Dados dinâmicos para os Insight Cards
+// ============================================
+
+// Performance Card
+const perfData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Performance Etiqueta',
+      subtitulo: 'Desempenho de leitura por setor',
+      destaque: { label: 'Setor Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
+      critico: { label: 'Setor Crítico', nome: 'Perfumaria', lidos: 20, total: 100 },
+      aderencia: { label: 'Aderência de Leitura', valor: 78 },
+    },
+    presenca: {
+      titulo: 'Performance Presença',
+      subtitulo: 'Confirmação de presença por setor',
+      destaque: { label: 'Setor Destaque', nome: 'Bebidas', lidos: 95, total: 100 },
+      critico: { label: 'Setor Crítico', nome: 'Limpeza', lidos: 35, total: 100 },
+      aderencia: { label: 'Presença Confirmada', valor: 72 },
+    },
+    ruptura: {
+      titulo: 'Performance Ruptura',
+      subtitulo: 'Controle de ruptura por setor',
+      destaque: { label: 'Menor Ruptura', nome: 'Hortifruti', lidos: 97, total: 100 },
+      critico: { label: 'Maior Ruptura', nome: 'Padaria', lidos: 55, total: 100 },
+      aderencia: { label: 'Cobertura Anti-Ruptura', valor: 65 },
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Alertas Card
+const alertasData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Alertas de Etiqueta',
+      subtitulo: 'Problemas na leitura de etiquetas',
+      items: [
+        { tipo: 'critical', titulo: 'Etiquetas Desatualizadas', descricao: '142 etiquetas desatualizadas de um total de 1.200', valor: 142, total: 1200 },
+        { tipo: 'medium', titulo: 'Setor com Mais Desatualizadas', descricao: 'Perfumaria possui 68 etiquetas desatualizadas', valor: 68, total: 142 },
+        { tipo: 'low', titulo: 'Etiquetas Sem Estoque', descricao: '23 itens lidos sem estoque disponível', valor: 23, total: 1200 },
+      ],
+    },
+    presenca: {
+      titulo: 'Alertas de Presença',
+      subtitulo: 'Itens com falha de presença',
+      items: [
+        { tipo: 'critical', titulo: 'Itens Sem Presença', descricao: '89 itens sem confirmação de presença', valor: 89, total: 500 },
+        { tipo: 'medium', titulo: 'Custo de Ruptura por Ausência', descricao: 'R$ 3.450,00 em produtos sem presença confirmada', valor: 45, total: 100 },
+        { tipo: 'low', titulo: 'Setor Crítico', descricao: 'Limpeza com 34 itens sem presença', valor: 34, total: 89 },
+      ],
+    },
+    ruptura: {
+      titulo: 'Alertas de Ruptura',
+      subtitulo: 'Itens em situação de ruptura',
+      items: [
+        { tipo: 'critical', titulo: 'Ruptura Ativa', descricao: '67 itens em ruptura — custo total de R$ 8.920,00', valor: 67, total: 300 },
+        { tipo: 'medium', titulo: 'Setor com Maior Ruptura', descricao: 'Padaria com 28 itens em ruptura', valor: 28, total: 67 },
+        { tipo: 'low', titulo: 'Ruptura Recorrente', descricao: '15 itens em ruptura por 3 dias consecutivos', valor: 15, total: 67 },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Tendências Card
+const tendenciasData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Evolução de Leitura',
+      subtitulo: 'Progresso das etiquetas ao longo do tempo',
+      items: [
+        { label: 'Leitura Hoje vs Ontem', valor: '+12%', positivo: true, descricao: '98 lidas hoje vs 87 ontem' },
+        { label: 'Média Semanal', valor: '+5%', positivo: true, descricao: 'Média de 92 etiquetas/dia esta semana' },
+        { label: 'Desatualizadas', valor: '-8%', positivo: true, descricao: 'Redução de 154 para 142 desatualizadas' },
+      ],
+    },
+    presenca: {
+      titulo: 'Evolução de Presença',
+      subtitulo: 'Tendência de confirmação de presença',
+      items: [
+        { label: 'Presença Hoje vs Ontem', valor: '+8%', positivo: true, descricao: '411 confirmados hoje vs 380 ontem' },
+        { label: 'Cobertura Semanal', valor: '-3%', positivo: false, descricao: 'Queda na média de presença semanal' },
+        { label: 'Itens Sem Presença', valor: '-15%', positivo: true, descricao: 'Redução de 105 para 89 itens sem presença' },
+      ],
+    },
+    ruptura: {
+      titulo: 'Evolução de Ruptura',
+      subtitulo: 'Tendência do controle de ruptura',
+      items: [
+        { label: 'Ruptura Hoje vs Ontem', valor: '-18%', positivo: true, descricao: 'Redução de 82 para 67 itens em ruptura' },
+        { label: 'Custo de Ruptura', valor: '-R$ 2.100', positivo: true, descricao: 'Economia em relação ao dia anterior' },
+        { label: 'Ruptura Recorrente', valor: '+3 itens', positivo: false, descricao: '15 itens em ruptura por 3+ dias' },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Recomendações Card
+const recomendacoesData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Plano de Ação',
+      subtitulo: 'Ações para melhorar leitura de etiquetas',
+      items: [
+        { texto: 'Reforçar equipe no setor Perfumaria para reduzir etiquetas desatualizadas', prioridade: 'Alta', cor: 'critical' },
+        { texto: 'Programar releitura dos 142 itens desatualizados até o fim do turno', prioridade: 'Média', cor: 'medium' },
+        { texto: 'Verificar 23 itens lidos sem estoque para possível reposição', prioridade: 'Baixa', cor: 'low' },
+      ],
+    },
+    presenca: {
+      titulo: 'Plano de Ação',
+      subtitulo: 'Ações para melhorar confirmação de presença',
+      items: [
+        { texto: 'Priorizar confirmação de presença nos 89 itens pendentes', prioridade: 'Alta', cor: 'critical' },
+        { texto: 'Alocar colaborador extra no setor Limpeza para cobrir falhas', prioridade: 'Média', cor: 'medium' },
+        { texto: 'Revisar itens com ruptura de presença para reposição', prioridade: 'Baixa', cor: 'low' },
+      ],
+    },
+    ruptura: {
+      titulo: 'Plano de Ação',
+      subtitulo: 'Ações para reduzir ruptura',
+      items: [
+        { texto: 'Solicitar reposição urgente dos 28 itens em ruptura na Padaria', prioridade: 'Alta', cor: 'critical' },
+        { texto: 'Monitorar os 15 itens com ruptura recorrente — ajustar estoque mínimo', prioridade: 'Média', cor: 'medium' },
+        { texto: 'Negociar com fornecedores dos itens de maior custo de ruptura', prioridade: 'Baixa', cor: 'low' },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Reconhecimentos Card
+const reconhecimentosData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Destaques da Equipe',
+      subtitulo: 'Melhores desempenhos em leitura',
+      items: [
+        { nome: 'Carlos Silva', conquista: '156 etiquetas lidas hoje', role: 'Líder de Leitura', badge: '🏆' },
+        { nome: 'Ana Santos', conquista: '100% de aderência no setor Mercearia', role: 'Destaque do Setor', badge: '⭐' },
+      ],
+    },
+    presenca: {
+      titulo: 'Destaques da Equipe',
+      subtitulo: 'Melhores desempenhos em presença',
+      items: [
+        { nome: 'Roberto Lima', conquista: '120 presenças confirmadas hoje', role: 'Líder de Presença', badge: '🏆' },
+        { nome: 'Maria Costa', conquista: 'Zero falhas de presença no turno', role: 'Precisão Total', badge: '⭐' },
+      ],
+    },
+    ruptura: {
+      titulo: 'Destaques da Equipe',
+      subtitulo: 'Melhores desempenhos contra ruptura',
+      items: [
+        { nome: 'João Oliveira', conquista: '45 rupturas evitadas hoje', role: 'Caçador de Ruptura', badge: '🏆' },
+        { nome: 'Lucia Mendes', conquista: 'Setor Hortifruti com zero ruptura', role: 'Guardiã do Estoque', badge: '⭐' },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Distribuição por Classe Card
+const distribuicaoData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Distribuição por Classe',
+      subtitulo: 'Leitura de etiquetas por classe de produto',
+      items: [
+        { classe: 'Mercearia Seca', valor: 320, total: 340, cor: '#10b981' },
+        { classe: 'Perecíveis', valor: 180, total: 220, cor: '#3b82f6' },
+        { classe: 'Bebidas', valor: 150, total: 160, cor: '#8b5cf6' },
+        { classe: 'Perfumaria', valor: 45, total: 200, cor: '#ef4444' },
+        { classe: 'Limpeza', valor: 110, total: 130, cor: '#f59e0b' },
+      ],
+    },
+    presenca: {
+      titulo: 'Distribuição por Classe',
+      subtitulo: 'Presença confirmada por classe de produto',
+      items: [
+        { classe: 'Mercearia Seca', valor: 285, total: 340, cor: '#10b981' },
+        { classe: 'Perecíveis', valor: 195, total: 220, cor: '#3b82f6' },
+        { classe: 'Bebidas', valor: 140, total: 160, cor: '#8b5cf6' },
+        { classe: 'Perfumaria', valor: 120, total: 200, cor: '#f59e0b' },
+        { classe: 'Limpeza', valor: 70, total: 130, cor: '#ef4444' },
+      ],
+    },
+    ruptura: {
+      titulo: 'Distribuição por Classe',
+      subtitulo: 'Ruptura por classe de produto',
+      items: [
+        { classe: 'Padaria', valor: 28, total: 80, cor: '#ef4444' },
+        { classe: 'Perecíveis', valor: 15, total: 220, cor: '#f59e0b' },
+        { classe: 'Bebidas', valor: 10, total: 160, cor: '#3b82f6' },
+        { classe: 'Limpeza', valor: 8, total: 130, cor: '#8b5cf6' },
+        { classe: 'Mercearia Seca', valor: 6, total: 340, cor: '#10b981' },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Resumo da Auditoria Card
+const auditoriaData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Resumo da Auditoria',
+      subtitulo: 'Última auditoria de etiqueta',
+      stats: [
+        { valor: '94%', label: 'Conclusão' },
+        { valor: '1.058', label: 'Lidas' },
+        { valor: '142', label: 'Pendentes' },
+      ],
+      melhoria: { titulo: 'Melhoria na Leitura', descricao: 'Setor Mercearia subiu de 85% para 98%', positivo: true },
+    },
+    presenca: {
+      titulo: 'Resumo da Auditoria',
+      subtitulo: 'Última auditoria de presença',
+      stats: [
+        { valor: '82%', label: 'Confirmados' },
+        { valor: '411', label: 'Presentes' },
+        { valor: '89', label: 'Ausentes' },
+      ],
+      melhoria: { titulo: 'Evolução Positiva', descricao: 'Presença geral subiu 8% em relação a ontem', positivo: true },
+    },
+    ruptura: {
+      titulo: 'Resumo da Auditoria',
+      subtitulo: 'Última auditoria de ruptura',
+      stats: [
+        { valor: '78%', label: 'Evitada' },
+        { valor: '233', label: 'Cobertos' },
+        { valor: '67', label: 'Em Ruptura' },
+      ],
+      melhoria: { titulo: 'Redução de Ruptura', descricao: 'Queda de 18% no total de itens em ruptura', positivo: true },
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
+
+// Ranking por Local Card
+const rankingLocalData = computed(() => {
+  const configs = {
+    etiqueta: {
+      titulo: 'Ranking por Local',
+      subtitulo: 'Setores ordenados por leitura',
+      items: [
+        { posicao: 1, nome: 'Mercearia', valor: 98, total: 100, status: 'excelente' },
+        { posicao: 2, nome: 'Bebidas', valor: 94, total: 100, status: 'bom' },
+        { posicao: 3, nome: 'Limpeza', valor: 85, total: 100, status: 'bom' },
+        { posicao: 4, nome: 'Perecíveis', valor: 72, total: 100, status: 'atencao' },
+        { posicao: 5, nome: 'Perfumaria', valor: 20, total: 100, status: 'critico' },
+      ],
+    },
+    presenca: {
+      titulo: 'Ranking por Local',
+      subtitulo: 'Setores ordenados por presença',
+      items: [
+        { posicao: 1, nome: 'Bebidas', valor: 95, total: 100, status: 'excelente' },
+        { posicao: 2, nome: 'Mercearia', valor: 88, total: 100, status: 'bom' },
+        { posicao: 3, nome: 'Perecíveis', valor: 76, total: 100, status: 'bom' },
+        { posicao: 4, nome: 'Perfumaria', valor: 60, total: 100, status: 'atencao' },
+        { posicao: 5, nome: 'Limpeza', valor: 35, total: 100, status: 'critico' },
+      ],
+    },
+    ruptura: {
+      titulo: 'Ranking por Local',
+      subtitulo: 'Setores ordenados por ruptura (menor = melhor)',
+      items: [
+        { posicao: 1, nome: 'Hortifruti', valor: 3, total: 100, status: 'excelente' },
+        { posicao: 2, nome: 'Mercearia', valor: 5, total: 100, status: 'bom' },
+        { posicao: 3, nome: 'Bebidas', valor: 12, total: 100, status: 'atencao' },
+        { posicao: 4, nome: 'Limpeza', valor: 19, total: 100, status: 'atencao' },
+        { posicao: 5, nome: 'Padaria', valor: 45, total: 100, status: 'critico' },
+      ],
+    },
+  };
+  return configs[tipoInsightAtual.value] || configs.etiqueta;
+});
 
 const alterarTipoInsight = (tipo) => {
   tipoInsightAtual.value = tipo;
-  // No futuro, isso pode filtrar os dados exibidos, mas por agora os dados são carregados de uma vez
+};
+
+// Compartilhamento - gerar imagem do componente
+const compartilhando = ref(false);
+
+const insightsContainerRef = ref(null);
+
+const gerarImagemParaCompartilhar = async () => {
+  if (compartilhando.value) return;
+  compartilhando.value = true;
+
+  try {
+    const { default: html2canvas } = await import('html2canvas');
+
+    const container = insightsContainerRef.value;
+    if (!container) throw new Error('Container não encontrado');
+
+    // Detectar tamanho real da tela ativa
+    const containerRect = container.getBoundingClientRect();
+    const captureWidth = Math.round(containerRect.width);
+    const captureHeight = Math.round(container.scrollHeight);
+
+    console.log(`[Compartilhar] Capturando: ${captureWidth}x${captureHeight}px (tela: ${window.innerWidth}x${window.innerHeight})`);
+
+    // Esconder botão de compartilhar durante a captura
+    const shareBtn = container.querySelector('.share-button');
+    if (shareBtn) shareBtn.style.display = 'none';
+
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      width: captureWidth,
+      height: captureHeight,
+      scrollX: -containerRect.left,
+      scrollY: -window.scrollY,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight,
+      logging: false,
+      imageTimeout: 15000,
+      onclone: (clonedDoc) => {
+        // Garantir visibilidade de todo conteúdo no clone
+        const clonedContainer = clonedDoc.querySelector('.insights-container');
+        if (clonedContainer) {
+          clonedContainer.style.overflow = 'visible';
+          clonedContainer.style.height = 'auto';
+        }
+        const cards = clonedDoc.querySelectorAll('.insight-card, .stat-card');
+        cards.forEach(el => {
+          el.style.overflow = 'visible';
+          el.style.breakInside = 'avoid';
+        });
+        // Esconder share btn no clone também
+        const clonedShareBtn = clonedDoc.querySelector('.share-button');
+        if (clonedShareBtn) clonedShareBtn.style.display = 'none';
+      },
+    });
+
+    // Restaurar botão
+    if (shareBtn) shareBtn.style.display = '';
+
+    // Adicionar rodapé ao canvas
+    const finalCanvas = document.createElement('canvas');
+    const footerHeight = 50;
+    finalCanvas.width = canvas.width;
+    finalCanvas.height = canvas.height + footerHeight;
+    const ctx = finalCanvas.getContext('2d');
+
+    // Fundo branco + conteúdo capturado
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    // Linha separadora do rodapé
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(40, canvas.height + 10);
+    ctx.lineTo(finalCanvas.width - 40, canvas.height + 10);
+    ctx.stroke();
+
+    // Texto do rodapé
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '22px Inter, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      `Gerado em ${new Date().toLocaleString('pt-BR')} — Backoffice`,
+      finalCanvas.width / 2,
+      canvas.height + 38
+    );
+
+    const imgData = finalCanvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = imgData;
+    link.download = `insights-${tipoInsightAtual.value}-${lojaCodigo.value || 'loja'}-${new Date().toISOString().slice(0, 10)}.png`;
+    link.click();
+  } catch (error) {
+    console.error('Erro ao gerar imagem para compartilhamento:', error);
+
+    // Fallback: abrir janela de impressão
+    const container = insightsContainerRef.value;
+    if (container) {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Insights - Compartilhamento</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: white; }
+              .insight-card, .stat-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin: 10px 0; }
+              .share-button { display: none !important; }
+            </style>
+          </head>
+          <body>${container.outerHTML}</body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 500);
+    } else {
+      alert('Não foi possível encontrar os elementos para compartilhamento.');
+    }
+  } finally {
+    compartilhando.value = false;
+  }
 };
 
 // Carrega os dados quando o componente é montado ou quando o código da loja na rota muda
@@ -665,6 +995,40 @@ watch(lojaCodigo, (newCodigo) => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+}
+
+/* Share Button */
+.share-button {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.share-button:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.share-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
 }
 
 .header-controls .action-btn {
@@ -1144,6 +1508,35 @@ watch(lojaCodigo, (newCodigo) => {
   font-size: 0.875rem;
   white-space: nowrap;
 }
+.stileTipoAudit {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+.stileTipoAudit {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+/* Para quando tipoInsightAtual for 'etiqueta' */
+[data-tipo="etiqueta"] .stileTipoAudit {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+/* Para quando tipoInsightAtual for 'presenca' */
+[data-tipo="presenca"] .stileTipoAudit {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+/* Para quando tipoInsightAtual for 'ruptura' */
+[data-tipo="ruptura"] .stileTipoAudit {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
 
 .action-btn.primary {
   background: #6366f1;
@@ -1304,6 +1697,317 @@ watch(lojaCodigo, (newCodigo) => {
   color: #065f46;
 }
 
+.improvement-section.negative-bg {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.improvement-section.negative-bg .improvement-title,
+.improvement-section.negative-bg .improvement-description {
+  color: #7f1d1d;
+}
+
+.improvement-indicator.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+/* Metric Right (fraction + badge) */
+.metric-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.fraction-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-badge.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+/* Alert Progress (mini barra dentro dos alertas) */
+.alert-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.mini-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.mini-progress-fill.critical {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.mini-progress-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.mini-progress-fill.low {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.alert-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Trend Badge */
+.trend-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.trend-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.trend-badge.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+}
+
+.trend-badge.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+/* Recommendation Priority Indicator */
+.rec-priority-indicator {
+  width: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.rec-priority-indicator.critical { background: #ef4444; }
+.rec-priority-indicator.medium { background: #f59e0b; }
+.rec-priority-indicator.low { background: #3b82f6; }
+
+.recommendation-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.recommendation-item:hover {
+  background: #f3f4f6;
+}
+
+.recommendation-priority {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.recommendation-priority.critical {
+  background: rgba(239, 68, 68, 0.1);
+  color: #7f1d1d;
+}
+
+.recommendation-priority.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+}
+
+.recommendation-priority.low {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+/* Achievement Badge Emoji */
+.achievement-badge-emoji {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* Distribuição por Classe Card */
+.distribuicao .card-icon {
+  background: linear-gradient(135deg, #06b6d4, #22d3ee);
+}
+
+.distribution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.distribution-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.distribution-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.distribution-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.distribution-values {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.distribution-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.distribution-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.distribution-percent {
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Ranking por Local Card */
+.ranking .card-icon {
+  background: linear-gradient(135deg, #ec4899, #f472b6);
+}
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+}
+
+.ranking-item:hover {
+  background: #f3f4f6;
+}
+
+.ranking-position {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ranking-position.excelente { background: rgba(16, 185, 129, 0.15); color: #065f46; }
+.ranking-position.bom { background: rgba(59, 130, 246, 0.15); color: #1e40af; }
+.ranking-position.atencao { background: rgba(245, 158, 11, 0.15); color: #92400e; }
+.ranking-position.critico { background: rgba(239, 68, 68, 0.15); color: #7f1d1d; }
+
+.ranking-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ranking-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.ranking-bar-container {
+  width: 100%;
+}
+
+.ranking-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ranking-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.ranking-bar-fill.excelente { background: linear-gradient(90deg, #10b981, #34d399); }
+.ranking-bar-fill.bom { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.ranking-bar-fill.atencao { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.ranking-bar-fill.critico { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.ranking-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 38px;
+  text-align: right;
+}
+
+.ranking-value.excelente { color: #065f46; }
+.ranking-value.bom { color: #1e40af; }
+.ranking-value.atencao { color: #92400e; }
+.ranking-value.critico { color: #7f1d1d; }
+
 /* Loading State */
 .loading-state {
   position: absolute;
@@ -1340,95 +2044,611 @@ watch(lojaCodigo, (newCodigo) => {
   }
 }
 
-/* Responsividade */
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+/* Tablets / Telas médias */
 @media (max-width: 1200px) {
   .insights-grid {
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   }
 }
 
+/* Tablets pequenos e mobiles grandes */
 @media (max-width: 768px) {
   .insights-container {
-    padding: 1.5rem;
-    margin: 1rem;
-    border-radius: 16px;
+    padding: 1rem;
+    margin: 0.75rem;
+    border-radius: 14px;
   }
 
+  /* Header */
   .header {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .header-controls {
-    width: 100%;
     flex-direction: column;
     gap: 1rem;
   }
 
-  .filter-group {
-    width: 100%;
+  .titulo {
+    font-size: 1.3rem;
   }
 
-  .filtro-select {
+  .descricao {
+    font-size: 0.875rem;
+  }
+
+  .icon-area {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .icon-area svg {
+    width: 36px;
+    height: 32px;
+  }
+
+  /* Controles */
+  .header-controls {
     width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+  }
+
+  .insights-actions {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-controls .action-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .share-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  /* Insights Grid */
+  .insights-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .insight-card {
+    padding: 1.25rem;
+  }
+
+  /* Audit Stats */
+  .audit-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .stat-item {
+    padding: 0.75rem 0.5rem;
+  }
+
+  /* Distribution */
+  .distribution-item {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .distribution-header {
+    min-width: 120px;
+    flex: 1;
+  }
+
+  .distribution-bar {
+    min-width: 80px;
+  }
+
+  /* Ranking */
+  .ranking-item {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .ranking-position {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  /* Trend */
+  .trend-item {
+    padding: 0.75rem;
+  }
+
+  /* Recommendation */
+  .recommendation-item {
+    padding: 0.75rem;
+  }
+
+  /* Recognition */
+  .recognition-item {
+    padding: 0.75rem;
+  }
+
+  .employee-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Alerts */
+  .alert-item {
+    padding: 0.75rem;
+  }
+}
+
+/* Mobile pequeno */
+@media (max-width: 480px) {
+  .insights-container {
+    padding: 0.75rem;
+    margin: 0.5rem;
+    border-radius: 12px;
+  }
+
+  /* Header mobile vertical */
+  .icon-title {
+    gap: 0.75rem;
+  }
+
+  .icon-area {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+
+  .icon-area svg {
+    width: 28px;
+    height: 26px;
+  }
+
+  .titulo {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .descricao {
+    font-size: 0.8rem;
+  }
+
+  .stileTipoAudit {
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8em;
+  }
+
+  /* Controles mobile — filtros empilham */
+  .header-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .header-controls .insights-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-controls .action-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .share-button {
+    width: 100%;
+    justify-content: center;
+    padding: 0.55rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* Stats Grid — 2 colunas compactas */
+  .stats-overview {
+    margin-bottom: 1.25rem;
   }
 
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .insights-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .audit-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .recommendation-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .action-btn {
-    align-self: flex-end;
-  }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .icon-title {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-
-  .icon-area {
-    align-self: center;
-  }
-
-  .text-content {
-    text-align: center;
-  }
-
-  .card-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 1rem;
-  }
-
-  .metric-item {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 0.5rem;
   }
 
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+    border-radius: 12px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .stat-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  /* Insight Cards mobile */
+  .insights-grid {
+    gap: 0.75rem;
+  }
+
+  .insight-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  /* Card Header */
+  .card-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .card-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .card-title h3 {
+    font-size: 1.05rem;
+  }
+
+  .card-subtitle {
+    font-size: 0.75rem;
+  }
+
+  /* Metric items */
+  .metric-list {
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .metric-item {
+    padding: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 0.9rem;
+  }
+
+  .fraction-text {
+    font-size: 0.7rem;
+  }
+
   .metric-badge {
-    align-self: flex-start;
+    font-size: 0.65rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  /* Progress */
+  .progress-section {
+    padding: 0.75rem;
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+  }
+
+  .progress-value {
+    font-size: 0.9rem;
+  }
+
+  /* Alert items */
+  .alert-list {
+    gap: 0.5rem;
+  }
+
+  .alert-item {
+    padding: 0.65rem;
+    gap: 0.5rem;
+    border-radius: 10px;
+  }
+
+  .alert-title {
+    font-size: 0.85rem;
+  }
+
+  .alert-description {
+    font-size: 0.75rem;
+  }
+
+  .mini-progress-bar {
+    height: 5px;
+  }
+
+  .alert-progress-text {
+    font-size: 0.65rem;
+  }
+
+  /* Trend items */
+  .trend-list {
+    gap: 0.65rem;
+  }
+
+  .trend-item {
+    padding: 0.65rem;
+    gap: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .trend-indicator {
+    width: 28px;
+    height: 28px;
+  }
+
+  .trend-title {
+    font-size: 0.85rem;
+  }
+
+  .trend-value {
+    font-size: 0.75rem;
+  }
+
+  .trend-badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  /* Recommendation items */
+  .recommendation-list {
+    gap: 0.65rem;
+  }
+
+  .recommendation-item {
+    padding: 0.65rem;
+    gap: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .recommendation-text {
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .recommendation-priority {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  /* Recognition items */
+  .recognition-list {
+    gap: 0.65rem;
+  }
+
+  .recognition-item {
+    padding: 0.65rem;
+    gap: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .employee-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .employee-name {
+    font-size: 0.85rem;
+  }
+
+  .employee-role {
+    font-size: 0.65rem;
+  }
+
+  .achievement {
+    font-size: 0.75rem;
+  }
+
+  .achievement-badge-emoji {
+    font-size: 1.2rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Distribution items */
+  .distribution-list {
+    gap: 0.6rem;
+  }
+
+  .distribution-item {
+    gap: 0.5rem;
+  }
+
+  .distribution-header {
+    min-width: 100px;
+  }
+
+  .distribution-label {
+    font-size: 0.75rem;
+  }
+
+  .distribution-values {
+    font-size: 0.65rem;
+  }
+
+  .distribution-bar {
+    height: 6px;
+    min-width: 60px;
+  }
+
+  .distribution-percent {
+    font-size: 0.7rem;
+    min-width: 30px;
+  }
+
+  /* Ranking items */
+  .ranking-list {
+    gap: 0.45rem;
+  }
+
+  .ranking-item {
+    padding: 0.4rem 0.5rem;
+    gap: 0.5rem;
+    border-radius: 8px;
+  }
+
+  .ranking-position {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+    border-radius: 6px;
+  }
+
+  .ranking-name {
+    font-size: 0.78rem;
+  }
+
+  .ranking-bar {
+    height: 5px;
+  }
+
+  .ranking-value {
+    font-size: 0.78rem;
+    min-width: 32px;
+  }
+
+  /* Audit Stats */
+  .audit-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-item {
+    padding: 0.65rem 0.4rem;
+    border-radius: 10px;
+  }
+
+  .audit-stats .stat-value {
+    font-size: 1.15rem;
+  }
+
+  .audit-stats .stat-label {
+    font-size: 0.65rem;
+  }
+
+  /* Improvement section */
+  .improvement-section {
+    padding: 0.75rem;
+    gap: 0.65rem;
+    border-radius: 10px;
+  }
+
+  .improvement-indicator {
+    width: 28px;
+    height: 28px;
+  }
+
+  .improvement-title {
+    font-size: 0.85rem;
+  }
+
+  .improvement-description {
+    font-size: 0.75rem;
+  }
+
+  /* Loading */
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* Mobile muito pequeno (< 360px) */
+@media (max-width: 360px) {
+  .insights-container {
+    padding: 0.5rem;
+    margin: 0.25rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    gap: 0.35rem;
+  }
+
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .titulo {
+    font-size: 1rem;
+  }
+
+  .audit-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+  }
+
+  .distribution-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .distribution-header {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .distribution-bar {
+    width: 100%;
+    min-width: unset;
   }
 }
 </style>
