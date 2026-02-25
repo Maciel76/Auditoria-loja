@@ -612,7 +612,7 @@ export default {
     const loadPosts = async () => {
       loading.value = true;
       try {
-        const response = await axios.get("http://localhost:3000/api/sugestoes");
+        const response = await axios.get("/api/api/sugestoes");
         posts.value = response.data.sugestoes.map((post) => ({
           ...post,
           newResponse: post.comentarioAdmin || "",
@@ -631,7 +631,7 @@ export default {
     const loadAvisos = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/avisos?status=pendente",
+          "/api/api/avisos?status=pendente",
           {
             headers: { "x-loja": "001" },
           }
@@ -648,7 +648,7 @@ export default {
     // Carregar votações pendentes
     const loadVotacoes = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/votacoes", {
+        const response = await axios.get("/api/api/votacoes", {
           headers: { "x-loja": "001" },
         });
         votacoesPendentes.value = response.data.votacoes || [];
@@ -661,7 +661,7 @@ export default {
     // Aprovar aviso
     const aprovarAviso = async (avisoId) => {
       try {
-        await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
+        await axios.put(`/api/api/avisos/${avisoId}/status`, {
           status: "aprovado",
           dataExpiracao: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 dias
         });
@@ -678,7 +678,7 @@ export default {
       cancelDeletion(); // Fecha o modal
 
       try {
-        await axios.delete(`http://localhost:3000/api/avisos/${avisoId}`);
+        await axios.delete(`/api/api/avisos/${avisoId}`);
 
         // Remover da lista local
         avisosPendentes.value = avisosPendentes.value.filter(
@@ -697,7 +697,7 @@ export default {
       cancelDeletion(); // Fecha o modal
 
       try {
-        await axios.delete(`http://localhost:3000/api/sugestoes/${postId}`);
+        await axios.delete(`/api/api/sugestoes/${postId}`);
 
         // Remover da lista local
         posts.value = posts.value.filter(
@@ -714,7 +714,7 @@ export default {
     // Rejeitar aviso
     const rejeitarAviso = async (avisoId) => {
       try {
-        await axios.put(`http://localhost:3000/api/avisos/${avisoId}/status`, {
+        await axios.put(`/api/api/avisos/${avisoId}/status`, {
           status: "rejeitado",
         });
         showMessage("Aviso rejeitado", "success");
@@ -732,7 +732,7 @@ export default {
         const dataFim = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
 
         await axios.put(
-          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          `/api/api/votacoes/${votacaoId}/status`,
           {
             status: "ativo",
             dataInicio: dataInicio.toISOString(),
@@ -751,7 +751,7 @@ export default {
     const alterarStatusVotacao = async (votacaoId, novoStatus) => {
       try {
         await axios.put(
-          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          `/api/api/votacoes/${votacaoId}/status`,
           {
             status: novoStatus,
           }
@@ -778,7 +778,7 @@ export default {
     const deletarVotacao = async (votacaoId) => {
       cancelDeletion(); // Fecha o modal
       try {
-        await axios.delete(`http://localhost:3000/api/votacoes/${votacaoId}`);
+        await axios.delete(`/api/api/votacoes/${votacaoId}`);
 
         // Remover da lista local
         votacoesPendentes.value = votacoesPendentes.value.filter(
@@ -813,7 +813,7 @@ export default {
 
         // Criar aviso baseado na sugestão
         const avisoResponse = await axios.post(
-          "http://localhost:3000/api/avisos",
+          "/api/api/avisos",
           {
             titulo: `Sugestão Implementada: ${getPostTitle(sugestao.sugestao)}`,
             conteudo: `Baseado na sugestão de ${sugestao.nome || "usuário"}: ${
@@ -828,7 +828,7 @@ export default {
         if (avisoResponse.data) {
           // Aprovar o aviso automaticamente
           await axios.put(
-            `http://localhost:3000/api/avisos/${avisoResponse.data.id}/status`,
+            `/api/api/avisos/${avisoResponse.data.id}/status`,
             {
               status: "aprovado",
             }
@@ -836,7 +836,7 @@ export default {
 
           // Deletar a sugestão após publicar
           await axios.delete(
-            `http://localhost:3000/api/sugestoes/${sugestaoId}`
+            `/api/api/sugestoes/${sugestaoId}`
           );
 
           // Remover da lista local
@@ -860,7 +860,7 @@ export default {
     const deletarSugestao = async (sugestaoId) => {
       cancelDeletion(); // Fecha o modal
       try {
-        await axios.delete(`http://localhost:3000/api/sugestoes/${sugestaoId}`);
+        await axios.delete(`/api/api/sugestoes/${sugestaoId}`);
 
         // Remover da lista local
         posts.value = posts.value.filter((p) => p._id !== sugestaoId);
@@ -876,7 +876,7 @@ export default {
     const rejeitarVotacao = async (votacaoId) => {
       try {
         await axios.put(
-          `http://localhost:3000/api/votacoes/${votacaoId}/status`,
+          `/api/api/votacoes/${votacaoId}/status`,
           {
             status: "rejeitado",
           }
@@ -977,7 +977,7 @@ export default {
     const toggleReaction = async (postId, reactionType) => {
       try {
         const response = await axios.post(
-          `http://localhost:3000/api/sugestoes/${postId}/react`,
+          `/api/api/sugestoes/${postId}/react`,
           {
             reaction: reactionType,
             userIdentifier: userIdentifier.value,
@@ -1048,7 +1048,7 @@ export default {
         }
 
         const response = await axios.put(
-          `http://localhost:3000/api/sugestoes/${post._id}/status`,
+          `/api/api/sugestoes/${post._id}/status`,
           updateData
         );
 
@@ -1070,7 +1070,7 @@ export default {
 
       try {
         const response = await axios.delete(
-          `http://localhost:3000/api/sugestoes/${postId}`
+          `/api/api/sugestoes/${postId}`
         );
 
         if (response.data.message) {
@@ -1186,7 +1186,7 @@ export default {
     const updatePostStatus = async (postId, newStatus) => {
       try {
         const response = await axios.put(
-          `http://localhost:3000/api/sugestoes/${postId}/status`,
+          `/api/api/sugestoes/${postId}/status`,
           {
             status: newStatus,
           }
@@ -1242,7 +1242,7 @@ export default {
 
       try {
         // Buscar as configurações das conquistas do backend
-        const response = await axios.get('http://localhost:3000/api/achievements/config');
+        const response = await axios.get('/api/api/achievements/config');
 
         if (response.data.success) {
           // Mapear as configurações recebidas para o formato esperado
@@ -1505,7 +1505,7 @@ export default {
         achievement.achievementData.icon = achievement.editIcon;
 
         // Enviar atualização para o backend
-        const response = await axios.put(`http://localhost:3000/api/achievements/config/${achievement.achievementId}`, {
+        const response = await axios.put(`/api/api/achievements/config/${achievement.achievementId}`, {
           title: achievement.editTitle,
           description: achievement.editDescription,
           points: achievement.editPoints,

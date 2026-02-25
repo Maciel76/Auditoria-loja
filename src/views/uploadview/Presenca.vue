@@ -161,7 +161,7 @@ const enviarArquivo = async () => {
     console.log(`🏪 Enviando presença para loja: ${lojaStore.codigoLojaAtual}`);
 
     const { data } = await axios.post(
-      "http://localhost:3000/upload",
+      "/api/upload",
       formData,
       {
         headers: {

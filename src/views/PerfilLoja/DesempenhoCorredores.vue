@@ -456,7 +456,7 @@ const buscarDadosCorredores = async () => {
 
     // Buscar métricas de desempenho por corredor (locais)
     const response = await axios.get(
-      "http://localhost:3000/api/metricas/loja-daily/locais-completas",
+      "/api/api/metricas/loja-daily/locais-completas",
       {
         headers: {
           "x-loja": lojaStore.codigoLojaAtual,

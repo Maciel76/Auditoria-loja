@@ -693,7 +693,7 @@ const buscarMetricasLoja = async () => {
       throw new Error("Nenhuma loja selecionada.");
     }
     const response = await axios.get(
-      "http://localhost:3000/api/metricas/loja-daily/classes-completas",
+      "/api/api/metricas/loja-daily/classes-completas",
       { headers: { "x-loja": lojaStore.codigoLojaAtual } }
     );
     if (response.data) {

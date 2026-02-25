@@ -878,7 +878,7 @@ export default {
     async carregarDatasAuditoria() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/datas-auditoria"
+          "/api/datas-auditoria"
         );
         this.datasAuditoria = response.data;
         if (this.datasAuditoria.length > 0) {
@@ -974,7 +974,7 @@ export default {
 
         // Fazer a requisição para o novo endpoint de produtos de auditoria
         const response = await axios.get(
-          `http://localhost:3000/api/audit-products/produtos/${this.$store.state.lojaSelecionada.codigo}/${tipoAuditoria}`
+          `/api/api/audit-products/produtos/${this.$store.state.lojaSelecionada.codigo}/${tipoAuditoria}`
         );
 
         if (response.data && response.data.success) {

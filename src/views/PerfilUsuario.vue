@@ -2564,7 +2564,7 @@ export default {
             );
 
             const usuarioResponse = await axios.get(
-              `http://localhost:3000/api/usuarios/${usuarioId}`,
+              `/api/api/usuarios/${usuarioId}`,
               {
                 headers: {
                   "x-loja": lojaSelecionada.codigo,
@@ -2888,7 +2888,7 @@ export default {
         }
 
         const response = await axios.patch(
-          `http://localhost:3000/api/usuarios/${this.usuario.id}/cover`,
+          `/api/api/usuarios/${this.usuario.id}/cover`,
           updateData,
         );
 

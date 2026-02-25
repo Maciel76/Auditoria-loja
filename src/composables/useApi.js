@@ -2,10 +2,11 @@
 import axios from "axios";
 import { useLojaStore } from "@/store/lojaStore";
 
-// Configuração base do axios
+// Configuração base do axios - usa variável de ambiente
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const api = axios.create({
-  baseURL: "http://localhost:3000", // Ajuste conforme sua URL
-  timeout: 10000,
+  baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },

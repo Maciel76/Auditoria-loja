@@ -130,7 +130,7 @@ export const useLojaStore = defineStore("loja", {
         }
 
         // Testar se a loja é válida no backend
-        const response = await axios.get("http://localhost:3000/test", {
+        const response = await axios.get("/api/test", {
           headers: {
             "x-loja": lojaCompleta.codigo,
           },
@@ -223,7 +223,7 @@ export const useLojaStore = defineStore("loja", {
       if (!this.lojaSelecionada) return false;
 
       try {
-        const response = await axios.get("http://localhost:3000/test");
+        const response = await axios.get("/api/test");
         return response.status === 200;
       } catch (error) {
         console.error("❌ Loja atual inválida:", error);
@@ -264,7 +264,7 @@ export const useLojaStore = defineStore("loja", {
 
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/audit-products/produtos-auditorias/${cacheKey}`
+          `/api/api/audit-products/produtos-auditorias/${cacheKey}`
         );
 
         if (!response.data.success) {

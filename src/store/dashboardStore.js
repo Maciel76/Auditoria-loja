@@ -121,10 +121,10 @@ export const useDashboardStore = defineStore("dashboard", {
       console.log("🔄 dashboardStore.loadRealVotingItems() iniciado");
       try {
         console.log(
-          "📡 Fazendo requisição para http://localhost:3000/api/sugestoes?tipo=voting"
+          "📡 Fazendo requisição para /api/api/sugestoes?tipo=voting"
         );
         const response = await axios.get(
-          "http://localhost:3000/api/sugestoes?tipo=voting"
+          "/api/api/sugestoes?tipo=voting"
         );
         console.log("📦 Resposta recebida:", response.data);
 
@@ -204,7 +204,7 @@ export const useDashboardStore = defineStore("dashboard", {
       try {
         console.log(`📞 Enviando reação ${reactionType} para item ${itemId}`);
         const response = await axios.post(
-          `http://localhost:3000/api/sugestoes/${itemId}/react`,
+          `/api/api/sugestoes/${itemId}/react`,
           {
             reaction: reactionType,
             userIdentifier: userIdentifier,
@@ -236,9 +236,9 @@ export const useDashboardStore = defineStore("dashboard", {
       this.loading.feed = true;
       try {
         console.log(
-          "📡 Fazendo requisição para http://localhost:3000/api/sugestoes"
+          "📡 Fazendo requisição para /api/api/sugestoes"
         );
-        const response = await axios.get("http://localhost:3000/api/sugestoes");
+        const response = await axios.get("/api/api/sugestoes");
         console.log("📦 Resposta recebida:", response.data);
 
         if (response.data.sugestoes) {
@@ -402,7 +402,7 @@ export const useDashboardStore = defineStore("dashboard", {
     async submitSuggestion(suggestion, tipo = "geral") {
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/sugestoes",
+          "/api/api/sugestoes",
           {
             sugestao: suggestion,
             tipo: tipo,

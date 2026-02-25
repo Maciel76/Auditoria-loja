@@ -149,7 +149,7 @@ export const useSetoresStore = defineStore("setores", () => {
 
   async function carregarDatasAuditoria() {
     try {
-      const response = await axios.get("http://localhost:3000/datas-auditoria");
+      const response = await axios.get("/api/datas-auditoria");
       datasAuditoria.value = response.data;
       if (datasAuditoria.value.length > 0) {
         dataSelecionada.value = datasAuditoria.value[0];
@@ -172,7 +172,7 @@ export const useSetoresStore = defineStore("setores", () => {
       const params = dataSelecionada.value
         ? { data: dataSelecionada.value }
         : {};
-      const response = await axios.get("http://localhost:3000/dados-setores", {
+      const response = await axios.get("/api/dados-setores", {
         params,
       });
 

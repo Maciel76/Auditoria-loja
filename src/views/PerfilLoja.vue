@@ -169,7 +169,7 @@ export default {
 
         // Buscar dados reais da API usando axios
         const response = await axios.get(
-          `http://localhost:3000/api/perfil-loja/${codigoLoja}`
+          `/api/api/perfil-loja/${codigoLoja}`
         );
 
         const data = response.data;

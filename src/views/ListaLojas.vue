@@ -216,7 +216,7 @@ export default {
       try {
         this.carregando = true;
         // Buscar dados adicionais da API (métricas, etc)
-        const response = await axios.get("http://localhost:3000/lojas");
+        const response = await axios.get("/api/lojas");
         this.lojasApi = response.data || [];
       } catch (error) {
         console.error("Erro ao carregar dados das lojas:", error);

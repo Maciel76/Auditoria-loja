@@ -2,6 +2,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axios from "axios";
+import api from "@/config/api";
 
 export const useUsuarioStore = defineStore("usuario", () => {
   // Estado
@@ -23,7 +24,9 @@ export const useUsuarioStore = defineStore("usuario", () => {
   const getImageUrl = (foto) => {
     if (!foto) return null;
     if (foto.startsWith("http")) return foto;
-    return `http://localhost:3000${foto}`;
+    // Remove /api do início se existir para montar a URL correta
+    const fotoPath = foto.startsWith("/api") ? foto.slice(4) : foto;
+    return `${api.defaults.baseURL}${fotoPath}`;
   };
 
   // Obter iniciais do nome
@@ -52,7 +55,7 @@ export const useUsuarioStore = defineStore("usuario", () => {
     erro.value = null;
 
     try {
-      const response = await axios.get("http://localhost:3000/api/usuarios", {
+      const response = await api.get("/api/usuarios", {
         headers: {
           "x-loja": lojaCodigo,
         },
@@ -79,8 +82,8 @@ export const useUsuarioStore = defineStore("usuario", () => {
     erro.value = null;
 
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/usuarios/${usuarioId}`
+      const response = await api.get(
+        `/api/usuarios/${usuarioId}`
       );
 
       const usuario = {
@@ -115,8 +118,8 @@ export const useUsuarioStore = defineStore("usuario", () => {
       const formData = new FormData();
       formData.append("foto", file);
 
-      const response = await axios.post(
-        `http://localhost:3000/api/usuarios/${usuarioId}/foto`,
+      const response = await api.post(
+        `/api/usuarios/${usuarioId}/foto`,
         formData,
         {
           headers: {

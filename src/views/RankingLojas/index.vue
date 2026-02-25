@@ -411,7 +411,7 @@ const buscarDados = async () => {
   error.value = null
 
   try {
-    const response = await axios.get('http://localhost:3000/api/debug/lojas-daily-ranking', {
+    const response = await axios.get('/api/api/debug/lojas-daily-ranking', {
       params: {
         regiao: filtroRegiao.value !== 'todas' ? filtroRegiao.value : undefined,
         limite: 50

@@ -100,7 +100,7 @@ onMounted(async () => {
       );
 
       const response = await axios.get(
-        `http://localhost:3000/api/usuarios/${userSessionStore.getUsuarioId}`,
+        `/api/api/usuarios/${userSessionStore.getUsuarioId}`,
         {
           headers: {
             "x-loja": lojaSelecionada.codigo,

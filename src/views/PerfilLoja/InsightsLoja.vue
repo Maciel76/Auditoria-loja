@@ -455,9 +455,10 @@ const perfData = computed(() => {
     etiqueta: {
       titulo: 'Performance Etiqueta',
       subtitulo: 'Desempenho de leitura por setor',
-      destaque: { label: 'Setor Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
-      critico: { label: 'Setor Crítico', nome: 'Perfumaria', lidos: 20, total: 100 },
-      aderencia: { label: 'Aderência de Leitura', valor: 78 },
+      destaque: { label: 'Classe Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
+      alert: { label: 'Classe Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
+      critico: { label: 'Classe Crítica', nome: 'Perfumaria', lidos: 20, total: 100 },
+      aderencia: { label: 'Progresso Total', valor: 78 },
     },
     presenca: {
       titulo: 'Performance Presença',

@@ -31,7 +31,7 @@ export const useVotingStore = defineStore('voting', {
     async carregarVotacoes() {
       this.loading = true
       try {
-        const response = await axios.get('http://localhost:3000/api/votacoes?status=ativo&limite=10', {
+        const response = await axios.get('/api/api/votacoes?status=ativo&limite=10', {
           headers: { 'x-loja': '001' }
         })
 
@@ -84,7 +84,7 @@ export const useVotingStore = defineStore('voting', {
         const voteIdentifier = `${this.userIdentifier}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
         // Fazer chamada para o backend
-        const response = await axios.post(`http://localhost:3000/api/votacoes/${votacaoId}/react`, {
+        const response = await axios.post(`/api/api/votacoes/${votacaoId}/react`, {
           reaction: reactionType,
           userIdentifier: voteIdentifier
         }, {

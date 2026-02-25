@@ -9,4 +9,20 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src/", import.meta.url)),
     },
   },
+  base: "/",
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    sourcemap: false,
+    minify: "esbuild",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["vue", "vue-router", "pinia", "axios"],
+          charts: ["chart.js", "vue-chartjs"],
+          utils: ["lodash", "html2canvas", "jspdf"],
+        },
+      },
+    },
+  },
 });

@@ -110,7 +110,7 @@ export const useNivelStore = defineStore("nivel", {
         // Obter loja atual do localStorage ou usar padrão
         const lojaSelecionada = JSON.parse(localStorage.getItem('lojaSelecionada') || '{"codigo":"056"}');
 
-        const response = await axios.get("http://localhost:3000/usuarios", {
+        const response = await axios.get("/api/usuarios", {
           headers: {
             'x-loja': lojaSelecionada.codigo
           }

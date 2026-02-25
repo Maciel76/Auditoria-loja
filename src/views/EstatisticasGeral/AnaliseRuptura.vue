@@ -102,7 +102,7 @@ export default {
   methods: {
     async carregarDatasDisponiveis() {
       try {
-        const response = await fetch("http://localhost:3000/datas-auditoria");
+        const response = await fetch("/api/datas-auditoria");
         this.datasDisponiveis = await response.json();
       } catch (error) {
         console.error("Erro ao carregar datas disponíveis:", error);

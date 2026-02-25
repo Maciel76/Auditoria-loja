@@ -784,7 +784,7 @@ export default {
       try {
         // Fetch store data from the API using the lojaCodigo prop
         const response = await fetch(
-          `http://localhost:3000/api/perfil-loja/${this.lojaCodigo}`
+          `/api/api/perfil-loja/${this.lojaCodigo}`
         );
         if (response.ok) {
           const data = await response.json();

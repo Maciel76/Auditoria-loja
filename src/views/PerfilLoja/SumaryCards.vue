@@ -196,7 +196,7 @@ const obterAvatarColaborador = async (nomeColaborador) => {
       localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
     );
 
-    const response = await axios.get(`http://localhost:3000/api/usuarios`, {
+    const response = await axios.get(`/api/api/usuarios`, {
       headers: {
         "x-loja": lojaSelecionada.codigo,
       },
@@ -295,7 +295,7 @@ const irParaPerfilColaborador = () => {
       localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
     );
 
-    axios.get(`http://localhost:3000/api/usuarios`, {
+    axios.get(`/api/api/usuarios`, {
       headers: {
         "x-loja": lojaSelecionada.codigo,
       },

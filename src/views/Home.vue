@@ -73,7 +73,7 @@ const handleFeedReaction = async ({ itemId, reactionType, userIdentifier }) => {
 
     // Tentar usar a API primeiro
     const response = await axios.post(
-      `http://localhost:3000/api/sugestoes/${itemId}/react`,
+      `/api/api/sugestoes/${itemId}/react`,
       {
         reaction: reactionType,
         userIdentifier: userIdentifier,
@@ -167,7 +167,7 @@ const handleCommentAdded = async ({ itemId, comment }) => {
   try {
     // Enviar comentário para o backend (comment já vem com userId do CommunityFeed)
     const response = await axios.post(
-      `http://localhost:3000/api/sugestoes/${itemId}/comentarios`,
+      `/api/api/sugestoes/${itemId}/comentarios`,
       {
         conteudo: comment.conteudo,
         userId: comment.userId,

@@ -493,7 +493,7 @@ export default {
       try {
         // Atualizar diretamente usando o código da loja
         const response = await axios.patch(
-          `http://localhost:3000/api/stores/${this.loja.codigo}/cover`,
+          `/api/api/stores/${this.loja.codigo}/cover`,
           {
             coverId: coverId,
           },
@@ -513,7 +513,7 @@ export default {
       try {
         // Atualizar os selos diretamente usando o código da loja
         const response = await axios.patch(
-          `http://localhost:3000/api/stores/${this.loja.codigo}/badges`,
+          `/api/api/stores/${this.loja.codigo}/badges`,
           {
             selectedBadges: selectedBadges,
           },
@@ -572,7 +572,7 @@ export default {
       try {
         // First, get the store to get its ID
         const lojasResponse = await axios.get(
-          "http://localhost:3000/api/stores",
+          "/api/api/stores",
         );
         const loja = lojasResponse.data.find(
           (l) => l.codigo === this.loja.codigo,
@@ -584,7 +584,7 @@ export default {
 
         // Update the store with the new information
         const response = await axios.put(
-          `http://localhost:3000/api/stores/${loja._id}`,
+          `/api/api/stores/${loja._id}`,
           {
             ...loja,
             nome: info.nome || loja.nome,

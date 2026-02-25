@@ -45,7 +45,7 @@ export function useUploadProgress() {
     }
 
     progress.sessionId = sessionId
-    const streamUrl = `http://localhost:3000/api/progress/stream/${sessionId}`
+    const streamUrl = `/api/api/progress/stream/${sessionId}`
 
     eventSource = new EventSource(streamUrl)
 
@@ -124,7 +124,7 @@ export function useUploadProgress() {
 
       console.log(`🏪 Enviando para loja: ${lojaStore.codigoLojaAtual}`)
 
-      const response = await fetch('http://localhost:3000/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         headers: {
           'x-loja': lojaStore.codigoLojaAtual

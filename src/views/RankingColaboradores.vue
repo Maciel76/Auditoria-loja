@@ -418,7 +418,7 @@ export default {
 
         if (usarPeriodoCompleto.value) {
           // Modo PERÍODO COMPLETO - usa MetricasUsuario
-          url = "http://localhost:3000/ranking-colaboradores-completo";
+          url = "/api/ranking-colaboradores-completo";
           tipoSelecionado = filtroTipoAuditoriaCompleto.value;
           params.append("tipo", tipoSelecionado);
           modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(
@@ -426,7 +426,7 @@ export default {
           )})`;
         } else {
           // Modo DIÁRIO - usa UserDailyMetrics
-          url = "http://localhost:3000/ranking-colaboradores";
+          url = "/api/ranking-colaboradores";
           tipoSelecionado = filtroTipoAuditoria.value;
           params.append("tipo", tipoSelecionado);
           modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(
