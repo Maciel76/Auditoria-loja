@@ -2621,7 +2621,7 @@ export default {
             "Usuário não encontrado nos dados de métricas:",
             usuarioId,
           );
-          this.usuario = {}; // Clear user to show error screen
+          this.usuario = { id: usuarioId }; // Preservar o ID para chamadas subsequentes
         }
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
@@ -2633,6 +2633,14 @@ export default {
     async carregarConquistasUsuario() {
       this.carregandoConquistas = true;
       try {
+        // Usar this.usuario.id com fallback para a prop id da rota
+        const userId = this.usuario.id || this.id;
+        if (!userId) {
+          console.warn("⚠️ ID do usuário não disponível para carregar conquistas");
+          this.carregandoConquistas = false;
+          return;
+        }
+
         // Buscar conquistas do usuário diretamente do modelo MetricasUsuario via endpoint específico
         const config = {
           headers: {
@@ -2642,7 +2650,7 @@ export default {
 
         // Buscar as conquistas específicas do usuário
         const response = await api.get(
-          `/api/metricas/conquistas/${this.usuario.id}`,
+          `/api/metricas/conquistas/${userId}`,
           config,
         );
 
