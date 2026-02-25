@@ -2530,14 +2530,41 @@ export default {
           },
         };
 
-        // Primeiro, buscar as métricas do usuário específico
-        const response = await api.get(
-          `/api/metricas/usuarios/${usuarioId}`,
-          config,
-        );
-        let usuarioMetricas = response.data; // Agora pegamos diretamente os dados do usuário específico
+        let usuarioMetricas = null;
 
-        if (usuarioMetricas) {
+        // Primeiro, buscar as métricas do usuário específico
+        try {
+          const response = await api.get(
+            `/api/metricas/usuarios/${usuarioId}`,
+            config,
+          );
+          usuarioMetricas = response.data;
+        } catch (metricasError) {
+          console.warn("Métricas não encontradas para o usuário, tentando fallback:", metricasError?.response?.status);
+        }
+
+        // Fallback: buscar dados básicos do usuário via /api/usuarios/:id
+        let usuarioCompleto = {};
+        try {
+          const lojaSelecionada = JSON.parse(
+            localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
+          );
+
+          const usuarioResponse = await api.get(
+            `/api/usuarios/${usuarioId}`,
+            {
+              headers: {
+                "x-loja": lojaSelecionada.codigo,
+              },
+            },
+          );
+
+          usuarioCompleto = usuarioResponse.data || {};
+        } catch (fetchError) {
+          console.warn("Could not fetch additional user data:", fetchError);
+        }
+
+        if (usuarioMetricas && usuarioMetricas.id) {
           // Calculate XP total based on the achievements data if available
           const xpTotal =
             usuarioMetricas.achievements?.xp?.total ||
@@ -2553,37 +2580,16 @@ export default {
             this.nivelStore.calcularXpRestante(xpTotal);
           const progressoXp =
             usuarioMetricas.achievements?.level?.progressPercentage ||
-            ((xpTotal % 100) / 100) * 100; // Percentage of current XP toward next level
-
-          // Get additional user data from the original API if needed
-          let usuarioCompleto = {};
-          try {
-            const lojaSelecionada = JSON.parse(
-              localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
-            );
-
-            const usuarioResponse = await api.get(
-              `/api/usuarios/${usuarioId}`,
-              {
-                headers: {
-                  "x-loja": lojaSelecionada.codigo,
-                },
-              },
-            );
-
-            usuarioCompleto = usuarioResponse.data || {};
-          } catch (fetchError) {
-            console.warn("Could not fetch additional user data:", fetchError);
-          }
+            ((xpTotal % 100) / 100) * 100;
 
           this.usuario = {
-            ...usuarioCompleto, // Original user data
+            ...usuarioCompleto,
             id: usuarioMetricas.id,
             nome: usuarioMetricas.nome,
-            contador: usuarioMetricas.contador || 0, // Itens auditados from metricas
-            totalAuditorias: usuarioMetricas.contadores?.totalGeral || 0, // Total auditorias from metricas usando o campo correto do endpoint
-            ranking: usuarioMetricas.ranking || {}, // Adicionando informações de ranking do modelo MetricasUsuario
-            totaisAcumulados: usuarioMetricas.totaisAcumulados || {}, // Adicionando totais acumulados do modelo MetricasUsuario
+            contador: usuarioMetricas.contador || 0,
+            totalAuditorias: usuarioMetricas.contadores?.totalGeral || 0,
+            ranking: usuarioMetricas.ranking || {},
+            totaisAcumulados: usuarioMetricas.totaisAcumulados || {},
             foto: this.getFotoUrl(usuarioCompleto),
             iniciais: this.obterIniciais(usuarioMetricas.nome),
             nivel: usuarioMetricas.achievements?.level?.current || nivel,
@@ -2600,10 +2606,10 @@ export default {
               usuarioMetricas.achievements?.level?.progressPercentage ||
               progressoXp,
             conquistas: usuarioCompleto.conquistas || [],
-            achievements: usuarioMetricas.achievements || {}, // Adicionando as conquistas do modelo MetricasUsuario
+            achievements: usuarioMetricas.achievements || {},
             coverId: usuarioCompleto.coverId || "gradient-1",
             selectedBadges: usuarioCompleto.selectedBadges || [],
-            loja: usuarioCompleto.loja || null,
+            loja: usuarioCompleto.loja || usuarioMetricas.loja || null,
           };
 
           // Update the user in nivelStore to keep it consistent
@@ -2613,18 +2619,42 @@ export default {
           if (indexInStore !== -1) {
             this.nivelStore.usuarios[indexInStore] = { ...usuarioMetricas };
           } else {
-            // If user doesn't exist in store, add it
             this.nivelStore.usuarios.push({ ...usuarioMetricas });
           }
+        } else if (usuarioCompleto && usuarioCompleto.id) {
+          // Fallback: usar dados básicos do usuário mesmo sem métricas
+          this.usuario = {
+            ...usuarioCompleto,
+            id: usuarioCompleto.id,
+            nome: usuarioCompleto.nome || "Usuário",
+            contador: usuarioCompleto.contador || 0,
+            totalAuditorias: 0,
+            ranking: {},
+            totaisAcumulados: {},
+            foto: this.getFotoUrl(usuarioCompleto),
+            iniciais: this.obterIniciais(usuarioCompleto.nome || ""),
+            nivel: 1,
+            titulo: this.nivelStore.obterTitulo(1),
+            xpAtual: 0,
+            xpParaProximoNivel: 100,
+            progressoXp: 0,
+            conquistas: usuarioCompleto.conquistas || [],
+            achievements: {},
+            coverId: usuarioCompleto.coverId || "gradient-1",
+            selectedBadges: usuarioCompleto.selectedBadges || [],
+            loja: usuarioCompleto.loja || null,
+          };
         } else {
           console.error(
-            "Usuário não encontrado nos dados de métricas:",
+            "Usuário não encontrado em nenhuma fonte:",
             usuarioId,
           );
-          this.usuario = { id: usuarioId }; // Preservar o ID para chamadas subsequentes
+          this.usuario = { id: usuarioId };
         }
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
+        // Último fallback: tentar pelo menos mostrar algo
+        this.usuario = { id: usuarioId };
       } finally {
         this.carregando = false;
       }
