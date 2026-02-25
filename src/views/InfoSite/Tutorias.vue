@@ -107,7 +107,7 @@ export default {
             },
             {
               title: "6. Acessar o Sistema",
-              text: `Abra seu navegador e acesse <a href="http://localhost:5173" target="_blank">http://localhost:5173</a> para usar o sistema.`,
+              text: `Abra seu navegador e acesse <a href="https://auditorias.site" target="_blank">https://auditorias.site</a> para usar o sistema. Em desenvolvimento local, acesse <code>http://localhost:5173</code>.`,
             },
           ],
         },

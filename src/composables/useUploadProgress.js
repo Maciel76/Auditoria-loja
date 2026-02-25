@@ -45,7 +45,7 @@ export function useUploadProgress() {
     }
 
     progress.sessionId = sessionId
-    const streamUrl = `/api/api/progress/stream/${sessionId}`
+    const streamUrl = `/api/progress/stream/${sessionId}`
 
     eventSource = new EventSource(streamUrl)
 

@@ -2105,7 +2105,6 @@ import { useLojaStore } from "@/store/lojaStore";
 import { useUserSessionStore } from "@/store/userSessionStore";
 import PerfilNavegacao from "@/views/Perfiltemplate/PerfilNavegacao.vue";
 import api from "@/config/api";
-import axios from "axios";
 
 // Lazy load de componentes pesados - só carregam quando necessários
 const UserCoverSelector = defineAsyncComponent(() => import("@/components/UserCoverSelector.vue"));
@@ -2563,8 +2562,8 @@ export default {
               localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
             );
 
-            const usuarioResponse = await axios.get(
-              `/api/api/usuarios/${usuarioId}`,
+            const usuarioResponse = await api.get(
+              `/api/usuarios/${usuarioId}`,
               {
                 headers: {
                   "x-loja": lojaSelecionada.codigo,
@@ -2887,8 +2886,8 @@ export default {
           updateData.selectedAvatar = payload.selectedAvatar;
         }
 
-        const response = await axios.patch(
-          `/api/api/usuarios/${this.usuario.id}/cover`,
+        const response = await api.patch(
+          `/api/usuarios/${this.usuario.id}/cover`,
           updateData,
         );
 

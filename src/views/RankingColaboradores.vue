@@ -279,7 +279,7 @@
 <script>
 import { ref, computed, onMounted, watch } from "vue";
 import { useLojaStore } from "@/store/lojaStore";
-import axios from "axios";
+import api from "@/config/api";
 
 // Importar componentes unificados
 import HeroSection from "./Ranking/RankingColaboradores/HeroSection.vue";
@@ -440,7 +440,7 @@ export default {
 
         console.log(`🔄 Buscando dados do ${modeloUsado}:`, url);
 
-        const response = await axios.get(url, {
+        const response = await api.get(url, {
           headers: {
             "x-loja": lojaStore.codigoLojaAtual,
           },

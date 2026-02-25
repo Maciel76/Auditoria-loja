@@ -116,7 +116,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
-import axios from "axios";
+import api from "@/config/api";
 
 // Estado de loading e erro
 const loading = ref(true);
@@ -196,7 +196,7 @@ const obterAvatarColaborador = async (nomeColaborador) => {
       localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
     );
 
-    const response = await axios.get(`/api/api/usuarios`, {
+    const response = await api.get(`/api/usuarios`, {
       headers: {
         "x-loja": lojaSelecionada.codigo,
       },
@@ -295,7 +295,7 @@ const irParaPerfilColaborador = () => {
       localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
     );
 
-    axios.get(`/api/api/usuarios`, {
+    api.get(`/api/usuarios`, {
       headers: {
         "x-loja": lojaSelecionada.codigo,
       },

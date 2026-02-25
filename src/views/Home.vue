@@ -32,7 +32,7 @@
 <script setup>
 import { ref, reactive, onMounted } from "vue";
 import { useDashboardStore } from "@/store/dashboardStore";
-import axios from "axios";
+import api from "@/config/api";
 // import HeaderComponent from "@/components/HomeComponents/HeaderComponent.vue";
 import HeroSection from "@/components/HomeComponents/HeroSection.vue";
 // import OnlineUsersList from "@/components/HomeComponents/OnlineUsersList.vue";
@@ -72,8 +72,8 @@ const handleFeedReaction = async ({ itemId, reactionType, userIdentifier }) => {
     console.log(`📡 Reagindo no feed: ${reactionType} para item ${itemId}`);
 
     // Tentar usar a API primeiro
-    const response = await axios.post(
-      `/api/api/sugestoes/${itemId}/react`,
+    const response = await api.post(
+      `/api/sugestoes/${itemId}/react`,
       {
         reaction: reactionType,
         userIdentifier: userIdentifier,
@@ -166,8 +166,8 @@ const handleCommentAdded = async ({ itemId, comment }) => {
 
   try {
     // Enviar comentário para o backend (comment já vem com userId do CommunityFeed)
-    const response = await axios.post(
-      `/api/api/sugestoes/${itemId}/comentarios`,
+    const response = await api.post(
+      `/api/sugestoes/${itemId}/comentarios`,
       {
         conteudo: comment.conteudo,
         userId: comment.userId,

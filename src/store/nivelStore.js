@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import api from "@/config/api";
 
 export const useNivelStore = defineStore("nivel", {
   state: () => ({
@@ -110,7 +110,7 @@ export const useNivelStore = defineStore("nivel", {
         // Obter loja atual do localStorage ou usar padrão
         const lojaSelecionada = JSON.parse(localStorage.getItem('lojaSelecionada') || '{"codigo":"056"}');
 
-        const response = await axios.get("/api/usuarios", {
+        const response = await api.get("/api/usuarios", {
           headers: {
             'x-loja': lojaSelecionada.codigo
           }

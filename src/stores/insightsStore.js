@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/config/api';
 
 // Helper para criar uma data no formato YYYY-MM-DD
 const getISODate = (date = new Date()) => {
@@ -98,8 +98,8 @@ export const useInsightsStore = defineStore('insights', {
 
         // Usar Promise.all para buscar dados em paralelo
         const [perfilRes, agregadasRes] = await Promise.all([
-          axios.get(perfilUrl, { params: { data: targetDate } }),
-          axios.get('/api/metricas/lojas', { headers: { 'x-loja': lojaCodigo } })
+          api.get(perfilUrl, { params: { data: targetDate } }),
+          api.get('/api/metricas/lojas', { headers: { 'x-loja': lojaCodigo } })
         ]);
 
         console.log('[insightsStore] Dados do perfil recebidos:', perfilRes.data);

@@ -148,7 +148,7 @@
 <script>
 import { useLojaStore } from "@/store/lojaStore";
 import { useRouter } from "vue-router";
-import axios from "axios";
+import api from "@/config/api";
 
 export default {
   name: "ListaLojas",
@@ -216,7 +216,7 @@ export default {
       try {
         this.carregando = true;
         // Buscar dados adicionais da API (métricas, etc)
-        const response = await axios.get("/api/lojas");
+        const response = await api.get("/api/lojas");
         this.lojasApi = response.data || [];
       } catch (error) {
         console.error("Erro ao carregar dados das lojas:", error);

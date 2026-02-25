@@ -421,7 +421,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useLojaStore } from "@/store/lojaStore";
 import { useAuthStore } from "@/store/authStore";
-import axios from "axios";
+import api from "@/config/api";
 
 // Store da loja e autenticação
 const lojaStore = useLojaStore();
@@ -692,8 +692,8 @@ const buscarMetricasLoja = async () => {
     if (!lojaStore.codigoLojaAtual) {
       throw new Error("Nenhuma loja selecionada.");
     }
-    const response = await axios.get(
-      "/api/api/metricas/loja-daily/classes-completas",
+    const response = await api.get(
+      "/api/metricas/loja-daily/classes-completas",
       { headers: { "x-loja": lojaStore.codigoLojaAtual } }
     );
     if (response.data) {

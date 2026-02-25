@@ -112,7 +112,7 @@
 
 <script setup>
 import { ref } from "vue";
-import axios from "axios";
+import api from "@/config/api";
 import { useRouter } from "vue-router";
 import { useLojaStore } from "../../store/lojaStore";
 
@@ -154,7 +154,7 @@ const enviarArquivo = async () => {
 
     console.log(`🏪 Enviando ruptura para loja: ${lojaStore.codigoLojaAtual}`);
 
-    const { data } = await axios.post(
+    const { data } = await api.post(
       "/api/upload",
       formData,
       {

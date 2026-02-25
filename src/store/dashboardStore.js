@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import api from "@/config/api";
 
 export const useDashboardStore = defineStore("dashboard", {
   state: () => ({
@@ -97,7 +97,7 @@ export const useDashboardStore = defineStore("dashboard", {
     async loadSystemStats() {
       this.loading.stats = true;
       try {
-        const response = await axios.get("/api/dashboard/stats");
+        const response = await api.get("/api/dashboard/stats");
 
         if (response.data.success) {
           this.systemStats = {
@@ -121,10 +121,10 @@ export const useDashboardStore = defineStore("dashboard", {
       console.log("🔄 dashboardStore.loadRealVotingItems() iniciado");
       try {
         console.log(
-          "📡 Fazendo requisição para /api/api/sugestoes?tipo=voting"
+          "📡 Fazendo requisição para /api/sugestoes?tipo=voting"
         );
-        const response = await axios.get(
-          "/api/api/sugestoes?tipo=voting"
+        const response = await api.get(
+          "/api/sugestoes?tipo=voting"
         );
         console.log("📦 Resposta recebida:", response.data);
 
@@ -203,8 +203,8 @@ export const useDashboardStore = defineStore("dashboard", {
     async reactToVotingItem(itemId, reactionType, userIdentifier) {
       try {
         console.log(`📞 Enviando reação ${reactionType} para item ${itemId}`);
-        const response = await axios.post(
-          `/api/api/sugestoes/${itemId}/react`,
+        const response = await api.post(
+          `/api/sugestoes/${itemId}/react`,
           {
             reaction: reactionType,
             userIdentifier: userIdentifier,
@@ -236,9 +236,9 @@ export const useDashboardStore = defineStore("dashboard", {
       this.loading.feed = true;
       try {
         console.log(
-          "📡 Fazendo requisição para /api/api/sugestoes"
+          "📡 Fazendo requisição para /api/sugestoes"
         );
-        const response = await axios.get("/api/api/sugestoes");
+        const response = await api.get("/api/sugestoes");
         console.log("📦 Resposta recebida:", response.data);
 
         if (response.data.sugestoes) {
@@ -349,7 +349,7 @@ export const useDashboardStore = defineStore("dashboard", {
     async loadVotingItems() {
       this.loading.voting = true;
       try {
-        const response = await axios.get("/api/dashboard/voting");
+        const response = await api.get("/api/dashboard/voting");
 
         if (response.data.success) {
           this.votingItems = response.data.voting;
@@ -401,8 +401,8 @@ export const useDashboardStore = defineStore("dashboard", {
     // Submeter sugestão
     async submitSuggestion(suggestion, tipo = "geral") {
       try {
-        const response = await axios.post(
-          "/api/api/sugestoes",
+        const response = await api.post(
+          "/api/sugestoes",
           {
             sugestao: suggestion,
             tipo: tipo,
@@ -451,7 +451,7 @@ export const useDashboardStore = defineStore("dashboard", {
     // Votar em item
     async submitVote(itemId) {
       try {
-        const response = await axios.post(`/api/dashboard/vote/${itemId}`);
+        const response = await api.post(`/api/dashboard/vote/${itemId}`);
 
         if (response.data.success) {
           const item = this.votingItems.find((item) => item.id === itemId);

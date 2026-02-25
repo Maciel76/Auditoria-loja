@@ -109,7 +109,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from '@/config/api'
 
 // Componentes
 import HeroSection from './HeroSection.vue'
@@ -411,7 +411,7 @@ const buscarDados = async () => {
   error.value = null
 
   try {
-    const response = await axios.get('/api/api/debug/lojas-daily-ranking', {
+    const response = await api.get('/api/debug/lojas-daily-ranking', {
       params: {
         regiao: filtroRegiao.value !== 'todas' ? filtroRegiao.value : undefined,
         limite: 50

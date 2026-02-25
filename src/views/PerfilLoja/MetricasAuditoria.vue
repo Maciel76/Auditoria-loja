@@ -506,7 +506,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useLojaStore } from "@/store/lojaStore";
-import axios from "axios";
+import api from "@/config/api";
 
 const lojaStore = useLojaStore();
 
@@ -646,8 +646,8 @@ const buscarDadosReais = async () => {
       throw new Error("Nenhuma loja selecionada.");
     }
 
-    const response = await axios.get(
-      "/api/api/metricas/loja-daily/classes-completas",
+    const response = await api.get(
+      "/api/metricas/loja-daily/classes-completas",
       { headers: { "x-loja": lojaStore.codigoLojaAtual } }
     );
 

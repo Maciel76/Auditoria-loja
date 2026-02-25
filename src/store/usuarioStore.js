@@ -1,7 +1,6 @@
 // store/usuarioStore.js - Gerenciamento de usuários e fotos
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import axios from "axios";
 import api from "@/config/api";
 
 export const useUsuarioStore = defineStore("usuario", () => {

@@ -1,6 +1,7 @@
 // store/lojaStore.js - Versão Completa e Funcional
 import { defineStore } from "pinia";
 import axios from "axios";
+import api from "@/config/api.js";
 
 export const useLojaStore = defineStore("loja", {
   state: () => ({
@@ -130,7 +131,7 @@ export const useLojaStore = defineStore("loja", {
         }
 
         // Testar se a loja é válida no backend
-        const response = await axios.get("/api/test", {
+        const response = await api.get("/api/test", {
           headers: {
             "x-loja": lojaCompleta.codigo,
           },
@@ -197,7 +198,10 @@ export const useLojaStore = defineStore("loja", {
       this.lojaSelecionada = null;
       localStorage.removeItem("lojaSelecionada");
 
-      // Remover header do axios
+      // Remover header do axios e da instância api
+      if (api.defaults.headers.common) {
+        delete api.defaults.headers.common["x-loja"];
+      }
       if (axios.defaults.headers.common) {
         delete axios.defaults.headers.common["x-loja"];
       }
@@ -207,15 +211,20 @@ export const useLojaStore = defineStore("loja", {
 
     // Configurar header do axios
     configurarAxiosHeader(codigo) {
+      // Configurar na instância api (usada nas requisições)
+      if (!api.defaults.headers.common) {
+        api.defaults.headers.common = {};
+      }
+      if (api.defaults.headers.common["x-loja"] !== codigo) {
+        api.defaults.headers.common["x-loja"] = codigo;
+        console.log(`🔧 x-loja=${codigo || "Código Indisponível"}`);
+      }
+
+      // Manter também no axios global para compatibilidade
       if (!axios.defaults.headers.common) {
         axios.defaults.headers.common = {};
       }
-
-      // Só atualiza e faz log se o valor realmente mudar
-      if (axios.defaults.headers.common["x-loja"] !== codigo) {
-        axios.defaults.headers.common["x-loja"] = codigo;
-        console.log(`🔧 x-loja=${codigo || "Código Indisponível"}`);
-      }
+      axios.defaults.headers.common["x-loja"] = codigo;
     },
 
     // Verificar se loja ainda é válida
@@ -223,7 +232,7 @@ export const useLojaStore = defineStore("loja", {
       if (!this.lojaSelecionada) return false;
 
       try {
-        const response = await axios.get("/api/test");
+        const response = await api.get("/api/test");
         return response.status === 200;
       } catch (error) {
         console.error("❌ Loja atual inválida:", error);
@@ -263,8 +272,8 @@ export const useLojaStore = defineStore("loja", {
       console.log(`🔄 Carregando produtos do servidor para loja: ${cacheKey}`);
 
       try {
-        const response = await axios.get(
-          `/api/api/audit-products/produtos-auditorias/${cacheKey}`
+        const response = await api.get(
+          `/api/audit-products/produtos-auditorias/${cacheKey}`
         );
 
         if (!response.data.success) {

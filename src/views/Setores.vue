@@ -610,7 +610,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import api from "@/config/api";
 import { debounce } from "lodash";
 
 export default {
@@ -877,7 +877,7 @@ export default {
 
     async carregarDatasAuditoria() {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           "/api/datas-auditoria"
         );
         this.datasAuditoria = response.data;
@@ -973,8 +973,8 @@ export default {
         const tipoAuditoria = this.filtroTipoAuditoria;
 
         // Fazer a requisição para o novo endpoint de produtos de auditoria
-        const response = await axios.get(
-          `/api/api/audit-products/produtos/${this.$store.state.lojaSelecionada.codigo}/${tipoAuditoria}`
+        const response = await api.get(
+          `/api/audit-products/produtos/${this.$store.state.lojaSelecionada.codigo}/${tipoAuditoria}`
         );
 
         if (response.data && response.data.success) {

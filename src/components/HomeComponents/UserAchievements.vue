@@ -78,7 +78,7 @@ const formatarData = (data) => {
 const carregarAvisos = async () => {
   try {
     carregando.value = true;
-    const response = await fetch('/api/api/avisos?status=aprovado&limite=10', {
+    const response = await fetch('/api/avisos?status=aprovado&limite=10', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

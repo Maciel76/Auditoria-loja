@@ -128,7 +128,7 @@
 
 <script>
 import CoverSelector from "@/components/CoverSelector.vue";
-import axios from "axios";
+import api from "@/config/api";
 import { useLojaStore } from "@/store/lojaStore.js";
 import { useUserSessionStore } from "@/store/userSessionStore";
 
@@ -492,8 +492,8 @@ export default {
     async updateCoverOnBackend(coverId) {
       try {
         // Atualizar diretamente usando o código da loja
-        const response = await axios.patch(
-          `/api/api/stores/${this.loja.codigo}/cover`,
+        const response = await api.patch(
+          `/api/stores/${this.loja.codigo}/cover`,
           {
             coverId: coverId,
           },
@@ -512,8 +512,8 @@ export default {
     async updateBadgesOnBackend(selectedBadges) {
       try {
         // Atualizar os selos diretamente usando o código da loja
-        const response = await axios.patch(
-          `/api/api/stores/${this.loja.codigo}/badges`,
+        const response = await api.patch(
+          `/api/stores/${this.loja.codigo}/badges`,
           {
             selectedBadges: selectedBadges,
           },
@@ -571,8 +571,8 @@ export default {
     async updateStoreInfoOnBackend(info) {
       try {
         // First, get the store to get its ID
-        const lojasResponse = await axios.get(
-          "/api/api/stores",
+        const lojasResponse = await api.get(
+          "/api/stores",
         );
         const loja = lojasResponse.data.find(
           (l) => l.codigo === this.loja.codigo,
@@ -583,8 +583,8 @@ export default {
         }
 
         // Update the store with the new information
-        const response = await axios.put(
-          `/api/api/stores/${loja._id}`,
+        const response = await api.put(
+          `/api/stores/${loja._id}`,
           {
             ...loja,
             nome: info.nome || loja.nome,

@@ -67,7 +67,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useUserSessionStore } from "@/store/userSessionStore";
-import axios from "axios";
+import api from "@/config/api";
 
 const route = useRoute();
 const userSessionStore = useUserSessionStore();
@@ -99,8 +99,8 @@ onMounted(async () => {
         localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
       );
 
-      const response = await axios.get(
-        `/api/api/usuarios/${userSessionStore.getUsuarioId}`,
+      const response = await api.get(
+        `/api/usuarios/${userSessionStore.getUsuarioId}`,
         {
           headers: {
             "x-loja": lojaSelecionada.codigo,

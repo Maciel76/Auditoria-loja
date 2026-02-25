@@ -81,7 +81,7 @@
 import { useRouter } from "vue-router";
 import { useLojaStore } from "../store/lojaStore";
 import { computed, ref, onMounted } from "vue";
-import axios from "axios";
+import api from "@/config/api";
 
 // Componentes
 import PerfilHeader from "./PerfilLoja/PerfilHeader.vue";
@@ -168,8 +168,8 @@ export default {
         carregando.value = true;
 
         // Buscar dados reais da API usando axios
-        const response = await axios.get(
-          `/api/api/perfil-loja/${codigoLoja}`
+        const response = await api.get(
+          `/api/perfil-loja/${codigoLoja}`
         );
 
         const data = response.data;

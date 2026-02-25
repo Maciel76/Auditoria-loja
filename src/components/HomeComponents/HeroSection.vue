@@ -582,7 +582,7 @@ const submitSuggestion = async () => {
   isSubmitting.value = true;
 
   try {
-    const response = await fetch("/api/api/sugestoes", {
+    const response = await fetch("/api/sugestoes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -623,7 +623,7 @@ const submitPost = async () => {
   isSubmittingPost.value = true;
 
   try {
-    const response = await fetch("/api/api/sugestoes", {
+    const response = await fetch("/api/sugestoes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -667,7 +667,7 @@ const submitNotice = async () => {
   isSubmittingNotice.value = true;
 
   try {
-    const response = await fetch("/api/api/avisos", {
+    const response = await fetch("/api/avisos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -710,7 +710,7 @@ const submitVoting = async () => {
   isSubmittingVoting.value = true;
 
   try {
-    const response = await fetch("/api/api/votacoes", {
+    const response = await fetch("/api/votacoes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
