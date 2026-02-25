@@ -2532,7 +2532,7 @@ export default {
 
         // Primeiro, buscar as métricas do usuário específico
         const response = await api.get(
-          `/metricas/usuarios/${usuarioId}`,
+          `/api/metricas/usuarios/${usuarioId}`,
           config,
         );
         let usuarioMetricas = response.data; // Agora pegamos diretamente os dados do usuário específico
@@ -2642,7 +2642,7 @@ export default {
 
         // Buscar as conquistas específicas do usuário
         const response = await api.get(
-          `/metricas/conquistas/${this.usuario.id}`,
+          `/api/metricas/conquistas/${this.usuario.id}`,
           config,
         );
 

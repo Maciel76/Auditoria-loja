@@ -741,7 +741,7 @@ const carregarUsuarios = async () => {
       config.headers = { "x-loja": lojaStore.codigoLojaAtual };
     }
 
-    const { data } = await api.get("/metricas/usuarios", config);
+    const { data } = await api.get("/api/metricas/usuarios", config);
 
     usuarios.value = data.usuarios.map((user) => ({
       id: user.id,

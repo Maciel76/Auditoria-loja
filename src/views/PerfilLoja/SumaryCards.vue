@@ -237,7 +237,7 @@ const buscarMetricas = async () => {
     loading.value = true;
     error.value = null;
 
-    const response = await get("/metricas/lojas");
+    const response = await get("/api/metricas/lojas");
 
     if (response.data) {
       dadosMetricas.value = {

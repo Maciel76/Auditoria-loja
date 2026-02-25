@@ -435,7 +435,7 @@ export default {
         this.carregando = true;
         this.erro = "";
 
-        const response = await api.get("/metricas/usuarios", {
+        const response = await api.get("/api/metricas/usuarios", {
           headers: {
             "x-loja": this.lojaStore.codigoLojaAtual,
           },

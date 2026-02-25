@@ -69,7 +69,7 @@ export function useApi() {
 
     // Upload de arquivo com loja
     uploadFile: (formData, config = {}) => {
-      return api.post("/upload", formData, {
+      return api.post("/api/upload", formData, {
         ...config,
         headers: {
           "Content-Type": "multipart/form-data",
@@ -79,7 +79,7 @@ export function useApi() {
     },
 
     // Verificar se loja está válida
-    testLoja: () => api.get("/test"),
+    testLoja: () => api.get("/api/test"),
   };
 }
 

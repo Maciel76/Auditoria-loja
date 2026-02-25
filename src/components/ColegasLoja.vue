@@ -100,7 +100,7 @@ export default {
           localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
         );
 
-        const response = await api.get("/metricas/usuarios", {
+        const response = await api.get("/api/metricas/usuarios", {
           headers: {
             "x-loja": lojaSelecionada.codigo,
           },
