@@ -1,5 +1,8 @@
 <template>
   <div class="login-container">
+    <!-- Banner PWA Install -->
+    <InstallPWA />
+
     <!-- Elementos de fundo decorativos - mais bolinhas -->
     <div class="decoration-circle circle-1"></div>
     <div class="decoration-circle circle-2"></div>
@@ -64,9 +67,11 @@
 <script>
 import { useRouter } from "vue-router";
 import { useUserSessionStore } from "@/store/userSessionStore";
+import InstallPWA from "@/components/InstallPWA.vue";
 
 export default {
   name: "LoginView",
+  components: { InstallPWA },
   setup() {
     const router = useRouter();
     const userSessionStore = useUserSessionStore();
