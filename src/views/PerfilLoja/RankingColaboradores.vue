@@ -799,7 +799,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useLojaStore } from "@/store/lojaStore";
-import axios from "axios";
+import api from "@/services/api";
 
 const lojaStore = useLojaStore();
 
@@ -896,7 +896,7 @@ const buscarDados = async () => {
 
     if (usarPeriodoCompleto.value) {
       // Modo PERÍODO COMPLETO - usa MetricasUsuario
-      url = "/api/ranking-colaboradores-completo";
+      url = "/ranking-colaboradores-completo";
       tipoSelecionado = filtroTipoAuditoriaCompleto.value;
       params.append("tipo", tipoSelecionado);
       modeloUsado = `MetricasUsuario (Período Completo - ${getTipoAuditoriaName(
@@ -904,7 +904,7 @@ const buscarDados = async () => {
       )})`;
     } else {
       // Modo DIÁRIO - usa UserDailyMetrics
-      url = "/api/ranking-colaboradores";
+      url = "/ranking-colaboradores";
       tipoSelecionado = filtroTipoAuditoria.value;
       params.append("tipo", tipoSelecionado);
       modeloUsado = `UserDailyMetrics (Diário - ${getTipoAuditoriaName(
@@ -918,7 +918,7 @@ const buscarDados = async () => {
 
     console.log(`🔄 Buscando dados do ${modeloUsado}: ${url}`);
 
-    const response = await axios.get(url, {
+    const response = await api.get(url, {
       headers: {
         "x-loja": lojaStore.codigoLojaAtual,
       },

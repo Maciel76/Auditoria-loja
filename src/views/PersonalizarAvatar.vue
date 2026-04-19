@@ -2583,7 +2583,7 @@ export default {
       try {
         // Atualizar o avatar do usuário no backend
         const response = await fetch(
-          `/api/api/usuarios/${userId}/cover`,
+          `/api/usuarios/${userId}/cover`,
           {
             method: "PATCH",
             headers: {

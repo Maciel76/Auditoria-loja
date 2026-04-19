@@ -54,7 +54,7 @@ const carregando = ref(true);
 const carregarEstatisticas = async () => {
   try {
     carregando.value = true;
-    const response = await fetch('/api/api/sugestoes/estatisticas', {
+    const response = await fetch('/api/sugestoes/estatisticas', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

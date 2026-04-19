@@ -365,7 +365,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import axios from "axios";
+import api from "@/services/api";
 import { useLojaStore } from "@/store/lojaStore";
 
 // Store da loja
@@ -684,8 +684,8 @@ const buscarMetricasLoja = async () => {
     console.log(`🔍 Buscando métricas para loja: ${lojaStore.codigoLojaAtual}`);
 
     // Buscar métricas completas de classes
-    const response = await axios.get(
-      "/api/api/metricas/loja-daily/classes-completas",
+    const response = await api.get(
+      "/api/metricas/loja-daily/classes-completas",
       {
         headers: {
           "x-loja": lojaStore.codigoLojaAtual,

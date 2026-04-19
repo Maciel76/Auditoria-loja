@@ -232,7 +232,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import axios from "axios";
+import api from "@/services/api";
 import { useLojaStore } from "@/store/lojaStore";
 
 const lojaStore = useLojaStore();
@@ -455,8 +455,8 @@ const buscarDadosCorredores = async () => {
     console.log(`🔍 Buscando desempenho por corredor para loja: ${lojaStore.codigoLojaAtual}`);
 
     // Buscar métricas de desempenho por corredor (locais)
-    const response = await axios.get(
-      "/api/api/metricas/loja-daily/locais-completas",
+    const response = await api.get(
+      "/api/metricas/loja-daily/locais-completas",
       {
         headers: {
           "x-loja": lojaStore.codigoLojaAtual,

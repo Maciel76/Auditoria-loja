@@ -1,16 +1,6 @@
 // composables/useApi.js - Configurar axios para sempre enviar header da loja
-import axios from "axios";
+import api from "@/services/api";
 import { useLojaStore } from "@/store/lojaStore";
-
-// Configuração base do axios - usa variável de ambiente
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // Interceptor para adicionar header de loja automaticamente
 api.interceptors.request.use(

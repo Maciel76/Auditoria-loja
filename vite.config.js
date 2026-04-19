@@ -9,6 +9,22 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src/", import.meta.url)),
     },
   },
+  // Proxy para desenvolvimento - redireciona /api para o backend
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   base: "/",
   build: {
     outDir: "dist",
