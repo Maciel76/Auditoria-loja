@@ -116,7 +116,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
+import { useLojaStore } from "@/store/lojaStore";
 import api from "@/services/api";
+
+const lojaStore = useLojaStore();
 
 // Estado de loading e erro
 const loading = ref(true);
@@ -191,43 +194,22 @@ const obterAvatarColaborador = async (nomeColaborador) => {
   }
 
   try {
-    // Primeiro, tentar obter o ID do colaborador a partir do nome
-    const lojaSelecionada = JSON.parse(
-      localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
-    );
+    const codigoLoja = lojaStore.codigoLojaAtual;
+    if (!codigoLoja) return null;
 
     const response = await api.get(`/api/usuarios`, {
-      headers: {
-        "x-loja": lojaSelecionada.codigo,
-      },
+      headers: { "x-loja": codigoLoja },
     });
 
-    const usuario = response.data.find((u) => u.nome === nomeColaborador);
-
+    const usuario = (response.data || []).find((u) => u.nome === nomeColaborador);
     if (usuario) {
-      // Armazenar o ID do colaborador em destaque
       dadosMetricas.value.idColaboradorDestaque = usuario.id;
-
-      // Retornar a foto do usuário ou gerar avatar com base no nome
-      if (usuario.foto) {
-        return usuario.foto;
-      } else {
-        // Gerar avatar usando DiceBear com base no nome
-        const seed = encodeURIComponent(nomeColaborador.toLowerCase());
-        return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
-      }
-    } else {
-      // Se não encontrar o usuário, gerar avatar com base no nome
-      const seed = encodeURIComponent(nomeColaborador.toLowerCase());
-      return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
+      return usuario.foto || null;
     }
+    return null;
   } catch (err) {
     console.error("Erro ao obter avatar do colaborador:", err);
-    // Em caso de erro, gerar avatar com base no nome
-    const seed = nomeColaborador
-      ? encodeURIComponent(nomeColaborador.toLowerCase())
-      : "default";
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede&radius=50&size=128`;
+    return null;
   }
 };
 
@@ -289,30 +271,24 @@ onMounted(() => {
 
 // Função para ir para o perfil do colaborador em destaque
 const irParaPerfilColaborador = () => {
-  if (infoColaboradorDestaque.value.nome && infoColaboradorDestaque.value.nome !== "N/A") {
-    // Primeiro, precisamos encontrar o ID do colaborador
-    const lojaSelecionada = JSON.parse(
-      localStorage.getItem("lojaSelecionada") || '{"codigo":"056"}',
-    );
+  const nome = infoColaboradorDestaque.value.nome;
+  if (!nome || nome === "N/A") return;
+  const codigoLoja = lojaStore.codigoLojaAtual;
+  if (!codigoLoja) return;
 
-    api.get(`/api/usuarios`, {
-      headers: {
-        "x-loja": lojaSelecionada.codigo,
-      },
-    })
-    .then(response => {
-      const usuario = response.data.find(u => u.nome === infoColaboradorDestaque.value.nome);
+  api
+    .get(`/api/usuarios`, { headers: { "x-loja": codigoLoja } })
+    .then((response) => {
+      const usuario = (response.data || []).find((u) => u.nome === nome);
       if (usuario) {
-        // Usar o router do Vue para navegar para o perfil
         window.location.href = `/perfil/${usuario.id}`;
       } else {
-        console.error("Usuário não encontrado para o nome:", infoColaboradorDestaque.value.nome);
+        console.error("Usuário não encontrado para o nome:", nome);
       }
     })
-    .catch(error => {
+    .catch((error) => {
       console.error("Erro ao buscar ID do usuário:", error);
     });
-  }
 };
 
 // Expor função de atualização para componentes pai (opcional)

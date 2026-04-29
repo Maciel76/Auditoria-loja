@@ -449,283 +449,329 @@ const calcPercent = (lidos, total) => total > 0 ? Math.round((lidos / total) * 1
 // Dados dinâmicos para os Insight Cards
 // ============================================
 
-// Performance Card
-const perfData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Performance Etiqueta',
-      subtitulo: 'Desempenho de leitura por setor',
-      destaque: { label: 'Classe Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
-      alert: { label: 'Classe Destaque', nome: 'Mercearia', lidos: 98, total: 100 },
-      critico: { label: 'Classe Crítica', nome: 'Perfumaria', lidos: 20, total: 100 },
-      aderencia: { label: 'Progresso Total', valor: 78 },
-    },
-    presenca: {
-      titulo: 'Performance Presença',
-      subtitulo: 'Confirmação de presença por setor',
-      destaque: { label: 'Setor Destaque', nome: 'Bebidas', lidos: 95, total: 100 },
-      critico: { label: 'Setor Crítico', nome: 'Limpeza', lidos: 35, total: 100 },
-      aderencia: { label: 'Presença Confirmada', valor: 72 },
-    },
-    ruptura: {
-      titulo: 'Performance Ruptura',
-      subtitulo: 'Controle de ruptura por setor',
-      destaque: { label: 'Menor Ruptura', nome: 'Hortifruti', lidos: 97, total: 100 },
-      critico: { label: 'Maior Ruptura', nome: 'Padaria', lidos: 55, total: 100 },
-      aderencia: { label: 'Cobertura Anti-Ruptura', valor: 65 },
-    },
-  };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
+// ============================================
+// Helpers para transformar dados reais em rankings
+// ============================================
+
+const COLOR_PALETTE = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#84cc16'];
+
+const formatCurrencyBRL = (valor) => {
+  const v = Number(valor) || 0;
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+};
+
+// Converte um objeto/Map de classesLeitura ou locaisLeitura em array ordenado
+// Cada item: { nome, total, lidos, percent }
+const normalizarMapa = (origem) => {
+  if (!origem) return [];
+  // Pode vir como Map (Mongoose) ou objeto plano
+  let entries = [];
+  if (origem instanceof Map) {
+    entries = Array.from(origem.entries());
+  } else if (typeof origem === 'object') {
+    entries = Object.entries(origem).filter(([k]) => !k.startsWith('_') && k !== '$__parent');
+  }
+  return entries
+    .map(([nome, valor]) => {
+      // valor pode ser { total, lidos, percentual } ou um número
+      if (valor && typeof valor === 'object') {
+        const total = Number(valor.total ?? valor.totalItens ?? 0);
+        const lidos = Number(valor.lidos ?? valor.itensAtualizados ?? valor.itensLidos ?? 0);
+        const percent = total > 0 ? Math.round((lidos / total) * 100) : Number(valor.percentual ?? 0);
+        return { nome, total, lidos, percent };
+      }
+      return { nome, total: Number(valor) || 0, lidos: 0, percent: 0 };
+    })
+    .filter((item) => item.nome && item.total > 0);
+};
+
+// Tipo de auditoria selecionado (sinônimo)
+const tipoAuditoriaAtual = computed(() => tipoInsightAtual.value);
+
+// Bloco real de métricas para o tipo selecionado
+const metricasTipo = computed(() => {
+  const m = insightsStore.metricasDiarias || {};
+  return m[`${tipoInsightAtual.value}s`] || m[tipoInsightAtual.value] || {};
 });
 
-// Alertas Card
+const classesRanqueadas = computed(() => {
+  const arr = normalizarMapa(metricasTipo.value?.classesLeitura);
+  return arr.sort((a, b) => b.percent - a.percent);
+});
+
+const locaisRanqueados = computed(() => {
+  const arr = normalizarMapa(metricasTipo.value?.locaisLeitura);
+  return arr.sort((a, b) => b.percent - a.percent);
+});
+
+// ============================================
+// Performance Card — destaque e crítico reais
+// ============================================
+const perfData = computed(() => {
+  const tipo = tipoInsightAtual.value;
+  const m = metricasTipo.value || {};
+  const classes = classesRanqueadas.value;
+  const destaque = classes[0] || { nome: '—', lidos: 0, total: 0 };
+  const critico = classes.length > 1 ? classes[classes.length - 1] : { nome: '—', lidos: 0, total: 0 };
+
+  const titulos = {
+    etiqueta:  { titulo: 'Performance Etiqueta',  subtitulo: 'Aderência de leitura por classe de produto', dest: 'Classe Destaque', crit: 'Classe Crítica',  ader: 'Progresso Total' },
+    presenca:  { titulo: 'Performance Presença',  subtitulo: 'Confirmação de presença por classe',          dest: 'Classe Destaque', crit: 'Classe Crítica',  ader: 'Presença Confirmada' },
+    ruptura:   { titulo: 'Performance Ruptura',   subtitulo: 'Cobertura anti-ruptura por classe',           dest: 'Menor Ruptura',   crit: 'Maior Ruptura',   ader: 'Cobertura Geral' },
+  };
+  const cfg = titulos[tipo] || titulos.etiqueta;
+
+  return {
+    titulo: cfg.titulo,
+    subtitulo: cfg.subtitulo,
+    destaque: { label: cfg.dest, nome: destaque.nome, lidos: destaque.lidos, total: destaque.total },
+    critico:  { label: cfg.crit, nome: critico.nome,  lidos: critico.lidos,  total: critico.total },
+    aderencia: { label: cfg.ader, valor: Math.round(Number(m.percentualConclusao) || 0) },
+  };
+});
+
+// ============================================
+// Alertas — derivados de campos reais
+// ============================================
 const alertasData = computed(() => {
-  const configs = {
-    etiqueta: {
+  const tipo = tipoInsightAtual.value;
+  const m = metricasTipo.value || {};
+  const classes = classesRanqueadas.value;
+  const piorClasse = classes.length > 0 ? classes[classes.length - 1] : null;
+
+  if (tipo === 'etiqueta') {
+    const desatualizadas = Number(m.itensDesatualizado) || 0;
+    const totalItens = Number(m.totalItens) || 0;
+    const semEstoque = Number(m.itensLidosemestoque) || 0;
+    const naoLidos = Number(m.itensNaolidos ?? m.itensNaoLidos) || 0;
+    return {
       titulo: 'Alertas de Etiqueta',
-      subtitulo: 'Problemas na leitura de etiquetas',
+      subtitulo: 'Problemas detectados na leitura',
       items: [
-        { tipo: 'critical', titulo: 'Etiquetas Desatualizadas', descricao: '142 etiquetas desatualizadas de um total de 1.200', valor: 142, total: 1200 },
-        { tipo: 'medium', titulo: 'Setor com Mais Desatualizadas', descricao: 'Perfumaria possui 68 etiquetas desatualizadas', valor: 68, total: 142 },
-        { tipo: 'low', titulo: 'Etiquetas Sem Estoque', descricao: '23 itens lidos sem estoque disponível', valor: 23, total: 1200 },
+        { tipo: desatualizadas > 0 ? 'critical' : 'low', titulo: 'Etiquetas Desatualizadas', descricao: `${desatualizadas} etiquetas desatualizadas de ${totalItens} totais`, valor: desatualizadas, total: Math.max(totalItens, 1) },
+        { tipo: piorClasse ? 'medium' : 'low', titulo: 'Classe com Pior Aderência', descricao: piorClasse ? `${piorClasse.nome}: ${piorClasse.lidos}/${piorClasse.total} (${piorClasse.percent}%)` : 'Sem dados suficientes', valor: piorClasse?.lidos || 0, total: piorClasse?.total || 1 },
+        { tipo: 'low', titulo: 'Não Lidos com Estoque', descricao: `${naoLidos} itens pendentes de leitura`, valor: naoLidos, total: Math.max(totalItens, 1) },
+        { tipo: 'low', titulo: 'Lidos sem Estoque', descricao: `${semEstoque} itens lidos sem estoque disponível`, valor: semEstoque, total: Math.max(totalItens, 1) },
       ],
-    },
-    presenca: {
+    };
+  }
+  if (tipo === 'presenca') {
+    const semPresenca = Number(m.itensNaoLidos) || 0;
+    const totalItens = Number(m.totalItens) || 0;
+    const custo = Number(m.custoRuptura ?? m.rupturaSemPresenca) || 0;
+    return {
       titulo: 'Alertas de Presença',
       subtitulo: 'Itens com falha de presença',
       items: [
-        { tipo: 'critical', titulo: 'Itens Sem Presença', descricao: '89 itens sem confirmação de presença', valor: 89, total: 500 },
-        { tipo: 'medium', titulo: 'Custo de Ruptura por Ausência', descricao: 'R$ 3.450,00 em produtos sem presença confirmada', valor: 45, total: 100 },
-        { tipo: 'low', titulo: 'Setor Crítico', descricao: 'Limpeza com 34 itens sem presença', valor: 34, total: 89 },
+        { tipo: semPresenca > 0 ? 'critical' : 'low', titulo: 'Itens Sem Presença', descricao: `${semPresenca} itens sem confirmação de presença`, valor: semPresenca, total: Math.max(totalItens, 1) },
+        { tipo: custo > 0 ? 'medium' : 'low', titulo: 'Custo da Ausência', descricao: `${formatCurrencyBRL(custo)} em produtos sem presença confirmada`, valor: Math.round(custo), total: Math.max(Math.round(custo) + 1, 1) },
+        { tipo: piorClasse ? 'medium' : 'low', titulo: 'Classe Crítica', descricao: piorClasse ? `${piorClasse.nome} com ${piorClasse.total - piorClasse.lidos} itens sem presença` : 'Sem dados', valor: piorClasse ? piorClasse.total - piorClasse.lidos : 0, total: piorClasse?.total || 1 },
       ],
-    },
-    ruptura: {
-      titulo: 'Alertas de Ruptura',
-      subtitulo: 'Itens em situação de ruptura',
-      items: [
-        { tipo: 'critical', titulo: 'Ruptura Ativa', descricao: '67 itens em ruptura — custo total de R$ 8.920,00', valor: 67, total: 300 },
-        { tipo: 'medium', titulo: 'Setor com Maior Ruptura', descricao: 'Padaria com 28 itens em ruptura', valor: 28, total: 67 },
-        { tipo: 'low', titulo: 'Ruptura Recorrente', descricao: '15 itens em ruptura por 3 dias consecutivos', valor: 15, total: 67 },
-      ],
-    },
+    };
+  }
+  // ruptura
+  const itensRuptura = Number(m.itensNaoLidos) || 0;
+  const custoTotal = Number(m.custoTotalRuptura) || 0;
+  const totalItens = Number(m.totalItens) || 0;
+  return {
+    titulo: 'Alertas de Ruptura',
+    subtitulo: 'Itens em situação de ruptura',
+    items: [
+      { tipo: itensRuptura > 0 ? 'critical' : 'low', titulo: 'Ruptura Ativa', descricao: `${itensRuptura} itens em ruptura — custo total ${formatCurrencyBRL(custoTotal)}`, valor: itensRuptura, total: Math.max(totalItens, 1) },
+      { tipo: piorClasse ? 'medium' : 'low', titulo: 'Classe com Maior Ruptura', descricao: piorClasse ? `${piorClasse.nome} concentra a pior cobertura (${piorClasse.percent}%)` : 'Sem dados', valor: piorClasse ? piorClasse.total - piorClasse.lidos : 0, total: piorClasse?.total || 1 },
+      { tipo: 'low', titulo: 'Custo Médio Unitário', descricao: itensRuptura > 0 ? `Aprox. ${formatCurrencyBRL(custoTotal / itensRuptura)} por item em ruptura` : 'Sem ruptura registrada', valor: Math.round(custoTotal / Math.max(itensRuptura, 1)), total: Math.max(Math.round(custoTotal), 1) },
+    ],
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
 });
 
-// Tendências Card
+// ============================================
+// Tendências — usa variacaoAuditorias (agregadas) + comparativos do tipo
+// ============================================
 const tendenciasData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Evolução de Leitura',
-      subtitulo: 'Progresso das etiquetas ao longo do tempo',
+  const tipo = tipoInsightAtual.value;
+  const m = metricasTipo.value || {};
+  const totais = insightsStore.metricasDiarias?.totais || {};
+  const variacao = Number(insightsStore.metricasAgregadas?.variacaoAuditorias) || 0;
+  const aderencia = Math.round(Number(m.percentualConclusao) || 0);
+  const usuariosAtivos = Number(m.usuariosAtivos) || 0;
+
+  const fmtVar = (v) => `${v >= 0 ? '+' : ''}${Math.round(v)}%`;
+
+  if (tipo === 'etiqueta') {
+    return {
+      titulo: 'Indicadores de Leitura',
+      subtitulo: 'Snapshot do desempenho atual',
       items: [
-        { label: 'Leitura Hoje vs Ontem', valor: '+12%', positivo: true, descricao: '98 lidas hoje vs 87 ontem' },
-        { label: 'Média Semanal', valor: '+5%', positivo: true, descricao: 'Média de 92 etiquetas/dia esta semana' },
-        { label: 'Desatualizadas', valor: '-8%', positivo: true, descricao: 'Redução de 154 para 142 desatualizadas' },
+        { label: 'Aderência atual', valor: `${aderencia}%`, positivo: aderencia >= 70, descricao: `${m.itensAtualizados || 0} de ${m.totalItens || 0} etiquetas atualizadas` },
+        { label: 'Variação vs. histórico', valor: fmtVar(variacao), positivo: variacao >= 0, descricao: 'Comparativo com o total acumulado' },
+        { label: 'Colaboradores ativos', valor: String(usuariosAtivos), positivo: usuariosAtivos > 0, descricao: 'Operadores envolvidos na auditoria do dia' },
       ],
-    },
-    presenca: {
-      titulo: 'Evolução de Presença',
-      subtitulo: 'Tendência de confirmação de presença',
+    };
+  }
+  if (tipo === 'presenca') {
+    return {
+      titulo: 'Indicadores de Presença',
+      subtitulo: 'Snapshot da confirmação de presença',
       items: [
-        { label: 'Presença Hoje vs Ontem', valor: '+8%', positivo: true, descricao: '411 confirmados hoje vs 380 ontem' },
-        { label: 'Cobertura Semanal', valor: '-3%', positivo: false, descricao: 'Queda na média de presença semanal' },
-        { label: 'Itens Sem Presença', valor: '-15%', positivo: true, descricao: 'Redução de 105 para 89 itens sem presença' },
+        { label: 'Confirmação atual', valor: `${aderencia}%`, positivo: aderencia >= 70, descricao: `${m.itensAtualizados || 0} de ${m.totalItens || 0} itens com presença` },
+        { label: 'Custo de ausência', valor: formatCurrencyBRL(m.custoRuptura || 0), positivo: (m.custoRuptura || 0) === 0, descricao: 'Valor potencial perdido por ausência' },
+        { label: 'Colaboradores ativos', valor: String(usuariosAtivos), positivo: usuariosAtivos > 0, descricao: 'Operadores envolvidos na auditoria do dia' },
       ],
-    },
-    ruptura: {
-      titulo: 'Evolução de Ruptura',
-      subtitulo: 'Tendência do controle de ruptura',
-      items: [
-        { label: 'Ruptura Hoje vs Ontem', valor: '-18%', positivo: true, descricao: 'Redução de 82 para 67 itens em ruptura' },
-        { label: 'Custo de Ruptura', valor: '-R$ 2.100', positivo: true, descricao: 'Economia em relação ao dia anterior' },
-        { label: 'Ruptura Recorrente', valor: '+3 itens', positivo: false, descricao: '15 itens em ruptura por 3+ dias' },
-      ],
-    },
+    };
+  }
+  return {
+    titulo: 'Indicadores de Ruptura',
+    subtitulo: 'Snapshot do controle de ruptura',
+    items: [
+      { label: 'Cobertura', valor: `${aderencia}%`, positivo: aderencia >= 70, descricao: `${m.itensLidos || 0} de ${m.totalItens || 0} itens cobertos` },
+      { label: 'Custo total', valor: formatCurrencyBRL(m.custoTotalRuptura || 0), positivo: (m.custoTotalRuptura || 0) === 0, descricao: 'Impacto financeiro acumulado' },
+      { label: 'Variação geral', valor: fmtVar(variacao), positivo: variacao >= 0, descricao: 'Comparativo com auditorias anteriores' },
+    ],
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
 });
 
-// Recomendações Card
+// ============================================
+// Recomendações — derivadas das classes/itens críticos
+// ============================================
 const recomendacoesData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Plano de Ação',
-      subtitulo: 'Ações para melhorar leitura de etiquetas',
-      items: [
-        { texto: 'Reforçar equipe no setor Perfumaria para reduzir etiquetas desatualizadas', prioridade: 'Alta', cor: 'critical' },
-        { texto: 'Programar releitura dos 142 itens desatualizados até o fim do turno', prioridade: 'Média', cor: 'medium' },
-        { texto: 'Verificar 23 itens lidos sem estoque para possível reposição', prioridade: 'Baixa', cor: 'low' },
-      ],
-    },
-    presenca: {
-      titulo: 'Plano de Ação',
-      subtitulo: 'Ações para melhorar confirmação de presença',
-      items: [
-        { texto: 'Priorizar confirmação de presença nos 89 itens pendentes', prioridade: 'Alta', cor: 'critical' },
-        { texto: 'Alocar colaborador extra no setor Limpeza para cobrir falhas', prioridade: 'Média', cor: 'medium' },
-        { texto: 'Revisar itens com ruptura de presença para reposição', prioridade: 'Baixa', cor: 'low' },
-      ],
-    },
-    ruptura: {
-      titulo: 'Plano de Ação',
-      subtitulo: 'Ações para reduzir ruptura',
-      items: [
-        { texto: 'Solicitar reposição urgente dos 28 itens em ruptura na Padaria', prioridade: 'Alta', cor: 'critical' },
-        { texto: 'Monitorar os 15 itens com ruptura recorrente — ajustar estoque mínimo', prioridade: 'Média', cor: 'medium' },
-        { texto: 'Negociar com fornecedores dos itens de maior custo de ruptura', prioridade: 'Baixa', cor: 'low' },
-      ],
-    },
+  const tipo = tipoInsightAtual.value;
+  const m = metricasTipo.value || {};
+  const classes = classesRanqueadas.value;
+  const piorClasse = classes.length > 0 ? classes[classes.length - 1] : null;
+  const aderencia = Math.round(Number(m.percentualConclusao) || 0);
+
+  const titulos = { etiqueta: 'leitura de etiquetas', presenca: 'confirmação de presença', ruptura: 'controle de ruptura' };
+  const items = [];
+
+  if (piorClasse) {
+    items.push({ texto: `Reforçar ${titulos[tipo] || 'auditoria'} na classe "${piorClasse.nome}" — atualmente em ${piorClasse.percent}% de cobertura`, prioridade: 'Alta', cor: 'critical' });
+  }
+  if (tipo === 'etiqueta' && (m.itensDesatualizado || 0) > 0) {
+    items.push({ texto: `Reauditar ${m.itensDesatualizado} etiquetas marcadas como desatualizadas`, prioridade: 'Média', cor: 'medium' });
+  }
+  if (tipo === 'ruptura' && (m.custoTotalRuptura || 0) > 0) {
+    items.push({ texto: `Solicitar reposição imediata para minimizar ${formatCurrencyBRL(m.custoTotalRuptura)} em ruptura ativa`, prioridade: 'Alta', cor: 'critical' });
+  }
+  if (tipo === 'presenca' && (m.itensNaoLidos || 0) > 0) {
+    items.push({ texto: `Confirmar presença dos ${m.itensNaoLidos} itens pendentes ainda hoje`, prioridade: 'Alta', cor: 'critical' });
+  }
+  if (aderencia < 80) {
+    items.push({ texto: `Aderência geral em ${aderencia}% — definir meta de 80% para o próximo ciclo`, prioridade: 'Média', cor: 'medium' });
+  }
+  if (items.length === 0) {
+    items.push({ texto: 'Operação dentro do esperado — manter rotina e monitoramento contínuo', prioridade: 'Baixa', cor: 'low' });
+  }
+
+  return {
+    titulo: 'Plano de Ação',
+    subtitulo: `Sugestões para ${titulos[tipo] || 'a auditoria'}`,
+    items: items.slice(0, 4),
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
 });
 
-// Reconhecimentos Card
+// ============================================
+// Reconhecimentos — derivado do ranking real
+// ============================================
 const reconhecimentosData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Destaques da Equipe',
-      subtitulo: 'Melhores desempenhos em leitura',
-      items: [
-        { nome: 'Carlos Silva', conquista: '156 etiquetas lidas hoje', role: 'Líder de Leitura', badge: '🏆' },
-        { nome: 'Ana Santos', conquista: '100% de aderência no setor Mercearia', role: 'Destaque do Setor', badge: '⭐' },
-      ],
-    },
-    presenca: {
-      titulo: 'Destaques da Equipe',
-      subtitulo: 'Melhores desempenhos em presença',
-      items: [
-        { nome: 'Roberto Lima', conquista: '120 presenças confirmadas hoje', role: 'Líder de Presença', badge: '🏆' },
-        { nome: 'Maria Costa', conquista: 'Zero falhas de presença no turno', role: 'Precisão Total', badge: '⭐' },
-      ],
-    },
-    ruptura: {
-      titulo: 'Destaques da Equipe',
-      subtitulo: 'Melhores desempenhos contra ruptura',
-      items: [
-        { nome: 'João Oliveira', conquista: '45 rupturas evitadas hoje', role: 'Caçador de Ruptura', badge: '🏆' },
-        { nome: 'Lucia Mendes', conquista: 'Setor Hortifruti com zero ruptura', role: 'Guardiã do Estoque', badge: '⭐' },
-      ],
-    },
+  const colaboradores = (insightsStore.rankingColaboradores || [])
+    .filter((c) => c && c.nome && (c.auditorias > 0 || c.performance > 0))
+    .slice(0, 3);
+
+  const items = colaboradores.map((c, idx) => ({
+    nome: c.nome,
+    conquista: `${c.auditorias || 0} itens auditados (${Math.round(c.performance || 0)}% de eficiência)`,
+    role: idx === 0 ? 'Líder do dia' : idx === 1 ? 'Vice-líder' : 'Destaque',
+    badge: idx === 0 ? '1º' : idx === 1 ? '2º' : '3º',
+  }));
+
+  return {
+    titulo: 'Destaques da Equipe',
+    subtitulo: items.length ? 'Colaboradores com maior contribuição hoje' : 'Sem registros de colaboradores no período',
+    items,
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
 });
 
-// Distribuição por Classe Card
+// ============================================
+// Distribuição por Classe — vem do classesLeitura real
+// ============================================
 const distribuicaoData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Distribuição por Classe',
-      subtitulo: 'Leitura de etiquetas por classe de produto',
-      items: [
-        { classe: 'Mercearia Seca', valor: 320, total: 340, cor: '#10b981' },
-        { classe: 'Perecíveis', valor: 180, total: 220, cor: '#3b82f6' },
-        { classe: 'Bebidas', valor: 150, total: 160, cor: '#8b5cf6' },
-        { classe: 'Perfumaria', valor: 45, total: 200, cor: '#ef4444' },
-        { classe: 'Limpeza', valor: 110, total: 130, cor: '#f59e0b' },
-      ],
-    },
-    presenca: {
-      titulo: 'Distribuição por Classe',
-      subtitulo: 'Presença confirmada por classe de produto',
-      items: [
-        { classe: 'Mercearia Seca', valor: 285, total: 340, cor: '#10b981' },
-        { classe: 'Perecíveis', valor: 195, total: 220, cor: '#3b82f6' },
-        { classe: 'Bebidas', valor: 140, total: 160, cor: '#8b5cf6' },
-        { classe: 'Perfumaria', valor: 120, total: 200, cor: '#f59e0b' },
-        { classe: 'Limpeza', valor: 70, total: 130, cor: '#ef4444' },
-      ],
-    },
-    ruptura: {
-      titulo: 'Distribuição por Classe',
-      subtitulo: 'Ruptura por classe de produto',
-      items: [
-        { classe: 'Padaria', valor: 28, total: 80, cor: '#ef4444' },
-        { classe: 'Perecíveis', valor: 15, total: 220, cor: '#f59e0b' },
-        { classe: 'Bebidas', valor: 10, total: 160, cor: '#3b82f6' },
-        { classe: 'Limpeza', valor: 8, total: 130, cor: '#8b5cf6' },
-        { classe: 'Mercearia Seca', valor: 6, total: 340, cor: '#10b981' },
-      ],
-    },
+  const tipo = tipoInsightAtual.value;
+  const items = classesRanqueadas.value
+    .slice(0, 6)
+    .map((c, idx) => ({
+      classe: c.nome,
+      valor: c.lidos,
+      total: c.total,
+      cor: COLOR_PALETTE[idx % COLOR_PALETTE.length],
+    }));
+
+  const titulos = {
+    etiqueta: { titulo: 'Distribuição por Classe', subtitulo: 'Leitura de etiquetas por classe de produto' },
+    presenca: { titulo: 'Distribuição por Classe', subtitulo: 'Presença confirmada por classe de produto' },
+    ruptura:  { titulo: 'Distribuição por Classe', subtitulo: 'Cobertura anti-ruptura por classe' },
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
+  const cfg = titulos[tipo] || titulos.etiqueta;
+
+  return { ...cfg, items };
 });
 
-// Resumo da Auditoria Card
+// ============================================
+// Resumo da Auditoria — usa resumo real
+// ============================================
 const auditoriaData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Resumo da Auditoria',
-      subtitulo: 'Última auditoria de etiqueta',
-      stats: [
-        { valor: '94%', label: 'Conclusão' },
-        { valor: '1.058', label: 'Lidas' },
-        { valor: '142', label: 'Pendentes' },
-      ],
-      melhoria: { titulo: 'Melhoria na Leitura', descricao: 'Setor Mercearia subiu de 85% para 98%', positivo: true },
-    },
-    presenca: {
-      titulo: 'Resumo da Auditoria',
-      subtitulo: 'Última auditoria de presença',
-      stats: [
-        { valor: '82%', label: 'Confirmados' },
-        { valor: '411', label: 'Presentes' },
-        { valor: '89', label: 'Ausentes' },
-      ],
-      melhoria: { titulo: 'Evolução Positiva', descricao: 'Presença geral subiu 8% em relação a ontem', positivo: true },
-    },
-    ruptura: {
-      titulo: 'Resumo da Auditoria',
-      subtitulo: 'Última auditoria de ruptura',
-      stats: [
-        { valor: '78%', label: 'Evitada' },
-        { valor: '233', label: 'Cobertos' },
-        { valor: '67', label: 'Em Ruptura' },
-      ],
-      melhoria: { titulo: 'Redução de Ruptura', descricao: 'Queda de 18% no total de itens em ruptura', positivo: true },
-    },
+  const tipo = tipoInsightAtual.value;
+  const m = metricasTipo.value || {};
+  const aderencia = Math.round(Number(m.percentualConclusao) || 0);
+  const totalItens = Number(m.totalItens) || 0;
+  const lidos = Number(m.itensAtualizados ?? m.itensLidos) || 0;
+  const pendentes = Math.max(totalItens - lidos, 0);
+  const classes = classesRanqueadas.value;
+  const melhorClasse = classes[0];
+
+  const subtitulos = {
+    etiqueta: 'Resumo do dia — auditoria de etiqueta',
+    presenca: 'Resumo do dia — auditoria de presença',
+    ruptura:  'Resumo do dia — auditoria de ruptura',
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
+
+  return {
+    titulo: 'Resumo da Auditoria',
+    subtitulo: subtitulos[tipo] || subtitulos.etiqueta,
+    stats: [
+      { valor: `${aderencia}%`, label: tipo === 'ruptura' ? 'Cobertura' : 'Conclusão' },
+      { valor: lidos.toLocaleString('pt-BR'), label: tipo === 'ruptura' ? 'Cobertos' : 'Lidos' },
+      { valor: pendentes.toLocaleString('pt-BR'), label: tipo === 'ruptura' ? 'Em Ruptura' : 'Pendentes' },
+    ],
+    melhoria: melhorClasse
+      ? { titulo: `Destaque em ${melhorClasse.nome}`, descricao: `Aderência de ${melhorClasse.percent}% (${melhorClasse.lidos}/${melhorClasse.total})`, positivo: melhorClasse.percent >= 70 }
+      : { titulo: 'Sem destaques', descricao: 'Aguardando dados suficientes para análise', positivo: false },
+  };
 });
 
-// Ranking por Local Card
+// ============================================
+// Ranking por Local — usa locaisLeitura real
+// ============================================
 const rankingLocalData = computed(() => {
-  const configs = {
-    etiqueta: {
-      titulo: 'Ranking por Local',
-      subtitulo: 'Setores ordenados por leitura',
-      items: [
-        { posicao: 1, nome: 'Mercearia', valor: 98, total: 100, status: 'excelente' },
-        { posicao: 2, nome: 'Bebidas', valor: 94, total: 100, status: 'bom' },
-        { posicao: 3, nome: 'Limpeza', valor: 85, total: 100, status: 'bom' },
-        { posicao: 4, nome: 'Perecíveis', valor: 72, total: 100, status: 'atencao' },
-        { posicao: 5, nome: 'Perfumaria', valor: 20, total: 100, status: 'critico' },
-      ],
-    },
-    presenca: {
-      titulo: 'Ranking por Local',
-      subtitulo: 'Setores ordenados por presença',
-      items: [
-        { posicao: 1, nome: 'Bebidas', valor: 95, total: 100, status: 'excelente' },
-        { posicao: 2, nome: 'Mercearia', valor: 88, total: 100, status: 'bom' },
-        { posicao: 3, nome: 'Perecíveis', valor: 76, total: 100, status: 'bom' },
-        { posicao: 4, nome: 'Perfumaria', valor: 60, total: 100, status: 'atencao' },
-        { posicao: 5, nome: 'Limpeza', valor: 35, total: 100, status: 'critico' },
-      ],
-    },
-    ruptura: {
-      titulo: 'Ranking por Local',
-      subtitulo: 'Setores ordenados por ruptura (menor = melhor)',
-      items: [
-        { posicao: 1, nome: 'Hortifruti', valor: 3, total: 100, status: 'excelente' },
-        { posicao: 2, nome: 'Mercearia', valor: 5, total: 100, status: 'bom' },
-        { posicao: 3, nome: 'Bebidas', valor: 12, total: 100, status: 'atencao' },
-        { posicao: 4, nome: 'Limpeza', valor: 19, total: 100, status: 'atencao' },
-        { posicao: 5, nome: 'Padaria', valor: 45, total: 100, status: 'critico' },
-      ],
-    },
+  const tipo = tipoInsightAtual.value;
+  const ordenados = [...locaisRanqueados.value];
+  const ehRuptura = tipo === 'ruptura';
+  // Para ruptura, menor percentual = melhor cobertura? Não — percentual aqui = cobertura, então maior é melhor para todos
+  const items = ordenados.slice(0, 5).map((l, idx) => ({
+    posicao: idx + 1,
+    nome: l.nome,
+    valor: l.percent,
+    total: 100,
+    status: l.percent >= 90 ? 'excelente' : l.percent >= 70 ? 'bom' : l.percent >= 40 ? 'atencao' : 'critico',
+  }));
+
+  const titulos = {
+    etiqueta: { titulo: 'Ranking por Local', subtitulo: 'Locais ordenados por aderência de leitura' },
+    presenca: { titulo: 'Ranking por Local', subtitulo: 'Locais ordenados por confirmação de presença' },
+    ruptura:  { titulo: 'Ranking por Local', subtitulo: 'Locais ordenados por cobertura anti-ruptura' },
   };
-  return configs[tipoInsightAtual.value] || configs.etiqueta;
+  const cfg = titulos[tipo] || titulos.etiqueta;
+
+  return { ...cfg, items };
 });
 
 const alterarTipoInsight = (tipo) => {

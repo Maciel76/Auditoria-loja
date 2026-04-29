@@ -92,29 +92,20 @@
             <div class="kpi-title">Itens Lidos</div>
           </div>
           <div class="kpi-content">
-            <div class="kpi-value">42</div>
-            <div class="kpi-trend positive">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-              </svg>
-              +18%
+            <div class="kpi-value">{{ formatNumber(estatisticas.totalAuditorias) }}</div>
+            <div class="kpi-trend" :class="estatisticas.totalAuditorias > 0 ? 'positive' : 'neutral'">
+              <span>de {{ formatNumber(estatisticas.totalItens) }} totais</span>
             </div>
           </div>
           <div class="kpi-chart">
             <div class="mini-chart">
-              <div class="chart-bar" style="height: 30%"></div>
-              <div class="chart-bar" style="height: 60%"></div>
-              <div class="chart-bar" style="height: 45%"></div>
-              <div class="chart-bar" style="height: 80%"></div>
-              <div class="chart-bar" style="height: 75%"></div>
-              <div class="chart-bar" style="height: 90%"></div>
-              <div class="chart-bar" style="height: 100%"></div>
+              <div
+                v-for="(c, idx) in topClassesParaChart"
+                :key="c.nome + '-' + idx"
+                class="chart-bar"
+                :style="{ height: Math.max(c.percentual, 4) + '%' }"
+                :title="`${c.nome}: ${c.percentual}%`"
+              ></div>
             </div>
           </div>
         </div>
@@ -139,18 +130,9 @@
             <div class="kpi-title">Taxa de Conformidade</div>
           </div>
           <div class="kpi-content">
-            <div class="kpi-value">94.2%</div>
-            <div class="kpi-trend positive">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-              </svg>
-              +5.3%
+            <div class="kpi-value">{{ estatisticas.conformidadeGeral }}%</div>
+            <div class="kpi-trend" :class="estatisticas.conformidadeGeral >= 80 ? 'positive' : estatisticas.conformidadeGeral >= 60 ? 'neutral' : 'negative'">
+              <span>{{ estatisticas.conformidadeGeral >= 80 ? 'Dentro da meta' : estatisticas.conformidadeGeral >= 60 ? 'Próximo da meta' : 'Abaixo da meta' }}</span>
             </div>
           </div>
           <div class="kpi-progress">
@@ -158,9 +140,9 @@
               <div class="progress-background"></div>
               <div
                 class="progress-fill"
-                :style="{ transform: `rotate(${94.2 * 3.6}deg)` }"
+                :style="{ transform: `rotate(${estatisticas.conformidadeGeral * 3.6}deg)` }"
               ></div>
-              <div class="progress-text">94%</div>
+              <div class="progress-text">{{ estatisticas.conformidadeGeral }}%</div>
             </div>
           </div>
         </div>
@@ -185,27 +167,18 @@
             <div class="kpi-title">Pendências</div>
           </div>
           <div class="kpi-content">
-            <div class="kpi-value">8</div>
-            <div class="kpi-trend negative">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 10L12 15L17 10H7Z" fill="currentColor" />
-              </svg>
-              +2
+            <div class="kpi-value">{{ formatNumber(estatisticas.naoConformidades) }}</div>
+            <div class="kpi-trend" :class="estatisticas.naoConformidades === 0 ? 'positive' : 'negative'">
+              <span>{{ formatNumber(estatisticas.totalItens) }} itens auditados</span>
             </div>
           </div>
           <div class="kpi-alerts">
             <div class="alert-item critical">
-              <span class="alert-count">3</span>
+              <span class="alert-count">{{ formatNumber(alertasResumo.criticas) }}</span>
               <span class="alert-label">Críticas</span>
             </div>
             <div class="alert-item medium">
-              <span class="alert-count">5</span>
+              <span class="alert-count">{{ formatNumber(alertasResumo.moderadas) }}</span>
               <span class="alert-label">Moderadas</span>
             </div>
           </div>
@@ -223,38 +196,25 @@
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z"
-                  fill="currentColor"
-                />
-                <path
-                  d="M12.5 7H11V13L16.25 16.15L17 15.08L12.5 12.25V7Z"
+                  d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15.02 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z"
                   fill="currentColor"
                 />
               </svg>
             </div>
-            <div class="kpi-title">Dias Médios</div>
+            <div class="kpi-title">Colaboradores Ativos</div>
           </div>
           <div class="kpi-content">
-            <div class="kpi-value">2.3</div>
-            <div class="kpi-trend positive">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M7 14L12 9L17 14H7Z" fill="currentColor" />
-              </svg>
-              -0.7
+            <div class="kpi-value">{{ formatNumber(estatisticas.colaboradoresAtivos) }}</div>
+            <div class="kpi-trend" :class="estatisticas.colaboradoresAtivos > 0 ? 'positive' : 'neutral'">
+              <span>operando esta auditoria</span>
             </div>
           </div>
           <div class="kpi-goal">
             <div class="goal-progress">
               <div class="goal-bar">
-                <div class="goal-fill" style="width: 76%"></div>
+                <div class="goal-fill" :style="{ width: Math.min(100, estatisticas.conformidadeGeral) + '%' }"></div>
               </div>
-              <div class="goal-text">Meta: 3 dias</div>
+              <div class="goal-text">Cobertura geral: {{ estatisticas.conformidadeGeral }}%</div>
             </div>
           </div>
         </div>
@@ -304,42 +264,42 @@
               <div class="pie-chart">
                 <div
                   class="pie-segment completed"
-                  style="--percentage: 70"
+                  :style="{ '--percentage': distribuicaoStatus.concluidas }"
                 ></div>
                 <div
                   class="pie-segment in-progress"
-                  style="--percentage: 15"
+                  :style="{ '--percentage': distribuicaoStatus.emAndamento }"
                 ></div>
-                <div class="pie-segment pending" style="--percentage: 10"></div>
-                <div class="pie-segment overdue" style="--percentage: 5"></div>
+                <div class="pie-segment pending" :style="{ '--percentage': distribuicaoStatus.pendentes }"></div>
+                <div class="pie-segment overdue" :style="{ '--percentage': distribuicaoStatus.atrasadas }"></div>
                 <div class="pie-center">
-                  <span class="pie-total">100%</span>
+                  <span class="pie-total">{{ estatisticas.conformidadeGeral }}%</span>
                 </div>
               </div>
               <div class="chart-legend">
                 <div class="legend-item">
                   <div class="legend-color completed"></div>
-                  <span>Concluídas (70%)</span>
+                  <span>Concluídas ({{ distribuicaoStatus.concluidas }}%)</span>
                 </div>
                 <div class="legend-item">
                   <div class="legend-color in-progress"></div>
-                  <span>Em Andamento (15%)</span>
+                  <span>Em Andamento ({{ distribuicaoStatus.emAndamento }}%)</span>
                 </div>
                 <div class="legend-item">
                   <div class="legend-color pending"></div>
-                  <span>Pendentes (10%)</span>
+                  <span>Pendentes ({{ distribuicaoStatus.pendentes }}%)</span>
                 </div>
                 <div class="legend-item">
                   <div class="legend-color overdue"></div>
-                  <span>Atrasadas (5%)</span>
+                  <span>Sem dados ({{ distribuicaoStatus.atrasadas }}%)</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Evolução Temporal -->
-        <div class="chart-card large">
+        <!-- Evolução Temporal (oculto: sem histórico real disponível) -->
+        <div v-if="evolucaoConformidade.length > 1 && false" class="chart-card large">
           <div class="chart-header">
             <h3>Evolução da Conformidade</h3>
             <p class="chart-subtitle">Últimos 30 dias</p>
@@ -449,7 +409,8 @@
                   <td class="auditor-cell">
                     <div class="auditor-info">
                       <div class="auditor-avatar">
-                        <img :src="auditor.foto" :alt="auditor.nome" />
+                        <img v-if="auditor.foto" :src="auditor.foto" :alt="auditor.nome" />
+                        <div v-else class="auditor-avatar-fallback">{{ auditor.iniciais }}</div>
                       </div>
                       <div class="auditor-details">
                         <span class="auditor-name">{{ auditor.nome }}</span>
@@ -553,18 +514,62 @@ const estatisticas = computed(() => {
   const auditoriaAtual = dadosMetricas.value[tipoAuditoriaAtual.value];
   const resumo = auditoriaAtual?.resumo || {};
 
-  const totalItens = resumo.totalItens || 0;
-  const itensLidos = resumo.itensLidos || 0;
+  const totalItens = Number(
+    resumo.totalItens ?? resumo.itensValidos ?? 0
+  );
+  const itensLidos = Number(
+    resumo.itensAtualizados ?? resumo.itensLidos ?? 0
+  );
   const percentualGeral = totalItens > 0 ? (itensLidos / totalItens) * 100 : 0;
+  const colaboradoresAtivos = Number(resumo.usuariosAtivos ?? 0);
+  const naoConformidades = Math.max(0, totalItens - itensLidos);
 
   return {
     totalAuditorias: itensLidos,
+    totalItens,
     conformidadeGeral: Math.round(percentualGeral),
     metasAtingidas: Math.round(
       percentualGeral >= 80 ? percentualGeral : percentualGeral * 0.8
     ),
-    naoConformidades: Math.max(0, totalItens - itensLidos),
+    naoConformidades,
+    colaboradoresAtivos,
     crescimentoMedio: itensLidos,
+  };
+});
+
+// Helpers / métricas auxiliares
+const formatNumber = (n) => Number(n || 0).toLocaleString('pt-BR');
+
+const topClassesParaChart = computed(() => {
+  const setores = conformidadeSetores.value || [];
+  return setores.slice(0, 7).map((s) => ({ nome: s.nome, percentual: s.percentual }));
+});
+
+const alertasResumo = computed(() => {
+  const setores = conformidadeSetores.value || [];
+  const criticas = setores.filter((s) => s.percentual < 60).length;
+  const moderadas = setores.filter((s) => s.percentual >= 60 && s.percentual < 80).length;
+  return { criticas, moderadas };
+});
+
+const distribuicaoStatus = computed(() => {
+  const m = dadosMetricas.value[tipoAuditoriaAtual.value]?.resumo || {};
+  const total = Number(m.totalItens ?? m.itensValidos ?? 0);
+  if (total === 0) return { concluidas: 0, emAndamento: 0, pendentes: 0, atrasadas: 100 };
+
+  const lidos = Number(m.itensAtualizados ?? m.itensLidos ?? 0);
+  const desatualizados = Number(m.itensDesatualizado ?? 0);
+  const pendentes = Math.max(0, total - lidos - desatualizados);
+
+  const pctLidos = Math.round((lidos / total) * 100);
+  const pctDesat = Math.round((desatualizados / total) * 100);
+  const pctPend = Math.max(0, 100 - pctLidos - pctDesat);
+
+  return {
+    concluidas: pctLidos,
+    emAndamento: pctDesat,
+    pendentes: pctPend,
+    atrasadas: 0,
   };
 });
 
@@ -611,31 +616,43 @@ const topNaoConformidades = computed(() => {
     .slice(0, 4);
 });
 
-// Top auditores (dados mockados até implementar API de usuários)
-const auditores = ref([
-  {
-    id: 1,
-    nome: "Maria Silva",
-    setor: "Qualidade",
-    foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80",
-    auditorias: 0,
-    conformidade: 98,
-    ncs: 0,
-    tempo: 1.8,
-    status: "excelente",
-  },
-  {
-    id: 2,
-    nome: "João Santos",
-    setor: "Operações",
-    foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80",
-    auditorias: 0,
-    conformidade: 95,
-    ncs: 0,
-    tempo: 2.1,
-    status: "excelente",
-  },
-]);
+// Top auditores (vindos de /ranking-colaboradores filtrado pelo tipo)
+const auditores = ref([]);
+
+const carregarAuditores = async () => {
+  try {
+    if (!lojaStore.codigoLojaAtual) return;
+    const tipoMap = { etiquetas: 'etiqueta', presencas: 'presenca', rupturas: 'ruptura' };
+    const tipoQuery = tipoMap[tipoAuditoriaAtual.value] || 'etiqueta';
+    const response = await api.get('/ranking-colaboradores', {
+      headers: { 'x-loja': lojaStore.codigoLojaAtual },
+      params: { tipo: tipoQuery },
+    });
+    const lista = Array.isArray(response.data) ? response.data : [];
+    auditores.value = lista.slice(0, 10).map((c, idx) => {
+      const eficiencia = Math.round(Number(c.eficiencia) || 0);
+      let status = 'baixo';
+      if (eficiencia >= 90) status = 'excelente';
+      else if (eficiencia >= 75) status = 'bom';
+      else if (eficiencia >= 50) status = 'medio';
+      return {
+        id: c.id || idx,
+        nome: c.nome,
+        setor: c.loja || lojaStore.nomeLojaAtual || '—',
+        foto: c.foto || null,
+        iniciais: (c.nome || '?').split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase(),
+        auditorias: Number(c.contador) || 0,
+        conformidade: eficiencia,
+        ncs: 0,
+        tempo: '—',
+        status,
+      };
+    });
+  } catch (err) {
+    console.error('❌ Erro ao carregar auditores:', err);
+    auditores.value = [];
+  }
+};
 
 const buscarDadosReais = async () => {
   carregando.value = true;
@@ -698,17 +715,25 @@ const exportarDados = () => {
   URL.revokeObjectURL(url);
 };
 
-// Observar mudanças na loja
+// Observar mudanças na loja e tipo de auditoria
 watch(
   () => lojaStore.codigoLojaAtual,
   (novaLoja) => {
-    if (novaLoja) buscarDadosReais();
+    if (novaLoja) {
+      buscarDadosReais();
+      carregarAuditores();
+    }
   }
 );
+
+watch(tipoAuditoriaAtual, () => {
+  carregarAuditores();
+});
 
 onMounted(() => {
   if (lojaStore.codigoLojaAtual) {
     buscarDadosReais();
+    carregarAuditores();
   } else {
     erro.value = "Por favor, selecione uma loja.";
     carregando.value = false;
@@ -952,6 +977,24 @@ onMounted(() => {
 .kpi-trend.negative {
   background: rgba(239, 68, 68, 0.1);
   color: #7f1d1d;
+}
+
+.kpi-trend.neutral {
+  background: rgba(99, 102, 241, 0.08);
+  color: #4338ca;
+}
+
+.auditor-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border-radius: 50%;
 }
 
 /* Mini Chart */

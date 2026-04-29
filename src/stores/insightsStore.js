@@ -31,51 +31,57 @@ export const useInsightsStore = defineStore('insights', {
   }),
 
   getters: {
-    // Getters para os cards de resumo
+    // Total de itens efetivamente lidos/atualizados na auditoria de etiquetas do dia
     itensAuditados: (state) => {
-      return state.metricasDiarias?.etiquetas?.totalLidos ?? 0;
+      const m = state.metricasDiarias?.etiquetas || {};
+      return Number(m.itensAtualizados ?? m.totalLidos ?? 0);
     },
+    // Custo total em ruptura formatado em BRL
     valorRuptura: (state) => {
-      // Formata o valor para moeda brasileira
-      const valor = state.metricasDiarias?.rupturas?.valorRuptura ?? 0;
+      const valor = Number(
+        state.metricasDiarias?.rupturas?.custoTotalRuptura
+        ?? state.metricasDiarias?.rupturas?.valorRuptura
+        ?? 0
+      );
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
     },
+    // Aderência (% de conclusão das etiquetas)
     aderencia: (state) => {
-      const percentual = state.metricasDiarias?.etiquetas?.aderencia ?? 0;
-      return `${(percentual * 100).toFixed(0)}%`;
+      const percentual = Number(state.metricasDiarias?.etiquetas?.percentualConclusao ?? 0);
+      return `${Math.round(percentual)}%`;
     },
     itensPorColaborador: (state) => {
-        const totalItens = state.metricasDiarias?.etiquetas?.totalLidos ?? 0;
-        const totalUsers = state.metricasDiarias?.usuarios?.totalUsuarios ?? 0;
-        if(totalUsers === 0) return 0;
-        return (totalItens / totalUsers).toFixed(1);
+      const m = state.metricasDiarias?.etiquetas || {};
+      const totalItens = Number(m.itensAtualizados ?? m.totalLidos ?? 0);
+      const totalUsers = Number(m.usuariosAtivos ?? state.metricasDiarias?.totais?.usuariosAtivos ?? 0);
+      if (totalUsers === 0) return '0';
+      return (totalItens / totalUsers).toFixed(1);
     },
 
-    // Getters para os cards de insights
+    // Setor com melhor desempenho (a partir de locaisEstatisticas)
     setorDestaque: (state) => {
-        if (!state.metricasSetores || state.metricasSetores.length === 0) {
-            return { nome: 'N/A', valor: '' };
-        }
-        const destaque = state.metricasSetores.reduce((max, setor) => 
-            (setor.pontuacao > max.pontuacao ? setor : max), state.metricasSetores[0]
-        );
-        return { nome: destaque.nome, valor: `${(destaque.aderencia * 100).toFixed(0)}%` };
+      const setores = state.metricasSetores || [];
+      if (!setores.length) return { nome: 'N/A', valor: '' };
+      const destaque = setores.reduce((max, s) =>
+        ((s.percentualConclusao ?? s.aderencia ?? 0) > (max.percentualConclusao ?? max.aderencia ?? 0) ? s : max),
+        setores[0]);
+      const pct = Number(destaque.percentualConclusao ?? (destaque.aderencia || 0) * 100);
+      return { nome: destaque.local || destaque.nome || 'N/A', valor: `${Math.round(pct)}%` };
     },
     setorCritico: (state) => {
-        if (!state.metricasSetores || state.metricasSetores.length === 0) {
-            return { nome: 'N/A', valor: '' };
-        }
-        const critico = state.metricasSetores.reduce((min, setor) =>
-            (setor.pontuacao < min.pontuacao ? setor : min), state.metricasSetores[0]
-        );
-        return { nome: critico.nome, valor: `${(critico.aderencia * 100).toFixed(0)}%` };
+      const setores = state.metricasSetores || [];
+      if (!setores.length) return { nome: 'N/A', valor: '' };
+      const critico = setores.reduce((min, s) =>
+        ((s.percentualConclusao ?? s.aderencia ?? 0) < (min.percentualConclusao ?? min.aderencia ?? 0) ? s : min),
+        setores[0]);
+      const pct = Number(critico.percentualConclusao ?? (critico.aderencia || 0) * 100);
+      return { nome: critico.local || critico.nome || 'N/A', valor: `${Math.round(pct)}%` };
     },
     colaboradorDestaque: (state) => {
-        if (!state.rankingColaboradores || state.rankingColaboradores.length === 0) {
-            return { nome: 'N/A', conquista: 'Nenhuma atividade registrada' };
-        }
-        const destaque = state.rankingColaboradores[0];
-        return { nome: destaque.nome, conquista: `${destaque.auditorias} itens auditados` };
+      const ranking = state.rankingColaboradores || [];
+      if (!ranking.length) return { nome: 'N/A', conquista: 'Nenhuma atividade registrada' };
+      const top = ranking[0];
+      return { nome: top.nome, conquista: `${top.auditorias || 0} itens auditados` };
     },
   },
 

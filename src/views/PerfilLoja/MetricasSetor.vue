@@ -560,7 +560,8 @@ const totalItens = computed(() => {
 });
 
 const itensLidos = computed(() => {
-  return dadosReais.value.metricas[tipoAuditoriaAtual.value]?.itensLidos || 0;
+  const tipoResumo = dadosReais.value.metricas[tipoAuditoriaAtual.value]?.resumo || {};
+  return tipoResumo.itensAtualizados ?? tipoResumo.itensLidos ?? 0;
 });
 
 const itensAtualizados = computed(() => {
@@ -572,7 +573,11 @@ const custoTotalRuptura = computed(() => {
 });
 
 const percentualPresenca = computed(() => {
-  return dadosReais.value.metricas.presencas?.resumo?.percentualPresenca || 0;
+  return (
+    dadosReais.value.metricas.presencas?.resumo?.percentualConclusao ||
+    dadosReais.value.metricas.presencas?.resumo?.percentualPresenca ||
+    0
+  );
 });
 
 // Computed para calcular total de colaboradores únicos
